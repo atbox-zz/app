@@ -24,5 +24,6 @@ dist-ssr
 *.sw?
 SoundApp.css
 SoundApp.jsx
+MusicPlayer1.jsx
 MusicPlayer2.jsx
 MusicPlayer3.jsx
