@@ -1,12 +1,67 @@
 import React, { useState, useRef, useEffect } from 'react';
 
+// Custom swipe handler (mimicking react-swipeable functionality)
+const useSwipeable = (handlers) => {
+  const ref = useRef(null);
+  
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    let startX = 0;
+    let startY = 0;
+    let startTime = 0;
+    
+    const handleTouchStart = (e) => {
+      const touch = e.touches[0];
+      startX = touch.clientX;
+      startY = touch.clientY;
+      startTime = Date.now();
+    };
+
+    const handleTouchEnd = (e) => {
+      const touch = e.changedTouches[0];
+      const deltaX = touch.clientX - startX;
+      const deltaY = touch.clientY - startY;
+      const deltaTime = Date.now() - startTime;
+      
+      const absDeltaX = Math.abs(deltaX);
+      const absDeltaY = Math.abs(deltaY);
+      
+      // Only trigger if horizontal swipe is dominant and meets thresholds
+      if (absDeltaX > absDeltaY && absDeltaX > 50 && deltaTime < 500) {
+        const event = {
+          deltaX,
+          deltaY,
+          absX: absDeltaX,
+          absY: absDeltaY,
+          velocity: absDeltaX / deltaTime
+        };
+        
+        if (deltaX > 0) {
+          handlers.onSwipedRight?.(event);
+        } else {
+          handlers.onSwipedLeft?.(event);
+        }
+      }
+    };
+
+    element.addEventListener('touchstart', handleTouchStart, { passive: true });
+    element.addEventListener('touchend', handleTouchEnd, { passive: true });
+    
+    return () => {
+      element.removeEventListener('touchstart', handleTouchStart);
+      element.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [handlers]);
+
+  return ref;
+};
+
 const MusicPlayer = () => {
   const [currentButton, setCurrentButton] = useState(null);
   const [currentAudio, setCurrentAudio] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
-  const containerRef = useRef(null);
 
   // 設置 viewport 和防止縮放
   useEffect(() => {
@@ -66,28 +121,28 @@ const MusicPlayer = () => {
     {
       title: "小明劍魔回答我！",
       buttons: [
-        { text: "回答我!", filename: "/回答我.mp3", isEnglish: false },
-        { text: "LOOK\nIN\nMY EYES", filename: "/Lookmyeyes.mp3", isEnglish: true },
-        { text: "TELL\nME\nWHY?", filename: "/Tellmewhy.mp3", isEnglish: true },
-        { text: "啊能能!", filename: "/啊能能.mp3", isEnglish: false },
+        { text: "回答我!", filename: "https://atbox-zz.github.io/app/answerme.mp3", isEnglish: false },
+        { text: "LOOK\nIN\nMY EYES", filename: "https://atbox-zz.github.io/app/Lookmyeyes.mp3", isEnglish: true },
+        { text: "TELL\nME\nWHY?", filename: "./Tellmewhy.mp3", isEnglish: true },
+        { text: "啊能能!", filename: "./啊能能.mp3", isEnglish: false },
       ]
     },
     {
       title: "童話故事柯佳嬿金句",
       buttons: [
-        { text: "你老師咧", filename: "/你老師咧.mp3", isEnglish: false },
-        { text: "參加喪禮會想死", filename: "/參加喪禮會想死.mp3", isEnglish: false },
-        { text: "吃賽啦", filename: "/吃屎啦.mp3", isEnglish: false },
-        { text: "哭北哦", filename: "/哭北.mp3", isEnglish: false },
+        { text: "你老師咧", filename: "https://atbox-zz.github.io/app/你老師咧.mp3", isEnglish: false },
+        { text: "參加喪禮會想死", filename: "https://atbox-zz.github.io/app/參加喪禮會想死.mp3", isEnglish: false },
+        { text: "吃賽啦", filename: "https://atbox-zz.github.io/app/吃屎啦.mp3", isEnglish: false },
+        { text: "哭北哦", filename: "https://atbox-zz.github.io/app/哭北.mp3", isEnglish: false },
       ]
     },
     {
       title: "搞笑語音動感節拍",
       buttons: [
-        { text: "我信你個鬼", filename: "/我信你個鬼.mp3", isEnglish: false },
-        { text: "不可能的任務", filename: "/不可能的任務.mp3", isEnglish: false },
-        { text: "你不要過來啊!", filename: "/你不要過來啊.mp3", isEnglish: false },
-        { text: "五姑媽", filename: "/五姑媽.mp3", isEnglish: false },
+        { text: "我信你個鬼", filename: "https://atbox-zz.github.io/app/我信你個鬼.mp3", isEnglish: false },
+        { text: "不可能的任務", filename: "https://atbox-zz.github.io/app/不可能的任務.mp3", isEnglish: false },
+        { text: "你不要過來啊!", filename: "https://atbox-zz.github.io/app/你不要過來啊.mp3", isEnglish: false },
+        { text: "五姑媽", filename: "https://atbox-zz.github.io/app/五姑媽.mp3", isEnglish: false },
       ]
     }
   ];
@@ -128,29 +183,22 @@ const MusicPlayer = () => {
     }, 500);
   };
 
-  // 觸摸事件處理
-  const handleTouchStart = (e) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe && currentPage < audioPages.length - 1) {
-      setCurrentPage(currentPage + 1);
-    }
-    if (isRightSwipe && currentPage > 0) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
+  // 使用自定義 swipeable hook
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => {
+      if (currentPage < audioPages.length - 1) {
+        setCurrentPage(currentPage + 1);
+      }
+    },
+    onSwipedRight: () => {
+      if (currentPage > 0) {
+        setCurrentPage(currentPage - 1);
+      }
+    },
+    trackMouse: true, // 支持滑鼠拖拽
+    preventDefaultTouchmoveEvent: false,
+    delta: 50 // 最小滑動距離
+  });
 
   // 鍵盤事件處理
   useEffect(() => {
@@ -164,7 +212,7 @@ const MusicPlayer = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentPage]);
+  }, [audioPages.length, currentPage]);
 
   const buttonStyle = {
     background: 'linear-gradient(145deg, #f5f5dc, #e6e6d4)',
@@ -214,25 +262,28 @@ const MusicPlayer = () => {
   ];
 
   return (
-    <div style={{
-      fontFamily: 'Arial, sans-serif',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      width: '100vw',
-      height: '100vh',
-      margin: 0,
-      padding: 0,
-      background: '#100000',
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      overflow: 'hidden',
-      userSelect: 'none',
-      webkitUserSelect: 'none',
-      webkitTouchCallout: 'none',
-    }}>
+    <div
+      ref={swipeHandlers}
+      style={{
+        fontFamily: 'Arial, sans-serif',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100vw',
+        height: '100vh',
+        margin: 0,
+        padding: 0,
+        background: '#100000',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        overflow: 'hidden',
+        userSelect: 'none',
+        webkitUserSelect: 'none',
+        webkitTouchCallout: 'none',
+      }}
+    >
       {/* 標題 */}
       <div style={{
         color: '#fff',
@@ -270,7 +321,6 @@ const MusicPlayer = () => {
 
       {/* 音樂播放器容器 */}
       <div
-        ref={containerRef}
         style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
@@ -283,9 +333,6 @@ const MusicPlayer = () => {
           width: '85vw',
           maxWidth: '85vw',
         }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
         {audioPages[currentPage].buttons.map((button, index) => (
           <button
