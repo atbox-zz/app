@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>公車路線追蹤</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+    <title>即時公車追蹤系統</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"/>
     <style>
         * {
             margin: 0;
@@ -20,27 +20,53 @@
         
         .container {
             max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
+            display: flex;
+            height: 100vh;
         }
-        
-        .header {
+
+        .sidebar {
+            width: 350px;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .map-container {
+            flex: 1;
+            position: relative;
+        }
+
+        .map-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
         }
         
-        .header h1 {
-            text-align: center;
-            color: #2c3e50;
-            font-size: 28px;
+        .control-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
             margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         
+        .input-group {
+            margin-bottom: 15px;
+        }
+
         .controls {
             display: flex;
             gap: 15px;
@@ -58,14 +84,14 @@
         .control-group label {
             font-weight: bold;
             color: #34495e;
-            font-size: 14px;
+            font-size: 12px;
         }
         
         select, button {
             padding: 10px 15px;
             border: none;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 12px;
             transition: all 0.3s ease;
         }
         
@@ -106,23 +132,6 @@
             grid-template-columns: 1fr 2fr;
             gap: 25px;
             height: 70vh;
-        }
-        
-        .sidebar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            overflow-y: auto;
-        }
-        
-        .map-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
         
         #map {
@@ -442,18 +451,17 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🚌公車路線追蹤<span style="display: inline-block; transform: scaleX(-1);">🚌</span></h1>
-            <div class="controls">
-                <div class="control-group">
+        <div class="sidebar">
+            <div class="control-panel">
+                <h2>🚌公車路線追蹤<span style="display: inline-block; transform: scaleX(-1);">🚌</span></h2>
+                <div class="input-group">
                     <select id="citySelect">
                         <option value="newtaipei">新北市</option>
                         <option value="taoyuan">桃園市</option>                        
                         <option value="taipei">台北市</option>
-                        
                     </select>
                 </div>
-                <div class="control-group">
+                <div class="input-group">
                     <select id="routeSelect">
                         <option value="橘21">橘21</option>
                         <option value="藍37">藍37</option>
@@ -490,41 +498,42 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="main-content">
-            <div class="sidebar">
-                <div class="route-stop-info">
-                    <h3>路線站牌資訊</h3>
-                    <div class="route-details" id="routeDetails">
-                        請選擇路線以查看詳細資訊
-                    </div>
-                    
-                    <div class="direction-tabs">
-                        <button class="direction-tab active" data-direction="0">去程 (藍色)</button>
-                        <button class="direction-tab" data-direction="1">回程 (綠色)</button>
-                    </div>
-                    
-                    <div class="stops-container">
-                        <div id="stopsInfo">
-                            <div class="loading">請先選擇路線</div>
+        
+            <div class="main-content">
+                <div class="sidebar">
+                    <div class="route-stop-info">
+                        <h3>路線站牌資訊</h3>
+                        <div class="route-details" id="routeDetails">
+                            請選擇路線以查看詳細資訊
+                        </div>
+                        
+                        <div class="direction-tabs">
+                            <button class="direction-tab active" data-direction="0">去程 (藍色)</button>
+                            <button class="direction-tab" data-direction="1">回程 (綠色)</button>
+                        </div>
+                        
+                        <div class="stops-container">
+                            <div id="stopsInfo">
+                                <div class="loading">請先選擇路線</div>
+                            </div>
                         </div>
                     </div>
+                    
+                    <div id="busInfo" class="bus-info">
+                        <div class="loading">請先選擇路線</div>
+                    </div>                
                 </div>
-                
-                <div id="busInfo" class="bus-info">
-                    <div class="loading">請先選擇路線</div>
-                </div>                
             </div>
-            
+        </div>    
             <div class="map-container">
-                <div class="map-controls">
-                    <button class="map-control-btn active" id="toggleStops">顯示站牌</button>
-                    <button class="map-control-btn active" id="toggleBuses">顯示公車</button>
+                <div id="map">
+                    <div class="map-controls">
+                        <button class="map-control-btn active" id="toggleStops">顯示站牌</button>
+                        <button class="map-control-btn active" id="toggleBuses">顯示公車</button>
+                    </div>
                 </div>
-                <div id="map"></div>
             </div>
-        </div>
+        
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <!--script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script-->
@@ -689,7 +698,8 @@
                     
                     this.displayRouteInfo();
                     this.displayStops();
-                    this.displayStopsOnMap();
+                    //this.displayStopsOnMap();
+                    this.showStopsOnMap();
                     
                 } catch (error) {
                     console.error('查詢站牌失敗:', error);
@@ -720,6 +730,7 @@
                     this.displayStops();
                     this.displayOnMap();
                     this.loadBusPositions();
+                    this.displayStopsOnMap();
                     this.showStopsOnly();
                     
                     document.getElementById('refreshBtn').disabled = false;
@@ -788,6 +799,57 @@
                     }
                 }
             }
+        // 在地圖上顯示站點 index6.html
+        showStopsOnMap(stops) {
+            this.clearStopMarkers();
+            
+            if (!stops || !document.getElementById('showStops').checked) return;
+            
+            const directionClass = selectedDirection === 0 ? 'outbound' : 'inbound';
+            
+            stops.forEach((stop, index) => {
+                if (stop.StopPosition) {
+                    const stopIcon = L.divIcon({
+                        className: `stop-marker ${directionClass}`,
+                        html: `
+                            <div class="stop-marker ${directionClass}">
+                                🚏<br>
+                                <div style="font-size: 10px; margin-top: 2px;">
+                                    ${index + 1}. ${stop.StopName.Zh_tw.length > 6 ? 
+                                        stop.StopName.Zh_tw.substring(0, 4) + '...' : 
+                                        stop.StopName.Zh_tw}
+                                </div>
+                            </div>
+                        `,
+                        iconSize: [80, 50],
+                        iconAnchor: [40, 50]
+                    });
+                    
+                    const marker = L.marker([stop.StopPosition.PositionLat, stop.StopPosition.PositionLon], {
+                        icon: stopIcon
+                    }).bindPopup(`
+                        <div style="text-align: center; min-width: 200px;">
+                            <h4>🚏 ${stop.StopName.Zh_tw}</h4>
+                            <p><strong>站點序號:</strong> ${stop.StopSequence}</p>
+                            <p><strong>方向:</strong> ${selectedDirection === 0 ? '🔵 去程' : '🟢 返程'}</p>
+                            <div id="stop-arrival-${stop.StopUID}" style="margin-top: 10px; padding: 8px; background: #f0f8ff; border-radius: 6px;">
+                                <p style="margin: 0; color: #666;">點擊「開始追蹤」查看到站時間</p>
+                            </div>
+                        </div>
+                    `).addTo(map);
+                    
+                    stopMarkers.push(marker);
+                }
+            });
+        }
+        
+        // 清除站點標記 index6.html
+        clearStopMarkers() { 
+            stopMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            stopMarkers = [];
+        }
 
             toggleStopsDisplay() {
                 this.showStops = !this.showStops;
@@ -830,9 +892,9 @@
                 });
                 
                 this.shapeData = await response.json();
-                console.log('Shape data:', this.shapeData);
+                //console.log('Shape data:', this.shapeData);
                 this.drawRoute(this.shapeData);
-                this.loadBusPositions();            
+                //this.loadBusPositions();            
             }
 
             drawRoute(shapeData) {
