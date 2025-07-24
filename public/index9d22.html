@@ -2,246 +2,190 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>公車路線追蹤</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>即時公車追蹤系統</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"/>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Microsoft JhengHei', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            overflow-x: hidden;
         }
-        
+
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        
-        .header h1 {
-            text-align: center;
-            color: #2c3e50;
-            font-size: 28px;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .controls {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        .control-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            height: 100vh;
+            width: 100%;
         }
-        
-        .control-group label {
-            font-weight: bold;
-            color: #34495e;
-            font-size: 14px;
+
+        .map-container {
+            flex: 1;
+            position: relative;
         }
-        
-        select, button {
-            padding: 10px 15px;
-            border: none;
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        .map-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+        }
+
+        .map-control-btn {
+            padding: 10px;
             border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
             font-size: 14px;
-            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            touch-action: manipulation;
         }
-        
+
+        .map-control-btn.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .control-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            max-height: 60vh;
+            overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+
+        .control-panel.active {
+            transform: translateY(0);
+        }
+
+        .menu-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        select, button {
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            width: 100%;
+            touch-action: manipulation;
+        }
+
         select {
             background: white;
             border: 2px solid #e0e0e0;
             color: #2c3e50;
-            min-width: 120px;
         }
-        
+
         select:focus {
             outline: none;
             border-color: #3498db;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
         }
-        
+
         button {
-            background: linear-gradient(45deg, #3498db, #2980b9);
+            background: #3498db;
             color: white;
-            cursor: pointer;
             font-weight: bold;
-            min-width: 100px;
+            margin-top: 10px;
         }
-        
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        
+
         button:disabled {
             background: #95a5a6;
             cursor: not-allowed;
-            transform: none;
         }
-        
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 25px;
-            height: 70vh;
-        }
-        
-        .sidebar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            overflow-y: auto;
-        }
-        
-        .map-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        
-        #map {
-            height: 100%;
-            border-radius: 10px;
-        }
-        
-        .route-stop-info {
-            margin-bottom: 25px;
-        }
-        
-        .route-stop-info h3 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-size: 18px;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 8px;
-        }
-        
-        .route-details {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 4px solid #3498db;
-        }
-        
-        .route-details div {
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        
-        .route-details strong {
-            color: #2c3e50;
-        }
-        
+
         .direction-tabs {
             display: flex;
+            gap: 10px;
             margin-bottom: 15px;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 2px solid #e0e0e0;
         }
-        
+
         .direction-tab {
             flex: 1;
             padding: 12px;
             background: #f8f9fa;
-            border: none;
+            border-radius: 8px;
+            text-align: center;
             cursor: pointer;
             font-weight: bold;
-            transition: all 0.3s ease;
             color: #6c757d;
         }
-        
+
         .direction-tab.active[data-direction="0"] {
-            background: linear-gradient(45deg, #3498db, #2980b9);
+            background: #3498db;
             color: white;
         }
-        
+
         .direction-tab.active[data-direction="1"] {
-            background: linear-gradient(45deg, #27ae60, #219a52);
+            background: #27ae60;
             color: white;
         }
-        
-        .stops-container {
-            max-height: 400px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-        }
-        
-        .bus-info {
-            max-height: 400px;
+
+        .stops-container, .bus-info {
+            max-height: 30vh;
             overflow-y: auto;
         }
-        
-        .stop-item {
+
+        .stop-item, .bus-item {
             background: #f8f9fa;
-            margin-bottom: 10px;
             padding: 15px;
-            border-radius: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
             border-left: 4px solid #e0e0e0;
-            transition: all 0.3s ease;
         }
-        
-        .stop-item:hover {
-            background: #e9ecef;
-            transform: translateX(5px);
-        }
-        
+
         .stop-item.has-bus {
             border-left-color: #e74c3c;
             background: #ffeaa7;
         }
-        
-        .stop-item.direction-0 {
-            border-left-color: #3498db;
-        }
-        
-        .stop-item.direction-1 {
-            border-left-color: #27ae60;
-        }
-        
-        .stop-item.direction-0.has-bus {
-            background: #dbeafe;
-            border-left-color: #1e40af;
-        }
-        
-        .stop-item.direction-1.has-bus {
-            background: #dcfce7;
-            border-left-color: #16a34a;
-        }
-        
+
         .stop-name {
             font-weight: bold;
             color: #2c3e50;
-            margin-bottom: 5px;
+            font-size: 16px;
         }
-        
+
         .stop-time {
             color: #e74c3c;
             font-size: 14px;
@@ -249,311 +193,186 @@
             background: rgba(231, 76, 60, 0.1);
             padding: 4px 8px;
             border-radius: 4px;
-            display: inline-block;
             margin-top: 5px;
+            display: inline-block;
         }
-        
-        .stop-status {
-            color: #7f8c8d;
-            font-size: 12px;
-        }
-        
-        /* Bus Info Styles */
+
         .bus-info h3 {
-            color: #2c3e50;
-            margin-bottom: 15px;
             font-size: 16px;
-            border-bottom: 2px solid #e74c3c;
-            padding-bottom: 8px;
-        }
-        
-        .bus-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        
-        .bus-item {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            border-left: 4px solid #e74c3c;
-            transition: all 0.3s ease;
-        }
-        
-        .bus-item:hover {
-            background: #e9ecef;
-            transform: translateX(5px);
-        }
-        
-        .bus-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            color: #2c3e50;
             margin-bottom: 10px;
         }
-        
+
         .bus-plate {
             font-weight: bold;
-            color: #2c3e50;
             font-size: 16px;
         }
-        
+
         .bus-status {
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 12px;
-            font-weight: bold;
         }
-        
+
         .bus-status.normal {
             background: #d4edda;
             color: #155724;
         }
-        
+
         .bus-status.delayed {
             background: #f8d7da;
             color: #721c24;
         }
-        
-        .bus-details {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        
-        .bus-detail-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 13px;
-        }
-        
-        .detail-label {
-            color: #6c757d;
-            font-weight: 500;
-            min-width: 80px;
-        }
-        
-        .detail-value {
-            color: #2c3e50;
-            font-weight: 600;
-            text-align: right;
-        }
-        
-        .estimate-time {
-            background: rgba(231, 76, 60, 0.1);
-            padding: 2px 6px;
-            border-radius: 3px;
-            color: #e74c3c !important;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #7f8c8d;
-        }
-        
-        .error {
-            color: #e74c3c;
-            text-align: center;
-            padding: 20px;
-            background: #fdf2f2;
-            border-radius: 8px;
-            margin: 10px 0;
-        }
-        
+
         .auto-refresh {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-top: 15px;
+            margin-top: 10px;
         }
-        
-        .auto-refresh input[type="checkbox"] {
-            transform: scale(1.2);
-        }
-        
-        .refresh-interval {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
+
         .refresh-interval select {
-            padding: 5px;
-            font-size: 12px;
-            min-width: 80px;
+            padding: 8px;
+            font-size: 14px;
         }
-        
-        .legend {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 10px;
+
+        .loading, .error {
+            text-align: center;
+            padding: 15px;
+            color: #7f8c8d;
+        }
+
+        .error {
+            color: #e74c3c;
+            background: #fdf2f2;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            font-size: 12px;
         }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-bottom: 5px;
-        }
-        
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            border: 2px solid white;
-            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
-        }
-        
-        .legend-line {
-            width: 20px;
-            height: 3px;
-            border-radius: 2px;
-        }
-        
+
         @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
-                height: auto;
-            }
-            
-            .controls {
+            .container {
                 flex-direction: column;
-                align-items: stretch;
             }
-            
-            .control-group {
-                width: 100%;
+
+            .control-panel {
+                padding: 10px;
             }
-            
+
             select, button {
-                width: 100%;
+                font-size: 14px;
+                padding: 10px;
+            }
+
+            .map-controls {
+                top: 5px;
+                right: 5px;
+                flex-direction: column;
+            }
+
+            .map-control-btn {
+                font-size: 12px;
+                padding: 8px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .menu-toggle {
+                display: none;
+            }
+
+            .control-panel {
+                position: static;
+                max-height: none;
+                transform: none;
+                width: 300px;
+                flex-shrink: 0;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            }
+
+            .container {
+                flex-direction: row;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🚌公車路線追蹤<span style="display: inline-block; transform: scaleX(-1);">🚌</span></h1>
-            <div class="controls">
-                <div class="control-group">
-                    <select id="citySelect">
-                        <option value="newtaipei">新北市</option>
-                        <option value="taoyuan">桃園市</option>                        
-                        <option value="taipei">台北市</option>
-                        
-                    </select>
-                </div>
-                <div class="control-group">
-                    <select id="routeSelect">
-                        <option value="橘21">橘21</option>
-                        <option value="藍37">藍37</option>
-                        <option value="5063">5063</option>
-                        <option value="5053">5053</option>
-                        <option value="5020">5020下福</option>
-                        <option value="5057">5057</option>
-                        <option value="262">262</option>
-                        <option value="99">99</option>
-                        <option value="299">299</option>
-                        <option value="235">235</option>
-                        <option value="307">307</option>
-                    </select>
-                </div>
-                <div class="control-group">
-                    <button id="searchBtn" disabled>查詢路線</button>
-                </div>
-
-                <div class="control-group">
-                    <button id="refreshBtn" disabled>手動更新</button>
-                </div>
-            
-                <div class="auto-refresh">
-                    <input type="checkbox" id="autoRefresh">
-                    <label for="autoRefresh">自動更新</label>
-                    <div class="refresh-interval">
-                        <span>間隔:</span>
-                        <select id="refreshInterval">
-                            <option value="30">30秒</option>
-                            <option value="60">1分鐘</option>
-                            <option value="120">2分鐘</option>
-                            <option value="300">5分鐘</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="main-content">
-            <div class="sidebar">
-                <div class="route-stop-info">
-                    <h3>路線站牌資訊</h3>
-                    <div class="route-details" id="routeDetails">
-                        請選擇路線以查看詳細資訊
-                    </div>
-                    
-                    <div class="direction-tabs">
-                        <button class="direction-tab active" data-direction="0">去程 (藍色)</button>
-                        <button class="direction-tab" data-direction="1">回程 (綠色)</button>
-                    </div>
-                    
-                    <div class="stops-container">
-                        <div id="stopsInfo">
-                            <div class="loading">請先選擇路線</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="busInfo" class="bus-info">
-                    <div class="loading">請先選擇路線</div>
-                </div>                
-            </div>
-            
-            <div class="map-container">
+        <div class="map-container">
+            <div id="map">
                 <div class="map-controls">
                     <button class="map-control-btn active" id="toggleStops">顯示站牌</button>
                     <button class="map-control-btn active" id="toggleBuses">顯示公車</button>
                 </div>
-                <div id="map"></div>
+            </div>
+        </div>
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div class="control-panel" id="controlPanel">
+            <h2>🚌 公車路線追蹤</h2>
+            <div class="input-group">
+                <select id="citySelect">
+                    <option value="newtaipei">新北市</option>
+                    <option value="taoyuan">桃園市</option>
+                    <option value="taipei">台北市</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <select id="routeSelect" disabled>
+                    <option value="">請先選擇城市</option>
+                </select>
+            </div>
+            <button id="searchBtn" disabled>查詢路線</button>
+            <button id="refreshBtn" disabled>手動更新</button>
+            <div class="auto-refresh">
+                <input type="checkbox" id="autoRefresh">
+                <label for="autoRefresh">自動更新</label>
+                <div class="refresh-interval">
+                    <span>間隔:</span>
+                    <select id="refreshInterval">
+                        <option value="30">30秒</option>
+                        <option value="60">1分鐘</option>
+                        <option value="120">2分鐘</option>
+                        <option value="300">5分鐘</option>
+                    </select>
+                </div>
+            </div>
+            <div class="auto-refresh">
+                <input type="checkbox" id="voiceEnabled">
+                <label for="voiceEnabled">啟用語音播報</label>
+            </div>
+            <div class="route-stop-info">
+                <h3>路線站牌資訊</h3>
+                <div class="route-details" id="routeDetails">
+                    請選擇路線以查看詳細資訊
+                </div>
+                <div class="direction-tabs">
+                    <button class="direction-tab active" data-direction="0">去程</button>
+                    <button class="direction-tab" data-direction="1">回程</button>
+                </div>
+                <div class="stops-container">
+                    <div id="stopsInfo">
+                        <div class="loading">請先選擇路線</div>
+                    </div>
+                </div>
+            </div>
+            <div id="busInfo" class="bus-info">
+                <div class="loading">請先選擇路線</div>
             </div>
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-    <!--script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script-->
     <script>
-        const VITE_CONFIG = {
-        VITE_CLIENT_ID: 'B11217043-5ce03024-d920-4c7a',
-        VITE_CLIENT_SECRET: 'd3c72e07-db32-40ea-b0e4-ad15be122961',
-        VITE_API_URL: 'https://tdx.transportdata.tw/api',
-            base_url: 'https://tdx.transportdata.tw/api/basic'
-        };
-        // TDX API 配置
+        // TDX API 配置 (應移至後端)
         const TDX_CONFIG = {
-            //client_id: 'atbox-2029af23-fbae-427b',
-            //client_secret: 'fb3a733e-0112-4392-b388-42cec0a98256',
-            //client_id: 'atbox-4e366e32-65a6-4474',
-            //client_secret: 'f60c122b-9e94-4e42-af9d-641e9d2379a5',
-            client_id: 'B11217043-5ce03024-d920-4c7a', 
-            client_secret: 'd3c72e07-db32-40ea-b0e4-ad15be122961', 
+            client_id: 'B11217043-5ce03024-d920-4c7a',
+            client_secret: 'd3c72e07-db32-40ea-b0e4-ad15be122961',
             base_url: 'https://tdx.transportdata.tw/api/basic'
         };
 
-        // 路線配置
         const ROUTES_CONFIG = {
             taipei: ['262', '99', '307', '235'],
             newtaipei: ['橘21', '藍37', '613', '635', '636', '712', '898', '111', '99', '307', '235'],
             taoyuan: ['5063', '5053', '5057', '5020', '603', '607', '608']
         };
 
-        // 城市代碼對應
         const CITY_CODES = {
             taipei: 'Taipei',
             newtaipei: 'NewTaipei',
@@ -575,17 +394,23 @@
                 this.busMarkers = [];
                 this.stopMarkers = [];
                 this.routeLines = [];
-                this.voiceEnabled = false; // Initialize voiceEnabled
-                this.lastAnnouncedBus = {}; // Initialize lastAnnouncedBus
+                this.voiceEnabled = false;
+                this.lastAnnouncedBus = {};
                 this.showStops = true;
                 this.showBuses = true;
-                
+
                 this.initializeMap();
                 this.bindEvents();
             }
 
             initializeMap() {
-                this.map = L.map('map').setView([25.0330, 121.5654], 12);
+                this.map = L.map('map', {
+                    zoomControl: true,
+                    doubleClickZoom: true,
+                    touchZoom: true,
+                    scrollWheelZoom: false // Disable scroll zoom on mobile
+                }).setView([25.0330, 121.5654], 12);
+
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '© OpenStreetMap contributors'
                 }).addTo(this.map);
@@ -603,6 +428,7 @@
 
                 document.getElementById('searchBtn').addEventListener('click', () => {
                     this.searchRoute();
+                    this.toggleControlPanel(false); // Close panel after search
                 });
 
                 document.getElementById('refreshBtn').addEventListener('click', () => {
@@ -613,12 +439,26 @@
                     this.toggleAutoRefresh(e.target.checked);
                 });
 
-                document.getElementById('toggleStops').addEventListener('click', (e) => {
+                document.getElementById('refreshInterval').addEventListener('change', () => {
+                    if (document.getElementById('autoRefresh').checked) {
+                        this.toggleAutoRefresh(true);
+                    }
+                });
+
+                document.getElementById('voiceEnabled').addEventListener('change', (e) => {
+                    this.voiceEnabled = e.target.checked;
+                });
+
+                document.getElementById('toggleStops').addEventListener('click', () => {
                     this.toggleStopsDisplay();
                 });
 
-                document.getElementById('toggleBuses').addEventListener('click', (e) => {
+                document.getElementById('toggleBuses').addEventListener('click', () => {
                     this.toggleBusesDisplay();
+                });
+
+                document.getElementById('menuToggle').addEventListener('click', () => {
+                    this.toggleControlPanel();
                 });
 
                 document.querySelectorAll('.direction-tab').forEach(tab => {
@@ -626,6 +466,20 @@
                         this.switchDirection(parseInt(e.target.dataset.direction));
                     });
                 });
+            }
+
+            toggleControlPanel(force = null) {
+                const panel = document.getElementById('controlPanel');
+                const toggleBtn = document.getElementById('menuToggle');
+                const isActive = panel.classList.contains('active');
+
+                if (force !== null) {
+                    panel.classList.toggle('active', force);
+                    toggleBtn.textContent = force ? '×' : '☰';
+                } else {
+                    panel.classList.toggle('active');
+                    toggleBtn.textContent = isActive ? '☰' : '×';
+                }
             }
 
             onCityChange(city) {
@@ -641,11 +495,12 @@
                         routeSelect.appendChild(option);
                     });
                     routeSelect.disabled = false;
+                    document.getElementById('toggleStops').disabled = false;
                 } else {
                     routeSelect.innerHTML = '<option value="">請先選擇城市</option>';
                     routeSelect.disabled = true;
                     document.getElementById('searchBtn').disabled = true;
-                    document.getElementById('showStops').disabled = true;
+                    document.getElementById('toggleStops').disabled = true;
                 }
             }
 
@@ -659,7 +514,11 @@
                         },
                         body: `grant_type=client_credentials&client_id=${TDX_CONFIG.client_id}&client_secret=${TDX_CONFIG.client_secret}`
                     });
-                    
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+
                     const data = await response.json();
                     this.accessToken = data.access_token;
                     console.log('取得 access token 成功');
@@ -689,7 +548,8 @@
                     
                     this.displayRouteInfo();
                     this.displayStops();
-                    this.displayStopsOnMap();
+                    //this.displayStopsOnMap();
+                    this.showStopsOnMap();
                     
                 } catch (error) {
                     console.error('查詢站牌失敗:', error);
@@ -701,13 +561,13 @@
                 if (!this.accessToken) {
                     await this.getAccessToken();
                 }
-                
+
                 if (!this.accessToken) {
                     return;
                 }
 
                 this.showLoading();
-                
+
                 try {
                     await Promise.all([
                         this.fetchShapeData(),
@@ -715,15 +575,15 @@
                         this.fetchStopsData(),
                         this.fetchBusPositions()
                     ]);
-                    
+
                     this.displayRouteInfo();
                     this.displayStops();
                     this.displayOnMap();
                     this.loadBusPositions();
+                    this.displayStopsOnMap();
                     this.showStopsOnly();
                     
                     document.getElementById('refreshBtn').disabled = false;
-                    
                 } catch (error) {
                     console.error('查詢路線失敗:', error);
                     this.showError('查詢路線失敗，請稍後再試');
@@ -788,20 +648,64 @@
                     }
                 }
             }
+        // 在地圖上顯示站點 index6.html
+        showStopsOnMap(stops) {
+            this.clearStopMarkers();
+            
+            if (!stops || !document.getElementById('showStops').checked) return;
+            
+            const directionClass = selectedDirection === 0 ? 'outbound' : 'inbound';
+            
+            stops.forEach((stop, index) => {
+                if (stop.StopPosition) {
+                    const stopIcon = L.divIcon({
+                        className: `stop-marker ${directionClass}`,
+                        html: `
+                            <div class="stop-marker ${directionClass}">
+                                🚏<br>
+                                <div style="font-size: 10px; margin-top: 2px;">
+                                    ${index + 1}. ${stop.StopName.Zh_tw.length > 6 ? 
+                                        stop.StopName.Zh_tw.substring(0, 4) + '...' : 
+                                        stop.StopName.Zh_tw}
+                                </div>
+                            </div>
+                        `,
+                        iconSize: [80, 50],
+                        iconAnchor: [40, 50]
+                    });
+                    
+                    const marker = L.marker([stop.StopPosition.PositionLat, stop.StopPosition.PositionLon], {
+                        icon: stopIcon
+                    }).bindPopup(`
+                        <div style="text-align: center; min-width: 200px;">
+                            <h4>🚏 ${stop.StopName.Zh_tw}</h4>
+                            <p><strong>站點序號:</strong> ${stop.StopSequence}</p>
+                            <p><strong>方向:</strong> ${selectedDirection === 0 ? '🔵 去程' : '🟢 返程'}</p>
+                            <div id="stop-arrival-${stop.StopUID}" style="margin-top: 10px; padding: 8px; background: #f0f8ff; border-radius: 6px;">
+                                <p style="margin: 0; color: #666;">點擊「開始追蹤」查看到站時間</p>
+                            </div>
+                        </div>
+                    `).addTo(map);
+                    
+                    stopMarkers.push(marker);
+                }
+            });
+        }
+        
+        // 清除站點標記 index6.html
+        clearStopMarkers() { 
+            stopMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            stopMarkers = [];
+        }
 
             toggleStopsDisplay() {
                 this.showStops = !this.showStops;
                 const toggleBtn = document.getElementById('toggleStops');
-                
-                if (this.showStops) {
-                    toggleBtn.classList.add('active');
-                    toggleBtn.textContent = '顯示站牌';
-                    this.stopMarkers.forEach(marker => marker.addTo(this.map));
-                } else {
-                    toggleBtn.classList.remove('active');
-                    toggleBtn.textContent = '隱藏站牌';
-                    this.stopMarkers.forEach(marker => this.map.removeLayer(marker));
-                }
+                toggleBtn.classList.toggle('active', this.showStops);
+                toggleBtn.textContent = this.showStops ? '顯示站牌' : '隱藏站牌';
+                this.showStops ? this.stopMarkers.forEach(marker => marker.addTo(this.map)) : this.stopMarkers.forEach(marker => this.map.removeLayer(marker));
             }
 
             toggleBusesDisplay() {
@@ -830,11 +734,10 @@
                 });
                 
                 this.shapeData = await response.json();
-                console.log('Shape data:', this.shapeData);
+                //console.log('Shape data:', this.shapeData);
                 this.drawRoute(this.shapeData);
-                this.loadBusPositions();            
+                //this.loadBusPositions();            
             }
-
             drawRoute(shapeData) {
                 if (shapeData && shapeData.length > 0) {
                     shapeData.forEach(shape => {
@@ -1234,10 +1137,10 @@
                                     const popupContent = `
                                         <div style="font-size: 14px; min-width: 150px;">
                                             <div style="font-weight: bold; color: ${color}; margin-bottom: 5px;">
-                                                站序: ${stop.StopSequence} •  ${stop.StopName?.Zh_tw}
+                                                站序: ${stop.StopSequence} • ${stop.StopName?.Zh_tw}
                                             </div>
                                             <div style="font-size: 12px; color: #666; margin-bottom: 5px;">
-                                                ${direction === 0 ? '去程' : '回程'} • 
+                                                ${direction === 0 ? '去程' : '回程'}
                                             </div>
                                             <div style="font-size: 12px; color: #666; margin-bottom: 5px;">
                                                 站牌ID: ${stop.StopID}
@@ -1291,7 +1194,7 @@
                 // 重新顯示資料
                 this.displayStops();
                 this.displayOnMap();
-                this.loadBusPositions();
+                ///this.loadBusPositions();
             }
 
             async refreshData() {
@@ -1301,7 +1204,7 @@
                     await this.fetchBusPositions();
                     this.displayStops();
                     this.displayOnMap();
-                    this.loadBusPositions();
+                    //this.loadBusPositions();
                     console.log('資料更新完成');
                 } catch (error) {
                     console.error('更新資料失敗:', error);
@@ -1311,9 +1214,9 @@
             toggleAutoRefresh(enabled) {
                 if (enabled) {
                     const interval = parseInt(document.getElementById('refreshInterval').value) * 1000;
-//                    this.refreshInterval = setInterval(() => {
-//                        this.refreshData();
-//                    }, interval);
+                    this.refreshInterval = setInterval(() => {
+                        this.refreshData();
+                    }, interval);
                 } else {
                     if (this.refreshInterval) {
                         clearInterval(this.refreshInterval);
