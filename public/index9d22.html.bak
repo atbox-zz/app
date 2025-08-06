@@ -368,9 +368,9 @@
         };
 
         const ROUTES_CONFIG = {
-            taipei: ['262', '99', '307', '235'],
-            newtaipei: ['橘21', '藍37', '613', '635', '636', '712', '898', '111', '99', '307', '235'],
-            taoyuan: ['5063', '5053', '5057', '5020', '603', '607', '608']
+            taipei: ['', '262', '99', '307', '235'],
+            newtaipei: ['','橘21', '藍37', '613', '635', '636', '712', '898', '111', '99', '307', '235'],
+            taoyuan: ['','5063', '5053', '5057', '5020', '603', '607', '608']
         };
 
         const CITY_CODES = {
@@ -451,7 +451,7 @@
                 });
 
                 document.getElementById('toggleStops').addEventListener('click', () => {
-                    this.toggleStopsDisplay();//顯示站牌
+                    this.toggleStopsDisplay();
                 });
 
                 document.getElementById('toggleBuses').addEventListener('click', () => {
@@ -588,7 +588,7 @@
                         this.fetchBusPositions()
                     ]);
 
-                    //this.displayRouteInfo();//路線站牌資訊
+                    this.displayRouteInfo();
                     this.displayStops();
                     this.displayOnMap();
                     this.loadBusPositions();
@@ -660,59 +660,58 @@
                     }
                 }
             }
-            // 在地圖上顯示站點 index6.html
-            showStopsOnMap(stops) {
-                this.clearStopMarkers();
-                
-                if (!stops || !document.getElementById('showStops').checked) return;
-                
-                const directionClass = selectedDirection === 0 ? 'outbound' : 'inbound';
-                
-                stops.forEach((stop, index) => {
-                    if (stop.StopPosition) {
-                        const stopIcon = L.divIcon({
-                            className: `stop-marker ${directionClass}`,
-                            html: `
-                                <div class="stop-marker ${directionClass}">
-                                    🚏<br>
-                                    <div style="font-size: 10px; margin-top: 2px;">
-                                        ${index + 1}. ${stop.StopName.Zh_tw.length > 6 ? 
-                                            stop.StopName.Zh_tw.substring(0, 4) + '...' : 
-                                            stop.StopName.Zh_tw}
-                                    </div>
-                                </div>
-                            `,
-                            iconSize: [80, 50],
-                            iconAnchor: [40, 50]
-                        });
-                        
-                        const marker = L.marker([stop.StopPosition.PositionLat, stop.StopPosition.PositionLon], {
-                            icon: stopIcon
-                        }).bindPopup(`
-                            <div style="text-align: center; min-width: 200px;">
-                                <h4>🚏 ${stop.StopName.Zh_tw}</h4>
-                                <p><strong>站點序號:</strong> ${stop.StopSequence}</p>
-                                <p><strong>方向:</strong> ${selectedDirection === 0 ? '🔵 去程' : '🟢 返程'}</p>
-                                <div id="stop-arrival-${stop.StopUID}" style="margin-top: 10px; padding: 8px; background: #f0f8ff; border-radius: 6px;">
-                                    <p style="margin: 0; color: #666;">點擊「開始追蹤」查看到站時間</p>
+        // 在地圖上顯示站點 index6.html
+        showStopsOnMap(stops) {
+            this.clearStopMarkers();
+            
+            if (!stops || !document.getElementById('showStops').checked) return;
+            
+            const directionClass = selectedDirection === 0 ? 'outbound' : 'inbound';
+            
+            stops.forEach((stop, index) => {
+                if (stop.StopPosition) {
+                    const stopIcon = L.divIcon({
+                        className: `stop-marker ${directionClass}`,
+                        html: `
+                            <div class="stop-marker ${directionClass}">
+                                🚏<br>
+                                <div style="font-size: 10px; margin-top: 2px;">
+                                    ${index + 1}. ${stop.StopName.Zh_tw.length > 6 ? 
+                                        stop.StopName.Zh_tw.substring(0, 4) + '...' : 
+                                        stop.StopName.Zh_tw}
                                 </div>
                             </div>
-                        `).addTo(map);
-                        
-                        stopMarkers.push(marker);
-                    }
-                });
-            }
+                        `,
+                        iconSize: [80, 50],
+                        iconAnchor: [40, 50]
+                    });
+                    
+                    const marker = L.marker([stop.StopPosition.PositionLat, stop.StopPosition.PositionLon], {
+                        icon: stopIcon
+                    }).bindPopup(`
+                        <div style="text-align: center; min-width: 200px;">
+                            <h4>🚏 ${stop.StopName.Zh_tw}</h4>
+                            <p><strong>站點序號:</strong> ${stop.StopSequence}</p>
+                            <p><strong>方向:</strong> ${selectedDirection === 0 ? '🔵 去程' : '🟢 返程'}</p>
+                            <div id="stop-arrival-${stop.StopUID}" style="margin-top: 10px; padding: 8px; background: #f0f8ff; border-radius: 6px;">
+                                <p style="margin: 0; color: #666;">點擊「開始追蹤」查看到站時間</p>
+                            </div>
+                        </div>
+                    `).addTo(map);
+                    
+                    stopMarkers.push(marker);
+                }
+            });
+        }
         
-            // 清除站點標記 index6.html
-            clearStopMarkers() { 
-                stopMarkers.forEach(marker => {
-                    map.removeLayer(marker);
-                });
-                stopMarkers = [];
-            }
+        // 清除站點標記 index6.html
+        clearStopMarkers() { 
+            stopMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            stopMarkers = [];
+        }
 
-            //顯示站牌
             toggleStopsDisplay() {
                 this.showStops = !this.showStops;
                 const toggleBtn = document.getElementById('toggleStops');
@@ -721,7 +720,6 @@
                 this.showStops ? this.stopMarkers.forEach(marker => marker.addTo(this.map)) : this.stopMarkers.forEach(marker => this.map.removeLayer(marker));
             }
 
-            //顯示站牌公車
             toggleBusesDisplay() {
                 this.showBuses = !this.showBuses;
                 const toggleBtn = document.getElementById('toggleBuses');
@@ -1038,7 +1036,7 @@
 
             displayStops() {
                 const stopsInfo = document.getElementById('stopsInfo');
-                // 根據方向決定公車圖示
+                                    // 根據方向決定公車圖示
                 const busIcon = this.currentDirection === 0 ? 
                     '<span style="display: inline-block; transform: scaleX(-1);">🚌</span>' : '🚌';
 
