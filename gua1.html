@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>野鶴增刪卜易金錢卦</title>
+    <script src="lunar.js"></script>
     <style>
         body {
             font-family: 'Microsoft JhengHei', '微軟正黑體', sans-serif;
@@ -2267,7 +2268,7 @@
             '壬': ['玄武', '青龍', '朱雀', '勾陳', '螣蛇', '白虎'],
             '癸': ['玄武', '青龍', '朱雀', '勾陳', '螣蛇', '白虎']
         };
-
+/*
         // 初始化日期信息
         function initDateInfo() {
             const now = new Date();
@@ -2284,6 +2285,54 @@
             
             document.getElementById('dateInfo').innerHTML = 
                 `國曆【${year}年${month}月${date}日】 農曆【${yearGanZhi}年 ${monthGanZhi}月 ${dateGanZhi}日 ${hourGanZhi}時】`;
+        }
+        */
+        // 初始化日期信息
+        function initDateInfo() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const date = now.getDate();
+            const hour = now.getHours();
+            
+            try {
+                // 使用 lunar-javascript 庫計算準確的農曆日期
+                const solar = Lunar.fromYmdHms(year, month, date, hour, 0, 0).getSolar();
+                const lunar = Lunar.fromSolar(solar);
+                
+                const yearGanZhi = lunar.getYearInGanZhi();
+                const monthGanZhi = lunar.getMonthInGanZhi();
+                const dateGanZhi = lunar.getDayInGanZhi();
+                const hourGanZhi = lunar.getTimeInGanZhi();
+                
+                document.getElementById('dateInfo').innerHTML = 
+                    `國曆【${year}年${month}月${date}日】 農曆【${yearGanZhi}年 ${monthGanZhi}月 ${dateGanZhi}日 ${hourGanZhi}時】`;
+                
+                // 將干支資料存儲為全局變量，供其他函數使用
+                window.currentGanZhi = {
+                    year: yearGanZhi,
+                    month: monthGanZhi,
+                    date: dateGanZhi,
+                    hour: hourGanZhi
+                };
+            } catch (error) {
+                console.error('農曆計算錯誤:', error);
+                // 如果農曆庫載入失敗，使用備用的固定值
+                const yearGanZhi = '乙巳';
+                const monthGanZhi = '甲申';
+                const dateGanZhi = '己酉';
+                const hourGanZhi = getGanZhi(Math.floor(hour / 2));
+                
+                document.getElementById('dateInfo').innerHTML = 
+                    `國曆【${year}年${month}月${date}日】 農曆【${yearGanZhi}年 ${monthGanZhi}月 ${dateGanZhi}日 ${hourGanZhi}時】`;
+                
+                window.currentGanZhi = {
+                    year: yearGanZhi,
+                    month: monthGanZhi,
+                    date: dateGanZhi,
+                    hour: hourGanZhi
+                };
+            }
         }
 
         function getGanZhi(index) {
