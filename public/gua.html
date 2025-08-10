@@ -1,0 +1,552 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+</script>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>野鶴增刪卜易金錢卦</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.4/lunar.min.js"></script>
+    <style>
+        body { font-family: 'Microsoft JhengHei', Arial, sans-serif; text-align: center; background-color: #f5f5f5; }
+        #container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        #resultArea { 
+            width: 80%; height: 660px; background-color: white; border: 1px solid #ccc; 
+            font-size: 15px; text-align: left; padding: 10px; overflow-y: auto; 
+            white-space: pre-wrap; font-family: 'Microsoft JhengHei', monospace; 
+        }
+        #rollButton { 
+            padding: 10px 20px; font-size: 16px; cursor: pointer; background-color: #4CAF50; 
+            color: white; border: none; border-radius: 5px; margin: 10px; 
+        }
+        #dateLabel { font-size: 16px; margin: 10px; }
+        #fiveElementsChart { max-width: 400px; margin: 20px auto; }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <button id="rollButton">野鶴增刪卜易金錢卦</button>
+        <div id="dateLabel"></div>
+        <div id="resultArea"></div>
+        <canvas id="fiveElementsChart"></canvas>
+    </div>
+
+    <script>
+        // 六十四卦解釋
+        const gua64Interpretations = {
+            "坤為地": "坤卦象徵大地，柔順包容，宜順勢而為，謙卑待人。占卜建議：以靜制動，謹慎行事，勿急進。\n",
+            "地雷復": "復卦表示回歸與新生，陽氣初生，宜把握時機。占卜建議：積極準備，迎接新機遇。\n",
+            "地水師": "師卦象徵軍旅與領導，需團結一致。占卜建議：謹慎計劃，團結力量以克服困難。\n",
+            "地澤臨": "臨卦表示接近與監督，宜親近賢人。占卜建議：以誠待人，謹慎行事可獲成功。\n",
+            "地山謙": "謙卦象徵謙虛，謙遜帶來福澤。占卜建議：保持謙卑，低調行事可避禍。\n",
+            "地火明夷": "明夷卦表示光明受抑，宜隱忍待時。占卜建議：韜光養晦，等待時機再行動。\n",
+            "地風升": "升卦象徵上升與進展，宜穩步前進。占卜建議：循序漸進，勿急於求成。\n",
+            "地天泰": "泰卦表示通泰，陰陽交泰，順利之象。占卜建議：把握和諧時機，積極行動。\n",
+            "雷地豫": "豫卦象徵喜悅與準備，宜樂觀進取。占卜建議：做好準備，順勢而為可成功。\n",
+            "震為雷": "震卦象徵震動與行動，宜果斷進取。占卜建議：迅速行動，抓住機遇。\n",
+            "雷水解": "解卦表示解除困境，宜主動化解。占卜建議：及時處理問題，勿拖延。\n",
+            "雷澤歸妹": "歸妹卦象徵婚姻與配合，宜謹慎選擇。占卜建議：審慎評估，勿倉促決定。\n",
+            "雷山小過": "小過卦表示小過失，宜謹小慎微。占卜建議：注意細節，避免小錯釀大禍。\n",
+            "雷火豐": "豐卦象徵盛大與豐收，宜保持謙虛。占卜建議：珍惜成果，謹防驕傲。\n",
+            "雷風恆": "恆卦表示恆久與穩定，宜持之以恆。占卜建議：堅持原則，穩中求進。\n",
+            "雷天大壯": "大壯卦象徵強盛，宜果斷行動。占卜建議：把握強勢時機，勿過分冒進。\n",
+            "水地比": "比卦象徵親近與團結，宜結交賢人。占卜建議：尋求合作，互助可成。\n",
+            "水雷屯": "屯卦表示初創艱難，宜堅定信念。占卜建議：耐心克服困難，穩步前行。\n",
+            "坎為水": "坎卦象徵險阻，宜謹慎應對。占卜建議：保持警惕，穩中求進。\n",
+            "水澤節": "節卦表示節制，宜適度而行。占卜建議：節約資源，量力而為。\n",
+            "水山蹇": "蹇卦象徵艱難，宜退守待時。占卜建議：謹慎行事，等待時機。\n",
+            "水火既濟": "既濟卦表示事成，宜保持現狀。占卜建議：珍惜成果，謹防過度擴張。\n",
+            "水風井": "井卦象徵滋養與穩定，宜深耕細作。占卜建議：專注當下，穩固基礎。\n",
+            "水天需": "需卦表示等待，宜耐心觀察。占卜建議：靜待時機，勿急於行動。\n",
+            "澤地萃": "萃卦象徵聚集，宜團結合作。占卜建議：凝聚力量，共同謀事。\n",
+            "澤雷隨": "隨卦表示隨順，宜順應時勢。占卜建議：靈活應變，順勢而為。\n",
+            "澤水困": "困卦象徵困境，宜堅守正道。占卜建議：以誠待人，耐心脫困。\n",
+            "兌為澤": "兌卦象徵喜悅，宜和悅待人。占卜建議：保持樂觀，促進和諧。\n",
+            "澤山咸": "咸卦表示感應，宜真誠相待。占卜建議：用心交流，可獲支持。\n",
+            "澤火革": "革卦象徵變革，宜果斷革新。占卜建議：順應變化，積極革新。\n",
+            "澤風大過": "大過卦表示過度，宜謹慎行事。占卜建議：量力而為，避免極端。\n",
+            "澤天夬": "夬卦象徵決斷，宜果斷行動。占卜建議：迅速決策，清除障礙。\n",
+            "山地剝": "剝卦象徵剝落，宜謹慎自保。占卜建議：低調行事，保護自己。\n",
+            "山雷頤": "頤卦象徵養生，宜修身養性。占卜建議：注重內在修養，謹慎言行。\n",
+            "山水蒙": "蒙卦象徵蒙昧，宜啟發智慧。占卜建議：學習求教，謹慎前行。\n",
+            "山澤損": "損卦表示減損，宜捨棄不必要。占卜建議：斷捨離，專注核心。\n",
+            "艮為山": "艮卦象徵止，宜靜止觀察。占卜建議：冷靜思考，適時停步。\n",
+            "山火賁": "賁卦象徵裝飾，宜注重外在。占卜建議：適當修飾，增進形象。\n",
+            "山風蠱": "蠱卦表示腐敗，宜清理整頓。占卜建議：革除弊端，重新開始。\n",
+            "山天大畜": "大畜卦象徵積聚，宜儲備力量。占卜建議：積蓄資源，準備未來。\n",
+            "火地晉": "晉卦象徵進展，宜積極向前。占卜建議：把握機遇，穩步上升。\n",
+            "火雷噬嗑": "噬嗑卦表示咬合，宜果斷解決。占卜建議：正視問題，果斷處理。\n",
+            "火水未濟": "未濟卦表示未完成，宜持之以恆。占卜建議：耐心努力，逐步完成。\n",
+            "火澤睽": "睽卦象徵背離，宜尋求和解。占卜建議：化解矛盾，促進團結。\n",
+            "火山旅": "旅卦象徵旅行，宜隨遇而安。占卜建議：靈活應對，順應環境。\n",
+            "離為火": "離卦象徵光明，宜依附賢人。占卜建議：保持光明正大，親近正人。\n",
+            "火風鼎": "鼎卦象徵穩固，宜守正創新。占卜建議：穩固基礎，適時革新。\n",
+            "火天大有": "大有卦象徵大獲，宜謙虛謹慎。占卜建議：珍惜成果，保持謙卑。\n",
+            "風地觀": "觀卦象徵觀察，宜審時度勢。占卜建議：冷靜觀察，謹慎決策。\n",
+            "風雷益": "益卦表示增益，宜助人利己。占卜建議：慷慨助人，共同進步。\n",
+            "風水渙": "渙卦象徵散亂，宜凝聚力量。占卜建議：團結一致，化解散亂。\n",
+            "風澤中孚": "中孚卦象徵誠信，宜真誠待人。占卜建議：以誠感人，贏得信任。\n",
+            "風山漸": "漸卦表示漸進，宜循序漸進。占卜建議：穩步前行，勿急於求成。\n",
+            "風火家人": "家人卦象徵家庭，宜和睦相處。占卜建議：注重家庭和諧，謹慎內務。\n",
+            "巽為風": "巽卦象徵順從，宜靈活應變。占卜建議：順勢而為，謹慎行事。\n",
+            "風天小畜": "小畜卦象徵小有積蓄，宜耐心等待。占卜建議：積小成大，穩中求進。\n",
+            "天地否": "否卦象徵閉塞，宜謹慎待時。占卜建議：低調行事，等待轉機。\n",
+            "天雷無妄": "無妄卦象徵無妄，宜守正不阿。占卜建議：保持正直，謹防意外。\n",
+            "天水訟": "訟卦象徵爭訟，宜和解為上。占卜建議：避免爭執，尋求和解。\n",
+            "天澤履": "履卦象徵踐履，宜謹慎行事。占卜建議：小心行事，遵循正道。\n",
+            "天山遯": "遯卦象徵退隱，宜避讓待時。占卜建議：退一步海闊天空，謹慎行事。\n",
+            "天火同人": "同人卦象徵團結，宜親近同道。占卜建議：團結合作，共創成功。\n",
+            "天風姤": "姤卦象徵相遇，宜謹慎交往。占卜建議：審慎選擇，勿輕信他人。\n",
+            "乾為天": "乾卦象徵剛健，宜積極進取。占卜建議：果斷行動，保持正直。\n"
+        };
+
+        // 農曆數據處理
+        class Lunar {
+            constructor(date) {
+                this.date = date || new Date('2025-08-31T01:42:00+08:00');
+                //this.lunar = window.Lunar.fromDate(this.date);
+                if (window.Lunar && typeof window.Lunar.fromDate === 'function') {
+                    this.lunar = window.Lunar.fromDate(this.date);
+                } else {
+                    console.warn("lunar-javascript 未載入，使用備用數據");
+                    this.lunar = {
+                        getYearInGanZhi: () => "乙巳",
+                        getMonthInGanZhi: () => "癸未",
+                        getDayInGanZhi: () => "庚辰",
+                        getTimeInGanZhi: () => "癸丑"
+                    };
+                }
+            }
+            getYearInGanZhi() { return this.lunar.getYearInGanZhi(); }
+            getMonthInGanZhi() { return this.lunar.getMonthInGanZhi(); }
+            getDayInGanZhi() { return this.lunar.getDayInGanZhi(); }
+            getTimeInGanZhi() { return this.lunar.getTimeInGanZhi(); }
+            getDayGan() { return this.lunar.getDayInGanZhi()[0]; }
+            getDayZhi() { return this.lunar.getDayInGanZhi()[1]; }
+            getSolar() {
+                return {
+                    toFullString: () => this.date.toLocaleDateString('zh-TW', {
+                        year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+                    })
+                };
+            }
+        }
+
+        // 五行強弱計算
+        function calculateFiveElementsStrength(...ganZhi) {
+            const fiveElements = { "木": 0, "火": 0, "土": 0, "金": 0, "水": 0 };
+            ganZhi.forEach(gz => {
+                const gan = gz[0], zhi = gz[1];
+                fiveElements[getElementFromGan(gan)] += 1;
+                fiveElements[getElementFromZhi(zhi)] += 1;
+            });
+            return fiveElements;
+        }
+
+        function getElementFromGan(gan) {
+            switch (gan) {
+                case "甲": case "乙": return "木";
+                case "丙": case "丁": return "火";
+                case "戊": case "己": return "土";
+                case "庚": case "辛": return "金";
+                case "壬": case "癸": return "水";
+                default: return "";
+            }
+        }
+
+        function getElementFromZhi(zhi) {
+            switch (zhi) {
+                case "寅": case "卯": return "木";
+                case "巳": case "午": return "火";
+                case "辰": case "戌": case "丑": case "未": return "土";
+                case "申": case "酉": return "金";
+                case "亥": case "子": return "水";
+                default: return "";
+            }
+        }
+
+        function determineYongShen(fiveElements) {
+            const wood = fiveElements["木"], fire = fiveElements["火"], earth = fiveElements["土"],
+                  metal = fiveElements["金"], water = fiveElements["水"];
+            const minElement = Math.min(wood, fire, earth, metal, water);
+            if (minElement === wood) return "木 (補強木)";
+            if (minElement === fire) return "火 (補強火)";
+            if (minElement === earth) return "土 (補強土)";
+            if (minElement === metal) return "金 (補強金)";
+            if (minElement === water) return "水 (補強水)";
+            return "無明顯用神";
+        }
+
+        // 64 卦數據（完整）
+        const gua64 = [
+            ["兄弟未土■   ■", "父母巳火■   ■", "官鬼卯木■   ■應", "兄弟丑土■   ■", "妻財亥水■   ■", "子孫酉金■   ■世", "坤為地"],
+            ["妻財子水■■■世", "官鬼寅木■   ■", "兄弟辰土■   ■", "兄弟丑土■   ■應", "妻財亥水■   ■", "子孫酉金■   ■", "地雷復"],
+            ["子孫寅木■   ■", "官鬼辰土■■■", "妻財午火■   ■世", "官鬼丑土■   ■", "兄弟亥水■   ■", "父母酉金■   ■應", "地水師"],
+            ["父母巳火■■■", "官鬼卯木■■■世", "兄弟丑土■   ■", "兄弟丑土■   ■", "妻財亥水■   ■應", "子孫酉金■   ■", "地澤臨"],
+            ["父母辰土■   ■", "官鬼午火■   ■應", "兄弟申金■■■", "父母丑土■   ■", "子孫亥水■   ■世", "兄弟酉金■   ■", "地山謙"],
+            ["子孫卯木■■■應", "官鬼丑土■   ■", "兄弟亥水■■■", "官鬼丑土■   ■世", "兄弟亥水■   ■", "父母酉金■   ■", "地火明夷"],
+            ["妻財丑土■   ■應", "父母亥水■■■", "官鬼酉金■■■", "妻財丑土■   ■世", "父母亥水■   ■", "官鬼酉金■   ■", "地風升"],
+            ["妻財子水■■■", "官鬼寅木■■■", "兄弟辰土■■■世", "兄弟丑土■   ■", "妻財亥水■   ■", "子孫酉金■   ■應", "地天泰"],
+            ["妻財未土■   ■世", "子孫巳火■   ■", "兄弟卯木■   ■", "子孫午火■■■應", "官鬼申金■   ■", "妻財戌土■   ■", "雷地豫"],
+            ["父母子水■■■", "兄弟寅木■   ■", "妻財辰土■   ■應", "子孫午火■■■", "官鬼申金■   ■", "妻財戌土■   ■世", "震為雷"],
+            ["兄弟寅木■   ■", "妻財辰土■■■世", "子孫午火■   ■", "子孫午火■■■", "官鬼申金■   ■應", "妻財戌土■   ■", "雷水解"],
+            ["官鬼巳火■■■", "妻財卯木■■■", "父母丑土■   ■世", "官鬼午火■■■", "兄弟申金■   ■", "父母戌土■   ■應", "雷澤歸妹"],
+            ["父母辰土■   ■應", "官鬼午火■   ■", "兄弟申金■■■", "官鬼午火■■■世", "兄弟申金■   ■", "父母戌土■   ■", "雷山小過"],
+            ["子孫卯木■■■", "官鬼丑土■   ■應", "兄弟亥水■■■", "妻財午火■■■", "父母申金■   ■世", "官鬼戌土■   ■", "雷火豐"],
+            ["妻財丑土■   ■", "父母亥水■■■", "官鬼酉金■■■世", "子孫午火■■■", "官鬼申金■   ■", "妻財戌土■   ■應", "雷風恆"],
+            ["妻財子水■■■應", "官鬼寅木■■■", "兄弟辰土■■■", "父母午火■■■世", "子孫申金■   ■", "兄弟戌土■   ■", "雷天大壯"],
+            ["兄弟未土■   ■", "父母巳火■   ■", "官鬼卯木■   ■世", "子孫申金■   ■", "兄弟戌土■■■", "妻財子水■   ■應", "水地比"],
+            ["兄弟子水■■■", "子孫寅木■   ■世", "官鬼辰土■   ■", "父母申金■   ■", "官鬼戌土■■■應", "兄弟子水■   ■", "水雷屯"],
+            ["子孫寅木■   ■", "官鬼辰土■■■", "妻財午火■   ■應", "父母申金■   ■", "官鬼戌土■■■", "兄弟子水■   ■世", "坎為水"],
+            ["妻財巳火■■■世", "子孫卯木■■■", "官鬼丑土■   ■", "父母申金■   ■應", "官鬼戌土■■■", "兄弟子水■   ■", "水澤節"],
+            ["父母辰土■   ■應", "官鬼午火■   ■", "兄弟申金■■■", "兄弟申金■   ■世", "父母戌土■■■", "子孫子水■   ■", "水山蹇"],
+            ["子孫卯木■■■", "官鬼丑土■   ■", "兄弟亥水■■■世", "父母申金■   ■", "官鬼戌土■■■", "兄弟子水■   ■應", "水火既濟"],
+            ["妻財丑土■   ■", "父母亥水■■■應", "官鬼酉金■■■", "官鬼申金■   ■", "妻財戌土■■■世", "父母子水■   ■", "水風井"],
+            ["妻財子水■■■應", "官鬼寅木■■■", "兄弟辰土■■■", "子孫申金■   ■世", "兄弟戌土■■■", "妻財子水■   ■", "水天需"],
+            ["父母未土■   ■", "官鬼巳火■   ■世", "妻財卯木■   ■", "子孫亥水■■■", "兄弟酉金■■■應", "父母未土■   ■", "澤地萃"],
+            ["父母子水■■■", "兄弟寅木■   ■", "妻財辰土■   ■世", "父母亥水■■■", "官鬼酉金■■■", "妻財未土■   ■應", "澤雷隨"],
+            ["妻財卯木■   ■世", "父母辰土■■■", "官鬼午火■   ■", "子孫亥水■■■應", "兄弟酉金■■■", "父母未土■   ■", "澤水困"],
+            ["官鬼巳火■■■", "妻財卯木■■■", "父母丑土■   ■應", "子孫亥水■■■", "兄弟酉金■■■", "父母未土■   ■世", "兌為澤"],
+            ["父母辰土■   ■", "官鬼午火■   ■", "兄弟申金■■■世", "子孫亥水■■■", "兄弟酉金■■■", "父母未土■   ■應", "澤山咸"],
+            ["子孫卯木■■■應", "官鬼丑土■   ■", "兄弟亥水■■■", "兄弟亥水■■■世", "父母酉金■■■", "官鬼未土■   ■", "澤火革"],
+            ["妻財丑土■   ■應", "父母亥水■■■", "官鬼酉金■■■", "父母亥水■■■世", "官鬼酉金■■■", "妻財未土■   ■", "澤風大過"],
+            ["妻財子水■■■", "官鬼寅木■■■應", "兄弟辰土■■■", "妻財亥水■■■", "子孫酉金■■■世", "兄弟未土■   ■", "澤天夬"],
+            ["父母未土■   ■", "官鬼巳火■   ■應", "妻財卯木■   ■", "父母戌土■   ■", "子孫子水■   ■世", "妻財寅木■■■", "山地剝"],
+            ["父母子水■■■應", "兄弟寅木■   ■", "妻財辰土■   ■", "妻財戌土■   ■世", "父母子水■   ■", "兄弟寅木■■■", "山雷頤"],
+            ["父母寅木■   ■應", "子孫辰土■■■", "兄弟午火■   ■", "子孫戌土■   ■世", "官鬼子水■   ■", "父母寅木■■■", "山水蒙"],
+            ["父母巳火■■■", "官鬼卯木■■■", "兄弟丑土■   ■世", "兄弟戌土■   ■", "妻財子水■   ■", "官鬼寅木■■■應", "山澤損"],
+            ["兄弟辰土■   ■", "父母午火■   ■", "子孫申金■■■應", "兄弟戌土■   ■", "妻財子水■   ■", "官鬼寅木■■■世", "艮為山"],
+            ["官鬼卯木■■■世", "兄弟丑土■   ■", "妻財亥水■■■", "兄弟戌土■   ■應", "妻財子水■   ■", "官鬼寅木■■■", "山火賁"],
+            ["妻財丑土■   ■", "父母亥水■■■", "官鬼酉金■■■世", "妻財戌土■   ■", "父母子水■   ■", "兄弟寅木■■■應", "山風蠱"],
+            ["妻財子水■■■", "官鬼寅木■■■世", "兄弟辰土■■■", "兄弟戌土■   ■", "妻財子水■   ■應", "官鬼寅木■■■", "山天大畜"],
+            ["父母未土■   ■應", "官鬼巳火■   ■", "妻財卯木■   ■", "兄弟酉金■■■世", "父母未土■   ■", "官鬼巳火■■■", "火地晉"],
+            ["父母子水■■■", "兄弟寅木■   ■應", "妻財辰土■   ■", "官鬼酉金■■■", "妻財未土■   ■世", "子孫巳火■■■", "火雷噬嗑"],
+            ["父母寅木■   ■", "子孫辰土■■■", "兄弟午火■   ■世", "妻財酉金■■■", "子孫未土■   ■", "兄弟巳火■■■應", "火水未濟"],
+            ["父母巳火■■■應", "官鬼卯木■■■", "兄弟丑土■   ■", "子孫酉金■■■世", "兄弟未土■   ■", "父母巳火■■■", "火澤睽"],
+            ["子孫辰土■   ■世", "兄弟午火■   ■", "妻財申金■■■", "妻財酉金■■■應", "子孫未土■   ■", "兄弟巳火■■■", "火山旅"],
+            ["父母卯木■■■", "子孫丑土■   ■", "官鬼亥水■■■應", "妻財酉金■■■", "子孫未土■   ■", "兄弟巳火■■■世", "離為火"],
+            ["子孫丑土■   ■", "官鬼亥水■■■世", "妻財酉金■■■", "妻財酉金■■■", "子孫未土■   ■應", "兄弟巳火■■■", "火風鼎"],
+            ["子孫子水■■■", "妻財寅木■■■", "父母辰土■■■世", "兄弟酉金■■■", "父母未土■   ■", "官鬼巳火■■■應", "火天大有"],
+            ["父母未土■   ■", "官鬼巳火■   ■", "妻財卯木■   ■世", "父母未土■   ■世", "官鬼巳火■■■", "妻財卯木■■■", "風地觀"],
+            ["父母子水■■■", "兄弟寅木■   ■", "妻財辰土■   ■世", "妻財未土■   ■", "子孫巳火■■■", "兄弟卯木■■■應", "風雷益"],
+            ["父母寅木■   ■", "子孫辰土■■■應", "兄弟午火■   ■", "子孫未土■   ■", "兄弟巳火■■■世", "父母卯木■■■", "風水渙"],
+            ["父母巳火■■■應", "官鬼卯木■■■", "兄弟丑土■   ■", "兄弟未土■   ■世", "父母巳火■■■", "官鬼卯木■■■", "風澤中孚"],
+            ["兄弟辰土■   ■", "父母午火■   ■", "子孫申金■■■世", "兄弟未土■   ■", "父母巳火■■■", "官鬼卯木■■■應", "風山漸"],
+            ["兄弟卯木■■■", "妻財丑土■   ■世", "父母亥水■■■", "妻財未土■   ■", "子孫巳火■■■應", "兄弟卯木■■■", "風火家人"],
+            ["妻財丑土■   ■", "父母亥水■■■", "官鬼酉金■■■應", "妻財未土■   ■", "子孫巳火■■■", "兄弟卯木■■■世", "巽為風"],
+            ["父母子水■■■世", "兄弟寅木■■■", "妻財辰土■■■", "妻財未土■   ■應", "子孫巳火■■■", "兄弟卯木■■■", "風天小畜"],
+            ["父母未土■   ■", "官鬼巳火■   ■", "妻財卯木■   ■世", "官鬼午火■■■", "兄弟申金■■■", "父母戌土■■■應", "天地否"],
+            ["父母子水■■■應", "兄弟寅木■   ■", "妻財辰土■   ■", "子孫午火■■■世", "官鬼申金■■■", "妻財戌土■■■", "天雷無妄"],
+            ["父母寅木■   ■應", "子孫辰土■■■", "兄弟午火■   ■", "兄弟午火■■■世", "妻財申金■■■", "子孫戌土■■■", "天水訟"],
+            ["父母巳火■■■", "官鬼卯木■■■應", "兄弟丑土■   ■", "父母午火■■■", "子孫申金■■■世", "兄弟戌土■■■", "天澤履"],
+            ["父母辰土■   ■", "官鬼午火■   ■世", "兄弟申金■■■", "官鬼午火■■■", "兄弟申金■■■應", "父母戌土■■■", "天山遯"],
+            ["父母卯木■■■", "子孫丑土■   ■", "官鬼亥水■■■世", "兄弟午火■■■", "妻財申金■■■", "子孫戌土■■■應", "天火同人"],
+            ["父母丑土■   ■世", "子孫亥水■■■", "兄弟酉金■■■", "官鬼午火■■■應", "兄弟申金■■■", "父母戌土■■■", "天風姤"],
+            ["子孫子水■■■", "妻財寅木■■■", "父母辰土■■■應", "官鬼午火■■■", "兄弟申金■■■", "父母戌土■■■世", "乾為天"]
+        ];
+
+        // 伏神表（完整）
+        const gua64V = [
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "坤為地"],
+            ["　　　　", "　　　　", "父母巳火", "　　　　", "　　　　", "　　　　", "　", "地雷復"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "地水師"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "地澤臨"],
+            ["　　　　", "妻財卯木", "　　　　", "　　　　", "　　　　", "　　　　", "　", "地山謙"],
+            ["　　　　", "　　　　", "妻財午火", "　　　　", "　　　　", "　　　　", "　", "地火明夷"],
+            ["　　　　", "兄弟寅木", "　　　　", "子孫午火", "　　　　", "　　　　", "　", "地風升"],
+            ["　　　　", "父母巳火", "　　　　", "　　　　", "　　　　", "　　　　", "　", "地天泰"],
+            ["父母子水", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "雷地豫"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "震為雷"],
+            ["父母子水", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "雷水解"],
+            ["　　　　", "　　　　", "　　　　", "子孫亥水", "　　　　", "　　　　", "　", "雷澤歸妹"],
+            ["　　　　", "妻財卯木", "　　　　", "子孫亥水", "　　　　", "　　　　", "　", "雷山小過"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "雷火豐"],
+            ["　　　　", "兄弟寅木", "　　　　", "　　　　", "　　　　", "　　　　", "　", "雷風恆"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "雷天大壯"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "水地比"],
+            ["　　　　", "　　　　", "妻財午火", "　　　　", "　　　　", "　　　　", "　", "水雷屯"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "坎為水"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "水澤節"],
+            ["　　　　", "妻財卯木", "　　　　", "　　　　", "　　　　", "　　　　", "　", "水山蹇"],
+            ["　　　　", "　　　　", "妻財午火", "　　　　", "　　　　", "　　　　", "　", "水火既濟"],
+            ["　　　　", "兄弟寅木", "　　　　", "　　　　", "　　　　", "　　　　", "　", "水風井"],
+            ["　　　　", "父母巳火", "　　　　", "　　　　", "　　　　", "　　　　", "　", "水天需"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "澤地萃"],
+            ["　　　　", "　　　　", "　　　　", "子孫午火", "　　　　", "　　　　", "　", "澤雷隨"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "澤水困"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "兌為澤"],
+            ["　　　　", "妻財卯木", "　　　　", "　　　　", "　　　　", "　　　　", "　", "澤山咸"],
+            ["　　　　", "　　　　", "妻財午火", "　　　　", "　　　　", "　　　　", "　", "澤火革"],
+            ["　　　　", "　　　　", "　　　　", "子孫午火", "　　　　", "　　　　", "　", "澤風大過"],
+            ["　　　　", "父母巳火", "　　　　", "　　　　", "　　　　", "　　　　", "　", "澤天夬"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "兄弟申金", "　　　　", "　", "山地剝"],
+            ["　　　　", "　　　　", "官鬼酉金", "　　　　", "子孫巳火", "　　　　", "　", "山雷頤"],
+            ["　　　　", "　　　　", "　　　　", "妻財酉金", "　　　　", "　　　　", "　", "山水蒙"],
+            ["　　　　", "　　　　", "子孫申金", "　　　　", "　　　　", "　　　　", "　", "山澤損"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "艮為山"],
+            ["　　　　", "父母午火", "子孫申金", "　　　　", "　　　　", "　　　　", "　", "山火賁"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "子孫巳火", "　　　　", "　", "山風蠱"],
+            ["　　　　", "父母午火", "子孫申金", "　　　　", "　　　　", "　　　　", "　", "山天大畜"],
+            ["子孫子水", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "火地晉"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "火雷噬嗑"],
+            ["　　　　", "　　　　", "官鬼亥水", "　　　　", "　　　　", "　　　　", "　", "火水未濟"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "妻財子水", "　　　　", "　", "火澤睽"],
+            ["父母卯木", "　　　　", "官鬼亥水", "　　　　", "　　　　", "　　　　", "　", "火山旅"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "離為火"],
+            ["父母卯木", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "火風鼎"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "火天大有"],
+            ["子孫子水", "　　　　", "　　　　", "　　　　", "兄弟申金", "　　　　", "　", "風地觀"],
+            ["　　　　", "　　　　", "官鬼酉金", "　　　　", "　　　　", "　　　　", "　", "風雷益"],
+            ["　　　　", "　　　　", "官鬼亥水", "妻財酉金", "　　　　", "　　　　", "　", "風水渙"],
+            ["　　　　", "　　　　", "子孫申金", "　　　　", "妻財子水", "　　　　", "　", "風澤中孚"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "妻財子水", "　　　　", "　", "風山漸"],
+            ["　　　　", "　　　　", "官鬼酉金", "　　　　", "　　　　", "　　　　", "　", "風火家人"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "巽為風"],
+            ["　　　　", "　　　　", "官鬼酉金", "　　　　", "　　　　", "　　　　", "　", "風天小畜"],
+            ["子孫子水", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "天地否"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "天雷無妄"],
+            ["　　　　", "　　　　", "官鬼亥水", "　　　　", "　　　　", "　　　　", "　", "天水訟"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "妻財子水", "　　　　", "　", "天澤履"],
+            ["子孫子水", "妻財寅木", "　　　　", "　　　　", "　　　　", "　　　　", "　", "天山遯"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "天火同人"],
+            ["　　　　", "妻財寅木", "　　　　", "　　　　", "　　　　", "　　　　", "　", "天風姤"],
+            ["　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　　　　", "　", "乾為天"]
+        ];
+
+        // 64 卦名稱
+        const gua64Names = [
+            "坤為地", "地雷復", "地水師", "地澤臨", "地山謙", "地火明夷", "地風升", "地天泰",
+            "雷地豫", "震為雷", "雷水解", "雷澤歸妹", "雷山小過", "雷火豐", "雷風恆", "雷天大壯",
+            "水地比", "水雷屯", "坎為水", "水澤節", "水山蹇", "水火既濟", "水風井", "水天需",
+            "澤地萃", "澤雷隨", "澤水困", "兌為澤", "澤山咸", "澤火革", "澤風大過", "澤天夬",
+            "山地剝", "山雷頤", "山水蒙", "山澤損", "艮為山", "山火賁", "山風蠱", "山天大畜",
+            "火地晉", "火雷噬嗑", "火水未濟", "火澤睽", "火山旅", "離為火", "火風鼎", "火天大有",
+            "風地觀", "風雷益", "風水渙", "風澤中孚", "風山漸", "風火家人", "巽為風", "風天小畜",
+            "天地否", "天雷無妄", "天水訟", "天澤履", "天山遯", "天火同人", "天風姤", "乾為天"
+        ];
+
+        // 六獸表
+        const liuShou = {
+            "甲乙": ["青龍　", "朱雀　", "勾陳　", "螣蛇　", "白虎　", "玄武　", "　"],
+            "丙丁": ["朱雀　", "勾陳　", "螣蛇　", "白虎　", "玄武　", "青龍　", "　"],
+            "戊": ["勾陳　", "螣蛇　", "白虎　", "玄武　", "青龍　", "朱雀　", "　"],
+            "己": ["螣蛇　", "白虎　", "玄武　", "青龍　", "朱雀　", "勾陳　", "　"],
+            "庚辛": ["白虎　", "玄武　", "青龍　", "朱雀　", "勾陳　", "螣蛇　", "　"],
+            "壬癸": ["玄武　", "青龍　", "朱雀　", "勾陳　", "螣蛇　", "白虎　", "　"]
+        };
+
+        // 神煞計算
+        function shensha(today, resultArea) {
+            let output = "星煞【";
+            const rizhiGroups = ["申子辰", "寅午戌", "巳酉丑", "亥卯未"];
+            const yima = ["寅", "申", "亥", "巳"];
+            const taohua = ["酉", "卯", "午", "子"];
+            const jiesha = ["巳", "亥", "寅", "申"];
+            const rizhi = today.getDayZhi();
+            if (["申", "子", "辰"].includes(rizhi)) {
+                output += `驛馬：${yima[0]}　桃花：${taohua[0]}　劫煞：${jiesha[0]} `;
+            } else if (["寅", "午", "戌"].includes(rizhi)) {
+                output += `驛馬：${yima[1]}　桃花：${taohua[1]}　劫煞：${jiesha[1]} `;
+            } else if (["巳", "酉", "丑"].includes(rizhi)) {
+                output += `驛馬：${yima[2]}　桃花：${taohua[2]}　劫煞：${jiesha[2]} `;
+            } else if (["亥", "卯", "未"].includes(rizhi)) {
+                output += `驛馬：${yima[3]}　桃花：${taohua[3]}　劫煞：${jiesha[3]} `;
+            }
+
+            const rigan = today.getDayGan();
+            const guiren = ["丑未", "申子", "酉亥", "酉亥", "丑未", "申子", "寅午", "寅午", "卯巳", "卯巳"];
+            const lushen = ["寅", "卯", "午", "巳", "午", "巳", "申", "酉", "子", "亥"];
+            const yangren = ["卯", "辰", "午", "未", "午", "未", "酉", "戌", "子", "丑"];
+            const riganIndex = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"].indexOf(rigan);
+            if (riganIndex !== -1) {
+                output += `貴人：${guiren[riganIndex]}　祿神：${lushen[riganIndex]}　羊刃：${yangren[riganIndex]}`;
+            }
+            output += "】\n";
+            resultArea.innerText += output;
+        }
+
+        // 卦象生成
+        function rollGua() {
+            const today = new Lunar();
+            const resultArea = document.getElementById('resultArea');
+            resultArea.innerText = "";
+
+            resultArea.innerText += "□■□■□■□■□■□■□■□■□\n";
+            resultArea.innerText += "㊣㊣㊣野鶴金錢卦〇〇〇\n";
+            resultArea.innerText += "■□■□■□■□■□■□■□■□■\n";
+
+            const answer = new Array(6).fill(0);
+            const coin = new Array(6).fill(0);
+            const doin = new Array(6).fill(0);
+
+            for (let i = 0; i < 6; i++) {
+                let result = "";
+                const coin1 = Math.floor(Math.random() * 2);
+                const coin2 = Math.floor(Math.random() * 2);
+                const coin3 = Math.floor(Math.random() * 2);
+                result += coin1 === 1 ? "㊣" : "〇";
+                result += coin2 === 1 ? "㊣" : "〇";
+                result += coin3 === 1 ? "㊣" : "〇";
+                answer[i] = coin1 + coin2 + coin3;
+                resultArea.innerText += `第${i + 1}次${result} ${answer[i]} `;
+                if (answer[i] === 3) resultArea.innerText += "交 X老陰變\n";
+                else if (answer[i] === 1) resultArea.innerText += "拆   少陰\n";
+                else if (answer[i] === 2) resultArea.innerText += "單   少陽\n";
+                else resultArea.innerText += "重 O老陽變\n";
+            }
+        
+            
+            resultArea.innerText += "==========================\n";
+            const yaooder = ["初爻", "二爻", "三爻", "四爻", "五爻", "上爻"];
+            for (let i = 5; i >= 0; i--) {
+                resultArea.innerText += yaooder[i] + " ";
+                if (answer[i] === 2 || answer[i] === 0) {
+                    coin[i] = 1;
+                    doin[i] = 1;
+                }
+                if (answer[i] === 3) {
+                    resultArea.innerText += "〇　〇 X老陰 〇〇〇\n";
+                    doin[i] = 1;
+                } else if (answer[i] === 1) {
+                    resultArea.innerText += "〇　〇   少陰 〇　〇\n";
+                } else if (answer[i] === 2) {
+                    resultArea.innerText += "〇〇〇   少陽 〇〇〇\n";
+                } else {
+                    resultArea.innerText += "〇〇〇■老陽 〇　〇\n";
+                    doin[i] = 0;
+                }
+            }
+
+            const space = hexagram(coin[5], coin[4], coin[3], coin[2], coin[1], coin[0]);
+            resultArea.innerText += `　　 ${space}`;
+            let prespace = "　 ";
+            if (space.length === 4) prespace = "　";
+            if (space.length === 3) prespace = "　　";
+            resultArea.innerText += `${prespace}變  ${hexagram(doin[5], doin[4], doin[3], doin[2], doin[1], doin[0])}\n`;
+            resultArea.innerText += "==========================================\n";
+
+            const yyy = coin[5] * 32 + coin[4] * 16 + coin[3] * 8 + coin[2] * 4 + coin[1] * 2 + coin[0];
+            const zzz = doin[5] * 32 + doin[4] * 16 + doin[3] * 8 + doin[2] * 4 + doin[1] * 2 + doin[0];
+
+            // 錯誤處理：確保索引有效
+            if (yyy < 0 || yyy >= gua64.length || zzz < 0 || zzz >= gua64.length) {
+                resultArea.innerText += "錯誤：無效的卦象索引\n";
+                return;
+            }
+
+            const benGua = gua64[yyy];
+            const fuGua = gua64V[yyy];
+            const zhiGua = gua64[zzz];
+
+            resultArea.innerText += "六獸　　伏神　　　本卦　　　　　　之卦\n";
+            const rigan = today.getDayGan();
+            let shouGroup = liuShou["甲乙"];
+            if (["丙", "丁"].includes(rigan)) shouGroup = liuShou["丙丁"];
+            else if (rigan === "戊") shouGroup = liuShou["戊"];
+            else if (rigan === "己") shouGroup = liuShou["己"];
+            else if (["庚", "辛"].includes(rigan)) shouGroup = liuShou["庚辛"];
+            else if (["壬", "癸"].includes(rigan)) shouGroup = liuShou["壬癸"];
+
+            for (let xx = 5; xx >= 0; xx--) {
+                resultArea.innerText += shouGroup[xx] + fuGua[xx] + "　";
+                resultArea.innerText += benGua[xx].includes("世") || benGua[xx].includes("應") ?
+                    `${benGua[xx]}　${zhiGua[xx]}\n` : `${benGua[xx]}　　${zhiGua[xx]}\n`;
+            }
+            resultArea.innerText += `${shouGroup[6]}${fuGua[6]}　　　　　　　${benGua[6]}　　　　　${zhiGua[6]}\n`;
+
+            // 顯示卦象解釋
+            resultArea.innerText += "\n【本卦解釋】\n" + (gua64Interpretations[benGua[6]] || "無解釋資料\n");
+            resultArea.innerText += "【之卦解釋】\n" + (gua64Interpretations[zhiGua[6]] || "無解釋資料\n");
+
+            resultArea.innerText += "\n";
+            resultArea.innerText += `干支【${today.getYearInGanZhi()}年 ${today.getMonthInGanZhi()}月 ${today.getDayInGanZhi()}日 ${today.getTimeInGanZhi()}時】\n`;
+            const fiveElementsStrength = calculateFiveElementsStrength(
+                today.getYearInGanZhi(), today.getMonthInGanZhi(), today.getDayInGanZhi(), today.getTimeInGanZhi());
+            const yongShen = determineYongShen(fiveElementsStrength);
+            resultArea.innerText += `五行強弱: ${JSON.stringify(fiveElementsStrength)}\n`;
+            resultArea.innerText += `用神: ${yongShen}\n`;
+
+            shensha(today, resultArea);
+
+            // 繪製五行圖表
+            const ctx = document.getElementById('fiveElementsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ["木", "火", "土", "金", "水"],
+                    datasets: [{
+                        label: "五行強弱",
+                        data: [
+                            fiveElementsStrength["木"], fiveElementsStrength["火"], fiveElementsStrength["土"],
+                            fiveElementsStrength["金"], fiveElementsStrength["水"]
+                        ],
+                        backgroundColor: ["#228B22", "#FF4500", "#DAA520", "#C0C0C0", "#1E90FF"],
+                        borderColor: ["#1A6B1A", "#CC3700", "#B8860B", "#A9A9A9", "#1C86EE"],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: "強度" } },
+                        x: { title: { display: true, text: "五行" } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: "五行強弱分佈" }
+                    }
+                }
+            });
+        }
+
+        function hexagram(coin1, coin2, coin3, coin4, coin5, coin6) {
+            const value = coin1 * 32 + coin2 * 16 + coin3 * 8 + coin4 * 4 + coin5 * 2 + coin6;
+            return gua64Names[value];
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Lunar();
+            //document.getElementById('dateLabel').innerText = `國曆【${today.getSolar().toFullString()}】 農曆【${today.getYearInGanZhi()}年 ${today.getMonthInGanZhi()}月 ${today.getDayInGanZhi()}日 ${today.getTimeInGanZhi()}時】`;
+            document.getElementById('rollButton').addEventListener('click', rollGua);
+        });
+    </script>
+</body>
+</html>
