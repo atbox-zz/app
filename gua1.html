@@ -215,13 +215,10 @@
 </head>
 <body>
     <div class="container">
-        
-        <div class="date-info" id="dateInfo">
-            載入中...
+        <div class="header"> 
+            <button class="roll-button" onclick="rollGua()">野鶴金錢卦</button>
+            <div class="date-info" id="dateInfo"></div>
         </div>
-        
-        <button class="roll-button" onclick="rollGua()">野鶴增刪卜易金錢卦</button>
-        
         <div class="coin-animation" id="coinAnimation" style="display: none;">
             <div class="coin" id="coin1">㊣</div>
             <div class="coin" id="coin2">㊣</div>
@@ -2268,25 +2265,6 @@
             '壬': ['玄武', '青龍', '朱雀', '勾陳', '螣蛇', '白虎'],
             '癸': ['玄武', '青龍', '朱雀', '勾陳', '螣蛇', '白虎']
         };
-/*
-        // 初始化日期信息
-        function initDateInfo() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth() + 1;
-            const date = now.getDate();
-            const hour = now.getHours();
-            
-            // 簡化的干支計算（實際應用需要更精確的算法）
-            const yearGanZhi = getGanZhi(year - 1984); // 1984年為甲子年
-            const monthGanZhi = getGanZhi(month - 1);
-            const dateGanZhi = getGanZhi(date - 1);
-            const hourGanZhi = getGanZhi(Math.floor(hour / 2));
-            
-            document.getElementById('dateInfo').innerHTML = 
-                `國曆【${year}年${month}月${date}日】 農曆【${yearGanZhi}年 ${monthGanZhi}月 ${dateGanZhi}日 ${hourGanZhi}時】`;
-        }
-        */
         // 初始化日期信息
         function initDateInfo() {
             const now = new Date();

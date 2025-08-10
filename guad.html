@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>完整六十四卦八卦方圓圖 - 顯示卦名與六爻</title>
+<style>
+  body {
+    margin:0; background: linear-gradient(180deg, #fff8ec, #efe6dc);
+    font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    color:#4b3b2b;
+    user-select:none;
+    overflow-x: hidden;
+  }
+  canvas {
+    display:block;
+    margin: 20px auto;
+    background:#fff8e1;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    border-radius: 16px;
+  }
+  h1 {
+    text-align:center;
+    font-weight:700;
+    color:#6b4a2d;
+    margin-top:16px;
+  }
+</style>
+</head>
+<body>
+
+<h1>完整六十四卦八卦方圓圖<br>（⚊ 陽爻、⚋ 陰爻，由上往下排列）</h1>
+<canvas id="guaCanvas" width="1100" height="1100" aria-label="完整六十四卦八卦方圓圖"></canvas>
+
+<script>
+const gua64Names = [ 
+  "坤為地", "地雷復", "地水師", "地澤臨", "地山謙", "地火明夷", "地風升", "地天泰",
+  "雷地豫", "震為雷", "雷水解", "雷澤歸妹", "雷山小過", "雷火豐", "雷風恆", "雷天大壯",
+  "水地比", "水雷屯", "坎為水", "水澤節", "水山蹇", "水火既濟", "水風井", "水天需",
+  "澤地萃", "澤雷隨", "澤水困", "兌為澤", "澤山咸", "澤火革", "澤風大過", "澤天夬",
+  "山地剝", "山雷頤", "山水蒙", "山澤損", "艮為山", "山火賁", "山風蠱", "山天大畜",
+  "火地晉", "火雷噬嗑", "火水未濟", "火澤睽", "火山旅", "離為火", "火風鼎", "火天大有",
+  "風地觀", "風雷益", "風水渙", "風澤中孚", "風山漸", "風火家人", "巽為風", "風天小畜",
+  "天地否", "天雷無妄", "天水訟", "天澤履", "天山遯", "天火同人", "天風姤", "乾為天"
+];
+
+const gua64Codes = {
+    "坤為地":   "000000",
+    "地雷復":   "000001",
+    "地水師":   "000010",
+    "地澤臨":   "000011",
+    "地山謙":   "000100",
+    "地火明夷": "000101",
+    "地風升":   "000110",
+    "地天泰":   "000111",
+
+    "雷地豫":   "001000",
+    "震為雷":   "001001",
+    "雷水解":   "001010",
+    "雷澤歸妹": "001011",
+    "雷山小過": "001100",
+    "雷火豐":   "001101",
+    "雷風恆":   "001110",
+    "雷天大壯": "001111",
+
+    "水地比":   "010000",
+    "水雷屯":   "010001",
+    "坎為水":   "010010",
+    "水澤節":   "010011",
+    "水山蹇":   "010100",
+    "水火既濟": "010101",
+    "水風井":   "010110",
+    "水天需":   "010111",
+
+    "澤地萃":   "011000",
+    "澤雷隨":   "011001",
+    "澤水困":   "011010",
+    "兌為澤":   "011011",
+    "澤山咸":   "011100",
+    "澤火革":   "011101",
+    "澤風大過": "011110",
+    "澤天夬":   "011111",
+
+    "山地剝":   "100000",
+    "山雷頤":   "100001",
+    "山水蒙":   "100010",
+    "山澤損":   "100011",
+    "艮為山":   "100100",
+    "山火賁":   "100101",
+    "山風蠱":   "100110",
+    "山天大畜": "100111",
+
+    "火地晉":   "101000",
+    "火雷噬嗑": "101001",
+    "火水未濟": "101010",
+    "火澤睽":   "101011",
+    "火山旅":   "101100",
+    "離為火":   "101101",
+    "火風鼎":   "101110",
+    "火天大有": "101111",
+
+    "風地觀":   "110000",
+    "風雷益":   "110001",
+    "風水渙":   "110010",
+    "風澤中孚": "110011",
+    "風山漸":   "110100",
+    "風火家人": "110101",
+    "巽為風":   "110110",
+    "風天小畜": "110111",
+
+    "天地否":   "111000",
+    "天雷無妄": "111001",
+    "天水訟":   "111010",
+    "天澤履":   "111011",
+    "天山遯":   "111100",
+    "天火同人": "111101",
+    "天風姤":   "111110",
+    "乾為天":   "111111"
+};
+
+const baguaChars = ["坎","艮","震","巽","離","坤","兌","乾"]; // 八卦方位，外圈顯示
+
+const canvas = document.getElementById("guaCanvas");
+const ctx = canvas.getContext("2d");
+const W = canvas.width;
+const H = canvas.height;
+const cx = W/2;
+const cy = H/2;
+const outerRadius = 460;
+const guaRadius = 350;
+
+ctx.textBaseline = "middle";
+ctx.textAlign = "center";
+
+// 背景
+function drawBackground(){
+  const grad = ctx.createRadialGradient(cx, cy, 50, cx, cy, outerRadius+50);
+  grad.addColorStop(0, "#fff8ec");
+  grad.addColorStop(1, "#e7dfd3");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,W,H);
+}
+
+// 八卦方位字
+function drawBaguaChars(){
+  ctx.font = "bold 30px Noto Sans TC, Microsoft JhengHei, sans-serif";
+  for(let i=0; i<8; i++){
+    let angle = (i/8)*2*Math.PI - Math.PI/2;
+    let x = cx + (outerRadius+80)*Math.cos(angle);
+    let y = cy + (outerRadius+80)*Math.sin(angle);
+    ctx.fillStyle = "#4b2f2f";
+    ctx.fillText(baguaChars[i], x, y);
+  }
+}
+
+// 畫六爻符號（由上往下排列）
+function drawYaoList(x, y, code){
+  ctx.font = "20px 'Segoe UI Symbol', 'Noto Sans Symbols', 'Noto Sans TC', Microsoft JhengHei, sans-serif";
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "center";
+  const lineHeight = 16;
+  for(let i=0; i<6; i++){
+    const ch = code[i] === '1' ? "⚊" : "⚋";
+    ctx.fillText(ch, x, y + i*lineHeight);
+  }
+}
+
+// 主繪製函數
+function drawAllGua(){
+  ctx.clearRect(0, 0, W, H);
+  drawBackground();
+  drawBaguaChars();
+
+  ctx.font = "600 14px Noto Sans TC, Microsoft JhengHei";
+  ctx.fillStyle = "#5a3f26";
+
+  for(let i=0; i<64; i++){
+    let angle = (i/64)*2*Math.PI - Math.PI/2;
+    let x = cx + guaRadius * Math.cos(angle);
+    let y = cy + guaRadius * Math.sin(angle);
+
+    ctx.save();
+    ctx.translate(x, y);
+
+    // 畫圓底
+    ctx.beginPath();
+    ctx.fillStyle = "#fffaf0";
+    ctx.fill();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(0,0,0,0.1)";
+    ctx.stroke();
+
+    // 卦名（上方）
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+    ctx.fillStyle = "#5a3f26";
+    ctx.fillText(gua64Names[i], 0, -10);
+
+    // 六爻符號（右側，縱列）
+    const code = gua64Codes[gua64Names[i]];
+    drawYaoList(0, 10, code);
+
+    ctx.restore();
+  }
+
+  // 中心大圓和標題
+  ctx.beginPath();
+  ctx.arc(cx, cy, 120, 0, 2*Math.PI);
+  ctx.fillStyle = "#fff8e1";
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "#a57c39";
+  ctx.stroke();
+
+  ctx.font = "16px Noto Sans TC";
+  ctx.fillStyle = "#6b4a2d";
+  ctx.textAlign = "center";
+  ctx.fillText("八卦方圓圖·六十四卦", cx, cy-10);
+
+  ctx.font = "14px Noto Sans TC";
+  ctx.fillStyle = "#7a5f32";
+  ctx.fillText("⚊陽爻  ⚋陰爻（由上往下排列）", cx, cy + 20);
+}
+
+drawAllGua();
+
+</script>
+</body>
+</html>

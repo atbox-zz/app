@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>64卦時鐘式移動 — 每秒順時針移一格，含暫停按鈕，8x8 卦象排列</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #111;
+      color: #eee;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      flex-direction: column;
+      gap: 12px;
+    }
+    canvas {
+      background: #fff7e6;
+      border-radius: 8px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+      max-width: 90vw;
+      max-height: 90vh;
+    }
+    .info {
+      font-size: 14px;
+      color: #ddd;
+    }
+    .controls {
+      margin-top: 10px;
+    }
+    button {
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      background: #333;
+      color: #eee;
+      border: none;
+      border-radius: 4px;
+    }
+    button:hover {
+      background: #444;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bagua"></canvas>
+  <div class="info">
+    <span id="count">已完成格數：0</span> ｜ 位置：<span id="pos">1,1</span>
+  </div>
+  <div class="controls">
+    <button id="toggleBtn" aria-label="暫停或繼續動畫" aria-pressed="false">暫停</button>
+    <button id="resetBtn" aria-label="重置動畫">重置</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('bagua');
+    const ctx = canvas.getContext('2d');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 響應式畫布尺寸
+    function resizeCanvas() {
+      const size = Math.min(window.innerWidth * 0.9, window.innerHeight * 0.9, 900);
+      canvas.width = size;
+      canvas.height = size;
+      return size;
+    }
+
+    let W = resizeCanvas();
+    let H = W;
+    const cx = W / 2, cy = H / 2;
+    let R = Math.min(W, H) * 0.4;
+    window.addEventListener('resize', () => {
+      W = resizeCanvas();
+      H = W;
+      R = Math.min(W, H) * 0.4;
+      draw();
+    });
+
+    let currentStep = 0;
+    let completedSteps = 0;
+    let currentRow = 0;
+    let currentCol = 0;
+    const countEl = document.getElementById('count');
+    const posEl = document.getElementById('pos');
+    let isPlaying = true;
+    let intervalId = null;
+
+    const kingWenTable = [
+      { short: "坤", bin: "\u4DC1" },
+      { short: "復", bin: "\u4DD7" },
+      { short: "師", bin: "\u4DC6" },
+      { short: "臨", bin: "\u4DD2" },
+      { short: "謙", bin: "\u4DCE" },
+      { short: "明夷", bin: "\u4DE3" },
+      { short: "升", bin: "\u4DED" },
+      { short: "泰", bin: "\u4DCA" },
+      { short: "豫", bin: "\u4DCF" },
+      { short: "雷", bin: "\u4DF2" },
+      { short: "解", bin: "\u4DE7" },
+      { short: "歸妹", bin: "\u4DF5" },
+      { short: "小過", bin: "\u4DFD" },
+      { short: "豐", bin: "\u4DF6" },
+      { short: "恆", bin: "\u4DDF" },
+      { short: "大壯", bin: "\u4DE1" },
+      { short: "比", bin: "\u4DC7" },
+      { short: "屯", bin: "\u4DC2" },
+      { short: "水", bin: "\u4DDC" },
+      { short: "節", bin: "\u4DFB" },
+      { short: "蹇", bin: "\u4DE6" },
+      { short: "既濟", bin: "\u4DFE" },
+      { short: "井", bin: "\u4DEF" },
+      { short: "需", bin: "\u4DC4" },
+      { short: "萃", bin: "\u4DEC" },
+      { short: "隨", bin: "\u4DD0" },
+      { short: "困", bin: "\u4DEE" },
+      { short: "澤", bin: "\u4DF9" },
+      { short: "咸", bin: "\u4DDE" },
+      { short: "革", bin: "\u4DF0" },
+      { short: "大過", bin: "\u4DDB" },
+      { short: "夬", bin: "\u4DEA" },
+      { short: "剝", bin: "\u4DD6" },
+      { short: "頤", bin: "\u4DDA" },
+      { short: "蒙", bin: "\u4DC3" },
+      { short: "損", bin: "\u4DE8" },
+      { short: "山", bin: "\u4DF3" },
+      { short: "賁", bin: "\u4DD5" },
+      { short: "蠱", bin: "\u4DD1" },
+      { short: "大畜", bin: "\u4DD9" },
+      { short: "晉", bin: "\u4DE2" },
+      { short: "噬嗑", bin: "\u4DD4" },
+      { short: "未濟", bin: "\u4DFF" },
+      { short: "睽", bin: "\u4DE5" },
+      { short: "旅", bin: "\u4DF7" },
+      { short: "火", bin: "\u4DDD" },
+      { short: "鼎", bin: "\u4DF1" },
+      { short: "大有", bin: "\u4DCD" },
+      { short: "觀", bin: "\u4DD3" },
+      { short: "益", bin: "\u4DE9" },
+      { short: "渙", bin: "\u4DFA" },
+      { short: "中孚", bin: "\u4DFC" },
+      { short: "漸", bin: "\u4DF4" },
+      { short: "家人", bin: "\u4DE4" },
+      { short: "風", bin: "\u4DF8" },
+      { short: "小畜", bin: "\u4DC8" },
+      { short: "否", bin: "\u4DCB" },
+      { short: "無妄", bin: "\u4DD8" },
+      { short: "訟", bin: "\u4DC5" },
+      { short: "履", bin: "\u4DC9" },
+      { short: "遯", bin: "\u4DE0" },
+      { short: "同人", bin: "\u4DCC" },
+      { short: "姤", bin: "\u4DEB" },
+      { short: "乾", bin: "\u4DC0" }
+    ];
+
+    // 天干地支
+    const heavenlyStems = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+    const earthlyBranches = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+    const stemsBranches = [];
+    for (let i = 0; i < 60; i++) {
+      stemsBranches.push(heavenlyStems[i % 10] + earthlyBranches[i % 12]);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      // 繪製 8x8 網格（縮小至圓形邊框內）
+      const gridSize = (R * 1.2 * 1.05) / 9; // 網格尺寸適配圓形邊框直徑
+      const padding = gridSize * 0.2; // 間距為格子尺寸的 20%
+      const gridWidth = 8 * (gridSize + padding) - padding;
+      const gridHeight = gridWidth;
+      const gridOffsetX = -gridWidth / 2;
+      const gridOffsetY = -gridHeight / 2;
+
+      ctx.save();
+      ctx.translate(gridOffsetX, gridOffsetY);
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const index = row * 8 + col;
+          const x = col * (gridSize + padding);
+          const y = row * (gridSize + padding);
+          ctx.font = `${Math.min(gridSize * 0.5, 16)}px "Noto Sans CJK TC", "Microsoft JhengHei", sans-serif`;
+          ctx.fillStyle = '#111';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(kingWenTable[index].bin, x + gridSize / 2, y + gridSize / 2);
+        }
+      }
+      // 高亮當前格
+      const currentX = currentCol * (gridSize + padding);
+      const currentY = currentRow * (gridSize + padding);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#f00';
+      ctx.strokeRect(currentX, currentY, gridSize, gridSize);
+      ctx.restore();
+
+      // 繪製64卦圓（靜止）
+      ctx.beginPath();
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = '#222';
+      ctx.arc(0, 0, R, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 繪製64卦與卦名
+      const angleStep = (2 * Math.PI) / 64;
+      for (let i = 0; i < 64; i++) {
+        const adjustedIndex = (i - currentStep + 64) % 64;
+        const angle = -Math.PI / 2 + adjustedIndex * angleStep;
+
+        // 高亮當前卦
+        if (i === 0) {
+          const tx = Math.cos(angle) * (R + 40);
+          const ty = Math.sin(angle) * (R + 40);
+          ctx.beginPath();
+          ctx.arc(tx, ty, 15, 0, Math.PI * 2);
+          ctx.strokeStyle = '#f00';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
+        // 卦象
+        const txBin = Math.cos(angle) * (R + 40);
+        const tyBin = Math.sin(angle) * (R + 40);
+        ctx.font = '20px "Noto Sans CJK TC", "Microsoft JhengHei", sans-serif';
+        ctx.fillStyle = '#111';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(kingWenTable[i].bin, txBin, tyBin);
+
+        // 卦名
+        const txShort = Math.cos(angle) * (R + 80);
+        const tyShort = Math.sin(angle) * (R + 80);
+        ctx.font = '14px "Noto Sans CJK TC", "Microsoft JhengHei", sans-serif';
+        ctx.fillStyle = '#888';
+        ctx.fillText(kingWenTable[i].short, txShort, tyShort);
+      }
+
+      // 繪製天干地支（靜止）
+      const branchStep = 2 * Math.PI / 12;
+      for (let i = 0; i < 12; i++) {
+        const angle = -Math.PI / 2 + i * branchStep;
+        const tx = Math.cos(angle) * (R + 120);
+        const ty = Math.sin(angle) * (R + 120);
+        ctx.font = '12px "Noto Sans CJK TC", "Microsoft JhengHei", sans-serif';
+        ctx.fillStyle = '#666';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(stemsBranches[i], tx, ty);
+      }
+
+      ctx.restore();
+
+      // 邊框圈
+      ctx.beginPath();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#444';
+      ctx.arc(cx, cy, R * 1.05, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    function update() {
+      if (isPlaying) {
+        currentStep = (currentStep + 1) % 64; // 固定順時針
+        completedSteps++;
+        // 更新網格位置
+        const index = currentStep;
+        currentRow = Math.floor(index / 8);
+        currentCol = index % 8;
+        countEl.textContent = `已完成格數：${completedSteps}`;
+        posEl.textContent = `${currentRow + 1},${currentCol + 1}`;
+        draw();
+      }
+    }
+
+    function reset() {
+      isPlaying = false;
+      clearInterval(intervalId);
+      currentStep = 0;
+      completedSteps = 0;
+      currentRow = 0;
+      currentCol = 0;
+      countEl.textContent = '已完成格數：0';
+      posEl.textContent = '1,1';
+      toggleBtn.textContent = '暫停';
+      toggleBtn.setAttribute('aria-pressed', 'false');
+      draw();
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      isPlaying = !isPlaying;
+      toggleBtn.textContent = isPlaying ? '暫停' : '繼續';
+      toggleBtn.setAttribute('aria-pressed', isPlaying);
+      if (isPlaying) {
+        intervalId = setInterval(update, 1000);
+      } else {
+        clearInterval(intervalId);
+      }
+    });
+
+    resetBtn.addEventListener('click', reset);
+
+    // 初始啟動
+    intervalId = setInterval(update, 1000);
+    countEl.textContent = '已完成格數：0';
+    posEl.textContent = '1,1';
+    draw();
+  </script>
+</body>
+</html>

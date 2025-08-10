@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>六十四卦在六維超立方體中的結構</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #a2a2c1, #97ca9c, #c4bbe2);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            color: white;
+        }
+        
+        .container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        .main-view {
+            flex: 1;
+            position: relative;
+        }
+        
+        .info-panel {
+            width: 300px;
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+            border-left: 2px solid #444;
+        }
+        
+        .title {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            z-index: 100;
+            background: rgba(188, 92, 92, 0.8);
+            padding: 15px 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0,0,0,0.9);
+            padding: 20px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            min-width: 250px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+        
+        .control-group label {
+            color: #fff;
+            font-size: 14px;
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .control-group input[type="range"] {
+            width: 100%;
+            background: #333;
+            border: none;
+            border-radius: 5px;
+            height: 8px;
+        }
+        
+        .control-group input[type="checkbox"] {
+            margin-right: 8px;
+            transform: scale(1.2);
+        }
+        
+        .control-group select {
+            width: 100%;
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .hexagram-info {
+            background: rgba(146, 81, 81, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #444;
+        }
+        
+        .hexagram-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #7d6eb8;
+            margin-bottom: 8px;
+        }
+        
+        .hexagram-symbol {
+            font-size: 24px;
+            font-family: monospace;
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+        
+        .coordinate {
+            font-family: monospace;
+            color: #6dc46d;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            font-size: 14px;
+            line-height: 1.4;
+            color: #ccc;
+        }
+        
+        .legend {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+        
+        .legend h3 {
+            margin-top: 0;
+            color: #ffd700;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-view">
+            <div class="title">六十四卦在六維超立方體中的結構</div>
+            <div class="controls">
+                <div class="control-group">
+                    <label>旋轉速度:</label>
+                    <input type="range" id="rotationSpeed" min="0" max="0.03" step="0.001" value="0.005">
+                </div>
+                <div class="control-group">
+                    <label>卦象大小:</label>
+                    <input type="range" id="hexagramSize" min="0.5" max="3" step="0.1" value="1.5">
+                </div>
+                <div class="control-group">
+                    <label>連線顯示:</label>
+                    <input type="checkbox" id="showLines" checked>
+                </div>
+                <div class="control-group">
+                    <label>卦象名稱:</label>
+                    <input type="checkbox" id="showNames" checked>
+                </div>
+                <div class="control-group">
+                    <label>顯示模式:</label>
+                    <select id="displayMode">
+                        <option value="all">所有卦象</option>
+                        <option value="trigrams">八卦</option>
+                        <option value="complementary">互補卦對</option>
+                        <option value="family">卦象家族</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-panel">
+            <div id="selectedHexagram" class="hexagram-info">
+                <div class="hexagram-name">點擊卦象查看詳情</div>
+                <div class="description">在六維超立方體中，每個卦象對應一個頂點。陰爻(⚋)對應0，陽爻(⚊)對應1。六爻從下到上對應六個維度的坐標。</div>
+            </div>
+            
+            <div class="legend">
+                <h3>顏色說明</h3>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff6b6b;"></div>
+                    <span>乾卦系統 (多陽爻)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4ecdc4;"></div>
+                    <span>坤卦系統 (多陰爻)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #45b7d1;"></div>
+                    <span>震卦系統</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f7dc6f;"></div>
+                    <span>艮卦系統</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #bb8fce;"></div>
+                    <span>坎卦系統</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #82e0aa;"></div>
+                    <span>離卦系統</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f8c471;"></div>
+                    <span>巽卦系統</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #85c1e9;"></div>
+                    <span>兌卦系統</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // 六十四卦數據
+        const hexagrams = [
+            {name: "乾", symbol: "☰", lines: [1,1,1,1,1,1], desc: "天，創造力，陽剛"},
+            {name: "坤", symbol: "☷", lines: [0,0,0,0,0,0], desc: "地，接受力，陰柔"},
+            {name: "屯", symbol: "☳☵", lines: [1,0,0,0,1,0], desc: "雷水屯，艱難之始"},
+            {name: "蒙", symbol: "☵☶", lines: [0,1,0,0,0,1], desc: "山水蒙，蒙昧無知"},
+            {name: "需", symbol: "☵☰", lines: [1,1,1,0,1,0], desc: "水天需，等待時機"},
+            {name: "訟", symbol: "☰☵", lines: [0,1,0,1,1,1], desc: "天水訟，爭訟不和"},
+            {name: "師", symbol: "☷☵", lines: [0,1,0,0,0,0], desc: "地水師，軍隊領導"},
+            {name: "比", symbol: "☵☷", lines: [0,0,0,0,1,0], desc: "水地比，親密比附"},
+            {name: "小畜", symbol: "☴☰", lines: [1,1,1,0,1,1], desc: "風天小畜，小有積蓄"},
+            {name: "履", symbol: "☰☱", lines: [1,1,0,1,1,1], desc: "天澤履，踐履前行"},
+            {name: "泰", symbol: "☷☰", lines: [1,1,1,0,0,0], desc: "地天泰，通泰順暢"},
+            {name: "否", symbol: "☰☷", lines: [0,0,0,1,1,1], desc: "天地否，閉塞不通"},
+            {name: "同人", symbol: "☰☲", lines: [1,0,1,1,1,1], desc: "天火同人，團結同心"},
+            {name: "大有", symbol: "☲☰", lines: [1,1,1,1,0,1], desc: "火天大有，大有收穫"},
+            {name: "謙", symbol: "☷☶", lines: [0,0,1,0,0,0], desc: "地山謙，謙遜美德"},
+            {name: "豫", symbol: "☳☷", lines: [0,0,0,1,0,0], desc: "雷地豫，安樂豫悅"},
+            {name: "隨", symbol: "☱☳", lines: [1,0,0,1,1,0], desc: "澤雷隨，隨順而行"},
+            {name: "蠱", symbol: "☶☴", lines: [0,1,1,0,0,1], desc: "山風蠱，撥亂反正"},
+            {name: "臨", symbol: "☷☱", lines: [1,1,0,0,0,0], desc: "地澤臨，君臨天下"},
+            {name: "觀", symbol: "☴☷", lines: [0,0,0,0,1,1], desc: "風地觀，觀察瞻仰"},
+            {name: "噬嗑", symbol: "☲☳", lines: [1,0,0,1,0,1], desc: "火雷噬嗑，咬合除障"},
+            {name: "賁", symbol: "☶☲", lines: [1,0,1,0,0,1], desc: "山火賁，文飾之美"},
+            {name: "剝", symbol: "☶☷", lines: [0,0,0,0,0,1], desc: "山地剝，剝落衰敗"},
+            {name: "復", symbol: "☷☳", lines: [1,0,0,0,0,0], desc: "地雷復，恢復返歸"},
+            {name: "无妄", symbol: "☰☳", lines: [1,0,0,1,1,1], desc: "天雷无妄，無虛妄"},
+            {name: "大畜", symbol: "☶☰", lines: [1,1,1,0,0,1], desc: "山天大畜，大有蓄積"},
+            {name: "頤", symbol: "☶☳", lines: [1,0,0,0,0,1], desc: "山雷頤，頤養之道"},
+            {name: "大過", symbol: "☱☴", lines: [0,1,1,1,1,0], desc: "澤風大過，大有過度"},
+            {name: "坎", symbol: "☵", lines: [0,1,0,0,1,0], desc: "水，險難陷阱"},
+            {name: "離", symbol: "☲", lines: [1,0,1,1,0,1], desc: "火，光明附麗"},
+            {name: "咸", symbol: "☶☱", lines: [1,1,0,0,0,1], desc: "山澤咸，感應交流"},
+            {name: "恆", symbol: "☳☴", lines: [0,1,1,1,0,0], desc: "雷風恆，恆久持續"},
+            {name: "遯", symbol: "☰☶", lines: [0,0,1,1,1,1], desc: "天山遯，遁退避世"},
+            {name: "大壯", symbol: "☳☰", lines: [1,1,1,1,0,0], desc: "雷天大壯，大力強壯"},
+            {name: "晉", symbol: "☲☷", lines: [0,0,0,1,0,1], desc: "火地晉，前進晉升"},
+            {name: "明夷", symbol: "☷☲", lines: [1,0,1,0,0,0], desc: "地火明夷，光明隱晦"},
+            {name: "家人", symbol: "☴☲", lines: [1,0,1,0,1,1], desc: "風火家人，家庭和睦"},
+            {name: "睽", symbol: "☲☱", lines: [1,1,0,1,0,1], desc: "火澤睽，背離分歧"},
+            {name: "蹇", symbol: "☵☶", lines: [0,0,1,0,1,0], desc: "水山蹇，艱難險阻"},
+            {name: "解", symbol: "☳☵", lines: [0,1,0,1,0,0], desc: "雷水解，解除困難"},
+            {name: "損", symbol: "☶☱", lines: [1,1,0,0,0,1], desc: "山澤損，減損節制"},
+            {name: "益", symbol: "☴☳", lines: [1,0,0,0,1,1], desc: "風雷益，增益助長"},
+            {name: "夬", symbol: "☱☰", lines: [1,1,1,1,1,0], desc: "澤天夬，決斷果決"},
+            {name: "姤", symbol: "☰☴", lines: [0,1,1,1,1,1], desc: "天風姤，陰陽相遇"},
+            {name: "萃", symbol: "☱☷", lines: [0,0,0,1,1,0], desc: "澤地萃，聚集匯萃"},
+            {name: "升", symbol: "☷☴", lines: [0,1,1,0,0,0], desc: "地風升，上升發展"},
+            {name: "困", symbol: "☱☵", lines: [0,1,0,1,1,0], desc: "澤水困，困頓窘迫"},
+            {name: "井", symbol: "☵☴", lines: [0,1,1,0,1,0], desc: "水風井，水井之象"},
+            {name: "革", symbol: "☱☲", lines: [1,0,1,1,1,0], desc: "澤火革，變革改革"},
+            {name: "鼎", symbol: "☲☴", lines: [0,1,1,1,0,1], desc: "火風鼎，鼎器承載"},
+            {name: "震", symbol: "☳", lines: [1,0,0,1,0,0], desc: "雷，震動覺醒"},
+            {name: "艮", symbol: "☶", lines: [0,0,1,0,0,1], desc: "山，靜止止息"},
+            {name: "漸", symbol: "☴☶", lines: [0,0,1,0,1,1], desc: "風山漸，漸進發展"},
+            {name: "歸妹", symbol: "☳☱", lines: [1,1,0,1,0,0], desc: "雷澤歸妹，少女出嫁"},
+            {name: "豐", symbol: "☳☲", lines: [1,0,1,1,0,0], desc: "雷火豐，豐盛富足"},
+            {name: "旅", symbol: "☲☶", lines: [0,0,1,1,0,1], desc: "火山旅，旅行客居"},
+            {name: "巽", symbol: "☴", lines: [0,1,1,0,1,1], desc: "風，謙遜順從"},
+            {name: "兌", symbol: "☱", lines: [1,1,0,1,1,0], desc: "澤，喜悅交流"},
+            {name: "渙", symbol: "☴☵", lines: [0,1,0,0,1,1], desc: "風水渙，渙散離析"},
+            {name: "節", symbol: "☵☱", lines: [1,1,0,0,1,0], desc: "水澤節，節制約束"},
+            {name: "中孚", symbol: "☴☱", lines: [1,1,0,0,1,1], desc: "風澤中孚，誠信忠實"},
+            {name: "小過", symbol: "☳☶", lines: [0,0,1,1,0,0], desc: "雷山小過，小有過度"},
+            {name: "既濟", symbol: "☵☲", lines: [1,0,1,0,1,0], desc: "水火既濟，事已完成"},
+            {name: "未濟", symbol: "☲☵", lines: [0,1,0,1,0,1], desc: "火水未濟，事未完成"}
+        ];
+
+        // 創建場景
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        
+        const container = document.querySelector('.main-view');
+        renderer.setSize(container.offsetWidth, container.offsetHeight);
+        renderer.setClearColor(0x000000, 0);
+        container.appendChild(renderer.domElement);
+
+        // 生成64個6維頂點
+        const vertices6D = [];
+        for (let i = 0; i < 64; i++) {
+            const binary = i.toString(2).padStart(6, '0');
+            const vertex = binary.split('').map(b => parseInt(b));
+            vertices6D.push(vertex);
+        }
+
+        // 將6維坐標投影到3D空間
+        function project6Dto3D(vertex6D, time) {
+            let x = vertex6D[0] - 0.5;
+            let y = vertex6D[1] - 0.5;
+            let z = vertex6D[2] - 0.5;
+            
+            // 使用動態旋轉矩陣投影高維度
+            for (let i = 3; i < 6; i++) {
+                const angle = time * (0.3 + i * 0.15);
+                x += 0.4 * Math.cos(angle + i) * (vertex6D[i] - 0.5);
+                y += 0.4 * Math.sin(angle + i * 0.7) * (vertex6D[i] - 0.5);
+                z += 0.4 * Math.cos(angle * 0.8 + i) * (vertex6D[i] - 0.5);
+            }
+            
+            return [x * 2, y * 2, z * 2];
+        }
+
+        // 根據卦象生成顏色
+        function getHexagramColor(lines) {
+            const yangCount = lines.reduce((sum, line) => sum + line, 0);
+            const ratio = yangCount / 6;
+            
+            // 根據陰陽比例和卦象特性生成顏色
+            if (yangCount === 6) return new THREE.Color(0xff6b6b); // 純陽 - 紅色
+            if (yangCount === 0) return new THREE.Color(0x4ecdc4); // 純陰 - 青色
+            if (yangCount === 5) return new THREE.Color(0xff8e53); // 一陰五陽
+            if (yangCount === 1) return new THREE.Color(0x45b7d1); // 一陽五陰
+            if (yangCount === 4) return new THREE.Color(0xf7dc6f); // 二陰四陽
+            if (yangCount === 2) return new THREE.Color(0xbb8fce); // 二陽四陰
+            return new THREE.Color(0x82e0aa); // 三陰三陽 - 平衡
+        }
+
+        // 創建卦象mesh
+        const hexagramMeshes = [];
+        const hexagramLabels = [];
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        hexagrams.forEach((hexagram, index) => {
+            const vertex6D = hexagram.lines;
+            
+            // 創建卦象球體
+            const geometry = new THREE.SphereGeometry(0.08, 16, 16);
+            const color = getHexagramColor(vertex6D);
+            const material = new THREE.MeshBasicMaterial({ 
+                color: color,
+                transparent: true,
+                opacity: 0.9
+            });
+            
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.userData = { hexagram: hexagram, index: index };
+            scene.add(mesh);
+            hexagramMeshes.push({ mesh, vertex6D, hexagram });
+
+            // 創建標籤
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 128;
+            canvas.height = 64;
+            
+            context.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            
+            context.fillStyle = '#ffffff';
+            context.font = 'bold 16px Arial';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(hexagram.name, canvas.width / 2, canvas.height / 2);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const labelMaterial = new THREE.SpriteMaterial({ 
+                map: texture,
+                transparent: true,
+                opacity: 0.8
+            });
+            const label = new THREE.Sprite(labelMaterial);
+            label.scale.set(0.5, 0.25, 1);
+            scene.add(label);
+            hexagramLabels.push({ label, vertex6D, hexagram });
+        });
+
+        // 創建連接線（相鄰卦象）
+        const lines = [];
+        function createLines() {
+            // 清除現有線條
+            lines.forEach(line => scene.remove(line));
+            lines.length = 0;
+
+            for (let i = 0; i < hexagrams.length; i++) {
+                for (let j = i + 1; j < hexagrams.length; j++) {
+                    const hex1 = hexagrams[i].lines;
+                    const hex2 = hexagrams[j].lines;
+                    
+                    // 檢查是否只有一爻不同（相鄰卦象）
+                    let diff = 0;
+                    for (let k = 0; k < 6; k++) {
+                        if (hex1[k] !== hex2[k]) diff++;
+                    }
+                    
+                    if (diff === 1) {
+                        const geometry = new THREE.BufferGeometry();
+                        const material = new THREE.LineBasicMaterial({ 
+                            color: 0x444444,
+                            transparent: true,
+                            opacity: 0.2
+                        });
+                        const line = new THREE.Line(geometry, material);
+                        scene.add(line);
+                        lines.push({ line, i, j });
+                    }
+                }
+            }
+        }
+
+        createLines();
+
+        // 設置相機位置
+        camera.position.set(5, 5, 5);
+        camera.lookAt(0, 0, 0);
+
+        // 鼠標交互
+        function onMouseClick(event) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(hexagramMeshes.map(h => h.mesh));
+
+            if (intersects.length > 0) {
+                const selectedHexagram = intersects[0].object.userData.hexagram;
+                displayHexagramInfo(selectedHexagram);
+            }
+        }
+
+        function displayHexagramInfo(hexagram) {
+            const infoDiv = document.getElementById('selectedHexagram');
+            const linesSymbol = hexagram.lines.map(line => line ? '⚊' : '⚋').reverse().join('<br>');
+            const coordinate = `(${hexagram.lines.join(',')})`;
+            
+            infoDiv.innerHTML = `
+                <div class="hexagram-name">${hexagram.name}卦</div>
+                <div class="hexagram-symbol">${linesSymbol}</div>
+                <div class="coordinate">6D坐標: ${coordinate}</div>
+                <div class="description">${hexagram.desc}</div>
+            `;
+        }
+
+        renderer.domElement.addEventListener('click', onMouseClick);
+
+        // 動畫循環
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            time += 0.01;
+            const speed = parseFloat(document.getElementById('rotationSpeed').value);
+            const size = parseFloat(document.getElementById('hexagramSize').value);
+            const showLines = document.getElementById('showLines').checked;
+            const showNames = document.getElementById('showNames').checked;
+            
+            // 更新卦象位置
+            hexagramMeshes.forEach(({ mesh, vertex6D }) => {
+                const pos3D = project6Dto3D(vertex6D, time);
+                mesh.position.set(pos3D[0], pos3D[1], pos3D[2]);
+                mesh.scale.setScalar(size);
+            });
+            
+            // 更新標籤位置和顯示
+            hexagramLabels.forEach(({ label, vertex6D }) => {
+                const pos3D = project6Dto3D(vertex6D, time);
+                label.position.set(pos3D[0], pos3D[1] + 0.3, pos3D[2]);
+                label.visible = showNames;
+            });
+            
+            // 更新連接線
+            lines.forEach(({ line, i, j }) => {
+                const pos1 = project6Dto3D(hexagrams[i].lines, time);
+                const pos2 = project6Dto3D(hexagrams[j].lines, time);
+                const points = [
+                    new THREE.Vector3(pos1[0], pos1[1], pos1[2]),
+                    new THREE.Vector3(pos2[0], pos2[1], pos2[2])
+                ];
+                line.geometry.setFromPoints(points);
+                line.visible = showLines;
+            });
+            
+            // 場景旋轉
+            scene.rotation.x += speed * 0.5;
+            scene.rotation.y += speed;
+            
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // 響應式調整
+        window.addEventListener('resize', () => {
+            const width = container.offsetWidth;
+            const height = container.offsetHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        });
+    </script>
+</body>
+</html>
