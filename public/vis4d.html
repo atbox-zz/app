@@ -2,22 +2,56 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>六十四卦互動地圖（六維超立方體投影）</title>
   <script type="text/javascript" src="https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.js"></script>
   <link href="https://unpkg.com/vis-network@9.1.2/styles/vis-network.min.css" rel="stylesheet" type="text/css" />
   <style>
-    body { font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif; margin:0; }
-    #container { display:flex; height:100vh; }
-    #mynetwork { flex:1; border-right:1px solid #ddd; }
-    #panel { width:420px; padding:16px; box-sizing:border-box; overflow:auto; }
-    .gua-title { font-size:22px; font-weight:700; margin-bottom:6px; }
-    .gua-bits { color:#666; margin-bottom:8px; }
-    .change-list { margin-top:12px; }
-    .change-item { padding:6px; border:1px solid #eee; margin-bottom:6px; cursor:pointer; border-radius:6px; }
-    .highlight { background:#fff9c4; }
-    .btn { display:inline-block; padding:6px 10px; border-radius:6px; background:#1976d2; color:white; text-decoration:none; }
-    @media (max-width:900px){
-      #panel{width:46vw;}
+    body { font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif; margin: 0; }
+    #container { height: 100vh; position: relative; }
+    #mynetwork { width: 100%; height: 100%; }
+    #panel {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90vw;
+      max-width: 420px;
+      max-height: 80vh;
+      padding: 16px;
+      box-sizing: border-box;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      overflow-y: auto;
+      display: none;
+      z-index: 10;
+    }
+    .gua-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .gua-bits { color: #666; margin-bottom: 8px; }
+    .change-list { margin-top: 12px; }
+    .change-item { padding: 6px; border: 1px solid #eee; margin-bottom: 6px; cursor: pointer; border-radius: 6px; }
+    .highlight { background: #fff9c4; }
+    .btn { display: inline-block; padding: 6px 10px; border-radius: 6px; background: #1976d2; color: white; text-decoration: none; }
+    .close-btn { 
+      position: absolute; 
+      top: 10px; 
+      right: 10px; 
+      background: #d32f2f; 
+      color: white; 
+      border: none; 
+      border-radius: 4px; 
+      padding: 6px 10px; 
+      cursor: pointer; 
+    }
+    @media (max-width: 600px) {
+      #panel { width: 95vw; padding: 12px; }
+      .gua-title { font-size: 18px; }
+      .btn, .close-btn { font-size: 14px; padding: 5px 8px; }
+    }
+    @media (max-height: 600px) {
+      #panel { max-height: 90vh; }
     }
   </style>
 </head>
@@ -25,15 +59,13 @@
 <div id="container">
   <div id="mynetwork"></div>
   <div id="panel">
+    <button class="close-btn" onclick="closePanel()">關閉</button>
     <div class="gua-title" id="guaName">點選節點查看卦象</div>
     <div class="gua-bits" id="guaBits"></div>
     <div id="guaText"><em>卦辭 / 爻辭 會在此顯示（目前為簡化說明）。</em></div>
     <div class="change-list" id="changeList"></div>
     <div style="margin-top:12px;">
       <a class="btn" id="btnCenter">重置視角</a>
-      <!--
-      <a class="btn" id="btnLoadFull" style="background:#388e3c; margin-left:8px;">載入完整《易經》原文（需從網路取得）
-      </a-->
       <div style="margin-top:8px; color:#777; font-size:13px;">說明：點選變卦可以跳至該卦並高亮。陽爻=1，陰爻=0，自上而下。</div>
     </div>
   </div>
@@ -42,7 +74,7 @@
 <script>
 // 節點資料（文王卦序對應）
 const guaNames = [
-"乾","夬","大有","大壯","小畜","需","大畜","泰",
+"乾為天","澤天夬","火天大有","雷天大壯","風天小畜","水天需","山天大畜","地天泰",
 "履","兌","睽","歸妹","中孚","節","損","臨",
 "同人","革","離","豐","家人","既濟","賁","明夷",
 "無妄","隨","噬嗑","震","益","屯","頤","復",
@@ -51,7 +83,17 @@ const guaNames = [
 "遯","咸","旅","小過","漸","蹇","艮","謙",
 "否","萃","晉","豫","觀","比","剝","坤"
 ];
-
+// 64卦名
+const gua64Names = [
+    "坤為地", "地雷復", "地水師", "地澤臨", "地山謙", "地火明夷", "地風升", "地天泰",
+    "雷地豫", "震為雷", "雷水解", "雷澤歸妹", "雷山小過", "雷火豐", "雷風恆", "雷天大壯",
+    "水地比", "水雷屯", "坎為水", "水澤節", "水山蹇", "水火既濟", "水風井", "水天需",
+    "澤地萃", "澤雷隨", "澤水困", "兌為澤", "澤山咸", "澤火革", "澤風大過", "澤天夬",
+    "山地剝", "山雷頤", "山水蒙", "山澤損", "艮為山", "山火賁", "山風蠱", "山天大畜",
+    "火地晉", "火雷噬嗑", "火水未濟", "火澤睽", "火山旅", "離為火", "火風鼎", "火天大有",
+    "風地觀", "風雷益", "風水渙", "風澤中孚", "風山漸", "風火家人", "巽為風", "風天小畜",
+    "天地否", "天雷無妄", "天水訟", "天澤履", "天山遁", "天火同人", "天風姤", "乾為天"
+];
 const kingwenBits = [
 "111111","111110","111101","111100","111011","111010","111001","111000",
 "110111","110110","110101","110100","110011","110010","110001","110000",
@@ -85,7 +127,6 @@ for(let i=0;i<kingwenBits.length;i++){
     const nbstr = nb.join('');
     const k = bitToIndex[nbstr];
     if(k!==undefined){
-      // add edge once (i<k)
       if(i<k) edges.push({from:i,to:k});
     }
   }
@@ -116,9 +157,7 @@ function showGua(idx, highlightLine=null){
   const node = nodes[idx];
   document.getElementById('guaName').innerText = `${node.gua} （#${idx+1}）`;
   document.getElementById('guaBits').innerText = `六爻二進位：${node.bits} （上→下，1=陽，0=陰）`;
-  // 簡化說明與 placeholder 爻辭
-  const simple = `<h4>簡化說明（示意）</h4><div>這裡目前為簡短說明：<br>「${node.gua}」代表的象徵意義與機鋒簡述。若需完整《易經》原文，請按「載入完整《易經》原文」。</div>`;
-  // 列出六個可能變卦（標示動爻）
+  const simple = `<h4>簡化說明</h4></div>`;
   let changeHtml = '<h4>六個可能的變卦（點擊跳轉並高亮）</h4>';
   for(let j=0;j<6;j++){
     const bitsArr = node.bits.split('');
@@ -126,22 +165,21 @@ function showGua(idx, highlightLine=null){
     bitsArr[j] = bitsArr[j]==='1'?'0':'1';
     const newBits = bitsArr.join('');
     const newIdx = bitToIndex[newBits];
-    const moving = 6-j; // 爻位：上爻為第1爻（顯示上→下）
+    const moving = 6-j;
     changeHtml += `<div class="change-item" onclick="jumpTo(${newIdx}, ${j})"><b>動爻 ${moving}（翻轉） → ${guaNames[newIdx]} （#${newIdx+1}）</b><br><small>${newBits}</small></div>`;
   }
   document.getElementById('guaText').innerHTML = simple;
   document.getElementById('changeList').innerHTML = changeHtml;
-  // highlight node temporarily
   network.selectNodes([idx]);
   network.focus(idx,{scale:1.2, animation:true});
   clearHighlights();
   network.body.data.nodes.update({id: idx, color: {background:'#ffeb3b'}});
+  document.getElementById('panel').style.display = 'block';
 }
 
-// jumpTo: 點擊變卦跳轉並高亮（也會在 panel 顯示該卦）
+// jumpTo: 點擊變卦跳轉並高亮
 function jumpTo(idx, movedIndex){
   showGua(idx);
-  // 在 panel 中標示是哪一爻變動的來源資訊
   const list = document.getElementById('changeList');
   const items = list.getElementsByClassName('change-item');
   for(let i=0;i<items.length;i++) items[i].classList.remove('highlight');
@@ -150,7 +188,13 @@ function jumpTo(idx, movedIndex){
   }
 }
 
-// 清除所有節點顏色高亮（回復預設）
+// 關閉 panel
+function closePanel(){
+  document.getElementById('panel').style.display = 'none';
+  clearHighlights();
+}
+
+// 清除高亮
 function clearHighlights(){
   const updates = [];
   for(const n of nodes){
@@ -165,22 +209,17 @@ network.on("click", function(params){
     const idx = params.nodes[0];
     showGua(idx);
   } else {
-    // 點空白處
+    closePanel();
   }
 });
 
-document.getElementById('btnCenter').onclick = function(){ network.fit({animation:true}); };
-//document.getElementById('btnLoadFull').onclick = function(){
-//  if(confirm("要我從網路抓取並載入完整《易經》原文（卦辭與爻辭）嗎？我將自公有領域來源擷取並填入。確定嗎？")){
-//    // 這個按鈕會呼叫外部動作（在本地檔案中沒辦法直接取得網路），
-//    // 我會在下一步協助你把完整原文抓下並更新到這個檔案。
-//    alert("好的，我會在下一個回合從網路抓取並替你填入完整原文，然後回傳更新後的互動檔案。");
-//  }
-//};
+document.getElementById('btnCenter').onclick = function(){ 
+  network.fit({animation:true}); 
+  closePanel();
+};
 
-// init：預設選中第一個卦
-showGua(0);
-
+// init：預設不顯示 panel
+// showGua(0); // 移除初始顯示
 </script>
 </body>
 </html>
