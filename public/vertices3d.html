@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>立方體與6維超立方體可視化</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        .panel {
+            flex: 1;
+            position: relative;
+            border-right: 2px solid #444;
+        }
+        
+        .panel:last-child {
+            border-right: none;
+        }
+        
+        .label {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 100;
+            background: rgba(0,0,0,0.7);
+            padding: 10px 15px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .control-group {
+            margin-bottom: 10px;
+        }
+        
+        .control-group label {
+            color: #fff;
+            font-size: 14px;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .control-group input {
+            width: 100px;
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="panel" id="cubePanel">
+            <div class="label">3D立方體 (8個頂點)</div>
+            <div class="controls">
+                <div class="control-group">
+                    <label>旋轉速度:</label>
+                    <input type="range" id="cubeSpeed" min="0" max="0.05" step="0.001" value="0.01">
+                </div>
+            </div>
+        </div>
+        <div class="panel" id="hypercubePanel">
+            <div class="label">6D超立方體 (64個頂點)</div>
+            <div class="controls">
+                <div class="control-group">
+                    <label>旋轉速度:</label>
+                    <input type="range" id="hypercubeSpeed" min="0" max="0.05" step="0.001" value="0.005">
+                </div>
+                <div class="control-group">
+                    <label>點大小:</label>
+                    <input type="range" id="pointSize" min="1" max="10" step="0.5" value="3">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // 左側 - 3D立方體
+        function createCube() {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            
+            const cubePanel = document.getElementById('cubePanel');
+            const width = cubePanel.offsetWidth;
+            const height = cubePanel.offsetHeight;
+            
+            renderer.setSize(width, height);
+            renderer.setClearColor(0x000000, 0);
+            cubePanel.appendChild(renderer.domElement);
+            
+            // 定義8個頂點
+            const vertices = [
+                [0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1],
+                [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1]
+            ];
+            
+            // 創建頂點材質
+            const vertexGeometry = new THREE.SphereGeometry(0.05, 16, 16);
+            const vertexMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0x00ff88,
+                transparent: true,
+                opacity: 0.8
+            });
+            
+            const vertexMeshes = [];
+            vertices.forEach((vertex, index) => {
+                const mesh = new THREE.Mesh(vertexGeometry, vertexMaterial);
+                mesh.position.set(vertex[0] - 0.5, vertex[1] - 0.5, vertex[2] - 0.5);
+                scene.add(mesh);
+                vertexMeshes.push(mesh);
+            });
+            
+            // 創建邊
+            const edges = [
+                [0,1], [2,3], [4,5], [6,7], // Z方向邊
+                [0,2], [1,3], [4,6], [5,7], // Y方向邊
+                [0,4], [1,5], [2,6], [3,7]  // X方向邊
+            ];
+            
+            const lineMaterial = new THREE.LineBasicMaterial({ 
+                color: 0x4488ff,
+                transparent: true,
+                opacity: 0.6,
+                linewidth: 2
+            });
+            
+            edges.forEach(edge => {
+                const geometry = new THREE.BufferGeometry();
+                const points = [
+                    new THREE.Vector3(
+                        vertices[edge[0]][0] - 0.5,
+                        vertices[edge[0]][1] - 0.5,
+                        vertices[edge[0]][2] - 0.5
+                    ),
+                    new THREE.Vector3(
+                        vertices[edge[1]][0] - 0.5,
+                        vertices[edge[1]][1] - 0.5,
+                        vertices[edge[1]][2] - 0.5
+                    )
+                ];
+                geometry.setFromPoints(points);
+                const line = new THREE.Line(geometry, lineMaterial);
+                scene.add(line);
+            });
+            
+            camera.position.set(2, 2, 2);
+            camera.lookAt(0, 0, 0);
+            
+            // 動畫
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                const speed = parseFloat(document.getElementById('cubeSpeed').value);
+                scene.rotation.x += speed;
+                scene.rotation.y += speed * 1.2;
+                
+                renderer.render(scene, camera);
+            }
+            animate();
+            
+            // 響應式調整
+            window.addEventListener('resize', () => {
+                const width = cubePanel.offsetWidth;
+                const height = cubePanel.offsetHeight;
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(width, height);
+            });
+        }
+        
+        // 右側 - 6D超立方體
+        function createHypercube() {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            
+            const hypercubePanel = document.getElementById('hypercubePanel');
+            const width = hypercubePanel.offsetWidth;
+            const height = hypercubePanel.offsetHeight;
+            
+            renderer.setSize(width, height);
+            renderer.setClearColor(0x000000, 0);
+            hypercubePanel.appendChild(renderer.domElement);
+            
+            // 生成64個6維頂點
+            const vertices6D = [];
+            for (let i = 0; i < 64; i++) {
+                const binary = i.toString(2).padStart(6, '0');
+                const vertex = binary.split('').map(b => parseInt(b));
+                vertices6D.push(vertex);
+            }
+            
+            // 將6D頂點投影到3D空間
+            function project6Dto3D(vertex6D, time) {
+                // 使用旋轉矩陣和投影來將6D點映射到3D
+                const x = vertex6D[0] - 0.5 + 0.3 * Math.cos(time) * vertex6D[3];
+                const y = vertex6D[1] - 0.5 + 0.3 * Math.sin(time) * vertex6D[4];
+                const z = vertex6D[2] - 0.5 + 0.3 * Math.cos(time * 0.7) * vertex6D[5];
+                return [x, y, z];
+            }
+            
+            // 創建頂點材質 - 根據6D坐標著色
+            const vertexMeshes = [];
+            vertices6D.forEach((vertex6D, index) => {
+                const geometry = new THREE.SphereGeometry(0.02, 8, 8);
+                
+                // 根據6D坐標創建顏色
+                const r = vertex6D[0] * vertex6D[3];
+                const g = vertex6D[1] * vertex6D[4];
+                const b = vertex6D[2] * vertex6D[5];
+                const color = new THREE.Color(r, g, b);
+                
+                const material = new THREE.MeshBasicMaterial({ 
+                    color: color,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                
+                const mesh = new THREE.Mesh(geometry, material);
+                scene.add(mesh);
+                vertexMeshes.push({ mesh, vertex6D });
+            });
+            
+            // 創建連接線 - 連接在6D空間中相鄰的頂點
+            function areAdjacent6D(v1, v2) {
+                let diff = 0;
+                for (let i = 0; i < 6; i++) {
+                    if (v1[i] !== v2[i]) diff++;
+                }
+                return diff === 1; // 只有一個坐標不同則相鄰
+            }
+            
+            const lines = [];
+            for (let i = 0; i < vertices6D.length; i++) {
+                for (let j = i + 1; j < vertices6D.length; j++) {
+                    if (areAdjacent6D(vertices6D[i], vertices6D[j])) {
+                        const geometry = new THREE.BufferGeometry();
+                        const material = new THREE.LineBasicMaterial({ 
+                            color: 0x666666,
+                            transparent: true,
+                            opacity: 0.3
+                        });
+                        const line = new THREE.Line(geometry, material);
+                        scene.add(line);
+                        lines.push({ line, i, j });
+                    }
+                }
+            }
+            
+            camera.position.set(3, 3, 3);
+            camera.lookAt(0, 0, 0);
+            
+            // 動畫
+            let time = 0;
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                time += 0.01;
+                const speed = parseFloat(document.getElementById('hypercubeSpeed').value);
+                const pointSize = parseFloat(document.getElementById('pointSize').value);
+                
+                // 更新頂點位置
+                vertexMeshes.forEach(({ mesh, vertex6D }) => {
+                    const pos3D = project6Dto3D(vertex6D, time);
+                    mesh.position.set(pos3D[0], pos3D[1], pos3D[2]);
+                    mesh.scale.setScalar(pointSize / 3);
+                });
+                
+                // 更新連接線
+                lines.forEach(({ line, i, j }) => {
+                    const pos1 = project6Dto3D(vertices6D[i], time);
+                    const pos2 = project6Dto3D(vertices6D[j], time);
+                    const points = [
+                        new THREE.Vector3(pos1[0], pos1[1], pos1[2]),
+                        new THREE.Vector3(pos2[0], pos2[1], pos2[2])
+                    ];
+                    line.geometry.setFromPoints(points);
+                });
+                
+                scene.rotation.x += speed;
+                scene.rotation.y += speed * 1.3;
+                
+                renderer.render(scene, camera);
+            }
+            animate();
+            
+            // 響應式調整
+            window.addEventListener('resize', () => {
+                const width = hypercubePanel.offsetWidth;
+                const height = hypercubePanel.offsetHeight;
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(width, height);
+            });
+        }
+        
+        // 初始化
+        window.addEventListener('load', () => {
+            createCube();
+            createHypercube();
+        });
+    </script>
+</body>
+</html>
