@@ -166,10 +166,10 @@ document.getElementById('genBtn').addEventListener('click', ()=>{
   document.getElementById('ten_time').textContent = getTenGod(dayStem, s(timeGz)[0]) || '—';
 
   const basic = `姓名：${name}
-性別：${gender}
-公曆：${solar.toFullString()}
-農曆：${lunar.toFullString().split().slice(0,2).join(' / ')}
-生肖：${lunar.getYearShengxiao ? lunar.getYearShengxiao() : ''}`;
+    性別：${gender}
+    公曆：${solar.toFullString()}
+    農曆：${lunar.toFullString().split().slice(0,2).join(' / ')}
+    生肖：${lunar.getYearShengxiao ? lunar.getYearShengxiao() : ''}`;
   document.getElementById('basic').textContent = basic;
 
   const mStem = s(monthGz)[0]||''; const mBranch = s(monthGz)[1]||''; const zodiac = westernZodiac(dt.getMonth()+1, dt.getDate());
@@ -181,11 +181,11 @@ document.getElementById('genBtn').addEventListener('click', ()=>{
   const branch2stem = {'子':'癸','丑':'己','寅':'甲','卯':'乙','辰':'戊','巳':'丙','午':'丁','未':'己','申':'庚','酉':'辛','戌':'戊','亥':'壬'};
   const mingStem = branch2stem[mingBranch] || ''; const mingGz = mingStem ? (mingStem + mingBranch) : '—'; const shenIdx = (mingIdx + 3) % 12; const shenBranch = branches[shenIdx]; const shenStem = branch2stem[shenBranch] || ''; const shenGz = shenStem ? (shenStem + shenBranch) : '—';
   const extrasText = `西洋星座：${zodiac}
-空亡（旬空）：${xunkong}
-胎元：${taiYuan}
-胎息：${taiXi}
-命宮：${mingGz}（地支:${mingBranch}）
-身宮：${shenGz}（地支:${shenBranch}）
+    空亡（旬空）：${xunkong}
+    胎元：${taiYuan}
+    胎息：${taiXi}
+    命宮：${mingGz}（地支:${mingBranch}）
+    身宮：${shenGz}（地支:${shenBranch}）
 
 （註）命宮/身宮為常見變體算法；如需指定流派請提供範例以利校正。`;
   document.getElementById('extras').textContent = extrasText;

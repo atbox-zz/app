@@ -166,9 +166,7 @@ function getTenGod(dayStem, otherStem) {
   if (!dayStem || !otherStem) return '';
   return (tenGodMap[dayStem] && tenGodMap[dayStem][otherStem]) || '';
 }
-function s(x) {
-  return x == null ? '' : String(x);
-}
+function s(x) { return x == null ? '' : String(x);}
 function diffYMD(startDate, endDate) {
   let y = endDate.getFullYear() - startDate.getFullYear();
   let m = endDate.getMonth() - startDate.getMonth();
