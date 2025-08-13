@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>八字大運與流年（精確節氣版 + 五行吉凶）</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+body { font-family: 'Noto Sans TC', sans-serif; padding: 20px; background: #f4f4f4; }
+h1 { font-size: 1.6em; margin-bottom: 0.3em; }
+table { border-collapse: collapse; width: 100%; background: white; margin-bottom: 20px; }
+th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: center; }
+th { background: #eee; }
+tr:nth-child(even) { background: #fafafa; }
+.ji { color: green; font-weight: bold; }
+.xiong { color: red; font-weight: bold; }
+</style>
+<script src="lunar.js"></script>
+<script>
+// 天干與五行
+const ganWuXing = { 甲:'木', 乙:'木', 丙:'火', 丁:'火', 戊:'土', 己:'土', 庚:'金', 辛:'金', 壬:'水', 癸:'水' };
+// 地支與五行
+const zhiWuXing = { 子:'水', 丑:'土', 寅:'木', 卯:'木', 辰:'土', 巳:'火', 午:'火', 未:'土', 申:'金', 酉:'金', 戌:'土', 亥:'水' };
+// 五行相生
+const sheng = { 木:'火', 火:'土', 土:'金', 金:'水', 水:'木' };
+// 判斷吉凶
+function jiXiong(dayGanWuXing, gan, zhi) {
+    let tgWX = ganWuXing[gan], dzWX = zhiWuXing[zhi];
+    let score = 0;
+    [tgWX, dzWX].forEach(wx => {
+        if (wx === dayGanWuXing) score += 1; // 同我
+        else if (sheng[wx] === dayGanWuXing) score += 1; // 生我
+        else if (sheng[dayGanWuXing] === wx) score -= 1; // 我生
+        else score -= 1; // 剋我
+    });
+    return score > 0 ? '吉' : '凶';
+}
+function genDaYunAndLiuNian(birthY, birthM, birthD, birthH) {
+    const lunar = Lunar.fromYmdHms(birthY, birthM, birthD, birthH, 0, 0);
+    const eightChar = lunar.getEightChar();
+    const dayGan = eightChar.getDayGan();
+    const dayGanWX = ganWuXing[dayGan];
+    let html = `<h1>大運</h1><table><tr><th>序</th><th>干支</th><th>五行</th><th>起運年齡</th><th>起運年份</th></tr>`;
+    eightChar.getYun(1).getDaYun().forEach((dy, idx) => {
+        if (idx === 0) return;
+        let gan = dy.getGanZhi().substr(0,1), zhi = dy.getGanZhi().substr(1,1);
+        html += `<tr><td>${idx}</td><td>${dy.getGanZhi()}</td><td>${ganWuXing[gan]}${zhiWuXing[zhi]}</td><td>${dy.getStartAge()}</td><td>${dy.getStartYear()}</td></tr>`;
+    });
+    html += `</table>`;
+    html += `<h1>流年</h1><table><tr><th>年份</th><th>干支</th><th>五行</th><th>吉凶</th></tr>`;
+    for (let y = birthY; y <= birthY+80; y++) {
+        const liunian = LunarYear.fromYear(y).getGanZhi();
+        let gan = liunian.substr(0,1), zhi = liunian.substr(1,1);
+        let wuxing = ganWuXing[gan] + zhiWuXing[zhi];
+        let jx = jiXiong(dayGanWX, gan, zhi);
+        html += `<tr><td>${y}</td><td>${liunian}</td><td>${wuxing}</td><td class="${jx==='吉'?'ji':'xiong'}">${jx}</td></tr>`;
+    }
+    html += `</table>`;
+    document.body.innerHTML += html;
+}
+window.onload = function() {
+    genDaYunAndLiuNian(1968, 10, 30, 18); // 範例：1990年5月12日14時
+};
+</script>
+</head>
+<body>
+<h1>八字大運與流年對照</h1>
+<p>此版本使用精確節氣計算，並加上流年五行與吉凶判斷。</p>
+</body>
+</html>

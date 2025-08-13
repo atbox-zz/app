@@ -180,6 +180,32 @@ function s(x) { return x == null ? '' : String(x); }
 
 // 大運計算函數
 function calculateDayunFixed(lunar, gender, birthYear, yearGz, monthGz) {
+  const ec = lunar.getEightChar();
+  const startYear = ec.getStartYear();
+  const startMonth = ec.getStartMonth();
+  const startDay = ec.getStartDay();
+  const startAge = startYear - birthYear;
+
+  const isForward = ec.getForward(); // true=順行, false=逆行
+  const dayunList = [];
+
+  const dayuns = ec.getDayun(10); // 取10步大運
+  dayuns.forEach((du, i) => {
+    dayunList.push({
+      index: i + 1,
+      startAge: startAge + i * 10,
+      startYear: du.getStartYear(),
+      endYear: du.getEndYear(),
+      gz: du.getGanZhi(),
+      direction: isForward ? '順行' : '逆行'
+    });
+  });
+
+  return { dayunList, isForward };
+}
+
+/*
+function calculateDayunFixed(lunar, gender, birthYear, yearGz, monthGz) {
   const isMale = (gender === '男');
   const yearStem = s(yearGz)[0] || '';
   const monthStem = s(monthGz)[0] || '';
@@ -251,7 +277,7 @@ function calculateDayunFixed(lunar, gender, birthYear, yearGz, monthGz) {
   
   return { dayunList, isForward };
 }
-
+*/
 /* main */
 document.getElementById('genBtn').addEventListener('click', () => {
   const name = document.getElementById('name').value.trim() || '無名氏';
