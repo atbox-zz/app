@@ -13,7 +13,7 @@ h1{margin:0 0 12px;font-size:20px;text-align:center}
 .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:12px}
 .col{flex:1;min-width:160px}
 label{display:block;font-size:13px;color:#444;margin-bottom:6px}
-input[type="text"], input[type="datetime-local"], select {width:50%;padding:10px;border:1px solid var(--line);border-radius:8px;background:white;font-size:14px;box-sizing:border-box}
+input[type="text"], input[type="datetime-local"], select {width:80%;padding:10px;border:1px solid var(--line);border-radius:8px;background:white;font-size:14px;box-sizing:border-box}
 button{padding:10px 14px;border-radius:8px;border:none;background:var(--accent);color:white;font-weight:700;cursor:pointer}
 button.secondary{background:#8a6b2f}
 .board{display:none;margin-top:12px;background:var(--panel);padding:14px;border-radius:12px;border:1px solid var(--line)}
@@ -55,7 +55,7 @@ th{background:#fff6e6}
   <h1>八字命盤 — 大運計算（傳統算法）</h1>
 
   <div class="controls">
-    <div class="col" style="flex:0 0 160px"><label>姓名</label><input id="name" type="text" value="測試人" maxlength="4" placeholder="最多4個字"></div>
+    <div class="col" style="flex:0 0 160px"><label>姓名</label><input id="name" type="text" value="測試人" maxlength="8" placeholder="最多8個字"></div>
     <div class="col" style="flex:0 0 80px"><label>性別</label><select id="gender"><option value="女">未定</option><option value="男">男</option><option value="女">女</option></select></div>
     <div class="col" style="flex:1"><label>出生（公曆）</label><input id="birth" type="datetime-local" value="2015-08-25T09:00"></div>
     <button id="genBtn">生成命盤</button>
