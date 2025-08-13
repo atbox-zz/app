@@ -226,8 +226,8 @@
           return SolarUtil.WEEK[this.getWeek()];
         },
         /**
-         * 获取当天的阳历周
-         * @param start 星期几作为一周的开始，1234560分别代表星期一至星期天
+         * 獲取當天的陽曆周
+         * @param start 星期幾作為一週的開始，1234560分別代表星期一至星期天
          */
         getSolarWeek:function(start){
           return SolarWeek.fromYmd(this._p.year, this._p.month, this._p.day, start);
@@ -312,7 +312,7 @@
         toFullString:function(){
           var s = this.toYmdHms();
           if(this.isLeapYear()){
-            s += ' 闰年';
+            s += ' 閏年';
           }
           s += ' 星期'+this.getWeekInChinese();
           var festivals = this.getFestivals();
@@ -486,20 +486,20 @@
           return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + n - 1524.5;
         },
         getSalaryRate:function(){
-          // 元旦节
+          // 元旦節
           if (this._p.month === 1 && this._p.day === 1) {
             return 3;
           }
-          // 劳动节
+          // 勞動節
           if (this._p.month === 5 && this._p.day === 1) {
             return 3;
           }
-          // 国庆
+          // 國慶
           if (this._p.month === 10 && this._p.day >= 1 && this._p.day <= 3) {
             return 3;
           }
           var lunar = this.getLunar();
-          // 春节
+          // 春節
           if (lunar.getMonth() === 1 && lunar.getDay() >= 1 && lunar.getDay() <= 3) {
             return 3;
           }
@@ -522,7 +522,7 @@
               return 2;
             }
           } else {
-            // 周末
+            // 週末
             var week = this.getWeek();
             if (week === 6 || week === 0) {
               return 2;
@@ -555,15 +555,15 @@
       if (((LunarUtil.index(yearGanZhi.substring(0, 1), LunarUtil.GAN, -1) + 1) * 2 + m) % 10 !== LunarUtil.index(monthGanZhi.substring(0,1), LunarUtil.GAN, -1)) {
         return l;
       }
-      // 1年的立春是辛酉，序号57
+      // 1年的立春是辛酉，序號57
       var y = LunarUtil.getJiaZiIndex(yearGanZhi) - 57;
       if (y < 0) {
         y += 60;
       }
       y++;
-      // 节令偏移值
+      // 節令偏移值
       m *= 2;
-      // 时辰地支转时刻，子时按零点算
+      // 時辰地支轉時刻，子時按零點算
       var h = LunarUtil.index(timeGanZhi.substring(1), LunarUtil.ZHI, -1) * 2;
       var hours = [h];
       if (0 === h && 2 === sect) {
@@ -571,25 +571,25 @@
       }
       var startYear = baseYear - 1;
 
-      // 结束年
+      // 結束年
       var endYear = new Date().getFullYear();
 
       while (y <= endYear) {
         if (y >= startYear) {
-          // 立春为寅月的开始
+          // 立春為寅月的開始
           var jieQiLunar = Lunar.fromYmd(y, 1, 1);
           var jieQiList = jieQiLunar.getJieQiList();
           var jieQiTable = jieQiLunar.getJieQiTable();
-          // 节令推移，年干支和月干支就都匹配上了
+          // 節令推移，年干支和月干支就都匹配上了
           var solarTime = jieQiTable[jieQiList[4 + m]];
           if (solarTime.getYear() >= baseYear) {
-            // 日干支和节令干支的偏移值
+            // 日干支和節令干支的偏移值
             var d = LunarUtil.getJiaZiIndex(dayGanZhi) - LunarUtil.getJiaZiIndex(solarTime.getLunar().getDayInGanZhiExact2());
             if (d < 0) {
               d += 60;
             }
             if (d > 0) {
-              // 从节令推移天数
+              // 從節令推移天數
               solarTime = solarTime.next(d);
             }
             for (var i = 0, j = hours.length; i < j; i++) {
@@ -597,11 +597,11 @@
               var mi = 0;
               var s = 0;
               if (d === 0 && hour === solarTime.getHour()) {
-                // 如果正好是节令当天，且小时和节令的小时数相等的极端情况，把分钟和秒钟带上
+                // 如果正好是節令當天，且小時和節令的小時數相等的極端情況，把分鐘和秒鐘帶上
                 mi = solarTime.getMinute();
                 s = solarTime.getSecond();
               }
-              // 验证一下
+              // 驗證一下
               var solar = Solar.fromYmdHms(solarTime.getYear(), solarTime.getMonth(), solarTime.getDay(), hour, mi, s);
               var lunar = solar.getLunar();
               var dgz = (2 === sect) ? lunar.getDayInGanZhiExact2() : lunar.getDayInGanZhiExact();
@@ -636,7 +636,7 @@
       }
     };
     var _computeYear = function(o,solar,year){
-      //以正月初一开始
+      //以正月初一開始
       var offset = year - 4;
       var yearGanIndex = offset % 10;
       var yearZhiIndex = offset % 12;
@@ -649,11 +649,11 @@
         yearZhiIndex += 12;
       }
 
-      //以立春作为新一年的开始的干支纪年
+      //以立春作為新一年的開始的干支紀年
       var g = yearGanIndex;
       var z = yearZhiIndex;
 
-      //精确的干支纪年，以立春交接时刻为准
+      //精確的干支紀年，以立春交接時刻為準
       var gExact = yearGanIndex;
       var zExact = yearZhiIndex;
 
@@ -661,7 +661,7 @@
       var solarYmd = solar.toYmd();
       var solarYmdHms = solar.toYmdHms();
 
-      //获取立春的阳历时刻
+      //獲取立春的陽曆時刻
       var liChun = o['jieQi'][I18n.getMessage('jq.liChun')];
       if (liChun.getYear() !== solarYear) {
         liChun = o['jieQi']['LI_CHUN'];
@@ -669,14 +669,14 @@
       var liChunYmd = liChun.toYmd();
       var liChunYmdHms = liChun.toYmdHms();
 
-      //阳历和阴历年份相同代表正月初一及以后
+      //陽曆和陰曆年份相同代表正月初一及以後
       if(year===solarYear){
-        //立春日期判断
+        //立春日期判斷
         if(solarYmd<liChunYmd) {
           g--;
           z--;
         }
-        //立春交接时刻判断
+        //立春交接時刻判斷
         if(solarYmdHms<liChunYmdHms) {
           gExact--;
           zExact--;
@@ -705,7 +705,7 @@
       var end;
       var size = LunarUtil.JIE_QI_IN_USE.length;
 
-      //序号：大雪以前-3，大雪到小寒之间-2，小寒到立春之间-1，立春之后0
+      //序號：大雪以前-3，大雪到小寒之間-2，小寒到立春之間-1，立春之後0
       var index = -3;
       for(i=0;i<size;i+=2){
         end = o.jieQi[LunarUtil.JIE_QI_IN_USE[i]];
@@ -968,7 +968,7 @@
         },
         getMonthInChinese:function(){
           var month = this._p.month;
-          return (month<0?'闰':'')+LunarUtil.MONTH[Math.abs(month)];
+          return (month<0?'閏':'')+LunarUtil.MONTH[Math.abs(month)];
         },
         getDayInChinese:function(){
           return LunarUtil.DAY[this._p.day];
@@ -1334,7 +1334,7 @@
           }
           var solarYmd = this._p.solar.toYmd();
           if(this._p.solar.toYmd() === this._getJieQiSolar(I18n.getMessage('jq.qingMing')).next(-1).toYmd()){
-            l.push('寒食节');
+            l.push('寒食節');
           }
 
           var jq = this._getJieQiSolar(I18n.getMessage('jq.liChun'));
@@ -1799,8 +1799,8 @@
           s += ' '+this.getYearInGanZhi()+'('+this.getYearShengXiao()+')年';
           s += ' '+this.getMonthInGanZhi()+'('+this.getMonthShengXiao()+')月';
           s += ' '+this.getDayInGanZhi()+'('+this.getDayShengXiao()+')日';
-          s += ' '+this.getTimeZhi()+'('+this.getTimeShengXiao()+')时';
-          s += ' 纳音['+this.getYearNaYin()+' '+this.getMonthNaYin()+' '+this.getDayNaYin()+' '+this.getTimeNaYin()+']';
+          s += ' '+this.getTimeZhi()+'('+this.getTimeShengXiao()+')時';
+          s += ' 納音['+this.getYearNaYin()+' '+this.getMonthNaYin()+' '+this.getDayNaYin()+' '+this.getTimeNaYin()+']';
           s += ' 星期'+this.getWeekInChinese();
           var festivals = this.getFestivals();
           var i;
@@ -1820,11 +1820,11 @@
           s += ' 星宿['+this.getXiu()+this.getZheng()+this.getAnimal()+']('+this.getXiuLuck()+')';
           s += ' 彭祖百忌['+this.getPengZuGan()+' '+this.getPengZuZhi()+']';
           s += ' 喜神方位['+this.getDayPositionXi()+']('+this.getDayPositionXiDesc()+')';
-          s += ' 阳贵神方位['+this.getDayPositionYangGui()+']('+this.getDayPositionYangGuiDesc()+')';
-          s += ' 阴贵神方位['+this.getDayPositionYinGui()+']('+this.getDayPositionYinGuiDesc()+')';
+          s += ' 陽貴神方位['+this.getDayPositionYangGui()+']('+this.getDayPositionYangGuiDesc()+')';
+          s += ' 陰貴神方位['+this.getDayPositionYinGui()+']('+this.getDayPositionYinGuiDesc()+')';
           s += ' 福神方位['+this.getDayPositionFu()+']('+this.getDayPositionFuDesc()+')';
-          s += ' 财神方位['+this.getDayPositionCai()+']('+this.getDayPositionCaiDesc()+')';
-          s += ' 冲['+this.getDayChongDesc()+']';
+          s += ' 財神方位['+this.getDayPositionCai()+']('+this.getDayPositionCaiDesc()+')';
+          s += ' 衝['+this.getDayChongDesc()+']';
           s += ' 煞['+this.getDaySha()+']';
           return s;
         },
@@ -1863,12 +1863,12 @@
           var liQiu = this._getJieQiSolar(I18n.getMessage('jq.liQiu'));
           var startDay = Solar.fromYmd(xiaZhi.getYear(), xiaZhi.getMonth(), xiaZhi.getDay());
 
-          // 第1个庚日
+          // 第1個庚日
           var add = 6 - xiaZhi.getLunar().getDayGanIndex();
           if (add < 0) {
             add += 10;
           }
-          // 第3个庚日，即初伏第1天
+          // 第3個庚日，即初伏第1天
           add += 20;
           startDay = startDay.next(add);
 
@@ -1882,7 +1882,7 @@
             return this._buildNameAndIndex('初伏', days + 1);
           }
 
-          // 第4个庚日，中伏第1天
+          // 第4個庚日，中伏第1天
           startDay = startDay.next(10);
 
           days = currentDay.subtract(startDay);
@@ -1890,7 +1890,7 @@
             return this._buildNameAndIndex('中伏', days + 1);
           }
 
-          // 第5个庚日，中伏第11天或末伏第1天
+          // 第5個庚日，中伏第11天或末伏第1天
           startDay = startDay.next(10);
 
           var liQiuDay = Solar.fromYmd(liQiu.getYear(),liQiu.getMonth(),liQiu.getDay());
@@ -1939,9 +1939,9 @@
         getDayLu:function(){
           var gan = LunarUtil.LU[this.getDayGan()];
           var zhi = LunarUtil.LU[this.getDayZhi()];
-          var lu = gan + '命互禄';
+          var lu = gan + '命互祿';
           if (zhi) {
-            lu += ' ' + zhi + '命进禄';
+            lu += ' ' + zhi + '命進祿';
           }
           return lu;
         },
@@ -2012,8 +2012,8 @@
           return this._p.start;
         },
         /**
-         * 获取当前日期是在当月第几周
-         * @return number 周序号，从1开始
+         * 獲取當前日期是在當月第幾周
+         * @return number 周序號，從1開始
          */
         getIndex:function(){
           var offset = Solar.fromYmd(this._p.year,this._p.month,1).getWeek() - this._p.start;
@@ -2023,8 +2023,8 @@
           return Math.ceil((this._p.day + offset)/7);
         },
         /**
-         * 获取当前日期是在当年第几周
-         * @return number 周序号，从1开始
+         * 獲取當前日期是在當年第幾周
+         * @return number 周序號，從1開始
          */
         getIndexInYear:function(){
           var offset = Solar.fromYmd(this._p.year,1,1).getWeek() - this._p.start;
@@ -2035,9 +2035,9 @@
         },
         /**
          * 周推移
-         * @param weeks 推移的周数，负数为倒推
-         * @param separateMonth 是否按月单独计算
-         * @return object 推移后的阳历周
+         * @param weeks 推移的週數，負數為倒推
+         * @param separateMonth 是否按月單獨計算
+         * @return object 推移後的陽曆周
          */
         next: function (weeks, separateMonth) {
           var ow = weeks;
@@ -2092,8 +2092,8 @@
           }
         },
         /**
-         * 获取本周第一天的阳历日期（可能跨月）
-         * @return object 本周第一天的阳历日期
+         * 獲取本週第一天的陽曆日期（可能跨月）
+         * @return object 本週第一天的陽曆日期
          */
         getFirstDay:function(){
           var solar = Solar.fromYmd(this._p.year, this._p.month, this._p.day);
@@ -2104,8 +2104,8 @@
           return solar.next(-prev);
         },
         /**
-         * 获取本周第一天的阳历日期（仅限当月）
-         * @return object 本周第一天的阳历日期
+         * 獲取本週第一天的陽曆日期（僅限當月）
+         * @return object 本週第一天的陽曆日期
          */
         getFirstDayInMonth:function(){
           var index = 0;
@@ -2119,8 +2119,8 @@
           return days[index];
         },
         /**
-         * 获取本周的阳历日期列表（可能跨月）
-         * @return Array 本周的阳历日期列表
+         * 獲取本週的陽曆日期列表（可能跨月）
+         * @return Array 本週的陽曆日期列表
          */
         getDays:function(){
           var firstDay = this.getFirstDay();
@@ -2132,8 +2132,8 @@
           return l;
         },
         /**
-         * 获取本周的阳历日期列表（仅限当月）
-         * @return Array 本周的阳历日期列表（仅限当月）
+         * 獲取本週的陽曆日期列表（僅限當月）
+         * @return Array 本週的陽曆日期列表（僅限當月）
          */
         getDaysInMonth:function(){
           var days = this.getDays();
@@ -2157,19 +2157,19 @@
     };
     return {
       /**
-       * 指定年月日生成当天所在的阳历周
+       * 指定年月日生成當天所在的陽曆周
        * @param y 年份
        * @param m 月份
        * @param d 日期
-       * @param start 星期几作为一周的开始，1234560分别代表星期一至星期天
-       * @return object 阳历周
+       * @param start 星期幾作為一週的開始，1234560分別代表星期一至星期天
+       * @return object 陽曆周
        */
       fromYmd:function(y,m,d,start){return _fromYmd(y,m,d,start);},
       /**
-       * 指定日期生成当天所在的阳历周
+       * 指定日期生成當天所在的陽曆周
        * @param date 日期
-       * @param start 星期几作为一周的开始，1234560分别代表星期一至星期天
-       * @return object 阳历周
+       * @param start 星期幾作為一週的開始，1234560分別代表星期一至星期天
+       * @return object 陽曆周
        */
       fromDate:function(date,start){return _fromDate(date,start);}
     };
@@ -2288,16 +2288,16 @@
           return this._p.month;
         },
         /**
-         * 获取当月是第几季度
-         * @return number 季度序号，从1开始
+         * 獲取當月是第幾季度
+         * @return number 季度序號，從1開始
          */
         getIndex:function(){
           return Math.ceil(this._p.month/3);
         },
         /**
          * 季度推移
-         * @param seasons 推移的季度数，负数为倒推
-         * @return object 推移后的季度
+         * @param seasons 推移的季度數，負數為倒推
+         * @return object 推移後的季度
          */
         next:function(seasons){
           var os = seasons;
@@ -2309,7 +2309,7 @@
           return _fromYm(month.getYear(), month.getMonth());
         },
         /**
-         * 获取本季度的月份
+         * 獲取本季度的月份
          * @return Array 本季度的月份列表
          */
         getMonths:function(){
@@ -2361,16 +2361,16 @@
           return this._p.month;
         },
         /**
-         * 获取当月是第几半年
-         * @return number 半年序号，从1开始
+         * 獲取當月是第幾半年
+         * @return number 半年序號，從1開始
          */
         getIndex:function(){
           return Math.ceil(this._p.month/6);
         },
         /**
          * 半年推移
-         * @param halfYears 推移的半年数，负数为倒推
-         * @return object 推移后的半年
+         * @param halfYears 推移的半年數，負數為倒推
+         * @return object 推移後的半年
          */
         next:function(halfYears){
           var oh = halfYears;
@@ -2382,7 +2382,7 @@
           return _fromYm(month.getYear(), month.getMonth());
         },
         /**
-         * 获取本半年的月份
+         * 獲取本半年的月份
          * @return Array 本半年的月份列表
          */
         getMonths:function(){
@@ -2553,62 +2553,62 @@
           if (offset < 0) {
             offset += 10;
           }
-          return name.replace('几', LunarUtil.NUMBER[offset+1]);
+          return name.replace('幾', LunarUtil.NUMBER[offset+1]);
         },
         _getZaoByZhi:function(index, name){
           var offset = index - Solar.fromJulianDay(this.getMonth(1).getFirstJulianDay()).getLunar().getDayZhiIndex();
           if (offset < 0) {
             offset += 12;
           }
-          return name.replace('几', LunarUtil.NUMBER[offset+1]);
+          return name.replace('幾', LunarUtil.NUMBER[offset+1]);
         },
         getTouLiang:function(){
-          return this._getZaoByZhi(0, '几鼠偷粮');
+          return this._getZaoByZhi(0, '幾鼠偷糧');
         },
         getCaoZi:function(){
-          return this._getZaoByZhi(0, '草子几分');
+          return this._getZaoByZhi(0, '草子幾分');
         },
         getGengTian:function(){
-          return this._getZaoByZhi(1, '几牛耕田');
+          return this._getZaoByZhi(1, '幾牛耕田');
         },
         getHuaShou:function(){
-          return this._getZaoByZhi(3, '花收几分');
+          return this._getZaoByZhi(3, '花收幾分');
         },
         getZhiShui:function(){
-          return this._getZaoByZhi(4, '几龙治水');
+          return this._getZaoByZhi(4, '幾龍治水');
         },
         getTuoGu:function(){
-          return this._getZaoByZhi(6, '几马驮谷');
+          return this._getZaoByZhi(6, '幾馬馱谷');
         },
         getQiangMi:function(){
-          return this._getZaoByZhi(9, '几鸡抢米');
+          return this._getZaoByZhi(9, '幾雞搶米');
         },
         getKanCan:function(){
-          return this._getZaoByZhi(9, '几姑看蚕');
+          return this._getZaoByZhi(9, '幾姑看蠶');
         },
         getGongZhu:function(){
-          return this._getZaoByZhi(11, '几屠共猪');
+          return this._getZaoByZhi(11, '幾屠共豬');
         },
         getJiaTian:function(){
-          return this._getZaoByGan(0, '甲田几分');
+          return this._getZaoByGan(0, '甲田幾分');
         },
         getFenBing:function(){
-          return this._getZaoByGan(2, '几人分饼');
+          return this._getZaoByGan(2, '幾人分餅');
         },
         getDeJin:function(){
-          return this._getZaoByGan(7, '几日得金');
+          return this._getZaoByGan(7, '幾日得金');
         },
         getRenBing:function(){
-          return this._getZaoByGan(2, this._getZaoByZhi(2, '几人几丙'));
+          return this._getZaoByGan(2, this._getZaoByZhi(2, '幾人幾丙'));
         },
         getRenChu:function(){
-          return this._getZaoByGan(3, this._getZaoByZhi(2, '几人几锄'));
+          return this._getZaoByGan(3, this._getZaoByZhi(2, '幾人幾鋤'));
         },
         getYuan:function(){
           return _YUAN[Math.floor((this._p.year+2696)/60)%3]+'元';
         },
         getYun:function(){
-          return _YUN[Math.floor((this._p.year+2696)/20)%9]+'运';
+          return _YUN[Math.floor((this._p.year+2696)/20)%9]+'運';
         },
         getNineStar:function(){
           var index = LunarUtil.getJiaZiIndex(this.getGanZhi()) + 1;
@@ -2672,23 +2672,23 @@
         _compute:function(){
           this._p.months = [];
           this._p.jieQiJulianDays = [];
-          // 节气
+          // 節氣
           var jq = [];
           // 合朔，即每月初一
           var hs = [];
-          // 每月天数，长度15
+          // 每月天數，長度15
           var dayCounts = [];
           var months = [];
           var i;
           var j;
           var currentYear = this._p.year;
           var jd = Math.floor((currentYear - 2000) * 365.2422 + 180);
-          // 355是2000.12冬至，得到较靠近jd的冬至估计值
+          // 355是2000.12冬至，得到較靠近jd的冬至估計值
           var w = Math.floor((jd - 355 + 183) / 365.2422) * 365.2422 + 355;
           if (ShouXingUtil.calcQi(w) > jd) {
             w -= 365.2422;
           }
-          // 25个节气时刻(北京时间)，从冬至开始到下一个冬至以后
+          // 25個節氣時刻(北京時間)，從冬至開始到下一個冬至以後
           for (i = 0; i < 26; i++) {
             jq.push(ShouXingUtil.calcQi(w + 15.2184 * i));
           }
@@ -2703,12 +2703,12 @@
             this._p.jieQiJulianDays.push(jd + Solar.J2000);
           }
 
-          // 冬至前的初一，今年首朔的日月黄经差w
+          // 冬至前的初一，今年首朔的日月黃經差w
           w = ShouXingUtil.calcShuo(jq[0]);
           if (w > jq[0]) {
             w -= 29.53;
           }
-          // 递推每月初一
+          // 遞推每月初一
           for (i = 0; i < 16; i++) {
             hs.push(ShouXingUtil.calcShuo(w + 29.5306 * i));
           }
@@ -2956,7 +2956,7 @@
             }
           }
         },
-        toString:function(){return this.getYear()+'年'+(this.isLeap()?'闰':'')+LunarUtil.MONTH[Math.abs(this.getMonth())]+'月('+this.getDayCount()+')天';}
+        toString:function(){return this.getYear()+'年'+(this.isLeap()?'閏':'')+LunarUtil.MONTH[Math.abs(this.getMonth())]+'月('+this.getDayCount()+')天';}
       };
     };
     return {
@@ -3602,145 +3602,145 @@
         '12-25': '{jr.shengDan}'
       },
       OTHER_FESTIVAL:{
-        '1-8':['周恩来逝世纪念日'],
-        '1-10':['中国人民警察节'],
-        '1-14':['日记情人节'],
-        '1-21':['列宁逝世纪念日'],
-        '1-26':['国际海关日'],
-        '1-27':['国际大屠杀纪念日'],
-        '2-2':['世界湿地日'],
+        '1-8':['周恩來逝世紀念日'],
+        '1-10':['中國人民警察節'],
+        '1-14':['日記情人節'],
+        '1-21':['列寧逝世紀念日'],
+        '1-26':['國際海關日'],
+        '1-27':['國際大屠殺紀念日'],
+        '2-2':['世界濕地日'],
         '2-4':['世界抗癌日'],
-        '2-7':['京汉铁路罢工纪念日'],
-        '2-10':['国际气象节'],
-        '2-19':['邓小平逝世纪念日'],
-        '2-20':['世界社会公正日'],
-        '2-21':['国际母语日'],
+        '2-7':['京漢鐵路罷工紀念日'],
+        '2-10':['國際氣象節'],
+        '2-19':['鄧小平逝世紀念日'],
+        '2-20':['世界社會公正日'],
+        '2-21':['國際母語日'],
         '2-24':['第三世界青年日'],
-        '3-1':['国际海豹日'],
-        '3-3':['世界野生动植物日', '全国爱耳日'],
-        '3-5':['周恩来诞辰纪念日', '中国青年志愿者服务日'],
+        '3-1':['國際海豹日'],
+        '3-3':['世界野生動植物日', '全國愛耳日'],
+        '3-5':['周恩來誕辰紀念日', '中國青年志願者服務日'],
         '3-6':['世界青光眼日'],
-        '3-7':['女生节'],
-        '3-12':['孙中山逝世纪念日'],
-        '3-14':['马克思逝世纪念日', '白色情人节'],
-        '3-17':['国际航海日'],
-        '3-18':['全国科技人才活动日', '全国爱肝日'],
-        '3-20':['国际幸福日'],
-        '3-21':['世界森林日', '世界睡眠日', '国际消除种族歧视日'],
+        '3-7':['女生節'],
+        '3-12':['孫中山逝世紀念日'],
+        '3-14':['馬克思逝世紀念日', '白色情人節'],
+        '3-17':['國際航海日'],
+        '3-18':['全國科技人才活動日', '全國愛肝日'],
+        '3-20':['國際幸福日'],
+        '3-21':['世界森林日', '世界睡眠日', '國際消除種族歧視日'],
         '3-22':['世界水日'],
-        '3-23':['世界气象日'],
-        '3-24':['世界防治结核病日'],
-        '3-29':['中国黄花岗七十二烈士殉难纪念日'],
-        '4-2':['国际儿童图书日', '世界自闭症日'],
-        '4-4':['国际地雷行动日'],
-        '4-7':['世界卫生日'],
-        '4-8':['国际珍稀动物保护日'],
+        '3-23':['世界氣象日'],
+        '3-24':['世界防治結核病日'],
+        '3-29':['中國黃花崗七十二烈士殉難紀念日'],
+        '4-2':['國際兒童圖書日', '世界自閉症日'],
+        '4-4':['國際地雷行動日'],
+        '4-7':['世界衞生日'],
+        '4-8':['國際珍稀動物保護日'],
         '4-12':['世界航天日'],
-        '4-14':['黑色情人节'],
-        '4-15':['全民国家安全教育日'],
-        '4-22':['世界地球日', '列宁诞辰纪念日'],
-        '4-23':['世界读书日'],
-        '4-24':['中国航天日'],
-        '4-25':['儿童预防接种宣传日'],
-        '4-26':['世界知识产权日', '全国疟疾日'],
-        '4-28':['世界安全生产与健康日'],
-        '4-30':['全国交通安全反思日'],
-        '5-2':['世界金枪鱼日'],
-        '5-3':['世界新闻自由日'],
-        '5-5':['马克思诞辰纪念日'],
-        '5-8':['世界红十字日'],
+        '4-14':['黑色情人節'],
+        '4-15':['全民國家安全教育日'],
+        '4-22':['世界地球日', '列寧誕辰紀念日'],
+        '4-23':['世界讀書日'],
+        '4-24':['中國航天日'],
+        '4-25':['兒童預防接種宣傳日'],
+        '4-26':['世界知識產權日', '全國瘧疾日'],
+        '4-28':['世界安全生產與健康日'],
+        '4-30':['全國交通安全反思日'],
+        '5-2':['世界金槍魚日'],
+        '5-3':['世界新聞自由日'],
+        '5-5':['馬克思誕辰紀念日'],
+        '5-8':['世界紅十字日'],
         '5-11':['世界肥胖日'],
-        '5-12':['全国防灾减灾日', '护士节'],
-        '5-14':['玫瑰情人节'],
-        '5-15':['国际家庭日'],
-        '5-19':['中国旅游日'],
-        '5-20':['网络情人节'],
-        '5-22':['国际生物多样性日'],
-        '5-25':['525心理健康节'],
+        '5-12':['全國防災減災日', '護士節'],
+        '5-14':['玫瑰情人節'],
+        '5-15':['國際家庭日'],
+        '5-19':['中國旅遊日'],
+        '5-20':['網絡情人節'],
+        '5-22':['國際生物多樣性日'],
+        '5-25':['525心理健康節'],
         '5-27':['上海解放日'],
-        '5-29':['国际维和人员日'],
-        '5-30':['中国五卅运动纪念日'],
-        '5-31':['世界无烟日'],
-        '6-3':['世界自行车日'],
-        '6-5':['世界环境日'],
-        '6-6':['全国爱眼日'],
+        '5-29':['國際維和人員日'],
+        '5-30':['中國五卅運動紀念日'],
+        '5-31':['世界無煙日'],
+        '6-3':['世界自行車日'],
+        '6-5':['世界環境日'],
+        '6-6':['全國愛眼日'],
         '6-8':['世界海洋日'],
-        '6-11':['中国人口日'],
-        '6-14':['世界献血日', '亲亲情人节'],
-        '6-17':['世界防治荒漠化与干旱日'],
-        '6-20':['世界难民日'],
-        '6-21':['国际瑜伽日'],
-        '6-25':['全国土地日'],
-        '6-26':['国际禁毒日', '联合国宪章日'],
-        '7-1':['香港回归纪念日'],
-        '7-6':['国际接吻日', '朱德逝世纪念日'],
-        '7-7':['七七事变纪念日'],
-        '7-11':['世界人口日', '中国航海日'],
-        '7-14':['银色情人节'],
-        '7-18':['曼德拉国际日'],
-        '7-30':['国际友谊日'],
-        '8-3':['男人节'],
-        '8-5':['恩格斯逝世纪念日'],
-        '8-6':['国际电影节'],
+        '6-11':['中國人口日'],
+        '6-14':['世界獻血日', '親親情人節'],
+        '6-17':['世界防治荒漠化與乾旱日'],
+        '6-20':['世界難民日'],
+        '6-21':['國際瑜伽日'],
+        '6-25':['全國土地日'],
+        '6-26':['國際禁毒日', '聯合國憲章日'],
+        '7-1':['香港迴歸紀念日'],
+        '7-6':['國際接吻日', '朱德逝世紀念日'],
+        '7-7':['七七事變紀念日'],
+        '7-11':['世界人口日', '中國航海日'],
+        '7-14':['銀色情人節'],
+        '7-18':['曼德拉國際日'],
+        '7-30':['國際友誼日'],
+        '8-3':['男人節'],
+        '8-5':['恩格斯逝世紀念日'],
+        '8-6':['國際電影節'],
         '8-8':['全民健身日'],
-        '8-9':['国际土著人日'],
-        '8-12':['国际青年节'],
-        '8-14':['绿色情人节'],
-        '8-19':['世界人道主义日', '中国医师节'],
-        '8-22':['邓小平诞辰纪念日'],
-        '8-29':['全国测绘法宣传日'],
-        '9-3':['中国抗日战争胜利纪念日'],
-        '9-5':['中华慈善日'],
-        '9-8':['世界扫盲日'],
-        '9-9':['毛泽东逝世纪念日', '全国拒绝酒驾日'],
-        '9-14':['世界清洁地球日', '相片情人节'],
-        '9-15':['国际民主日'],
-        '9-16':['国际臭氧层保护日'],
-        '9-17':['世界骑行日'],
-        '9-18':['九一八事变纪念日'],
-        '9-20':['全国爱牙日'],
-        '9-21':['国际和平日'],
-        '9-27':['世界旅游日'],
-        '9-30':['中国烈士纪念日'],
-        '10-1':['国际老年人日'],
-        '10-2':['国际非暴力日'],
-        '10-4':['世界动物日'],
-        '10-11':['国际女童日'],
-        '10-10':['辛亥革命纪念日'],
-        '10-13':['国际减轻自然灾害日', '中国少年先锋队诞辰日'],
-        '10-14':['葡萄酒情人节'],
-        '10-16':['世界粮食日'],
-        '10-17':['全国扶贫日'],
-        '10-20':['世界统计日'],
-        '10-24':['世界发展信息日', '程序员节'],
-        '10-25':['抗美援朝纪念日'],
-        '11-5':['世界海啸日'],
-        '11-8':['记者节'],
-        '11-9':['全国消防日'],
-        '11-11':['光棍节'],
-        '11-12':['孙中山诞辰纪念日'],
-        '11-14':['电影情人节'],
-        '11-16':['国际宽容日'],
-        '11-17':['国际大学生节'],
-        '11-19':['世界厕所日'],
-        '11-28':['恩格斯诞辰纪念日'],
-        '11-29':['国际声援巴勒斯坦人民日'],
+        '8-9':['國際土著人日'],
+        '8-12':['國際青年節'],
+        '8-14':['綠色情人節'],
+        '8-19':['世界人道主義日', '中國醫師節'],
+        '8-22':['鄧小平誕辰紀念日'],
+        '8-29':['全國測繪法宣傳日'],
+        '9-3':['中國抗日戰爭勝利紀念日'],
+        '9-5':['中華慈善日'],
+        '9-8':['世界掃盲日'],
+        '9-9':['毛澤東逝世紀念日', '全國拒絕酒駕日'],
+        '9-14':['世界清潔地球日', '相片情人節'],
+        '9-15':['國際民主日'],
+        '9-16':['國際臭氧層保護日'],
+        '9-17':['世界騎行日'],
+        '9-18':['九一八事變紀念日'],
+        '9-20':['全國愛牙日'],
+        '9-21':['國際和平日'],
+        '9-27':['世界旅遊日'],
+        '9-30':['中國烈士紀念日'],
+        '10-1':['國際老年人日'],
+        '10-2':['國際非暴力日'],
+        '10-4':['世界動物日'],
+        '10-11':['國際女童日'],
+        '10-10':['辛亥革命紀念日'],
+        '10-13':['國際減輕自然災害日', '中國少年先鋒隊誕辰日'],
+        '10-14':['葡萄酒情人節'],
+        '10-16':['世界糧食日'],
+        '10-17':['全國扶貧日'],
+        '10-20':['世界統計日'],
+        '10-24':['世界發展信息日', '程序員節'],
+        '10-25':['抗美援朝紀念日'],
+        '11-5':['世界海嘯日'],
+        '11-8':['記者節'],
+        '11-9':['全國消防日'],
+        '11-11':['光棍節'],
+        '11-12':['孫中山誕辰紀念日'],
+        '11-14':['電影情人節'],
+        '11-16':['國際寬容日'],
+        '11-17':['國際大學生節'],
+        '11-19':['世界廁所日'],
+        '11-28':['恩格斯誕辰紀念日'],
+        '11-29':['國際聲援巴勒斯坦人民日'],
         '12-1':['世界艾滋病日'],
-        '12-2':['全国交通安全日'],
-        '12-3':['世界残疾人日'],
-        '12-4':['全国法制宣传日'],
-        '12-5':['世界弱能人士日', '国际志愿人员日'],
-        '12-7':['国际民航日'],
-        '12-9':['世界足球日', '国际反腐败日'],
-        '12-10':['世界人权日'],
-        '12-11':['国际山岳日'],
-        '12-12':['西安事变纪念日'],
-        '12-13':['国家公祭日'],
-        '12-14':['拥抱情人节'],
-        '12-18':['国际移徙者日'],
-        '12-26':['毛泽东诞辰纪念日']
+        '12-2':['全國交通安全日'],
+        '12-3':['世界殘疾人日'],
+        '12-4':['全國法制宣傳日'],
+        '12-5':['世界弱能人士日', '國際志願人員日'],
+        '12-7':['國際民航日'],
+        '12-9':['世界足球日', '國際反腐敗日'],
+        '12-10':['世界人權日'],
+        '12-11':['國際山嶽日'],
+        '12-12':['西安事變紀念日'],
+        '12-13':['國家公祭日'],
+        '12-14':['擁抱情人節'],
+        '12-18':['國際移徙者日'],
+        '12-26':['毛澤東誕辰紀念日']
       },
-      WEEK_FESTIVAL:{'3-0-1':'全国中小学生安全教育日','5-2-0':'母亲节','5-3-0':'全国助残日','6-3-0':'父亲节','9-3-6':'全民国防教育日','10-1-1':'世界住房日','11-4-4':'感恩节'},
+      WEEK_FESTIVAL:{'3-0-1':'全國中小學生安全教育日','5-2-0':'母親節','5-3-0':'全國助殘日','6-3-0':'父親節','9-3-6':'全民國防教育日','10-1-1':'世界住房日','11-4-4':'感恩節'},
       isLeapYear:function(year){
         if (year < 1600) {
           return year % 4 === 0;
@@ -4184,8 +4184,8 @@
         '{s.huangDao}': '{s.goodLuck}',
         '{s.heiDao}': '{s.badLuck}'
       },
-      PENGZU_GAN:['', '{tg.jia}不开仓财物耗散', '{tg.yi}不栽植千株不长', '{tg.bing}不修灶必见灾殃', '{tg.ding}不剃头头必生疮', '{tg.wu}不受田田主不祥', '{tg.ji}不破券二比并亡', '{tg.geng}不经络织机虚张', '{tg.xin}不合酱主人不尝', '{tg.ren}不泱水更难提防', '{tg.gui}不词讼理弱敌强'],
-      PENGZU_ZHI:['', '{dz.zi}不问卜自惹祸殃', '{dz.chou}不冠带主不还乡', '{dz.yin}不祭祀神鬼不尝', '{dz.mao}不穿井水泉不香', '{dz.chen}不哭泣必主重丧', '{dz.si}不远行财物伏藏', '{dz.wu}不苫盖屋主更张', '{dz.wei}不服药毒气入肠', '{dz.shen}不安床鬼祟入房', '{dz.you}不会客醉坐颠狂', '{dz.xu}不吃犬作怪上床', '{dz.hai}不嫁娶不利新郎'],
+      PENGZU_GAN:['', '{tg.jia}不開倉財物耗散', '{tg.yi}不栽植千株不長', '{tg.bing}不修灶必見災殃', '{tg.ding}不剃頭頭必生瘡', '{tg.wu}不受田田主不祥', '{tg.ji}不破券二比並亡', '{tg.geng}不經絡織機虛張', '{tg.xin}不合醬主人不嘗', '{tg.ren}不泱水更難提防', '{tg.gui}不詞訟理弱敵強'],
+      PENGZU_ZHI:['', '{dz.zi}不問卜自惹禍殃', '{dz.chou}不冠帶主不還鄉', '{dz.yin}不祭祀神鬼不嘗', '{dz.mao}不穿井水泉不香', '{dz.chen}不哭泣必主重喪', '{dz.si}不遠行財物伏藏', '{dz.wu}不苫蓋屋主更張', '{dz.wei}不服藥毒氣入腸', '{dz.shen}不安牀鬼祟入房', '{dz.you}不會客醉坐顛狂', '{dz.xu}不吃犬作怪上牀', '{dz.hai}不嫁娶不利新郎'],
       NUMBER:['{n.zero}', '{n.one}', '{n.two}', '{n.three}', '{n.four}', '{n.five}', '{n.six}', '{n.seven}', '{n.eight}', '{n.nine}', '{n.ten}', '{n.eleven}', '{n.twelve}'],
       MONTH:[
         '',
@@ -4401,34 +4401,34 @@
         '{xx.zhen}': '{s.goodLuck}'
       },
       XIU_SONG:{
-        '{xx.jiao}': '角星造作主荣昌，外进田财及女郎，嫁娶婚姻出贵子，文人及第见君王，惟有埋葬不可用，三年之后主瘟疫，起工修筑坟基地，堂前立见主人凶。',
-        '{xx.kang}': '亢星造作长房当，十日之中主有殃，田地消磨官失职，接运定是虎狼伤，嫁娶婚姻用此日，儿孙新妇守空房，埋葬若还用此日，当时害祸主重伤。',
-        '{xx.di}': '氐星造作主灾凶，费尽田园仓库空，埋葬不可用此日，悬绳吊颈祸重重，若是婚姻离别散，夜招浪子入房中，行船必定遭沉没，更生聋哑子孙穷。',
-        '{xx.fang}': '房星造作田园进，钱财牛马遍山岗，更招外处田庄宅，荣华富贵福禄康，埋葬若然用此日，高官进职拜君王，嫁娶嫦娥至月殿，三年抱子至朝堂。',
-        '{xx.xin}': '心星造作大为凶，更遭刑讼狱囚中，忤逆官非宅产退，埋葬卒暴死相从，婚姻若是用此日，子死儿亡泪满胸，三年之内连遭祸，事事教君没始终。',
-        '{xx.tail}': '尾星造作主天恩，富贵荣华福禄增，招财进宝兴家宅，和合婚姻贵子孙，埋葬若能依此日，男清女正子孙兴，开门放水招田宅，代代公侯远播名。',
-        '{xx.ji}': '箕星造作主高强，岁岁年年大吉昌，埋葬修坟大吉利，田蚕牛马遍山岗，开门放水招田宅，箧满金银谷满仓，福荫高官加禄位，六亲丰禄乐安康。',
-        '{xx.dou}': '斗星造作主招财，文武官员位鼎台，田宅家财千万进，坟堂修筑贵富来，开门放水招牛马，旺蚕男女主和谐，遇此吉宿来照护，时支福庆永无灾。',
-        '{xx.niu}': '牛星造作主灾危，九横三灾不可推，家宅不安人口退，田蚕不利主人衰，嫁娶婚姻皆自损，金银财谷渐无之，若是开门并放水，牛猪羊马亦伤悲。',
-        '{xx.nv}': '女星造作损婆娘，兄弟相嫌似虎狼，埋葬生灾逢鬼怪，颠邪疾病主瘟惶，为事遭官财失散，泻利留连不可当，开门放水用此日，全家财散主离乡。',
-        '{xx.xu}': '虚星造作主灾殃，男女孤眠不一双，内乱风声无礼节，儿孙媳妇伴人床，开门放水遭灾祸，虎咬蛇伤又卒亡，三三五五连年病，家破人亡不可当。',
-        '{xx.wei}': '危星不可造高楼，自遭刑吊见血光，三年孩子遭水厄，后生出外永不还，埋葬若还逢此日，周年百日取高堂，三年两载一悲伤，开门放水到官堂。',
-        '{xx.shi}': '室星修造进田牛，儿孙代代近王侯，家贵荣华天上至，寿如彭祖八千秋，开门放水招财帛，和合婚姻生贵儿，埋葬若能依此日，门庭兴旺福无休。',
-        '{xx.qiang}': '壁星造作主增财，丝蚕大熟福滔天，奴婢自来人口进，开门放水出英贤，埋葬招财官品进，家中诸事乐陶然，婚姻吉利主贵子，早播名誉著祖鞭。',
-        '{xx.kui}': '奎星造作得祯祥，家内荣和大吉昌，若是埋葬阴卒死，当年定主两三伤，看看军令刑伤到，重重官事主瘟惶，开门放水遭灾祸，三年两次损儿郎。',
-        '{xx.lou}': '娄星修造起门庭，财旺家和事事兴，外进钱财百日进，一家兄弟播高名，婚姻进益生贵子，玉帛金银箱满盈，放水开门皆吉利，男荣女贵寿康宁。',
-        '{xx.vei}': '胃星造作事如何，家贵荣华喜气多，埋葬贵临官禄位，夫妇齐眉永保康，婚姻遇此家富贵，三灾九祸不逢他，从此门前多吉庆，儿孙代代拜金阶。',
-        '{xx.mao}': '昴星造作进田牛，埋葬官灾不得休，重丧二日三人死，尽卖田园不记增，开门放水招灾祸，三岁孩儿白了头，婚姻不可逢此日，死别生离是可愁。',
-        '{xx.bi}': '毕星造作主光前，买得田园有余钱，埋葬此日添官职，田蚕大熟永丰年，开门放水多吉庆，合家人口得安然，婚姻若得逢此日，生得孩儿福寿全。',
-        '{xx.zi}': '觜星造作有徒刑，三年必定主伶丁，埋葬卒死多因此，取定寅年使杀人，三丧不止皆由此，一人药毒二人身，家门田地皆退败，仓库金银化作尘。',
-        '{xx.can}': '参星造作旺人家，文星照耀大光华，只因造作田财旺，埋葬招疾哭黄沙，开门放水加官职，房房子孙见田加，婚姻许遁遭刑克，男女朝开幕落花。',
-        '{xx.jing}': '井星造作旺蚕田，金榜题名第一光，埋葬须防惊卒死，狂颠风疾入黄泉，开门放水招财帛，牛马猪羊旺莫言，贵人田塘来入宅，儿孙兴旺有余钱。',
-        '{xx.gui}': '鬼星起造卒人亡，堂前不见主人郎，埋葬此日官禄至，儿孙代代近君王，开门放水须伤死，嫁娶夫妻不久长，修土筑墙伤产女，手扶双女泪汪汪。',
-        '{xx.liu}': '柳星造作主遭官，昼夜偷闭不暂安，埋葬瘟惶多疾病，田园退尽守冬寒，开门放水遭聋瞎，腰驼背曲似弓弯，更有棒刑宜谨慎，妇人随客走盘桓。',
-        '{xx.xing}': '星宿日好造新房，进职加官近帝王，不可埋葬并放水，凶星临位女人亡，生离死别无心恋，要自归休别嫁郎，孔子九曲殊难度，放水开门天命伤。',
-        '{xx.zhang}': '张星日好造龙轩，年年并见进庄田，埋葬不久升官职，代代为官近帝前，开门放水招财帛，婚姻和合福绵绵，田蚕人满仓库满，百般顺意自安然。',
-        '{xx.yi}': '翼星不利架高堂，三年二载见瘟惶，埋葬若还逢此日，子孙必定走他乡，婚姻此日不宜利，归家定是不相当，开门放水家须破，少女恋花贪外郎。',
-        '{xx.zhen}': '轸星临水造龙宫，代代为官受皇封，富贵荣华增寿禄，库满仓盈自昌隆，埋葬文昌来照助，宅舍安宁不见凶，更有为官沾帝宠，婚姻龙子入龙宫。'
+        '{xx.jiao}': '角星造作主榮昌，外進田財及女郎，嫁娶婚姻出貴子，文人及第見君王，惟有埋葬不可用，三年之後主瘟疫，起工修築墳基地，堂前立見主人兇。',
+        '{xx.kang}': '亢星造作長房當，十日之中主有殃，田地消磨官失職，接運定是虎狼傷，嫁娶婚姻用此日，兒孫新婦守空房，埋葬若還用此日，當時害禍主重傷。',
+        '{xx.di}': '氐星造作主災兇，費盡田園倉庫空，埋葬不可用此日，懸繩吊頸禍重重，若是婚姻離別散，夜招浪子入房中，行船必定遭沉沒，更生聾啞子孫窮。',
+        '{xx.fang}': '房星造作田園進，錢財牛馬遍山崗，更招外處田莊宅，榮華富貴福祿康，埋葬若然用此日，高官進職拜君王，嫁娶嫦娥至月殿，三年抱子至朝堂。',
+        '{xx.xin}': '心星造作大為兇，更遭刑訟獄囚中，忤逆官非宅產退，埋葬卒暴死相從，婚姻若是用此日，子死兒亡淚滿胸，三年之內連遭禍，事事教君沒始終。',
+        '{xx.tail}': '尾星造作主天恩，富貴榮華福祿增，招財進寶興家宅，和合婚姻貴子孫，埋葬若能依此日，男清女正子孫興，開門放水招田宅，代代公侯遠播名。',
+        '{xx.ji}': '箕星造作主高強，歲歲年年大吉昌，埋葬修墳大吉利，田蠶牛馬遍山崗，開門放水招田宅，篋滿金銀谷滿倉，福廕高官加祿位，六親豐祿樂安康。',
+        '{xx.dou}': '鬥星造作主招財，文武官員位鼎台，田宅家財千萬進，墳堂修築貴富來，開門放水招牛馬，旺蠶男女主和諧，遇此吉宿來照護，時支福慶永無災。',
+        '{xx.niu}': '牛星造作主災危，九橫三災不可推，家宅不安人口退，田蠶不利主人衰，嫁娶婚姻皆自損，金銀財谷漸無之，若是開門並放水，牛豬羊馬亦傷悲。',
+        '{xx.nv}': '女星造作損婆娘，兄弟相嫌似虎狼，埋葬生災逢鬼怪，顛邪疾病主瘟惶，為事遭官財失散，瀉利留連不可當，開門放水用此日，全家財散主離鄉。',
+        '{xx.xu}': '虛星造作主災殃，男女孤眠不一雙，內亂風聲無禮節，兒孫媳婦伴人牀，開門放水遭災禍，虎咬蛇傷又卒亡，三三五五連年病，家破人亡不可當。',
+        '{xx.wei}': '危星不可造高樓，自遭刑吊見血光，三年孩子遭水厄，後生出外永不還，埋葬若還逢此日，週年百日取高堂，三年兩載一悲傷，開門放水到官堂。',
+        '{xx.shi}': '室星修造進田牛，兒孫代代近王侯，家貴榮華天上至，壽如彭祖八千秋，開門放水招財帛，和合婚姻生貴兒，埋葬若能依此日，門庭興旺福無休。',
+        '{xx.qiang}': '壁星造作主增財，絲蠶大熟福滔天，奴婢自來人口進，開門放水出英賢，埋葬招財官品進，家中諸事樂陶然，婚姻吉利主貴子，早播名譽著祖鞭。',
+        '{xx.kui}': '奎星造作得禎祥，家內榮和大吉昌，若是埋葬陰卒死，當年定主兩三傷，看看軍令刑傷到，重重官事主瘟惶，開門放水遭災禍，三年兩次損兒郎。',
+        '{xx.lou}': '婁星修造起門庭，財旺家和事事興，外進錢財百日進，一家兄弟播高名，婚姻進益生貴子，玉帛金銀箱滿盈，放水開門皆吉利，男榮女貴壽康寧。',
+        '{xx.vei}': '胃星造作事如何，家貴榮華喜氣多，埋葬貴臨官祿位，夫婦齊眉永保康，婚姻遇此家富貴，三災九禍不逢他，從此門前多吉慶，兒孫代代拜金階。',
+        '{xx.mao}': '昴星造作進田牛，埋葬官災不得休，重喪二日三人死，盡賣田園不記增，開門放水招災禍，三歲孩兒白了頭，婚姻不可逢此日，死別生離是可愁。',
+        '{xx.bi}': '畢星造作主光前，買得田園有餘錢，埋葬此日添官職，田蠶大熟永豐年，開門放水多吉慶，閤家人口得安然，婚姻若得逢此日，生得孩兒福壽全。',
+        '{xx.zi}': '觜星造作有徒刑，三年必定主伶丁，埋葬卒死多因此，取定寅年使殺人，三喪不止皆由此，一人藥毒二人身，家門田地皆退敗，倉庫金銀化作塵。',
+        '{xx.can}': '參星造作旺人家，文星照耀大光華，只因造作田財旺，埋葬招疾哭黃沙，開門放水加官職，房房子孫見田加，婚姻許遁遭刑剋，男女朝開幕落花。',
+        '{xx.jing}': '井星造作旺蠶田，金榜題名第一光，埋葬須防驚卒死，狂顛風疾入黃泉，開門放水招財帛，牛馬豬羊旺莫言，貴人田塘來入宅，兒孫興旺有餘錢。',
+        '{xx.gui}': '鬼星起造卒人亡，堂前不見主人郎，埋葬此日官祿至，兒孫代代近君王，開門放水須傷死，嫁娶夫妻不久長，修土築牆傷產女，手扶雙女淚汪汪。',
+        '{xx.liu}': '柳星造作主遭官，晝夜偷閉不暫安，埋葬瘟惶多疾病，田園退盡守冬寒，開門放水遭聾瞎，腰駝背曲似弓彎，更有棒刑宜謹慎，婦人隨客走盤桓。',
+        '{xx.xing}': '星宿日好造新房，進職加官近帝王，不可埋葬並放水，兇星臨位女人亡，生離死別無心戀，要自歸休別嫁郎，孔子九曲殊難度，放水開門天命傷。',
+        '{xx.zhang}': '張星日好造龍軒，年年並見進莊田，埋葬不久升官職，代代為官近帝前，開門放水招財帛，婚姻和合福綿綿，田蠶人滿倉庫滿，百般順意自安然。',
+        '{xx.yi}': '翼星不利架高堂，三年二載見瘟惶，埋葬若還逢此日，子孫必定走他鄉，婚姻此日不宜利，歸家定是不相當，開門放水家須破，少女戀花貪外郎。',
+        '{xx.zhen}': '軫星臨水造龍宮，代代為官受皇封，富貴榮華增壽祿，庫滿倉盈自昌隆，埋葬文昌來照助，宅舍安寧不見兇，更有為官沾帝寵，婚姻龍子入龍宮。'
       },
       ZHENG:{
         '{xx.jiao}': '{wx.mu}',
@@ -4536,7 +4536,7 @@
         '9-9':'{jr.chongYang}',
         '12-8':'{jr.laBa}'
       },
-      OTHER_FESTIVAL:{'1-4':['接神日'],'1-5':['隔开日'],'1-7':['人日'],'1-8':['谷日','顺星节'],'1-9':['天日'],'1-10':['地日'],'1-20':['天穿节'],'1-25':['填仓节'],'1-30':['正月晦'],'2-1':['中和节'],'2-2':['社日节'],'3-3':['上巳节'],'5-20':['分龙节'],'5-25':['会龙节'],'6-6':['天贶节'],'6-24':['观莲节'],'6-25':['五谷母节'],'7-15':['中元节'],'7-22':['财神节'],'7-29':['地藏节'],'8-1':['天灸日'],'10-1':['寒衣节'],'10-10':['十成节'],'10-15':['下元节'],'12-7':['驱傩日'],'12-16':['尾牙'],'12-24':['祭灶日']},
+      OTHER_FESTIVAL:{'1-4':['接神日'],'1-5':['隔開日'],'1-7':['人日'],'1-8':['穀日','順星節'],'1-9':['天日'],'1-10':['地日'],'1-20':['天穿節'],'1-25':['填倉節'],'1-30':['正月晦'],'2-1':['中和節'],'2-2':['社日節'],'3-3':['上巳節'],'5-20':['分龍節'],'5-25':['會龍節'],'6-6':['天貺節'],'6-24':['觀蓮節'],'6-25':['五穀母節'],'7-15':['中元節'],'7-22':['財神節'],'7-29':['地藏節'],'8-1':['天灸日'],'10-1':['寒衣節'],'10-10':['十成節'],'10-15':['下元節'],'12-7':['驅儺日'],'12-16':['尾牙'],'12-24':['祭灶日']},
       CHONG:['{dz.wu}', '{dz.wei}', '{dz.shen}', '{dz.you}', '{dz.xu}', '{dz.hai}', '{dz.zi}', '{dz.chou}', '{dz.yin}', '{dz.mao}', '{dz.chen}', '{dz.si}'],
       CHONG_GAN:['{tg.wu}', '{tg.ji}', '{tg.geng}', '{tg.xin}', '{tg.ren}', '{tg.gui}', '{tg.jia}', '{tg.yi}', '{tg.bing}', '{tg.ding}'],
       CHONG_GAN_TIE:['{tg.ji}', '{tg.wu}', '{tg.xin}', '{tg.geng}', '{tg.gui}', '{tg.ren}', '{tg.yi}', '{tg.jia}', '{tg.ding}', '{tg.bing}'],
@@ -5354,7 +5354,7 @@
           this._p.target = _ymd(v);
         },
         toString:function(){
-          return this._p.day+' '+this._p.name+(this._p.work?'调休':'')+' '+this._p.target;
+          return this._p.day+' '+this._p.name+(this._p.work?'調休':'')+' '+this._p.target;
         }
       };
     };
@@ -5527,7 +5527,7 @@
       getHolidaysByTarget:function(){return _getHolidaysByTarget(arguments);},
       fix:function(){_fix(arguments);}
     };
-  })(['元旦节','春节','清明节','劳动节','端午节','中秋节','国庆节','国庆中秋','抗战胜利日']);
+  })(['元旦節','春節','清明節','勞動節','端午節','中秋節','國慶節','國慶中秋','抗戰勝利日']);
   var NineStar = (function(){
     var _fromIndex=function(index){
       return {
@@ -5563,14 +5563,14 @@
           s += this.getNameInXuanKong();
           s += ' ';
           s += this.getLuckInXuanKong();
-          s += '] 奇门[';
+          s += '] 奇門[';
           s += this.getNameInQiMen();
           s += ' ';
           s += this.getLuckInQiMen();
           if(this.getBaMenInQiMen().length>0) {
             s += ' ';
             s += this.getBaMenInQiMen();
-            s += '门';
+            s += '門';
           }
           s += ' ';
           s += this.getYinYangInQiMen();
@@ -5584,14 +5584,14 @@
       };
     };
     return {
-      NAME_BEI_DOU:['天枢','天璇','天玑','天权','玉衡','开阳','摇光','洞明','隐元'],
-      NAME_XUAN_KONG:['贪狼','巨门','禄存','文曲','廉贞','武曲','破军','左辅','右弼'],
-      NAME_QI_MEN:['天蓬','天芮','天冲','天辅','天禽','天心','天柱','天任','天英'],
-      BA_MEN_QI_MEN:['休','死','伤','杜','','开','惊','生','景'],
-      NAME_TAI_YI:['太乙','摄提','轩辕','招摇','天符','青龙','咸池','太阴','天乙'],
+      NAME_BEI_DOU:['天樞','天璇','天璣','天權','玉衡','開陽','搖光','洞明','隱元'],
+      NAME_XUAN_KONG:['貪狼','巨門','祿存','文曲','廉貞','武曲','破軍','左輔','右弼'],
+      NAME_QI_MEN:['天蓬','天芮','天衝','天輔','天禽','天心','天柱','天任','天英'],
+      BA_MEN_QI_MEN:['休','死','傷','杜','','開','驚','生','景'],
+      NAME_TAI_YI:['太乙','攝提','軒轅','招搖','天符','青龍','咸池','太陰','天乙'],
       TYPE_TAI_YI:['吉神','凶神','安神','安神','凶神','吉神','凶神','吉神','吉神'],
-      SONG_TAI_YI:['门中太乙明，星官号贪狼，赌彩财喜旺，婚姻大吉昌，出入无阻挡，参谒见贤良，此行三五里，黑衣别阴阳。','门前见摄提，百事必忧疑，相生犹自可，相克祸必临，死门并相会，老妇哭悲啼，求谋并吉事，尽皆不相宜，只可藏隐遁，若动伤身疾。','出入会轩辕，凡事必缠牵，相生全不美，相克更忧煎，远行多不利，博彩尽输钱，九天玄女法，句句不虚言。','招摇号木星，当之事莫行，相克行人阻，阴人口舌迎，梦寐多惊惧，屋响斧自鸣，阴阳消息理，万法弗违情。','五鬼为天符，当门阴女谋，相克无好事，行路阻中途，走失难寻觅，道逢有尼姑，此星当门值，万事有灾除。','神光跃青龙，财气喜重重，投入有酒食，赌彩最兴隆，更逢相生旺，休言克破凶，见贵安营寨，万事总吉同。','吾将为咸池，当之尽不宜，出入多不利，相克有灾情，赌彩全输尽，求财空手回，仙人真妙语，愚人莫与知，动用虚惊退，反复逆风吹。','坐临太阴星，百祸不相侵，求谋悉成就，知交有觅寻，回风归来路，恐有殃伏起，密语中记取，慎乎莫轻行。','迎来天乙星，相逢百事兴，运用和合庆，茶酒喜相迎，求谋并嫁娶，好合有天成，祸福如神验，吉凶甚分明。'],
-      LUCK_QI_MEN:['大凶','大凶','小吉','大吉','大吉','大吉','小凶','小吉','小凶'],
+      SONG_TAI_YI:['門中太乙明，星官號貪狼，賭彩財喜旺，婚姻大吉昌，出入無阻擋，參謁見賢良，此行三五里，黑衣別陰陽。','門前見攝提，百事必憂疑，相生猶自可，相剋禍必臨，死門並相會，老婦哭悲啼，求謀並吉事，盡皆不相宜，只可藏隱遁，若動傷身疾。','出入會軒轅，凡事必纏牽，相生全不美，相剋更憂煎，遠行多不利，博彩盡輸錢，九天玄女法，句句不虛言。','招搖號木星，當之事莫行，相剋行人阻，陰人口舌迎，夢寐多驚懼，屋響斧自鳴，陰陽消息理，萬法弗違情。','五鬼為天符，當門陰女謀，相剋無好事，行路阻中途，走失難尋覓，道逢有尼姑，此星當門值，萬事有災除。','神光躍青龍，財氣喜重重，投入有酒食，賭彩最興隆，更逢相生旺，休言克破兇，見貴安營寨，萬事總吉同。','吾將為咸池，當之盡不宜，出入多不利，相剋有災情，賭彩全輸盡，求財空手回，仙人真妙語，愚人莫與知，動用虛驚退，反覆逆風吹。','坐臨太陰星，百禍不相侵，求謀悉成就，知交有覓尋，迴風歸來路，恐有殃伏起，密語中記取，慎乎莫輕行。','迎來天乙星，相逢百事興，運用和合慶，茶酒喜相迎，求謀並嫁娶，好合有天成，禍福如神驗，吉凶甚分明。'],
+      LUCK_QI_MEN:['大凶','大凶','小吉','大吉','大吉','大吉','小兇','小吉','小兇'],
       fromIndex:function(index){return _fromIndex(index);}
     };
   })();
@@ -5770,9 +5770,9 @@
             } else {
               var endTimeZhiIndex = (end.getHour() === 23) ? 11 : LunarUtil.getTimeZhiIndex(end.toYmdHms().substring(11, 16));
               var startTimeZhiIndex = (start.getHour() === 23) ? 11 : LunarUtil.getTimeZhiIndex(start.toYmdHms().substring(11, 16));
-              // 时辰差
+              // 時辰差
               var hourDiff = endTimeZhiIndex - startTimeZhiIndex;
-              // 天数差
+              // 天數差
               var dayDiff = end.subtract(start);
               if (hourDiff < 0) {
                 hourDiff += 12;
@@ -6121,20 +6121,20 @@
     var _getXiu=function(m,d){
       return FotoUtil.XIU_27[(XIU_OFFSET[Math.abs(m)-1] + d - 1) % FotoUtil.XIU_27.length];
     };
-    var dj='犯者夺纪';
-    var js='犯者减寿';
-    var ss='犯者损寿';
-    var xl='犯者削禄夺纪';
-    var jw='犯者三年内夫妇俱亡';
-    var _y=_f('杨公忌');
+    var dj='犯者奪紀';
+    var js='犯者減壽';
+    var ss='犯者損壽';
+    var xl='犯者削祿奪紀';
+    var jw='犯者三年內夫婦俱亡';
+    var _y=_f('楊公忌');
     var _t=_f('四天王巡行', '', true);
-    var _d=_f('斗降', dj, true);
+    var _d=_f('鬥降', dj, true);
     var _s=_f('月朔', dj, true);
     var _w=_f('月望', dj, true);
     var _h=_f('月晦', js, true);
-    var _l=_f('雷斋日', js, true);
-    var _j=_f('九毒日', '犯者夭亡，奇祸不测');
-    var _r=_f('人神在阴', '犯者得病', true, '宜先一日即戒');
+    var _l=_f('雷齋日', js, true);
+    var _j=_f('九毒日', '犯者夭亡，奇禍不測');
+    var _r=_f('人神在陰', '犯者得病', true, '宜先一日即戒');
     var _m=_f('司命奏事', js, true, '如月小，即戒廿九');
     var _hh=_f('月晦', js, true, '如月小，即戒廿九');
     return {
@@ -6169,92 +6169,92 @@
       ],
       DAY_ZHAI_GUAN_YIN:['1-8','2-7','2-9','2-19','3-3','3-6','3-13','4-22','5-3','5-17','6-16','6-18','6-19','6-23','7-13','8-16','9-19','9-23','10-2','11-19','11-24','12-25'],
       FESTIVAL:{
-        '1-1': [_f('天腊，玉帝校世人神气禄命', xl), _s],
-        '1-3': [_f('万神都会', dj), _d],
-        '1-5': [_f('五虚忌')],
+        '1-1': [_f('天臘，玉帝校世人神氣祿命', xl), _s],
+        '1-3': [_f('萬神都會', dj), _d],
+        '1-5': [_f('五虛忌')],
         '1-6': [_f('六耗忌'), _l],
-        '1-7': [_f('上会日', ss)],
-        '1-8': [_f('五殿阎罗天子诞', dj), _t],
-        '1-9': [_f('玉皇上帝诞', dj)],
+        '1-7': [_f('上會日', ss)],
+        '1-8': [_f('五殿閻羅天子誕', dj), _t],
+        '1-9': [_f('玉皇上帝誕', dj)],
         '1-13': [_y],
         '1-14': [_f('三元降', js), _t],
-        '1-15': [_f('三元降', js), _f('上元神会', dj), _w, _t],
+        '1-15': [_f('三元降', js), _f('上元神會', dj), _w, _t],
         '1-16': [_f('三元降', js)],
-        '1-19': [_f('长春真人诞')],
+        '1-19': [_f('長春真人誕')],
         '1-23': [_f('三尸神奏事'), _t],
-        '1-25': [_h, _f('天地仓开日', '犯者损寿，子带疾')],
+        '1-25': [_h, _f('天地倉開日', '犯者損壽，子帶疾')],
         '1-27': [_d],
         '1-28': [_r],
         '1-29': [_t],
         '1-30': [_hh, _m, _t],
-        '2-1': [_f('一殿秦广王诞', dj), _s],
-        '2-2': [_f('万神都会', dj), _f('福德土地正神诞', '犯者得祸')],
-        '2-3': [_f('文昌帝君诞', xl), _d],
-        '2-6': [_f('东华帝君诞'), _l],
-        '2-8': [_f('释迦牟尼佛出家', dj), _f('三殿宋帝王诞', dj), _f('张大帝诞', dj), _t],
+        '2-1': [_f('一殿秦廣王誕', dj), _s],
+        '2-2': [_f('萬神都會', dj), _f('福德土地正神誕', '犯者得禍')],
+        '2-3': [_f('文昌帝君誕', xl), _d],
+        '2-6': [_f('東華帝君誕'), _l],
+        '2-8': [_f('釋迦牟尼佛出家', dj), _f('三殿宋帝王誕', dj), _f('張大帝誕', dj), _t],
         '2-11': [_y],
         '2-14': [_t],
-        '2-15': [_f('释迦牟尼佛涅槃', xl), _f('太上老君诞', xl), _f('月望', xl, true), _t],
-        '2-17': [_f('东方杜将军诞')],
-        '2-18': [_f('四殿五官王诞', xl), _f('至圣先师孔子讳辰', xl)],
-        '2-19': [_f('观音大士诞', dj)],
-        '2-21': [_f('普贤菩萨诞')],
+        '2-15': [_f('釋迦牟尼佛涅槃', xl), _f('太上老君誕', xl), _f('月望', xl, true), _t],
+        '2-17': [_f('東方杜將軍誕')],
+        '2-18': [_f('四殿五官王誕', xl), _f('至聖先師孔子諱辰', xl)],
+        '2-19': [_f('觀音大士誕', dj)],
+        '2-21': [_f('普賢菩薩誕')],
         '2-23': [_t],
         '2-25': [_h],
         '2-27': [_d],
         '2-28': [_r],
         '2-29': [_t],
         '2-30': [_hh, _m, _t],
-        '3-1': [_f('二殿楚江王诞', dj), _s],
-        '3-3': [_f('玄天上帝诞', dj), _d],
+        '3-1': [_f('二殿楚江王誕', dj), _s],
+        '3-3': [_f('玄天上帝誕', dj), _d],
         '3-6': [_l],
-        '3-8': [_f('六殿卞城王诞', dj), _t],
-        '3-9': [_f('牛鬼神出', '犯者产恶胎'), _y],
-        '3-12': [_f('中央五道诞')],
+        '3-8': [_f('六殿卞城王誕', dj), _t],
+        '3-9': [_f('牛鬼神出', '犯者產惡胎'), _y],
+        '3-12': [_f('中央五道誕')],
         '3-14': [_t],
-        '3-15': [_f('昊天上帝诞', dj), _f('玄坛诞', dj), _w, _t],
-        '3-16': [_f('准提菩萨诞', dj)],
-        '3-19': [_f('中岳大帝诞'), _f('后土娘娘诞'), _f('三茅降')],
-        '3-20': [_f('天地仓开日', ss), _f('子孙娘娘诞')],
+        '3-15': [_f('昊天上帝誕', dj), _f('玄壇誕', dj), _w, _t],
+        '3-16': [_f('準提菩薩誕', dj)],
+        '3-19': [_f('中嶽大帝誕'), _f('后土娘娘誕'), _f('三茅降')],
+        '3-20': [_f('天地倉開日', ss), _f('子孫娘娘誕')],
         '3-23': [_t],
         '3-25': [_h],
-        '3-27': [_f('七殿泰山王诞'), _d],
-        '3-28': [_r, _f('苍颉至圣先师诞', xl), _f('东岳大帝诞')],
+        '3-27': [_f('七殿泰山王誕'), _d],
+        '3-28': [_r, _f('蒼頡至聖先師誕', xl), _f('東嶽大帝誕')],
         '3-29': [_t],
         '3-30': [_hh, _m, _t],
-        '4-1': [_f('八殿都市王诞', dj), _s],
+        '4-1': [_f('八殿都市王誕', dj), _s],
         '4-3': [_d],
-        '4-4': [_f('万神善会', '犯者失瘼夭胎'), _f('文殊菩萨诞')],
+        '4-4': [_f('萬神善會', '犯者失瘼夭胎'), _f('文殊菩薩誕')],
         '4-6': [_l],
-        '4-7': [_f('南斗、北斗、西斗同降', js), _y],
-        '4-8': [_f('释迦牟尼佛诞', dj), _f('万神善会', '犯者失瘼夭胎'), _f('善恶童子降', '犯者血死'), _f('九殿平等王诞'), _t],
-        '4-14': [_f('纯阳祖师诞', js), _t],
-        '4-15': [_w, _f('钟离祖师诞'),  _t],
-        '4-16': [_f('天地仓开日', ss)],
-        '4-17': [_f('十殿转轮王诞', dj)],
-        '4-18': [_f('天地仓开日', ss), _f('紫徽大帝诞', ss)],
-        '4-20': [_f('眼光圣母诞')],
+        '4-7': [_f('南鬥、北斗、西鬥同降', js), _y],
+        '4-8': [_f('釋迦牟尼佛誕', dj), _f('萬神善會', '犯者失瘼夭胎'), _f('善惡童子降', '犯者血死'), _f('九殿平等王誕'), _t],
+        '4-14': [_f('純陽祖師誕', js), _t],
+        '4-15': [_w, _f('鍾離祖師誕'),  _t],
+        '4-16': [_f('天地倉開日', ss)],
+        '4-17': [_f('十殿轉輪王誕', dj)],
+        '4-18': [_f('天地倉開日', ss), _f('紫徽大帝誕', ss)],
+        '4-20': [_f('眼光聖母誕')],
         '4-23': [_t],
         '4-25': [_h],
         '4-27': [_d],
         '4-28': [_r],
         '4-29': [_t],
         '4-30': [_hh, _m, _t],
-        '5-1': [_f('南极长生大帝诞', dj), _s],
+        '5-1': [_f('南極長生大帝誕', dj), _s],
         '5-3': [_d],
-        '5-5': [_f('地腊', xl), _f('五帝校定生人官爵', xl), _j, _y],
+        '5-5': [_f('地臘', xl), _f('五帝校定生人官爵', xl), _j, _y],
         '5-6': [_j, _l],
         '5-7': [_j],
-        '5-8': [_f('南方五道诞'), _t],
-        '5-11': [_f('天地仓开日', ss),_f('天下都城隍诞')],
-        '5-12': [_f('炳灵公诞')],
-        '5-13': [_f('关圣降', xl)],
-        '5-14': [_f('夜子时为天地交泰', jw), _t],
+        '5-8': [_f('南方五道誕'), _t],
+        '5-11': [_f('天地倉開日', ss),_f('天下都城隍誕')],
+        '5-12': [_f('炳靈公誕')],
+        '5-13': [_f('關聖降', xl)],
+        '5-14': [_f('夜子時為天地交泰', jw), _t],
         '5-15': [_w, _j, _t],
-        '5-16': [_f('九毒日', jw), _f('天地元气造化万物之辰', jw)],
+        '5-16': [_f('九毒日', jw), _f('天地元氣造化萬物之辰', jw)],
         '5-17': [_j],
-        '5-18': [_f('张天师诞')],
-        '5-22': [_f('孝娥神诞', dj)],
+        '5-18': [_f('張天師誕')],
+        '5-22': [_f('孝娥神誕', dj)],
         '5-23': [_t],
         '5-25': [_j, _h],
         '5-26': [_j],
@@ -6263,16 +6263,16 @@
         '5-29': [_t],
         '5-30': [_hh, _m, _t],
         '6-1': [_s],
-        '6-3': [_f('韦驮菩萨圣诞'), _d, _y],
-        '6-5': [_f('南赡部洲转大轮', ss)],
-        '6-6': [_f('天地仓开日', ss), _l],
+        '6-3': [_f('韋馱菩薩聖誕'), _d, _y],
+        '6-5': [_f('南贍部洲轉大輪', ss)],
+        '6-6': [_f('天地倉開日', ss), _l],
         '6-8': [_t],
-        '6-10': [_f('金粟如来诞')],
+        '6-10': [_f('金粟如來誕')],
         '6-14': [_t],
         '6-15': [_w, _t],
-        '6-19': [_f('观世音菩萨成道', dj)],
-        '6-23': [_f('南方火神诞', '犯者遭回禄'), _t],
-        '6-24': [_f('雷祖诞', xl), _f('关帝诞', xl)],
+        '6-19': [_f('觀世音菩薩成道', dj)],
+        '6-23': [_f('南方火神誕', '犯者遭回祿'), _t],
+        '6-24': [_f('雷祖誕', xl), _f('關帝誕', xl)],
         '6-25': [_h],
         '6-27': [_d],
         '6-28': [_r],
@@ -6280,146 +6280,146 @@
         '6-30': [_hh, _m, _t],
         '7-1': [_s, _y],
         '7-3': [_d],
-        '7-5': [_f('中会日', ss, false, '一作初七')],
+        '7-5': [_f('中會日', ss, false, '一作初七')],
         '7-6': [_l],
-        '7-7': [_f('道德腊', xl), _f('五帝校生人善恶', xl), _f('魁星诞', xl)],
+        '7-7': [_f('道德臘', xl), _f('五帝校生人善惡', xl), _f('魁星誕', xl)],
         '7-8': [_t],
-        '7-10': [_f('阴毒日', '', false, '大忌')],
-        '7-12': [_f('长真谭真人诞')],
-        '7-13': [_f('大势至菩萨诞', js)],
+        '7-10': [_f('陰毒日', '', false, '大忌')],
+        '7-12': [_f('長真譚真人誕')],
+        '7-13': [_f('大勢至菩薩誕', js)],
         '7-14': [_f('三元降', js), _t],
         '7-15': [_w, _f('三元降', dj),_f('地官校籍', dj), _t],
         '7-16': [_f('三元降', js)],
-        '7-18': [_f('西王母诞', dj)],
-        '7-19': [_f('太岁诞', dj)],
-        '7-22': [_f('增福财神诞', xl)],
+        '7-18': [_f('西王母誕', dj)],
+        '7-19': [_f('太歲誕', dj)],
+        '7-22': [_f('增福財神誕', xl)],
         '7-23': [_t],
         '7-25': [_h],
         '7-27': [_d],
         '7-28': [_r],
         '7-29': [_y, _t],
-        '7-30': [_f('地藏菩萨诞', dj), _hh, _m, _t],
-        '8-1': [_s, _f('许真君诞')],
-        '8-3': [_d, _f('北斗诞', xl), _f('司命灶君诞', '犯者遭回禄')],
-        '8-5': [_f('雷声大帝诞', dj)],
+        '7-30': [_f('地藏菩薩誕', dj), _hh, _m, _t],
+        '8-1': [_s, _f('許真君誕')],
+        '8-3': [_d, _f('北斗誕', xl), _f('司命灶君誕', '犯者遭回祿')],
+        '8-5': [_f('雷聲大帝誕', dj)],
         '8-6': [_l],
         '8-8': [_t],
-        '8-10': [_f('北斗大帝诞')],
-        '8-12': [_f('西方五道诞')],
+        '8-10': [_f('北斗大帝誕')],
+        '8-12': [_f('西方五道誕')],
         '8-14': [_t],
         '8-15': [_w, _f('太明朝元', '犯者暴亡', false, '宜焚香守夜'), _t],
-        '8-16': [_f('天曹掠刷真君降', '犯者贫夭')],
-        '8-18': [_f('天人兴福之辰', '', false, '宜斋戒，存想吉事')],
-        '8-23': [_f('汉恒候张显王诞'), _t],
-        '8-24': [_f('灶君夫人诞')],
+        '8-16': [_f('天曹掠刷真君降', '犯者貧夭')],
+        '8-18': [_f('天人興福之辰', '', false, '宜齋戒，存想吉事')],
+        '8-23': [_f('漢恆候張顯王誕'), _t],
+        '8-24': [_f('灶君夫人誕')],
         '8-25': [_h],
-        '8-27': [_d, _f('至圣先师孔子诞', xl), _y],
-        '8-28': [_r, _f('四天会事')],
+        '8-27': [_d, _f('至聖先師孔子誕', xl), _y],
+        '8-28': [_r, _f('四天會事')],
         '8-29': [_t],
-        '8-30': [_f('诸神考校', '犯者夺算'), _hh, _m, _t],
-        '9-1': [_s, _f('南斗诞', xl), _f('北斗九星降世', dj, false, '此九日俱宜斋戒')],
-        '9-3': [_d, _f('五瘟神诞')],
+        '8-30': [_f('諸神考校', '犯者奪算'), _hh, _m, _t],
+        '9-1': [_s, _f('南鬥誕', xl), _f('北斗九星降世', dj, false, '此九日俱宜齋戒')],
+        '9-3': [_d, _f('五瘟神誕')],
         '9-6': [_l],
         '9-8': [_t],
-        '9-9': [_f('斗母诞', xl), _f('酆都大帝诞'), _f('玄天上帝飞升')],
-        '9-10': [_f('斗母降', dj)],
+        '9-9': [_f('鬥母誕', xl), _f('酆都大帝誕'), _f('玄天上帝飛昇')],
+        '9-10': [_f('鬥母降', dj)],
         '9-11': [_f('宜戒')],
-        '9-13': [_f('孟婆尊神诞')],
+        '9-13': [_f('孟婆尊神誕')],
         '9-14': [_t],
         '9-15': [_w, _t],
-        '9-17': [_f('金龙四大王诞', '犯者遭水厄')],
-        '9-19': [_f('日宫月宫会合', js), _f('观世音菩萨诞', js)],
+        '9-17': [_f('金龍四大王誕', '犯者遭水厄')],
+        '9-19': [_f('日宮月宮會合', js), _f('觀世音菩薩誕', js)],
         '9-23': [_t],
         '9-25': [_h, _y],
         '9-27': [_d],
         '9-28': [_r],
         '9-29': [_t],
-        '9-30': [_f('药师琉璃光佛诞', '犯者危疾'), _hh, _m, _t],
-        '10-1': [_s, _f('民岁腊', dj), _f('四天王降', '犯者一年内死')],
-        '10-3': [_d, _f('三茅诞')],
-        '10-5': [_f('下会日', js), _f('达摩祖师诞', js)],
+        '9-30': [_f('藥師琉璃光佛誕', '犯者危疾'), _hh, _m, _t],
+        '10-1': [_s, _f('民歲臘', dj), _f('四天王降', '犯者一年內死')],
+        '10-3': [_d, _f('三茅誕')],
+        '10-5': [_f('下會日', js), _f('達摩祖師誕', js)],
         '10-6': [_l, _f('天曹考察', dj)],
-        '10-8': [_f('佛涅槃日', '', false, '大忌色欲'), _t],
-        '10-10': [_f('四天王降', '犯者一年内死')],
+        '10-8': [_f('佛涅槃日', '', false, '大忌色慾'), _t],
+        '10-10': [_f('四天王降', '犯者一年內死')],
         '10-11': [_f('宜戒')],
         '10-14': [_f('三元降', js), _t],
         '10-15': [_w, _f('三元降', dj), _f('下元水府校籍', dj), _t],
         '10-16': [_f('三元降', js), _t],
         '10-23': [_y, _t],
         '10-25': [_h],
-        '10-27': [_d, _f('北极紫徽大帝降')],
+        '10-27': [_d, _f('北極紫徽大帝降')],
         '10-28': [_r],
         '10-29': [_t],
         '10-30': [_hh, _m, _t],
         '11-1': [_s],
         '11-3': [_d],
-        '11-4': [_f('至圣先师孔子诞', xl)],
-        '11-6': [_f('西岳大帝诞')],
+        '11-4': [_f('至聖先師孔子誕', xl)],
+        '11-6': [_f('西嶽大帝誕')],
         '11-8': [_t],
-        '11-11': [_f('天地仓开日', dj), _f('太乙救苦天尊诞', dj)],
+        '11-11': [_f('天地倉開日', dj), _f('太乙救苦天尊誕', dj)],
         '11-14': [_t],
         '11-15': [_f('月望', '上半夜犯男死 下半夜犯女死'), _f('四天王巡行', '上半夜犯男死 下半夜犯女死')],
-        '11-17': [_f('阿弥陀佛诞')],
-        '11-19': [_f('太阳日宫诞', '犯者得奇祸')],
+        '11-17': [_f('阿彌陀佛誕')],
+        '11-19': [_f('太陽日宮誕', '犯者得奇禍')],
         '11-21': [_y],
-        '11-23': [_f('张仙诞', '犯者绝嗣'), _t],
+        '11-23': [_f('張仙誕', '犯者絕嗣'), _t],
         '11-25': [_f('掠刷大夫降', '犯者遭大凶'), _h],
-        '11-26': [_f('北方五道诞')],
+        '11-26': [_f('北方五道誕')],
         '11-27': [_d],
         '11-28': [_r],
         '11-29': [_t],
         '11-30': [_hh, _m, _t],
         '12-1': [_s],
         '12-3': [_d],
-        '12-6': [_f('天地仓开日', js), _l],
-        '12-7': [_f('掠刷大夫降', '犯者得恶疾')],
-        '12-8': [_f('王侯腊', dj), _f('释迦如来成佛之辰'), _t, _f('初旬内戊日，亦名王侯腊', dj)],
+        '12-6': [_f('天地倉開日', js), _l],
+        '12-7': [_f('掠刷大夫降', '犯者得惡疾')],
+        '12-8': [_f('王侯臘', dj), _f('釋迦如來成佛之辰'), _t, _f('初旬內戊日，亦名王侯臘', dj)],
         '12-12': [_f('太素三元君朝真')],
         '12-14': [_t],
         '12-15': [_w, _t],
-        '12-16': [_f('南岳大帝诞')],
+        '12-16': [_f('南嶽大帝誕')],
         '12-19': [_y],
-        '12-20': [_f('天地交道', '犯者促寿')],
-        '12-21': [_f('天猷上帝诞')],
-        '12-23': [_f('五岳诞降'), _t],
-        '12-24': [_f('司今朝天奏人善恶', '犯者得大祸')],
-        '12-25': [_f('三清玉帝同降，考察善恶', '犯者得奇祸'), _h],
+        '12-20': [_f('天地交道', '犯者促壽')],
+        '12-21': [_f('天猷上帝誕')],
+        '12-23': [_f('五嶽誕降'), _t],
+        '12-24': [_f('司今朝天奏人善惡', '犯者得大禍')],
+        '12-25': [_f('三清玉帝同降，考察善惡', '犯者得奇禍'), _h],
         '12-27': [_d],
         '12-28': [_r],
-        '12-29': [_f('华严菩萨诞'), _t],
-        '12-30': [_f('诸神下降，察访善恶', '犯者男女俱亡')]
+        '12-29': [_f('華嚴菩薩誕'), _t],
+        '12-30': [_f('諸神下降，察訪善惡', '犯者男女俱亡')]
       },
       OTHER_FESTIVAL:{
-        '1-1': ['弥勒菩萨圣诞'],
-        '1-6': ['定光佛圣诞'],
-        '2-8': ['释迦牟尼佛出家'],
-        '2-15': ['释迦牟尼佛涅槃'],
-        '2-19': ['观世音菩萨圣诞'],
-        '2-21': ['普贤菩萨圣诞'],
-        '3-16': ['准提菩萨圣诞'],
-        '4-4': ['文殊菩萨圣诞'],
-        '4-8': ['释迦牟尼佛圣诞'],
+        '1-1': ['彌勒菩薩聖誕'],
+        '1-6': ['定光佛聖誕'],
+        '2-8': ['釋迦牟尼佛出家'],
+        '2-15': ['釋迦牟尼佛涅槃'],
+        '2-19': ['觀世音菩薩聖誕'],
+        '2-21': ['普賢菩薩聖誕'],
+        '3-16': ['準提菩薩聖誕'],
+        '4-4': ['文殊菩薩聖誕'],
+        '4-8': ['釋迦牟尼佛聖誕'],
         '4-15': ['佛吉祥日'],
-        '4-28': ['药王菩萨圣诞'],
-        '5-13': ['伽蓝菩萨圣诞'],
-        '6-3': ['韦驮菩萨圣诞'],
-        '6-19': ['观音菩萨成道'],
-        '7-13': ['大势至菩萨圣诞'],
-        '7-15': ['佛欢喜日'],
-        '7-24': ['龙树菩萨圣诞'],
-        '7-30': ['地藏菩萨圣诞'],
-        '8-15': ['月光菩萨圣诞'],
-        '8-22': ['燃灯佛圣诞'],
-        '9-9': ['摩利支天菩萨圣诞'],
-        '9-19': ['观世音菩萨出家'],
-        '9-30': ['药师琉璃光佛圣诞'],
-        '10-5': ['达摩祖师圣诞'],
-        '10-20': ['文殊菩萨出家'],
-        '11-17': ['阿弥陀佛圣诞'],
-        '11-19': ['日光菩萨圣诞'],
-        '12-8': ['释迦牟尼佛成道'],
-        '12-23': ['监斋菩萨圣诞'],
-        '12-29': ['华严菩萨圣诞']
+        '4-28': ['藥王菩薩聖誕'],
+        '5-13': ['伽藍菩薩聖誕'],
+        '6-3': ['韋馱菩薩聖誕'],
+        '6-19': ['觀音菩薩成道'],
+        '7-13': ['大勢至菩薩聖誕'],
+        '7-15': ['佛歡喜日'],
+        '7-24': ['龍樹菩薩聖誕'],
+        '7-30': ['地藏菩薩聖誕'],
+        '8-15': ['月光菩薩聖誕'],
+        '8-22': ['燃燈佛聖誕'],
+        '9-9': ['摩利支天菩薩聖誕'],
+        '9-19': ['觀世音菩薩出家'],
+        '9-30': ['藥師琉璃光佛聖誕'],
+        '10-5': ['達摩祖師聖誕'],
+        '10-20': ['文殊菩薩出家'],
+        '11-17': ['阿彌陀佛聖誕'],
+        '11-19': ['日光菩薩聖誕'],
+        '12-8': ['釋迦牟尼佛成道'],
+        '12-23': ['監齋菩薩聖誕'],
+        '12-29': ['華嚴菩薩聖誕']
       },
       getXiu:function(m,d){return _getXiu(m,d);}
     }
@@ -6474,7 +6474,7 @@
         isDayYangGong:function(){
           var l = this.getFestivals();
           for(var i=0,j=l.length;i<j;i++){
-            if('杨公忌'===l[i].getName()){
+            if('楊公忌'===l[i].getName()){
               return true;
             }
           }
@@ -6581,91 +6581,91 @@
       WU_LA:['1-1','5-5','7-7','10-1','12-8'],
       AN_WU:['{dz.wei}', '{dz.xu}', '{dz.chen}', '{dz.yin}', '{dz.wu}', '{dz.zi}', '{dz.you}', '{dz.shen}', '{dz.si}', '{dz.hai}', '{dz.mao}', '{dz.chou}'],
       BA_HUI:{
-        '{jz.bingWu}':'天会',
-        '{jz.renWu}':'地会',
-        '{jz.renZi}':'人会',
-        '{jz.gengWu}':'日会',
-        '{jz.gengShen}':'月会',
-        '{jz.xinYou}':'星辰会',
-        '{jz.jiaChen}':'五行会',
-        '{jz.jiaXu}':'四时会'
+        '{jz.bingWu}':'天會',
+        '{jz.renWu}':'地會',
+        '{jz.renZi}':'人會',
+        '{jz.gengWu}':'日會',
+        '{jz.gengShen}':'月會',
+        '{jz.xinYou}':'星辰會',
+        '{jz.jiaChen}':'五行會',
+        '{jz.jiaXu}':'四時會'
       },
       BA_JIE:{
-        '{jq.liChun}':'东北方度仙上圣天尊同梵炁始青天君下降',
-        '{jq.chunFen}':'东方玉宝星上天尊同青帝九炁天君下降',
-        '{jq.liXia}':'东南方好生度命天尊同梵炁始丹天君下降',
-        '{jq.xiaZhi}':'南方玄真万福天尊同赤帝三炁天君下降',
-        '{jq.liQiu}':'西南方太灵虚皇天尊同梵炁始素天君下降',
-        '{jq.qiuFen}':'西方太妙至极天尊同白帝七炁天君下降',
-        '{jq.liDong}':'西北方无量太华天尊同梵炁始玄天君下降',
+        '{jq.liChun}':'東北方度仙上聖天尊同梵炁始青天君下降',
+        '{jq.chunFen}':'東方玉寶星上天尊同青帝九炁天君下降',
+        '{jq.liXia}':'東南方好生度命天尊同梵炁始丹天君下降',
+        '{jq.xiaZhi}':'南方玄真萬福天尊同赤帝三炁天君下降',
+        '{jq.liQiu}':'西南方太靈虛皇天尊同梵炁始素天君下降',
+        '{jq.qiuFen}':'西方太妙至極天尊同白帝七炁天君下降',
+        '{jq.liDong}':'西北方無量太華天尊同梵炁始玄天君下降',
         '{jq.dongZhi}':'北方玄上玉宸天尊同黑帝五炁天君下降'
       },
       FESTIVAL: {
-        '1-1': [_f('天腊之辰', '天腊，此日五帝会于东方九炁青天')],
-        '1-3': [_f('郝真人圣诞'), _f('孙真人圣诞')],
-        '1-5': [_f('孙祖清静元君诞')],
-        '1-7': [_f('举迁赏会', '此日上元赐福，天官同地水二官考校罪福')],
-        '1-9': [_f('玉皇上帝圣诞')],
-        '1-13': [_f('关圣帝君飞升')],
-        '1-15': [_f('上元天官圣诞'), _f('老祖天师圣诞')],
-        '1-19': [_f('长春邱真人(邱处机)圣诞')],
-        '1-28': [_f('许真君(许逊天师)圣诞')],
-        '2-1': [_f('勾陈天皇大帝圣诞'), _f('长春刘真人(刘渊然)圣诞')],
-        '2-2': [_f('土地正神诞'), _f('姜太公圣诞')],
-        '2-3': [_f('文昌梓潼帝君圣诞')],
-        '2-6': [_f('东华帝君圣诞')],
-        '2-13': [_f('度人无量葛真君圣诞')],
-        '2-15': [_f('太清道德天尊(太上老君)圣诞')],
-        '2-19': [_f('慈航真人圣诞')],
-        '3-1': [_f('谭祖(谭处端)长真真人圣诞')],
-        '3-3': [_f('玄天上帝圣诞')],
-        '3-6': [_f('眼光娘娘圣诞')],
-        '3-15': [_f('天师张大真人圣诞'), _f('财神赵公元帅圣诞')],
-        '3-16': [_f('三茅真君得道之辰'), _f('中岳大帝圣诞')],
-        '3-18': [_f('王祖(王处一)玉阳真人圣诞'), _f('后土娘娘圣诞')],
-        '3-19': [_f('太阳星君圣诞')],
-        '3-20': [_f('子孙娘娘圣诞')],
-        '3-23': [_f('天后妈祖圣诞')],
-        '3-26': [_f('鬼谷先师诞')],
-        '3-28': [_f('东岳大帝圣诞')],
-        '4-1': [_f('长生谭真君成道之辰')],
-        '4-10': [_f('何仙姑圣诞')],
-        '4-14': [_f('吕祖纯阳祖师圣诞')],
-        '4-15': [_f('钟离祖师圣诞')],
-        '4-18': [_f('北极紫微大帝圣诞'), _f('泰山圣母碧霞元君诞'), _f('华佗神医先师诞')],
-        '4-20': [_f('眼光圣母娘娘诞')],
-        '4-28': [_f('神农先帝诞')],
-        '5-1': [_f('南极长生大帝圣诞')],
-        '5-5': [_f('地腊之辰', '地腊，此日五帝会于南方三炁丹天'), _f('南方雷祖圣诞'), _f('地祗温元帅圣诞'), _f('雷霆邓天君圣诞')],
-        '5-11': [_f('城隍爷圣诞')],
-        '5-13': [_f('关圣帝君降神'), _f('关平太子圣诞')],
-        '5-18': [_f('张天师圣诞')],
-        '5-20': [_f('马祖丹阳真人圣诞')],
-        '5-29': [_f('紫青白祖师圣诞')],
-        '6-1': [_f('南斗星君下降')],
-        '6-2': [_f('南斗星君下降')],
-        '6-3': [_f('南斗星君下降')],
-        '6-4': [_f('南斗星君下降')],
-        '6-5': [_f('南斗星君下降')],
-        '6-6': [_f('南斗星君下降')],
-        '6-10': [_f('刘海蟾祖师圣诞')],
-        '6-15': [_f('灵官王天君圣诞')],
-        '6-19': [_f('慈航(观音)成道日')],
-        '6-23': [_f('火神圣诞')],
-        '6-24': [_f('南极大帝中方雷祖圣诞'), _f('关圣帝君圣诞')],
-        '6-26': [_f('二郎真君圣诞')],
-        '7-7': [_f('道德腊之辰', '道德腊，此日五帝会于西方七炁素天'), _f('庆生中会', '此日中元赦罪，地官同天水二官考校罪福')],
-        '7-12': [_f('西方雷祖圣诞')],
-        '7-15': [_f('中元地官大帝圣诞')],
-        '7-18': [_f('王母娘娘圣诞')],
-        '7-20': [_f('刘祖(刘处玄)长生真人圣诞')],
-        '7-22': [_f('财帛星君文财神增福相公李诡祖圣诞')],
-        '7-26': [_f('张三丰祖师圣诞')],
-        '8-1': [_f('许真君飞升日')],
-        '8-3': [_f('九天司命灶君诞')],
-        '8-5': [_f('北方雷祖圣诞')],
-        '8-10': [_f('北岳大帝诞辰')],
-        '8-15': [_f('太阴星君诞')],
+        '1-1': [_f('天臘之辰', '天臘，此日五帝會於東方九炁青天')],
+        '1-3': [_f('郝真人聖誕'), _f('孫真人聖誕')],
+        '1-5': [_f('孫祖清靜元君誕')],
+        '1-7': [_f('舉遷賞會', '此日上元賜福，天官同地水二官考校罪福')],
+        '1-9': [_f('玉皇上帝聖誕')],
+        '1-13': [_f('關聖帝君飛昇')],
+        '1-15': [_f('上元天官聖誕'), _f('老祖天師聖誕')],
+        '1-19': [_f('長春邱真人(邱處機)聖誕')],
+        '1-28': [_f('許真君(許遜天師)聖誕')],
+        '2-1': [_f('勾陳天皇大帝聖誕'), _f('長春劉真人(劉淵然)聖誕')],
+        '2-2': [_f('土地正神誕'), _f('姜太公聖誕')],
+        '2-3': [_f('文昌梓潼帝君聖誕')],
+        '2-6': [_f('東華帝君聖誕')],
+        '2-13': [_f('度人無量葛真君聖誕')],
+        '2-15': [_f('太清道德天尊(太上老君)聖誕')],
+        '2-19': [_f('慈航真人聖誕')],
+        '3-1': [_f('譚祖(譚處端)長真真人聖誕')],
+        '3-3': [_f('玄天上帝聖誕')],
+        '3-6': [_f('眼光娘娘聖誕')],
+        '3-15': [_f('天師張大真人聖誕'), _f('財神趙公元帥聖誕')],
+        '3-16': [_f('三茅真君得道之辰'), _f('中嶽大帝聖誕')],
+        '3-18': [_f('王祖(王處一)玉陽真人聖誕'), _f('后土娘娘聖誕')],
+        '3-19': [_f('太陽星君聖誕')],
+        '3-20': [_f('子孫娘娘聖誕')],
+        '3-23': [_f('天后媽祖聖誕')],
+        '3-26': [_f('鬼谷先師誕')],
+        '3-28': [_f('東嶽大帝聖誕')],
+        '4-1': [_f('長生譚真君成道之辰')],
+        '4-10': [_f('何仙姑聖誕')],
+        '4-14': [_f('呂祖純陽祖師聖誕')],
+        '4-15': [_f('鍾離祖師聖誕')],
+        '4-18': [_f('北極紫微大帝聖誕'), _f('泰山聖母碧霞元君誕'), _f('華佗神醫先師誕')],
+        '4-20': [_f('眼光聖母娘娘誕')],
+        '4-28': [_f('神農先帝誕')],
+        '5-1': [_f('南極長生大帝聖誕')],
+        '5-5': [_f('地臘之辰', '地臘，此日五帝會於南方三炁丹天'), _f('南方雷祖聖誕'), _f('地祗温元帥聖誕'), _f('雷霆鄧天君聖誕')],
+        '5-11': [_f('城隍爺聖誕')],
+        '5-13': [_f('關聖帝君降神'), _f('關平太子聖誕')],
+        '5-18': [_f('張天師聖誕')],
+        '5-20': [_f('馬祖丹陽真人聖誕')],
+        '5-29': [_f('紫青白祖師聖誕')],
+        '6-1': [_f('南鬥星君下降')],
+        '6-2': [_f('南鬥星君下降')],
+        '6-3': [_f('南鬥星君下降')],
+        '6-4': [_f('南鬥星君下降')],
+        '6-5': [_f('南鬥星君下降')],
+        '6-6': [_f('南鬥星君下降')],
+        '6-10': [_f('劉海蟾祖師聖誕')],
+        '6-15': [_f('靈官王天君聖誕')],
+        '6-19': [_f('慈航(觀音)成道日')],
+        '6-23': [_f('火神聖誕')],
+        '6-24': [_f('南極大帝中方雷祖聖誕'), _f('關聖帝君聖誕')],
+        '6-26': [_f('二郎真君聖誕')],
+        '7-7': [_f('道德臘之辰', '道德臘，此日五帝會於西方七炁素天'), _f('慶生中會', '此日中元赦罪，地官同天水二官考校罪福')],
+        '7-12': [_f('西方雷祖聖誕')],
+        '7-15': [_f('中元地官大帝聖誕')],
+        '7-18': [_f('王母娘娘聖誕')],
+        '7-20': [_f('劉祖(劉處玄)長生真人聖誕')],
+        '7-22': [_f('財帛星君文財神增福相公李詭祖聖誕')],
+        '7-26': [_f('張三丰祖師聖誕')],
+        '8-1': [_f('許真君飛昇日')],
+        '8-3': [_f('九天司命灶君誕')],
+        '8-5': [_f('北方雷祖聖誕')],
+        '8-10': [_f('北嶽大帝誕辰')],
+        '8-15': [_f('太陰星君誕')],
         '9-1': [_f('北斗九皇降世之辰')],
         '9-2': [_f('北斗九皇降世之辰')],
         '9-3': [_f('北斗九皇降世之辰')],
@@ -6674,29 +6674,29 @@
         '9-6': [_f('北斗九皇降世之辰')],
         '9-7': [_f('北斗九皇降世之辰')],
         '9-8': [_f('北斗九皇降世之辰')],
-        '9-9': [_f('北斗九皇降世之辰'), _f('斗姥元君圣诞'), _f('重阳帝君圣诞'), _f('玄天上帝飞升'), _f('酆都大帝圣诞')],
-        '9-22': [_f('增福财神诞')],
-        '9-23': [_f('萨翁真君圣诞')],
-        '9-28': [_f('五显灵官马元帅圣诞')],
-        '10-1': [_f('民岁腊之辰', '民岁腊，此日五帝会于北方五炁黑天'), _f('东皇大帝圣诞')],
-        '10-3': [_f('三茅应化真君圣诞')],
-        '10-6': [_f('天曹诸司五岳五帝圣诞')],
-        '10-15': [_f('下元水官大帝圣诞'), _f('建生大会', '此日下元解厄，水官同天地二官考校罪福')],
-        '10-18': [_f('地母娘娘圣诞')],
-        '10-19': [_f('长春邱真君飞升')],
-        '10-20': [_f('虚靖天师(即三十代天师弘悟张真人)诞')],
-        '11-6': [_f('西岳大帝圣诞')],
-        '11-9': [_f('湘子韩祖圣诞')],
-        '11-11': [_f('太乙救苦天尊圣诞')],
-        '11-26': [_f('北方五道圣诞')],
-        '12-8': [_f('王侯腊之辰', '王侯腊，此日五帝会于上方玄都玉京')],
-        '12-16': [_f('南岳大帝圣诞'), _f('福德正神诞')],
-        '12-20': [_f('鲁班先师圣诞')],
-        '12-21': [_f('天猷上帝圣诞')],
-        '12-22': [_f('重阳祖师圣诞')],
-        '12-23': [_f('祭灶王', '最适宜谢旧年太岁，开启拜新年太岁')],
+        '9-9': [_f('北斗九皇降世之辰'), _f('鬥姥元君聖誕'), _f('重陽帝君聖誕'), _f('玄天上帝飛昇'), _f('酆都大帝聖誕')],
+        '9-22': [_f('增福財神誕')],
+        '9-23': [_f('薩翁真君聖誕')],
+        '9-28': [_f('五顯靈官馬元帥聖誕')],
+        '10-1': [_f('民歲臘之辰', '民歲臘，此日五帝會於北方五炁黑天'), _f('東皇大帝聖誕')],
+        '10-3': [_f('三茅應化真君聖誕')],
+        '10-6': [_f('天曹諸司五嶽五帝聖誕')],
+        '10-15': [_f('下元水官大帝聖誕'), _f('建生大會', '此日下元解厄，水官同天地二官考校罪福')],
+        '10-18': [_f('地母娘娘聖誕')],
+        '10-19': [_f('長春邱真君飛昇')],
+        '10-20': [_f('虛靖天師(即三十代天師弘悟張真人)誕')],
+        '11-6': [_f('西嶽大帝聖誕')],
+        '11-9': [_f('湘子韓祖聖誕')],
+        '11-11': [_f('太乙救苦天尊聖誕')],
+        '11-26': [_f('北方五道聖誕')],
+        '12-8': [_f('王侯臘之辰', '王侯臘，此日五帝會於上方玄都玉京')],
+        '12-16': [_f('南嶽大帝聖誕'), _f('福德正神誕')],
+        '12-20': [_f('魯班先師聖誕')],
+        '12-21': [_f('天猷上帝聖誕')],
+        '12-22': [_f('重陽祖師聖誕')],
+        '12-23': [_f('祭灶王', '最適宜謝舊年太歲，開啓拜新年太歲')],
         '12-25': [_f('玉帝巡天'), _f('天神下降')],
-        '12-29': [_f('清静孙真君(孙不二)成道')]
+        '12-29': [_f('清靜孫真君(孫不二)成道')]
       }
     }
   })();
@@ -6804,9 +6804,9 @@
           }
           var jq = this._p.lunar.getJieQi();
           if(I18n.getMessage('jq.dongZhi')===jq){
-            l.push(TaoFestival.create('元始天尊圣诞'));
+            l.push(TaoFestival.create('元始天尊聖誕'));
           }else if(I18n.getMessage('jq.xiaZhi')===jq){
-            l.push(TaoFestival.create('灵宝天尊圣诞'));
+            l.push(TaoFestival.create('靈寶天尊聖誕'));
           }
           var f = TaoUtil.BA_JIE[jq];
           if(f){
@@ -6903,16 +6903,16 @@
         'dz.hai': '亥',
         'zx.jian': '建',
         'zx.chu': '除',
-        'zx.man': '满',
+        'zx.man': '滿',
         'zx.ping': '平',
         'zx.ding': '定',
-        'zx.zhi': '执',
+        'zx.zhi': '執',
         'zx.po': '破',
         'zx.wei': '危',
         'zx.cheng': '成',
         'zx.shou': '收',
-        'zx.kai': '开',
-        'zx.bi': '闭',
+        'zx.kai': '開',
+        'zx.bi': '閉',
         'jz.jiaZi': '甲子',
         'jz.yiChou': '乙丑',
         'jz.bingYin': '丙寅',
@@ -6977,24 +6977,24 @@
         'sx.ox': '牛',
         'sx.tiger': '虎',
         'sx.rabbit': '兔',
-        'sx.dragon': '龙',
+        'sx.dragon': '龍',
         'sx.snake': '蛇',
-        'sx.horse': '马',
+        'sx.horse': '馬',
         'sx.goat': '羊',
         'sx.monkey': '猴',
-        'sx.rooster': '鸡',
+        'sx.rooster': '雞',
         'sx.dog': '狗',
-        'sx.pig': '猪',
-        'dw.long': '龙',
+        'sx.pig': '豬',
+        'dw.long': '龍',
         'dw.niu': '牛',
         'dw.gou': '狗',
         'dw.yang': '羊',
         'dw.tu': '兔',
         'dw.shu': '鼠',
-        'dw.ji': '鸡',
-        'dw.ma': '马',
+        'dw.ji': '雞',
+        'dw.ma': '馬',
         'dw.hu': '虎',
-        'dw.zhu': '猪',
+        'dw.zhu': '豬',
         'dw.hou': '猴',
         'dw.she': '蛇',
         'dw.huLi': '狐',
@@ -7003,7 +7003,7 @@
         'dw.yuan': '猿',
         'dw.yin': '蚓',
         'dw.lu': '鹿',
-        'dw.wu': '乌',
+        'dw.wu': '烏',
         'dw.jiao': '蛟',
         'dw.lang': '狼',
         'dw.fu': '蝠',
@@ -7074,7 +7074,7 @@
         'm.nine': '九',
         'm.ten': '十',
         'm.eleven': '冬',
-        'm.twelve': '腊',
+        'm.twelve': '臘',
         'w.sun': '日',
         'w.mon': '一',
         'w.tues': '二',
@@ -7084,57 +7084,57 @@
         'w.sat': '六',
         'xz.aries': '白羊',
         'xz.taurus': '金牛',
-        'xz.gemini': '双子',
+        'xz.gemini': '雙子',
         'xz.cancer': '巨蟹',
-        'xz.leo': '狮子',
-        'xz.virgo': '处女',
+        'xz.leo': '獅子',
+        'xz.virgo': '處女',
         'xz.libra': '天秤',
-        'xz.scorpio': '天蝎',
+        'xz.scorpio': '天蠍',
         'xz.sagittarius': '射手',
         'xz.capricornus': '摩羯',
         'xz.aquarius': '水瓶',
-        'xz.pisces': '双鱼',
+        'xz.pisces': '雙魚',
         'bg.qian': '乾',
         'bg.kun': '坤',
         'bg.zhen': '震',
         'bg.xun': '巽',
         'bg.kan': '坎',
-        'bg.li': '离',
+        'bg.li': '離',
         'bg.gen': '艮',
         'bg.dui': '兑',
         'ps.center': '中',
-        'ps.dong': '东',
+        'ps.dong': '東',
         'ps.nan': '南',
         'ps.xi': '西',
         'ps.bei': '北',
-        'ps.zhong': '中宫',
-        'ps.zhengDong': '正东',
+        'ps.zhong': '中宮',
+        'ps.zhengDong': '正東',
         'ps.zhengNan': '正南',
         'ps.zhengXi': '正西',
         'ps.zhengBei': '正北',
-        'ps.dongBei': '东北',
-        'ps.dongNan': '东南',
+        'ps.dongBei': '東北',
+        'ps.dongNan': '東南',
         'ps.xiBei': '西北',
         'ps.xiNan': '西南',
         'ps.wai': '外',
-        'ps.fangNei': '房内',
+        'ps.fangNei': '房內',
         'jq.dongZhi': '冬至',
         'jq.xiaoHan': '小寒',
         'jq.daHan': '大寒',
         'jq.liChun': '立春',
         'jq.yuShui': '雨水',
-        'jq.jingZhe': '惊蛰',
+        'jq.jingZhe': '驚蟄',
         'jq.chunFen': '春分',
         'jq.qingMing': '清明',
-        'jq.guYu': '谷雨',
+        'jq.guYu': '穀雨',
         'jq.liXia': '立夏',
-        'jq.xiaoMan': '小满',
-        'jq.mangZhong': '芒种',
+        'jq.xiaoMan': '小滿',
+        'jq.mangZhong': '芒種',
         'jq.xiaZhi': '夏至',
         'jq.xiaoShu': '小暑',
         'jq.daShu': '大暑',
         'jq.liQiu': '立秋',
-        'jq.chuShu': '处暑',
+        'jq.chuShu': '處暑',
         'jq.baiLu': '白露',
         'jq.qiuFen': '秋分',
         'jq.hanLu': '寒露',
@@ -7142,477 +7142,477 @@
         'jq.liDong': '立冬',
         'jq.xiaoXue': '小雪',
         'jq.daXue': '大雪',
-        'sn.qingLong': '青龙',
+        'sn.qingLong': '青龍',
         'sn.baiHu': '白虎',
         'sn.zhuQue': '朱雀',
         'sn.xuanWu': '玄武',
         'sn.mingTang': '明堂',
         'sn.tianXing': '天刑',
         'sn.tianDe': '天德',
-        'sn.jinKui': '金匮',
+        'sn.jinKui': '金匱',
         'sn.yuTang': '玉堂',
         'sn.siMing': '司命',
         'sn.tianLao': '天牢',
-        'sn.gouChen': '勾陈',
+        'sn.gouChen': '勾陳',
         'sn.tianEn': '天恩',
-        'sn.muCang': '母仓',
-        'sn.shiYang': '时阳',
-        'sn.shengQi': '生气',
-        'sn.yiHou': '益后',
-        'sn.zaiSha': '灾煞',
+        'sn.muCang': '母倉',
+        'sn.shiYang': '時陽',
+        'sn.shengQi': '生氣',
+        'sn.yiHou': '益後',
+        'sn.zaiSha': '災煞',
         'sn.tianHuo': '天火',
         'sn.siJi': '四忌',
-        'sn.baLong': '八龙',
-        'sn.fuRi': '复日',
-        'sn.xuShi': '续世',
+        'sn.baLong': '八龍',
+        'sn.fuRi': '復日',
+        'sn.xuShi': '續世',
         'sn.yueSha': '月煞',
-        'sn.yueXu': '月虚',
+        'sn.yueXu': '月虛',
         'sn.xueZhi': '血支',
-        'sn.tianZei': '天贼',
-        'sn.wuXu': '五虚',
+        'sn.tianZei': '天賊',
+        'sn.wuXu': '五虛',
         'sn.tuFu': '土符',
-        'sn.guiJi': '归忌',
+        'sn.guiJi': '歸忌',
         'sn.xueJi': '血忌',
         'sn.yueDe': '月德',
         'sn.yueEn': '月恩',
         'sn.siXiang': '四相',
         'sn.wangRi': '王日',
-        'sn.tianCang': '天仓',
-        'sn.buJiang': '不将',
+        'sn.tianCang': '天倉',
+        'sn.buJiang': '不將',
         'sn.wuHe': '五合',
-        'sn.mingFeiDui': '鸣吠对',
+        'sn.mingFeiDui': '鳴吠對',
         'sn.yueJian': '月建',
-        'sn.xiaoShi': '小时',
+        'sn.xiaoShi': '小時',
         'sn.tuHu': '土府',
         'sn.wangWang': '往亡',
         'sn.yaoAn': '要安',
         'sn.siShen': '死神',
-        'sn.tianMa': '天马',
+        'sn.tianMa': '天馬',
         'sn.jiuHu': '九虎',
-        'sn.qiNiao': '七鸟',
+        'sn.qiNiao': '七鳥',
         'sn.liuShe': '六蛇',
         'sn.guanRi': '官日',
         'sn.jiQi': '吉期',
         'sn.yuYu': '玉宇',
-        'sn.daShi': '大时',
-        'sn.daBai': '大败',
+        'sn.daShi': '大時',
+        'sn.daBai': '大敗',
         'sn.xianChi': '咸池',
         'sn.shouRi': '守日',
         'sn.tianWu': '天巫',
         'sn.fuDe': '福德',
-        'sn.liuYi': '六仪',
+        'sn.liuYi': '六儀',
         'sn.jinTang': '金堂',
-        'sn.yanDui': '厌对',
-        'sn.zhaoYao': '招摇',
+        'sn.yanDui': '厭對',
+        'sn.zhaoYao': '招搖',
         'sn.jiuKong': '九空',
         'sn.jiuKan': '九坎',
         'sn.jiuJiao': '九焦',
         'sn.xiangRi': '相日',
-        'sn.baoGuang': '宝光',
+        'sn.baoGuang': '寶光',
         'sn.tianGang': '天罡',
         'sn.yueXing': '月刑',
         'sn.yueHai': '月害',
-        'sn.youHuo': '游祸',
+        'sn.youHuo': '遊禍',
         'sn.chongRi': '重日',
-        'sn.shiDe': '时德',
+        'sn.shiDe': '時德',
         'sn.minRi': '民日',
         'sn.sanHe': '三合',
-        'sn.linRi': '临日',
-        'sn.shiYin': '时阴',
-        'sn.mingFei': '鸣吠',
-        'sn.siQi': '死气',
+        'sn.linRi': '臨日',
+        'sn.shiYin': '時陰',
+        'sn.mingFei': '鳴吠',
+        'sn.siQi': '死氣',
         'sn.diNang': '地囊',
         'sn.yueDeHe': '月德合',
         'sn.jingAn': '敬安',
-        'sn.puHu': '普护',
+        'sn.puHu': '普護',
         'sn.jieShen': '解神',
         'sn.xiaoHao': '小耗',
         'sn.tianDeHe': '天德合',
         'sn.yueKong': '月空',
-        'sn.yiMa': '驿马',
+        'sn.yiMa': '驛馬',
         'sn.tianHou': '天后',
         'sn.chuShen': '除神',
         'sn.yuePo': '月破',
         'sn.daHao': '大耗',
-        'sn.wuLi': '五离',
-        'sn.yinDe': '阴德',
+        'sn.wuLi': '五離',
+        'sn.yinDe': '陰德',
         'sn.fuSheng': '福生',
         'sn.tianLi': '天吏',
         'sn.zhiSi': '致死',
         'sn.yuanWu': '元武',
-        'sn.yangDe': '阳德',
+        'sn.yangDe': '陽德',
         'sn.tianXi': '天喜',
-        'sn.tianYi': '天医',
-        'sn.yueYan': '月厌',
+        'sn.tianYi': '天醫',
+        'sn.yueYan': '月厭',
         'sn.diHuo': '地火',
-        'sn.fourHit': '四击',
+        'sn.fourHit': '四擊',
         'sn.daSha': '大煞',
-        'sn.daHui': '大会',
-        'sn.tianYuan': '天愿',
+        'sn.daHui': '大會',
+        'sn.tianYuan': '天願',
         'sn.liuHe': '六合',
         'sn.wuFu': '五富',
-        'sn.shengXin': '圣心',
+        'sn.shengXin': '聖心',
         'sn.heKui': '河魁',
         'sn.jieSha': '劫煞',
-        'sn.siQiong': '四穷',
-        'sn.chuShuiLong': '触水龙',
-        'sn.baFeng': '八风',
+        'sn.siQiong': '四窮',
+        'sn.chuShuiLong': '觸水龍',
+        'sn.baFeng': '八風',
         'sn.tianShe': '天赦',
         'sn.wuMu': '五墓',
-        'sn.baZhuan': '八专',
-        'sn.yinCuo': '阴错',
+        'sn.baZhuan': '八專',
+        'sn.yinCuo': '陰錯',
         'sn.siHao': '四耗',
-        'sn.yangCuo': '阳错',
-        'sn.siFei': '四废',
-        'sn.sanYin': '三阴',
-        'sn.xiaoHui': '小会',
-        'sn.yinDaoChongYang': '阴道冲阳',
-        'sn.danYin': '单阴',
+        'sn.yangCuo': '陽錯',
+        'sn.siFei': '四廢',
+        'sn.sanYin': '三陰',
+        'sn.xiaoHui': '小會',
+        'sn.yinDaoChongYang': '陰道衝陽',
+        'sn.danYin': '單陰',
         'sn.guChen': '孤辰',
-        'sn.yinWei': '阴位',
+        'sn.yinWei': '陰位',
         'sn.xingHen': '行狠',
         'sn.liaoLi': '了戾',
-        'sn.jueYin': '绝阴',
-        'sn.chunYang': '纯阳',
-        'sn.suiBo': '岁薄',
-        'sn.yinYangJiaoPo': '阴阳交破',
-        'sn.yinYangJuCuo': '阴阳俱错',
-        'sn.yinYangJiChong': '阴阳击冲',
-        'sn.zhuZhen': '逐阵',
-        'sn.yangCuoYinChong': '阳错阴冲',
+        'sn.jueYin': '絕陰',
+        'sn.chunYang': '純陽',
+        'sn.suiBo': '歲薄',
+        'sn.yinYangJiaoPo': '陰陽交破',
+        'sn.yinYangJuCuo': '陰陽俱錯',
+        'sn.yinYangJiChong': '陰陽擊衝',
+        'sn.zhuZhen': '逐陣',
+        'sn.yangCuoYinChong': '陽錯陰衝',
         'sn.qiFu': '七符',
         'sn.tianGou': '天狗',
         'sn.chengRi': '成日',
         'sn.tianFu': '天符',
-        'sn.guYang': '孤阳',
-        'sn.jueYang': '绝阳',
-        'sn.chunYin': '纯阴',
-        'sn.yinShen': '阴神',
+        'sn.guYang': '孤陽',
+        'sn.jueYang': '絕陽',
+        'sn.chunYin': '純陰',
+        'sn.yinShen': '陰神',
         'sn.jieChu': '解除',
-        'sn.yangPoYinChong': '阳破阴冲',
+        'sn.yangPoYinChong': '陽破陰衝',
         'ss.biJian': '比肩',
-        'ss.jieCai': '劫财',
+        'ss.jieCai': '劫財',
         'ss.shiShen': '食神',
-        'ss.shangGuan': '伤官',
-        'ss.pianCai': '偏财',
-        'ss.zhengCai': '正财',
-        'ss.qiSha': '七杀',
+        'ss.shangGuan': '傷官',
+        'ss.pianCai': '偏財',
+        'ss.zhengCai': '正財',
+        'ss.qiSha': '七殺',
         'ss.zhengGuan': '正官',
         'ss.pianYin': '偏印',
         'ss.zhengYin': '正印',
-        's.none': '无',
-        's.huangDao': '黄道',
+        's.none': '無',
+        's.huangDao': '黃道',
         's.heiDao': '黑道',
         's.goodLuck': '吉',
-        's.badLuck': '凶',
-        's.yin': '阴',
-        's.yang': '阳',
+        's.badLuck': '兇',
+        's.yin': '陰',
+        's.yang': '陽',
         's.white': '白',
         's.black': '黑',
         's.blue': '碧',
-        's.green': '绿',
-        's.yellow': '黄',
+        's.green': '綠',
+        's.yellow': '黃',
         's.red': '赤',
         's.purple': '紫',
         'jr.chuXi': '除夕',
-        'jr.chunJie': '春节',
-        'jr.yuanXiao': '元宵节',
-        'jr.longTou': '龙头节',
-        'jr.duanWu': '端午节',
-        'jr.qiXi': '七夕节',
-        'jr.zhongQiu': '中秋节',
-        'jr.chongYang': '重阳节',
-        'jr.laBa': '腊八节',
-        'jr.yuanDan': '元旦节',
-        'jr.qingRen': '情人节',
-        'jr.fuNv': '妇女节',
-        'jr.zhiShu': '植树节',
-        'jr.xiaoFei': '消费者权益日',
-        'jr.wuYi': '劳动节',
-        'jr.qingNian': '青年节',
-        'jr.erTong': '儿童节',
-        'jr.yuRen': '愚人节',
-        'jr.jianDang': '建党节',
-        'jr.jianJun': '建军节',
-        'jr.jiaoShi': '教师节',
-        'jr.guoQing': '国庆节',
-        'jr.wanShengYe': '万圣节前夜',
-        'jr.wanSheng': '万圣节',
+        'jr.chunJie': '春節',
+        'jr.yuanXiao': '元宵節',
+        'jr.longTou': '龍頭節',
+        'jr.duanWu': '端午節',
+        'jr.qiXi': '七夕節',
+        'jr.zhongQiu': '中秋節',
+        'jr.chongYang': '重陽節',
+        'jr.laBa': '臘八節',
+        'jr.yuanDan': '元旦節',
+        'jr.qingRen': '情人節',
+        'jr.fuNv': '婦女節',
+        'jr.zhiShu': '植樹節',
+        'jr.xiaoFei': '消費者權益日',
+        'jr.wuYi': '勞動節',
+        'jr.qingNian': '青年節',
+        'jr.erTong': '兒童節',
+        'jr.yuRen': '愚人節',
+        'jr.jianDang': '建黨節',
+        'jr.jianJun': '建軍節',
+        'jr.jiaoShi': '教師節',
+        'jr.guoQing': '國慶節',
+        'jr.wanShengYe': '萬聖節前夜',
+        'jr.wanSheng': '萬聖節',
         'jr.pingAn': '平安夜',
-        'jr.shengDan': '圣诞节',
-        'ds.changSheng': '长生',
+        'jr.shengDan': '聖誕節',
+        'ds.changSheng': '長生',
         'ds.muYu': '沐浴',
-        'ds.guanDai': '冠带',
-        'ds.linGuan': '临官',
+        'ds.guanDai': '冠帶',
+        'ds.linGuan': '臨官',
         'ds.diWang': '帝旺',
         'ds.shuai': '衰',
         'ds.bing': '病',
         'ds.si': '死',
         'ds.mu': '墓',
-        'ds.jue': '绝',
+        'ds.jue': '絕',
         'ds.tai': '胎',
-        'ds.yang': '养',
+        'ds.yang': '養',
         'h.first': '初候',
         'h.second': '二候',
         'h.third': '三候',
-        'h.qiuYinJie': '蚯蚓结',
+        'h.qiuYinJie': '蚯蚓結',
         'h.miJiao': '麋角解',
-        'h.shuiQuan': '水泉动',
-        'h.yanBei': '雁北乡',
-        'h.queShi': '鹊始巢',
+        'h.shuiQuan': '水泉動',
+        'h.yanBei': '雁北鄉',
+        'h.queShi': '鵲始巢',
         'h.zhiShi': '雉始雊',
-        'h.jiShi': '鸡始乳',
-        'h.zhengNiao': '征鸟厉疾',
-        'h.shuiZe': '水泽腹坚',
-        'h.dongFeng': '东风解冻',
-        'h.zheChongShiZhen': '蛰虫始振',
-        'h.yuZhi': '鱼陟负冰',
-        'h.taJi': '獭祭鱼',
+        'h.jiShi': '雞始乳',
+        'h.zhengNiao': '徵鳥厲疾',
+        'h.shuiZe': '水澤腹堅',
+        'h.dongFeng': '東風解凍',
+        'h.zheChongShiZhen': '蟄蟲始振',
+        'h.yuZhi': '魚陟負冰',
+        'h.taJi': '獺祭魚',
         'h.houYan': '候雁北',
-        'h.caoMuMengDong': '草木萌动',
-        'h.taoShi': '桃始华',
-        'h.cangGeng': '仓庚鸣',
-        'h.yingHua': '鹰化为鸠',
-        'h.xuanNiaoZhi': '玄鸟至',
-        'h.leiNai': '雷乃发声',
-        'h.shiDian': '始电',
-        'h.tongShi': '桐始华',
-        'h.tianShu': '田鼠化为鴽',
-        'h.hongShi': '虹始见',
+        'h.caoMuMengDong': '草木萌動',
+        'h.taoShi': '桃始華',
+        'h.cangGeng': '倉庚鳴',
+        'h.yingHua': '鷹化為鳩',
+        'h.xuanNiaoZhi': '玄鳥至',
+        'h.leiNai': '雷乃發聲',
+        'h.shiDian': '始電',
+        'h.tongShi': '桐始華',
+        'h.tianShu': '田鼠化為鴽',
+        'h.hongShi': '虹始見',
         'h.pingShi': '萍始生',
-        'h.mingJiu': '鸣鸠拂奇羽',
-        'h.daiSheng': '戴胜降于桑',
-        'h.louGuo': '蝼蝈鸣',
+        'h.mingJiu': '鳴鳩拂奇羽',
+        'h.daiSheng': '戴勝降於桑',
+        'h.louGuo': '螻蟈鳴',
         'h.qiuYinChu': '蚯蚓出',
         'h.wangGua': '王瓜生',
         'h.kuCai': '苦菜秀',
         'h.miCao': '靡草死',
-        'h.maiQiu': '麦秋至',
+        'h.maiQiu': '麥秋至',
         'h.tangLang': '螳螂生',
-        'h.juShi': '鵙始鸣',
-        'h.fanShe': '反舌无声',
+        'h.juShi': '鵙始鳴',
+        'h.fanShe': '反舌無聲',
         'h.luJia': '鹿角解',
-        'h.tiaoShi': '蜩始鸣',
+        'h.tiaoShi': '蜩始鳴',
         'h.banXia': '半夏生',
-        'h.wenFeng': '温风至',
+        'h.wenFeng': '温風至',
         'h.xiShuai': '蟋蟀居壁',
-        'h.yingShi': '鹰始挚',
-        'h.fuCao': '腐草为萤',
-        'h.tuRun': '土润溽暑',
-        'h.daYu': '大雨行时',
-        'h.liangFeng': '凉风至',
+        'h.yingShi': '鷹始摯',
+        'h.fuCao': '腐草為螢',
+        'h.tuRun': '土潤溽暑',
+        'h.daYu': '大雨行時',
+        'h.liangFeng': '涼風至',
         'h.baiLu': '白露降',
-        'h.hanChan': '寒蝉鸣',
-        'h.yingNai': '鹰乃祭鸟',
-        'h.tianDi': '天地始肃',
+        'h.hanChan': '寒蟬鳴',
+        'h.yingNai': '鷹乃祭鳥',
+        'h.tianDi': '天地始肅',
         'h.heNai': '禾乃登',
-        'h.hongYanLai': '鸿雁来',
-        'h.xuanNiaoGui': '玄鸟归',
-        'h.qunNiao': '群鸟养羞',
-        'h.leiShi': '雷始收声',
-        'h.zheChongPiHu': '蛰虫坯户',
+        'h.hongYanLai': '鴻雁來',
+        'h.xuanNiaoGui': '玄鳥歸',
+        'h.qunNiao': '羣鳥養羞',
+        'h.leiShi': '雷始收聲',
+        'h.zheChongPiHu': '蟄蟲坯户',
         'h.shuiShiHe': '水始涸',
-        'h.hongYanLaiBin': '鸿雁来宾',
-        'h.queRu': '雀入大水为蛤',
-        'h.juYou': '菊有黄花',
-        'h.caiNai': '豺乃祭兽',
-        'h.caoMuHuangLuo': '草木黄落',
-        'h.zheChongXianFu': '蛰虫咸俯',
+        'h.hongYanLaiBin': '鴻雁來賓',
+        'h.queRu': '雀入大水為蛤',
+        'h.juYou': '菊有黃花',
+        'h.caiNai': '豺乃祭獸',
+        'h.caoMuHuangLuo': '草木黃落',
+        'h.zheChongXianFu': '蟄蟲鹹俯',
         'h.shuiShiBing': '水始冰',
-        'h.diShi': '地始冻',
-        'h.zhiRu': '雉入大水为蜃',
-        'h.hongCang': '虹藏不见',
-        'h.tianQi': '天气上升地气下降',
-        'h.biSe': '闭塞而成冬',
-        'h.heDan': '鹖鴠不鸣',
+        'h.diShi': '地始凍',
+        'h.zhiRu': '雉入大水為蜃',
+        'h.hongCang': '虹藏不見',
+        'h.tianQi': '天氣上升地氣下降',
+        'h.biSe': '閉塞而成冬',
+        'h.heDan': '鶡鴠不鳴',
         'h.huShi': '虎始交',
         'h.liTing': '荔挺出',
-        'ts.zhan': '占',
+        'ts.zhan': '佔',
         'ts.hu': '户',
         'ts.win': '窗',
         'ts.fang': '房',
-        'ts.chuang': '床',
-        'ts.lu': '炉',
+        'ts.chuang': '牀',
+        'ts.lu': '爐',
         'ts.zao': '灶',
         'ts.dui': '碓',
         'ts.mo': '磨',
-        'ts.xi': '栖',
-        'ts.chu': '厨',
-        'ts.ce': '厕',
-        'ts.cang': '仓',
-        'ts.cangKu': '仓库',
-        'ts.daMen': '大门',
-        'ts.men': '门',
+        'ts.xi': '棲',
+        'ts.chu': '廚',
+        'ts.ce': '廁',
+        'ts.cang': '倉',
+        'ts.cangKu': '倉庫',
+        'ts.daMen': '大門',
+        'ts.men': '門',
         'ts.tang': '堂',
-        'ly.xianSheng': '先胜',
-        'ly.xianFu': '先负',
+        'ly.xianSheng': '先勝',
+        'ly.xianFu': '先負',
         'ly.youYin': '友引',
-        'ly.foMie': '佛灭',
+        'ly.foMie': '佛滅',
         'ly.daAn': '大安',
         'ly.chiKou': '赤口',
         'yj.jiSi': '祭祀',
         'yj.qiFu': '祈福',
         'yj.qiuSi': '求嗣',
-        'yj.kaiGuang': '开光',
-        'yj.suHui': '塑绘',
-        'yj.qiJiao': '齐醮',
-        'yj.zhaiJiao': '斋醮',
+        'yj.kaiGuang': '開光',
+        'yj.suHui': '塑繪',
+        'yj.qiJiao': '齊醮',
+        'yj.zhaiJiao': '齋醮',
         'yj.muYu': '沐浴',
         'yj.chouShen': '酬神',
-        'yj.zaoMiao': '造庙',
+        'yj.zaoMiao': '造廟',
         'yj.siZhao': '祀灶',
         'yj.fenXiang': '焚香',
-        'yj.xieTu': '谢土',
+        'yj.xieTu': '謝土',
         'yj.chuHuo': '出火',
         'yj.diaoKe': '雕刻',
         'yj.jiaQu': '嫁娶',
-        'yj.DingHun': '订婚',
-        'yj.naCai': '纳采',
-        'yj.wenMing': '问名',
-        'yj.naXu': '纳婿',
-        'yj.guiNing': '归宁',
-        'yj.anChuang': '安床',
-        'yj.heZhang': '合帐',
+        'yj.DingHun': '訂婚',
+        'yj.naCai': '納采',
+        'yj.wenMing': '問名',
+        'yj.naXu': '納婿',
+        'yj.guiNing': '歸寧',
+        'yj.anChuang': '安牀',
+        'yj.heZhang': '合帳',
         'yj.guanJi': '冠笄',
-        'yj.dingMeng': '订盟',
-        'yj.jinRenKou': '进人口',
+        'yj.dingMeng': '訂盟',
+        'yj.jinRenKou': '進人口',
         'yj.caiYi': '裁衣',
         'yj.wanMian': '挽面',
-        'yj.kaiRong': '开容',
-        'yj.xiuFen': '修坟',
-        'yj.qiZuan': '启钻',
+        'yj.kaiRong': '開容',
+        'yj.xiuFen': '修墳',
+        'yj.qiZuan': '啓鑽',
         'yj.poTu': '破土',
         'yj.anZang': '安葬',
         'yj.liBei': '立碑',
         'yj.chengFu': '成服',
         'yj.chuFu': '除服',
-        'yj.kaiShengFen': '开生坟',
-        'yj.heShouMu': '合寿木',
-        'yj.ruLian': '入殓',
+        'yj.kaiShengFen': '開生墳',
+        'yj.heShouMu': '合壽木',
+        'yj.ruLian': '入殮',
         'yj.yiJiu': '移柩',
         'yj.puDu': '普渡',
         'yj.ruZhai': '入宅',
         'yj.anXiang': '安香',
-        'yj.anMen': '安门',
+        'yj.anMen': '安門',
         'yj.xiuZao': '修造',
         'yj.qiJi': '起基',
-        'yj.dongTu': '动土',
-        'yj.shangLiang': '上梁',
-        'yj.shuZhu': '竖柱',
-        'yj.kaiJing': '开井开池',
+        'yj.dongTu': '動土',
+        'yj.shangLiang': '上樑',
+        'yj.shuZhu': '豎柱',
+        'yj.kaiJing': '開井開池',
         'yj.zuoBei': '作陂放水',
         'yj.chaiXie': '拆卸',
         'yj.poWu': '破屋',
-        'yj.huaiYuan': '坏垣',
-        'yj.buYuan': '补垣',
+        'yj.huaiYuan': '壞垣',
+        'yj.buYuan': '補垣',
         'yj.faMuZuoLiang': '伐木做梁',
         'yj.zuoZhao': '作灶',
         'yj.jieChu': '解除',
-        'yj.kaiZhuYan': '开柱眼',
+        'yj.kaiZhuYan': '開柱眼',
         'yj.chuanPing': '穿屏扇架',
-        'yj.gaiWuHeJi': '盖屋合脊',
-        'yj.kaiCe': '开厕',
-        'yj.zaoCang': '造仓',
+        'yj.gaiWuHeJi': '蓋屋合脊',
+        'yj.kaiCe': '開廁',
+        'yj.zaoCang': '造倉',
         'yj.saiXue': '塞穴',
-        'yj.pingZhi': '平治道涂',
-        'yj.zaoQiao': '造桥',
-        'yj.zuoCe': '作厕',
-        'yj.zhuDi': '筑堤',
-        'yj.kaiChi': '开池',
+        'yj.pingZhi': '平治道塗',
+        'yj.zaoQiao': '造橋',
+        'yj.zuoCe': '作廁',
+        'yj.zhuDi': '築堤',
+        'yj.kaiChi': '開池',
         'yj.faMu': '伐木',
-        'yj.kaiQu': '开渠',
+        'yj.kaiQu': '開渠',
         'yj.jueJing': '掘井',
-        'yj.saoShe': '扫舍',
+        'yj.saoShe': '掃舍',
         'yj.fangShui': '放水',
         'yj.zaoWu': '造屋',
         'yj.heJi': '合脊',
         'yj.zaoChuChou': '造畜稠',
-        'yj.xiuMen': '修门',
+        'yj.xiuMen': '修門',
         'yj.dingSang': '定磉',
         'yj.zuoLiang': '作梁',
-        'yj.xiuShi': '修饰垣墙',
-        'yj.jiaMa': '架马',
-        'yj.kaiShi': '开市',
-        'yj.guaBian': '挂匾',
-        'yj.naChai': '纳财',
-        'yj.qiuCai': '求财',
-        'yj.kaiCang': '开仓',
-        'yj.maiChe': '买车',
-        'yj.zhiChan': '置产',
-        'yj.guYong': '雇佣',
-        'yj.chuHuoCai': '出货财',
-        'yj.anJiXie': '安机械',
-        'yj.zaoCheQi': '造车器',
-        'yj.jingLuo': '经络',
-        'yj.yunNiang': '酝酿',
+        'yj.xiuShi': '修飾垣牆',
+        'yj.jiaMa': '架馬',
+        'yj.kaiShi': '開市',
+        'yj.guaBian': '掛匾',
+        'yj.naChai': '納財',
+        'yj.qiuCai': '求財',
+        'yj.kaiCang': '開倉',
+        'yj.maiChe': '買車',
+        'yj.zhiChan': '置產',
+        'yj.guYong': '僱傭',
+        'yj.chuHuoCai': '出貨財',
+        'yj.anJiXie': '安機械',
+        'yj.zaoCheQi': '造車器',
+        'yj.jingLuo': '經絡',
+        'yj.yunNiang': '醖釀',
         'yj.zuoRan': '作染',
-        'yj.guZhu': '鼓铸',
+        'yj.guZhu': '鼓鑄',
         'yj.zaoChuan': '造船',
         'yj.geMi': '割蜜',
-        'yj.zaiZhong': '栽种',
-        'yj.quYu': '取渔',
-        'yj.jieWang': '结网',
-        'yj.muYang': '牧养',
+        'yj.zaiZhong': '栽種',
+        'yj.quYu': '取漁',
+        'yj.jieWang': '結網',
+        'yj.muYang': '牧養',
         'yj.anDuiWei': '安碓磑',
-        'yj.xiYi': '习艺',
-        'yj.ruXue': '入学',
-        'yj.liFa': '理发',
+        'yj.xiYi': '習藝',
+        'yj.ruXue': '入學',
+        'yj.liFa': '理髮',
         'yj.tanBing': '探病',
-        'yj.jianGui': '见贵',
+        'yj.jianGui': '見貴',
         'yj.chengChuan': '乘船',
         'yj.duShui': '渡水',
-        'yj.zhenJiu': '针灸',
+        'yj.zhenJiu': '針灸',
         'yj.chuXing': '出行',
         'yj.yiXi': '移徙',
         'yj.fenJu': '分居',
-        'yj.TiTou': '剃头',
+        'yj.TiTou': '剃頭',
         'yj.zhengShou': '整手足甲',
-        'yj.naChu': '纳畜',
+        'yj.naChu': '納畜',
         'yj.buZhuo': '捕捉',
-        'yj.tianLie': '畋猎',
-        'yj.jiaoNiuMa': '教牛马',
-        'yj.huiQinYou': '会亲友',
+        'yj.tianLie': '畋獵',
+        'yj.jiaoNiuMa': '教牛馬',
+        'yj.huiQinYou': '會親友',
         'yj.fuRen': '赴任',
-        'yj.qiuYi': '求医',
+        'yj.qiuYi': '求醫',
         'yj.zhiBing': '治病',
-        'yj.ciSong': '词讼',
-        'yj.qiJiDongTu': '起基动土',
-        'yj.poWuHuaiYuan': '破屋坏垣',
-        'yj.gaiWu': '盖屋',
-        'yj.zaoCangKu': '造仓库',
+        'yj.ciSong': '詞訟',
+        'yj.qiJiDongTu': '起基動土',
+        'yj.poWuHuaiYuan': '破屋壞垣',
+        'yj.gaiWu': '蓋屋',
+        'yj.zaoCangKu': '造倉庫',
         'yj.liQuanJiaoYi': '立券交易',
         'yj.jiaoYi': '交易',
         'yj.liQuan': '立券',
-        'yj.anJi': '安机',
-        'yj.huiYou': '会友',
-        'yj.qiuYiLiaoBing': '求医疗病',
-        'yj.zhuShi': '诸事不宜',
-        'yj.yuShi': '馀事勿取',
-        'yj.xingSang': '行丧',
-        'yj.duanYi': '断蚁',
-        'yj.guiXiu': '归岫',
-        'xx.bi': '毕',
+        'yj.anJi': '安機',
+        'yj.huiYou': '會友',
+        'yj.qiuYiLiaoBing': '求醫療病',
+        'yj.zhuShi': '諸事不宜',
+        'yj.yuShi': '餘事勿取',
+        'yj.xingSang': '行喪',
+        'yj.duanYi': '斷蟻',
+        'yj.guiXiu': '歸岫',
+        'xx.bi': '畢',
         'xx.yi': '翼',
         'xx.ji': '箕',
         'xx.kui': '奎',
         'xx.gui': '鬼',
         'xx.di': '氐',
-        'xx.xu': '虚',
+        'xx.xu': '虛',
         'xx.wei': '危',
         'xx.zi': '觜',
-        'xx.zhen': '轸',
-        'xx.dou': '斗',
-        'xx.lou': '娄',
+        'xx.zhen': '軫',
+        'xx.dou': '鬥',
+        'xx.lou': '婁',
         'xx.liu': '柳',
         'xx.fang': '房',
         'xx.xin': '心',
         'xx.shi': '室',
-        'xx.can': '参',
+        'xx.can': '參',
         'xx.jiao': '角',
         'xx.niu': '牛',
         'xx.vei': '胃',
         'xx.xing': '星',
-        'xx.zhang': '张',
+        'xx.zhang': '張',
         'xx.tail': '尾',
         'xx.qiang': '壁',
         'xx.jing': '井',
@@ -7634,50 +7634,50 @@
         'yx.shangXian': '上弦',
         'yx.jiuYe': '九夜',
         'yx.night': '宵',
-        'yx.jianYingTu': '渐盈凸',
+        'yx.jianYingTu': '漸盈凸',
         'yx.xiaoWang': '小望',
         'yx.wang': '望',
         'yx.jiWang': '既望',
         'yx.liDai': '立待',
         'yx.juDai': '居待',
-        'yx.qinDai': '寝待',
+        'yx.qinDai': '寢待',
         'yx.gengDai': '更待',
-        'yx.jianKuiTu': '渐亏凸',
+        'yx.jianKuiTu': '漸虧凸',
         'yx.xiaXian': '下弦',
         'yx.youMing': '有明',
-        'yx.eMeiCan': '蛾眉残',
-        'yx.can': '残',
-        'yx.xiao': '晓',
+        'yx.eMeiCan': '蛾眉殘',
+        'yx.can': '殘',
+        'yx.xiao': '曉',
         'yx.hui': '晦',
         'ny.sangZhe': '桑柘',
-        'ny.baiLa': '白蜡',
-        'ny.yangLiu': '杨柳',
+        'ny.baiLa': '白蠟',
+        'ny.yangLiu': '楊柳',
         'ny.jinBo': '金箔',
         'ny.haiZhong': '海中',
         'ny.daHai': '大海',
         'ny.shaZhong': '沙中',
-        'ny.luZhong': '炉中',
+        'ny.luZhong': '爐中',
         'ny.shanXia': '山下',
         'ny.daLin': '大林',
         'ny.pingDi': '平地',
         'ny.luPang': '路旁',
         'ny.biShang': '壁上',
-        'ny.jianFeng': '剑锋',
-        'ny.shanTou': '山头',
-        'ny.fuDeng': '覆灯',
-        'ny.jianXia': '涧下',
+        'ny.jianFeng': '劍鋒',
+        'ny.shanTou': '山頭',
+        'ny.fuDeng': '覆燈',
+        'ny.jianXia': '澗下',
         'ny.tianHe': '天河',
-        'ny.chengTou': '城头',
-        'ny.daYi': '大驿',
-        'ny.chaiChuan': '钗钏',
+        'ny.chengTou': '城頭',
+        'ny.daYi': '大驛',
+        'ny.chaiChuan': '釵釧',
         'ny.quanZhong': '泉中',
         'ny.daXi': '大溪',
         'ny.wuShang': '屋上',
-        'ny.piLi': '霹雳',
+        'ny.piLi': '霹靂',
         'ny.tianShang': '天上',
         'ny.songBo': '松柏',
         'ny.shiLiu': '石榴',
-        'ny.changLiu': '长流'
+        'ny.changLiu': '長流'
       },
       'en': {
         'tg.jia': 'Jia',
