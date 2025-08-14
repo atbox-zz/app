@@ -150,7 +150,7 @@ const MusicPlayer = () => {
       buttons: [
         { text: "🐍\n貪食蛇\n遊戲", filename: "./snake1.html", isEnglish: false, isGame: true },
         { text: "vis4d", filename: "./vis4d.html", isEnglish: false, isGame: true },
-        { text: "🎮\nGAME\n金錢卦", filename: "./gua.html", isEnglish: true, isGame: true },
+        { text: "🎮\nGAME\n增刪卜易金錢卦", filename: "./gua1a.html", isEnglish: true, isGame: true },
         { text: "🎯\n多物種演化\n生態系統\n", filename: "game of liveinlive中文2.html", isEnglish: false, isGame: true },
       ]
     },
@@ -160,7 +160,7 @@ const MusicPlayer = () => {
         { text: "🐍\nvertices64d1", filename: "./vertices64d1.html", isEnglish: false, isGame: true },
         { text: "3d", filename: "./vertices3d.html", isEnglish: false, isGame: true },
         { text: "🎮\nGAME\n魔術方塊", filename: "./cude3.html", isEnglish: true, isGame: true },
-        { text: "🎯\nvis6e\n", filename: "game of liveinlive中文2.html", isEnglish: false, isGame: true },
+        { text: "🎯\nvis6e\n", filename: "vis6e.html", isEnglish: false, isGame: true },
       ]
     }
   ];
@@ -292,6 +292,7 @@ const MusicPlayer = () => {
     ['#e6f3ff', '#cce7ff', '#e6ffe6', '#ccffcc'], // 經典語音
     ['#fff0e6', '#ffe0cc', '#f0e6ff', '#e0ccff'], // 搞笑語音
     ['#ffe6f0', '#ffccdd', '#e6fffa', '#ccfff7'], // 動感節拍
+    ['#f0f8ff', '#e6f3ff', '#fff8dc', '#f5f5dc'], // 遊戲專區
     ['#f0f8ff', '#e6f3ff', '#fff8dc', '#f5f5dc'], // 遊戲專區
   ];
 
