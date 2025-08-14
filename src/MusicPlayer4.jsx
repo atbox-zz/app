@@ -146,12 +146,21 @@ const MusicPlayer = () => {
       ]
     },
     {
-      title: "遊戲專區",
+      title: "遊戲專區1",
       buttons: [
         { text: "🐍\n貪食蛇\n遊戲", filename: "./snake1.html", isEnglish: false, isGame: true },
-        { text: "野鶴增刪卜易", filename: "./gua1.html", isEnglish: false, isGame: true },
+        { text: "vis4d", filename: "./vis4d.html", isEnglish: false, isGame: true },
         { text: "🎮\nGAME\n金錢卦", filename: "./gua.html", isEnglish: true, isGame: true },
         { text: "🎯\n多物種演化\n生態系統\n", filename: "game of liveinlive中文2.html", isEnglish: false, isGame: true },
+      ]
+    },
+    {
+      title: "遊戲專區2",
+      buttons: [
+        { text: "🐍\nvertices64d1", filename: "./vertices64d1.html", isEnglish: false, isGame: true },
+        { text: "3d", filename: "./vertices3d.html", isEnglish: false, isGame: true },
+        { text: "🎮\nGAME\n魔術方塊", filename: "./cude3.html", isEnglish: true, isGame: true },
+        { text: "🎯\nvis6e\n", filename: "game of liveinlive中文2.html", isEnglish: false, isGame: true },
       ]
     }
   ];
