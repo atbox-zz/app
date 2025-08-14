@@ -54,7 +54,7 @@ WHY?`,filename:"./Tellmewhy.mp3",isEnglish:!0},{text:"啊能能!",filename:"./�
 貪食蛇
 遊戲`,filename:"./snake1.html",isEnglish:!1,isGame:!0},{text:"vis4d",filename:"./vis4d.html",isEnglish:!1,isGame:!0},{text:`🎮
 GAME
-金錢卦`,filename:"./gua.html",isEnglish:!0,isGame:!0},{text:`🎯
+增刪卜易金錢卦`,filename:"./gua1a.html",isEnglish:!0,isGame:!0},{text:`🎯
 多物種演化
 生態系統
 `,filename:"game of liveinlive中文2.html",isEnglish:!1,isGame:!0}]},{title:"遊戲專區2",buttons:[{text:`🐍
