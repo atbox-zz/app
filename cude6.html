@@ -1,402 +1,149 @@
 <!doctype html>
+
 <html lang="zh-Hant">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-<title>3×3 魔術方塊｜旋轉示意＋公式速查＋回放功能</title>
-<style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>3×3 魔術方塊｜互動示意 × 公式速查（含回放與自訂）</title>
+  <meta name="description" content="手機友善：上方可拖曳旋轉的 3D 魔方示意；下方提供 CFOP / F2L / OLL / PLL 與群論核心公式；支援公式回放、自訂配色與尺寸。" />
+  <style>
+    :root{
+      --bg:#0b0f14;--fg:#e8f0ff;--muted:#9fb3d1;--card:#0f1724;--accent:#60a5fa;--border:#223046;
+      --red:#e11d48;--orange:#f97316;--yellow:#facc15;--green:#16a34a;--blue:#2563eb;--white:#e5e7eb;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,Noto Sans TC,"PingFang TC",sans-serif}
+    a{color:var(--accent);text-decoration:none}
+    .app{display:flex;flex-direction:column;min-height:100vh}
+    header{padding:12px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:linear-gradient(180deg,rgba(11,15,20,.95),rgba(11,15,20,.75));z-index:20}
+    header h1{font-size:17px;margin:0;font-weight:700}
+    header .sub{font-size:12px;color:var(--muted);margin-top:4px}.viewer{position:relative;flex:0 0 auto}
+.stage{height:46vh;min-height:300px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border)}
+.hud{position:absolute;left:12px;bottom:12px;display:flex;gap:8px;align-items:center}
+.chip{background:rgba(255,255,255,.04);border:1px solid var(--border);padding:6px 10px;border-radius:999px;font-size:12px;color:var(--muted)}
 
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-  color: #333;
-}
+/* 3D 容器 */
+.cube-wrap{perspective:1200px;touch-action:none}
+.cube{position:relative;width:var(--cube-size,260px);height:var(--cube-size,260px);transform-style:preserve-3d;transition:transform .15s ease}
+.face{position:absolute;width:100%;height:100%;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:6px;padding:6px}
+.sticker{border-radius:8px;box-shadow:inset 0 0 6px rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.06)}
+.face--F{transform:translateZ(calc(var(--cube-size)/2))}
+.face--B{transform:rotateY(180deg) translateZ(calc(var(--cube-size)/2))}
+.face--U{transform:rotateX(90deg) translateZ(calc(var(--cube-size)/2))}
+.face--D{transform:rotateX(-90deg) translateZ(calc(var(--cube-size)/2))}
+.face--R{transform:rotateY(90deg) translateZ(calc(var(--cube-size)/2))}
+.face--L{transform:rotateY(-90deg) translateZ(calc(var(--cube-size)/2))}
 
-.app {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
+.panel{flex:1 1 auto;padding:12px;overflow:auto}
+.group{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px}
+.group h2{font-size:15px;margin:0 0 8px}
+.group p{margin:6px 0;color:var(--muted);font-size:13px}
+.algo{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;margin:8px 0;border-radius:10px;background:rgba(255,255,255,.02)}
+.algo pre{margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:14px}
+.btn{appearance:none;border:1px solid var(--border);background:transparent;padding:8px 10px;border-radius:10px;color:var(--fg);font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.note{font-size:12px;color:var(--muted)}
+.kbd{font-family:ui-monospace,Consolas,monospace;background:rgba(255,255,255,.03);border:1px solid var(--border);padding:2px 6px;border-radius:6px}
 
-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
+footer{padding:20px 12px 40px;color:var(--muted);text-align:center}
 
-header h1 {
-  color: white;
-  font-size: 2.5rem;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-  margin-bottom: 10px;
-}
+/* controls */
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.input,select{background:rgba(255,255,255,.03);border:1px solid var(--border);padding:8px;border-radius:8px;color:var(--fg)}
+.small{font-size:13px}
 
-.main-container {
-  display: grid;
-  grid-template-columns: 1fr 400px;
-  gap: 30px;
-  align-items: start;
-}
+/* highlight current move */
+.moves{display:flex;gap:6px;flex-wrap:wrap}
+.move{padding:6px 8px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.02)}
+.move.active{background:var(--accent);color:#02102a}
 
-@media (max-width: 768px) {
-  .main-container {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-}
-
-.viewer {
-  background: rgba(255,255,255,0.95);
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  backdrop-filter: blur(10px);
-}
-
-.stage {
-  position: relative;
-  height: 400px;
-  perspective: 1000px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cube-wrap {
-  position: relative;
-  width: 200px;
-  height: 200px;
-  cursor: grab;
-  user-select: none;
-}
-
-.cube-wrap:active {
-  cursor: grabbing;
-}
-
-.cube {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-  transition: transform 0.3s ease;
-}
-
-.face {
-  position: absolute;
-  width: 200px;
-  height: 200px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  gap: 2px;
-  padding: 8px;
-  background: #222;
-  border-radius: 8px;
-}
-
-.face--F { transform: rotateY(0deg) translateZ(100px); }
-.face--B { transform: rotateY(180deg) translateZ(100px); }
-.face--U { transform: rotateX(90deg) translateZ(100px); }
-.face--D { transform: rotateX(-90deg) translateZ(100px); }
-.face--R { transform: rotateY(90deg) translateZ(100px); }
-.face--L { transform: rotateY(-90deg) translateZ(100px); }
-
-.sticker {
-  border-radius: 4px;
-  border: 1px solid rgba(0,0,0,0.2);
-  box-shadow: inset 0 1px 2px rgba(255,255,255,0.3);
-  transition: all 0.2s ease;
-}
-
-.hud {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.chip {
-  background: rgba(0,0,0,0.7);
-  color: white;
-  padding: 8px 12px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.btn {
-  background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 15px rgba(238, 90, 111, 0.3);
-}
-
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(238, 90, 111, 0.4);
-}
-
-.btn:active {
-  transform: translateY(0);
-}
-
-.panel {
-  background: rgba(255,255,255,0.95);
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  backdrop-filter: blur(10px);
-  max-height: 600px;
-  overflow-y: auto;
-}
-
-.panel h2 {
-  color: #333;
-  margin-bottom: 20px;
-  font-size: 1.5rem;
-  text-align: center;
-}
-
-.algo {
-  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 15px;
-  border-left: 4px solid #667eea;
-  transition: all 0.2s ease;
-}
-
-.algo:hover {
-  transform: translateX(5px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-.algo h3 {
-  color: #495057;
-  margin-bottom: 10px;
-  font-size: 1rem;
-}
-
-.algo pre {
-  background: #2d3748;
-  color: #e2e8f0;
-  padding: 12px;
-  border-radius: 8px;
-  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  margin-bottom: 10px;
-  letter-spacing: 1px;
-}
-
-.play-btn {
-  background: linear-gradient(45deg, #4ecdc4, #44a08d);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  box-shadow: 0 3px 10px rgba(68, 160, 141, 0.3);
-}
-
-.play-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 5px 15px rgba(68, 160, 141, 0.4);
-}
-
-.play-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.controls {
-  margin-top: 20px;
-  text-align: center;
-}
-
-.speed-control {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.speed-control label {
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.speed-control input {
-  width: 100px;
-}
-
-.status {
-  background: rgba(52, 152, 219, 0.1);
-  border: 1px solid rgba(52, 152, 219, 0.3);
-  border-radius: 8px;
-  padding: 10px;
-  margin-top: 10px;
-  color: #2980b9;
-  font-size: 0.9rem;
-  min-height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.moves {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin: 16px 0;
-  justify-content: center;
-}
-
-.move {
-  padding: 8px 12px;
-  border-radius: 10px;
-  background: rgba(255,255,255,.8);
-  border: 2px solid rgba(102,126,234,0.2);
-  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-  font-size: 13px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  color: #333;
-}
-
-.move.active {
-  background: #667eea;
-  color: white;
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(102,126,234,0.4);
-}
-
-.playback-controls {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  justify-content: center;
-  padding: 15px;
-  background: rgba(102,126,234,0.1);
-  border-radius: 12px;
-  margin-top: 16px;
-  flex-wrap: wrap;
-}
-
-.custom-input {
-  width: 100%;
-  padding: 10px;
-  border: 2px solid rgba(102,126,234,0.3);
-  border-radius: 8px;
-  font-size: 14px;
-  margin: 10px 0;
-  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-}
-
-.custom-input:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
-}
-
-/* 滾動條樣式 */
-.panel::-webkit-scrollbar {
-  width: 6px;
-}
-
-.panel::-webkit-scrollbar-track {
-  background: rgba(0,0,0,0.1);
-  border-radius: 3px;
-}
-
-.panel::-webkit-scrollbar-thumb {
-  background: rgba(102, 126, 234, 0.3);
-  border-radius: 3px;
-}
-
-.panel::-webkit-scrollbar-thumb:hover {
-  background: rgba(102, 126, 234, 0.5);
-}
-</style>
+  </style>
 </head>
 <body>
-<div class="app">
-<header>
-  <h1>3×3 魔術方塊｜旋轉示意＋公式速查＋回放功能</h1>
-</header>
-
-<div class="main-container">
-  <section class="viewer">
-    <div class="stage">
-      <div class="cube-wrap" id="cubeWrap">
-        <div class="cube" id="cube"></div>
-      </div>
-      <div class="hud">
-        <span class="chip" id="angleReadout">旋轉：0°, 0°</span>
-        <button class="btn" id="resetBtn">重置視角</button>
+  <div class="app">
+    <header>
+      <h1>3×3 魔術方塊｜互動示意 × 公式速查（含回放與自訂）</h1>
+      <div class="sub">上方示意可拖曳旋轉，下方可選公式並回放；支援配色與尺寸自訂。</div>
+    </header><section class="viewer">
+  <div class="stage">
+    <div class="cube-wrap" id="cubeWrap">
+      <div class="cube" id="cube" aria-label="可拖曳旋轉的 3D 魔方示意">
+        <div class="face face--F" data-face="F"></div>
+        <div class="face face--B" data-face="B"></div>
+        <div class="face face--U" data-face="U"></div>
+        <div class="face face--D" data-face="D"></div>
+        <div class="face face--R" data-face="R"></div>
+        <div class="face face--L" data-face="L"></div>
       </div>
     </div>
-  </section>
+    <div class="hud">
+      <span class="chip" id="angleReadout">旋轉：0°, 0°</span>
+      <button class="btn" id="resetBtn">重置視角</button>
+    </div>
+  </div>
+</section>
 
-  <main class="panel" id="formulaPanel">
-    <h2>🎯 經典公式速查</h2>
-    
+<main class="panel">
+  <div class="group">
+    <h2>視覺設定（自訂）</h2>
     <div class="controls">
-      <div class="speed-control">
-        <label>播放速度:</label>
-        <input type="range" id="speedSlider" min="200" max="1000" value="600" step="100">
-        <span id="speedValue">600ms</span>
-      </div>
+      <label class="small">尺寸：<input id="sizeInput" class="input" type="range" min="160" max="420" value="260" /></label>
+      <label class="small">貼紙邊距：<input id="gapInput" class="input" type="range" min="2" max="12" value="6" /></label>
+      <label class="small">配色：
+        <select id="paletteSelect" class="input">
+          <option value="standard">標準（白黃紅橙綠藍）</option>
+          <option value="highcontrast">高對比（白 黃 紅 橙 綠 藍）</option>
+          <option value="mono">單色（灰階）</option>
+        </select>
+      </label>
+      <button class="btn" id="resetColors">重置配色</button>
     </div>
-    
-    <div class="status" id="statusDisplay">
-      選擇一個公式開始回放動畫
+    <p class="note">調整尺寸與間距會即時反應；配色可選常見預設或單色方便教學。</p>
+  </div>
+
+  <div class="group">
+    <h2>符號約定（Notation）</h2>
+    <p><span class="kbd">R L U D F B</span>：右左上下前後；無撇號＝順時針 90°，<span class="kbd">'</span>＝逆時針 90°，<span class="kbd">2</span>＝180°。</p>
+    <div class="row">
+      <button class="btn algoBtn" data-algo="R U R' U'">複製 / 播放：觸發器（R U R' U'）</button>
+      <button class="btn algoBtn" data-algo="R U R' U R U2 R'">複製 / 播放：OLL 小魚</button>
+      <button class="btn algoBtn" data-algo="R2 U R U R' U' R' U' R' U R'">複製 / 播放：PLL（U-perm）</button>
+    </div>
+  </div>
+
+  <div class="group">
+    <h2>公式速查（點選播放）</h2>
+    <div class="algo"><pre>F2（F2L 範例）: U R U' R' U' F' U F</pre><button class="btn algoBtn" data-algo="U R U' R' U' F' U F">播放</button></div>
+    <div class="algo"><pre>OLL（小魚）: R U R' U R U2 R'</pre><button class="btn algoBtn" data-algo="R U R' U R U2 R'">播放</button></div>
+    <div class="algo"><pre>PLL（T-perm）: R U R' F' R U R' U' R' F R2 U' R' U'</pre><button class="btn algoBtn" data-algo="R U R' F' R U R' U' R' F R2 U' R' U'">播放</button></div>
+    <p class="note">播放時會在下方顯示移動序列與當前步驟。</p>
+
+    <div style="margin-top:10px">
+      <label class="small">自訂序列（空格或逗號分隔）：</label>
+      <input id="customAlgo" class="input" placeholder="例如：R U R' U' R' F R2 U'" />
+      <div style="margin-top:8px;display:flex;gap:8px"><button class="btn" id="playCustom">播放自訂</button><button class="btn" id="copyCustom">複製序列</button></div>
     </div>
 
-    <div id="movesContainer" class="moves"></div>
-    
-    <div class="playback-controls">
-      <button class="btn" id="pauseBtn">⏸ 暫停</button>
-      <button class="btn" id="stopBtn">⏹ 停止</button>
+    <div style="margin-top:12px">
+      <div id="movesContainer" class="moves"></div>
+      <div style="margin-top:8px;display:flex;gap:8px"><button class="btn" id="pauseBtn">暫停</button><button class="btn" id="stopBtn">停止</button><label class="small">速度：<input id="speedRange" type="range" min="200" max="1200" value="600" /></label></div>
     </div>
+  </div>
 
-    <input type="text" id="customAlgo" class="custom-input" placeholder="輸入自訂公式，例如: R U R' U' F' U F">
-    <div style="text-align: center; margin-top: 10px;">
-      <button class="btn" id="playCustom">播放自訂公式</button>
-    </div>
-  </main>
-</div>
+  <div class="group">
+    <h2>群論核心（理解用）</h2>
+    <div class="algo"><pre>[X, Y] = X Y X⁻¹ Y⁻¹</pre><button class="btn" data-copy="[X, Y] = X Y X^{-1} Y^{-1}">複製</button></div>
+    <div class="algo"><pre>Z X Z⁻¹</pre><button class="btn" data-copy="Z X Z^{-1}">複製</button></div>
+    <p class="note">換位（commutator）與共軛（conjugate）是設計魔方公式的核心工具。</p>
+  </div>
 
-</div>
+</main>
 
+<footer>
+  <div>說明：為教學示意，因此回放以視覺化「全體旋轉 + 顯示步序」為主，非完整方塊狀態模擬；需要完整狀態引擎（可選）我可再加上。</div>
+</footer>
 
-
-
-
-
-
-
-<script>
+  </div>  <script>
 // ----------------- 初始化貼紙 DOM -----------------
 (function buildCube(){
   const palette = {
@@ -456,98 +203,47 @@ header h1 {
 
 // ----------------- 旋轉互動 -----------------
 (function(){
-  // ... (原程式碼保持不變)
-    const cube = document.getElementById('cube');
+  const cube = document.getElementById('cube');
   const wrap = document.getElementById('cubeWrap');
   const readout = document.getElementById('angleReadout');
   const resetBtn = document.getElementById('resetBtn');
-  
-  let rotX = -18, rotY = -32, scale = 1;
-  let dragging = false, lastX = 0, lastY = 0;
-  
-  function render(){ 
-    cube.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${scale})`;
-    readout.textContent = `旋轉：${Math.round(rotX)}°, ${Math.round(rotY)}°`;
-  }
-  
-  function onDown(x, y){ 
-    dragging = true; 
-    lastX = x; 
-    lastY = y;
-    wrap.style.cursor = 'grabbing';
-  }
-  
-  function onMove(x, y){ 
-    if(!dragging) return;
-    rotY += (x - lastX) * 0.4;
-    rotX -= (y - lastY) * 0.4;
-    lastX = x; 
-    lastY = y; 
-    render();
-  }
-  
-  function onUp(){ 
-    dragging = false;
-    wrap.style.cursor = 'grab';
-  }
-  
-  // 鼠標事件
-  wrap.addEventListener('mousedown', e => onDown(e.clientX, e.clientY));
-  window.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
-  window.addEventListener('mouseup', onUp);
-  
-  // 觸摸事件
-  wrap.addEventListener('touchstart', e => {
-    if(e.touches.length === 1){
-      const t = e.touches[0];
-      onDown(t.clientX, t.clientY);
-    }
-  }, {passive: true});
-  
-  wrap.addEventListener('touchmove', e => {
-    if(e.touches.length === 1){
-      const t = e.touches[0];
-      onMove(t.clientX, t.clientY);
-    }
-  }, {passive: true});
-  
+  let rotX = -18, rotY = -32, scale = 1, dragging=false, lastX=0,lastY=0;
+  function render(){ cube.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${scale})`; readout.textContent = `旋轉：${Math.round(rotX)}°, ${Math.round(rotY)}°`; }
+  function onDown(x,y){ dragging=true; lastX=x; lastY=y; }
+  function onMove(x,y){ if(!dragging) return; const dx=x-lastX, dy=y-lastY; rotY += dx*0.4; rotX -= dy*0.4; lastX=x; lastY=y; render(); }
+  function onUp(){ dragging=false; }
+  wrap.addEventListener('mousedown', e=>onDown(e.clientX,e.clientY)); window.addEventListener('mousemove', e=>onMove(e.clientX,e.clientY)); window.addEventListener('mouseup', onUp);
+  wrap.addEventListener('touchstart', e=>{ if(e.touches.length===1){ const t=e.touches[0]; onDown(t.clientX,t.clientY);} },{passive:true});
+  wrap.addEventListener('touchmove', e=>{ if(e.touches.length===1){ const t=e.touches[0]; onMove(t.clientX,t.clientY);} },{passive:true});
   wrap.addEventListener('touchend', onUp);
-  
-  // 滾輪縮放
-  wrap.addEventListener('wheel', e => {
-    e.preventDefault();
-    scale += e.deltaY > 0 ? -0.1 : 0.1;
-    scale = Math.max(0.5, Math.min(2, scale));
-    render();
-  });
-  
-  resetBtn.addEventListener('click', () => {
-    rotX = -18; 
-    rotY = -32; 
-    scale = 1; 
-    render();
-  });
-  
+  resetBtn.addEventListener('click', ()=>{ rotX=-18; rotY=-32; scale=1; render(); });
   render();
-
 })();
 
 // ----------------- 視覺設定 控制 -----------------
 (function(){
-  // ... (原程式碼保持不變)
-  // 添加：配色變更後更新貼紙
-  paletteSelect.addEventListener('change', e => {
-    window._paletteApply(e.target.value);
-  });
-  resetColors.addEventListener('click', () => {
-    paletteSelect.value = 'standard';
-    window._paletteApply('standard');
-  });
+  const sizeInput = document.getElementById('sizeInput');
+  const gapInput = document.getElementById('gapInput');
+  const paletteSelect = document.getElementById('paletteSelect');
+  const resetColors = document.getElementById('resetColors');
+  const cube = document.getElementById('cube');
+  function applySize(v){ document.documentElement.style.setProperty('--cube-size', v+'px'); }
+  function applyGap(v){ document.querySelectorAll('.face').forEach(f=>{ const g = v+'px'; f.style.gap = g; f.style.padding = g; }); }
+  sizeInput.addEventListener('input', e=>applySize(e.target.value)); gapInput.addEventListener('input', e=>applyGap(e.target.value));
+  paletteSelect.addEventListener('change', e=>{ window._paletteApply(e.target.value); });
+  resetColors.addEventListener('click', ()=>{ paletteSelect.value='standard'; window._paletteApply('standard'); });
+  // initial
+  applySize(sizeInput.value); applyGap(gapInput.value);
 })();
 
 // ----------------- 複製按鈕 -----------------
-(function(){
-  // ... (原程式碼保持不變)
+(function(){ function copy(text){ if(navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text); const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); return Promise.resolve(); }
+  document.addEventListener('click', async (e)=>{
+    const cbtn = e.target.closest('[data-copy]'); if(cbtn){ const val=cbtn.getAttribute('data-copy'); try{ await copy(val); cbtn.textContent='已複製'; setTimeout(()=>cbtn.textContent='複製',900); }catch{ cbtn.textContent='複製失敗'; setTimeout(()=>cbtn.textContent='複製',900);} return; }
+    const algoBtn = e.target.closest('.algoBtn'); if(!algoBtn) return; const algo = algoBtn.dataset.algo; // copy + play
+    try{ await copy(algo); }catch(e){}
+    playSequence(algo.split(/\s+|,\s*/));
+  });
 })();
 
 // ----------------- 狀態引擎：旋轉單一面 -----------------
@@ -725,3 +421,5 @@ window.playSequence = playSequence;
 
 // stop on page hide
 window.addEventListener('pagehide', ()=>stopPlayback());
+  </script></body>
+</html>

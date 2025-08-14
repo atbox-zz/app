@@ -388,6 +388,15 @@ header h1 {
 </div>
 
 </div>
+
+
+
+
+
+
+
+
+<script>
 // ----------------- 初始化貼紙 DOM -----------------
 (function buildCube(){
   const palette = {
@@ -448,6 +457,79 @@ header h1 {
 // ----------------- 旋轉互動 -----------------
 (function(){
   // ... (原程式碼保持不變)
+    const cube = document.getElementById('cube');
+  const wrap = document.getElementById('cubeWrap');
+  const readout = document.getElementById('angleReadout');
+  const resetBtn = document.getElementById('resetBtn');
+  
+  let rotX = -18, rotY = -32, scale = 1;
+  let dragging = false, lastX = 0, lastY = 0;
+  
+  function render(){ 
+    cube.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${scale})`;
+    readout.textContent = `旋轉：${Math.round(rotX)}°, ${Math.round(rotY)}°`;
+  }
+  
+  function onDown(x, y){ 
+    dragging = true; 
+    lastX = x; 
+    lastY = y;
+    wrap.style.cursor = 'grabbing';
+  }
+  
+  function onMove(x, y){ 
+    if(!dragging) return;
+    rotY += (x - lastX) * 0.4;
+    rotX -= (y - lastY) * 0.4;
+    lastX = x; 
+    lastY = y; 
+    render();
+  }
+  
+  function onUp(){ 
+    dragging = false;
+    wrap.style.cursor = 'grab';
+  }
+  
+  // 鼠標事件
+  wrap.addEventListener('mousedown', e => onDown(e.clientX, e.clientY));
+  window.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
+  window.addEventListener('mouseup', onUp);
+  
+  // 觸摸事件
+  wrap.addEventListener('touchstart', e => {
+    if(e.touches.length === 1){
+      const t = e.touches[0];
+      onDown(t.clientX, t.clientY);
+    }
+  }, {passive: true});
+  
+  wrap.addEventListener('touchmove', e => {
+    if(e.touches.length === 1){
+      const t = e.touches[0];
+      onMove(t.clientX, t.clientY);
+    }
+  }, {passive: true});
+  
+  wrap.addEventListener('touchend', onUp);
+  
+  // 滾輪縮放
+  wrap.addEventListener('wheel', e => {
+    e.preventDefault();
+    scale += e.deltaY > 0 ? -0.1 : 0.1;
+    scale = Math.max(0.5, Math.min(2, scale));
+    render();
+  });
+  
+  resetBtn.addEventListener('click', () => {
+    rotX = -18; 
+    rotY = -32; 
+    scale = 1; 
+    render();
+  });
+  
+  render();
+
 })();
 
 // ----------------- 視覺設定 控制 -----------------
