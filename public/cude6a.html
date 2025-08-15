@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>3×3 魔術方塊｜互動示意 × 公式速查（含回放與自訂）</title>
+  <meta name="description" content="手機友善：上方可拖曳旋轉的 3D 魔方示意；下方提供 CFOP / F2L / OLL / PLL 與群論核心公式；支援公式回放、自訂配色與尺寸。" />
+  <style>
+    :root {
+      --bg: #0b0f14; --fg: #e8f0ff; --muted: #9fb3d1; --card: #0f1724; --accent: #60a5fa; --border: #223046;
+      --red: #e11d48; --orange: #f97316; --yellow: #facc15; --green: #16a34a; --blue: #2563eb; --white: #e5e7eb;
+      --cube-size: 160px; /* 最小尺寸 */
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; background: var(--bg); color: var(--fg); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans TC, "PingFang TC", sans-serif; }
+    a { color: var(--accent); text-decoration: none; }
+    .app { display: flex; flex-direction: column; min-height: 100vh; }
+    header { padding: 12px 16px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: linear-gradient(180deg, rgba(11,15,20,.95), rgba(11,15,20,.75)); z-index: 20; }
+    header h1 { font-size: 17px; margin: 0; font-weight: 700; }
+    header .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .viewer { position: relative; flex: 0 0 auto; }
+    .stage { height: 46vh; min-height: 300px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--border); }
+    .hud { position: absolute; left: 12px; bottom: 12px; display: flex; gap: 8px; align-items: center; }
+    .chip { background: rgba(255,255,255,.04); border: 1px solid var(--border); padding: 6px 10px; border-radius: 999px; font-size: 12px; color: var(--muted); }
+
+    /* 3D 容器 */
+    .cube-wrap { perspective: 1200px; touch-action: none; overflow: visible; will-change: transform; z-index: 10; }
+    .cube { position: relative; width: var(--cube-size); height: var(--cube-size); transform-style: preserve-3d; transition: transform .15s ease; will-change: transform; }
+    .face { position: absolute; width: 100%; height: 100%; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 2px; padding: 2px; }
+    .sticker { border-radius: 8px; box-shadow: inset 0 0 6px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.06); transition: background 0.2s ease; }
+    .face--F { transform: translateZ(calc(var(--cube-size)/2)); }
+    .face--B { transform: rotateY(180deg) translateZ(calc(var(--cube-size)/2)); }
+    .face--U { transform: rotateX(90deg) translateZ(calc(var(--cube-size)/2)); }
+    .face--D { transform: rotateX(-90deg) translateZ(calc(var(--cube-size)/2)); }
+    .face--R { transform: rotateY(90deg) translateZ(calc(var(--cube-size)/2)); }
+    .face--L { transform: rotateY(-90deg) translateZ(calc(var(--cube-size)/2)); }
+
+    .panel { flex: 1 1 auto; padding: 12px; overflow: auto; }
+    .group { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+    .group h2 { font-size: 15px; margin: 0 0 8px; }
+    .group p { margin: 6px 0; color: var(--muted); font-size: 13px; }
+    .algo { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; margin: 8px 0; border-radius: 10px; background: rgba(255,255,255,.02); }
+    .algo pre { margin: 0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 14px; }
+    .btn { appearance: none; border: 1px solid var(--border); background: transparent; padding: 8px 10px; border-radius: 10px; color: var(--fg); font-size: 13px; }
+    .playbtn { appearance: none; border: 1px solid var(--border); background: #ffffff; padding: 8px 10px; border-radius: 10px; color: rgba(255,0,.02); font-size: 13px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+    .note { font-size: 12px; color: var(--muted); }
+    .kbd { font-family: ui-monospace, Consolas, monospace; background: rgba(255,255,255,.03); border: 1px solid var(--border); padding: 2px 6px; border-radius: 6px; }
+    footer { padding: 20px 12px 40px; color: var(--muted); text-align: center; }
+    .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .input, select { background: rgba(255,255,255,.03); border: 1px solid var(--border); padding: 8px; border-radius: 8px; color: var(--fg); }
+    .small { font-size: 13px; }
+    .moves { display: flex; gap: 6px; flex-wrap: wrap; }
+    .move { padding: 6px 8px; border-radius: 8px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.02); }
+    .move.active { background: var(--accent); color: #02102a; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>3×3 魔術方塊｜互動示意 × 公式速查（含回放與自訂）</h1>
+      <div class="sub">上方示意可拖曳旋轉，下方可選公式並回放；支援配色與尺寸自訂。</div>
+    </header>
+    <section class="viewer">
+      <div class="stage">
+        <div class="cube-wrap" id="cubeWrap">
+          <div class="cube" id="cube" aria-label="可拖曳旋轉的 3D 魔方示意">
+            <div class="face face--F" data-face="F"></div>
+            <div class="face face--B" data-face="B"></div>
+            <div class="face face--U" data-face="U"></div>
+            <div class="face face--D" data-face="D"></div>
+            <div class="face face--R" data-face="R"></div>
+            <div class="face face--L" data-face="L"></div>
+          </div>
+        </div>
+        <div class="hud">
+          <span class="chip" id="angleReadout">旋轉：0°, 0°</span>
+          <button class="btn" id="resetBtn" aria-label="重置魔方視角">重置視角</button>
+          <button class="btn" id="resetCube" aria-label="重置魔方狀態">重置魔方</button>
+        </div>
+      </div>
+    </section>
+    <main class="panel">
+      <div class="group">
+        <h2>視覺設定（自訂）</h2>
+        <div class="controls">
+          <label class="small">尺寸：<input id="sizeInput" class="input" type="range" min="160" max="420" value="160" aria-label="調整魔方尺寸" /></label>
+          <label class="small">貼紙邊距：<input id="gapInput" class="input" type="range" min="2" max="12" value="2" aria-label="調整貼紙邊距" /></label>
+          <label class="small">配色：
+            <select id="paletteSelect" class="input" aria-label="選擇魔方配色">
+              <option value="standard">標準（白黃紅橙綠藍）</option>
+              <option value="highcontrast">高對比（白 黃 紅 橙 綠 藍）</option>
+              <option value="mono">單色（灰階）</option>
+            </select>
+          </label>
+          <button class="btn" id="resetColors" aria-label="重置為標準配色">重置配色</button>
+        </div>
+        <p class="note">調整尺寸與間距會即時反應；配色可選常見預設或單色方便教學。</p>
+      </div>
+      <div class="group">
+        <h2>公式速查（點選播放）</h2>
+        <p class="note">播放時會在下方顯示移動序列與當前步驟。</p>
+        <div style="margin-top:10px">
+          <label class="small">自訂序列（空格或逗號分隔）：</label>
+          <input id="customAlgo" class="input" value="R" placeholder="例如：R U R' U' R' F R2 U'" aria-label="輸入自訂魔方公式序列" />
+         
+            <button class="playbtn" id="playCustom" aria-label="播放自訂公式序列">播放自訂</button>
+            <button class="btn" id="copyCustom" aria-label="複製自訂公式序列">複製序列</button>
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <div id="movesContainer" class="moves" aria-live="polite"></div>
+          <div style="margin-top:8px;display:flex;gap:8px">
+            <button class="btn" id="pauseBtn" aria-label="暫停或繼續公式回放">暫停</button>
+            <button class="btn" id="stopBtn" aria-label="停止公式回放">停止</button>
+            <label class="small">速度：<input id="speedRange" type="range" min="200" max="1200" value="400" aria-label="調整公式回放速度" /></label>
+          </div>
+        <div class="algo"><pre>F2（F2L 範例）: U R U' R' U' F' U F</pre><button class="btn algoBtn" data-algo="U R U' R' U' F' U F" aria-label="播放F2L範例公式">播放</button></div>
+        <div class="algo"><pre>OLL（小魚）: R U R' U R U2 R'</pre><button class="btn algoBtn" data-algo="R U R' U R U2 R'" aria-label="播放OLL小魚公式">播放</button></div>
+        <div class="algo"><pre>PLL（T-perm）: R U R' F' R U R' U' R' F R2 U' R' U'</pre><button class="btn algoBtn" data-algo="R U R' F' R U R' U' R' F R2 U' R' U'" aria-label="播放PLL T-perm公式">播放</button></div>
+        </div>
+      </div>
+      <div class="group">
+        <h2>符號約定（Notation）</h2>
+        <p><span class="kbd">R L U D F B</span>：右左上下前後；無撇號＝順時針 90°，<span class="kbd">'</span>＝逆時針 90°，<span class="kbd">2</span>＝180°。</p>
+        <div class="row">
+          <button class="btn algoBtn" data-algo="R U R' U'" aria-label="複製並播放觸發器公式">複製 / 播放：觸發器（R U R' U'）</button>
+          <button class="btn algoBtn" data-algo="R U R' U R U2 R'" aria-label="複製並播放OLL小魚公式">複製 / 播放：OLL 小魚</button>
+          <button class="btn algoBtn" data-algo="R2 U R U R' U' R' U' R' U R'" aria-label="複製並播放PLL U-perm公式">複製 / 播放：PLL（U-perm）</button>
+        </div>
+      </div>
+      <!--div class="group">
+        <h2>群論核心（理解用）</h2>
+        <div class="algo"><pre>[X, Y] = X Y X⁻¹ Y⁻¹</pre><button class="btn" data-copy="[X, Y] = X Y X^{-1} Y^{-1}" aria-label="複製換位公式">複製</button></div>
+        <div class="algo"><pre>Z X Z⁻¹</pre><button class="btn" data-copy="Z X Z^{-1}" aria-label="複製共軛公式">複製</button></div>
+        <p class="note">換位（commutator）與共軛（conjugate）是設計魔方公式的核心工具。</p>
+      </div-->
+    </main>
+    <footer>
+      <div>說明：支援真實魔方狀態追蹤與視覺化回放，轉動命令（R右 L左 U上 D下 F前 B後）</div>
+      <div>尺寸與邊距預設為最小值，頁面載入時自動執行指定序列。</div>
+    </footer>
+  </div>
+  <script>
+    // ----------------- 初始化貼紙 DOM -----------------
+    (function buildCube() {
+      const palette = {
+        standard: { U: '#f8fafc', D: '#facc15', F: '#16a34a', B: '#2563eb', L: '#f97316', R: '#e11d48' },
+        highcontrast: { U: '#ffffff', D: '#ffd166', F: '#0ea5a4', B: '#1e3a8a', L: '#fb923c', R: '#ef4444' },
+        mono: { U: '#f3f4f6', D: '#d1d5db', F: '#bfc7cf', B: '#9aa6b2', L: '#8b8b8b', R: '#a3a3a3' }
+      };
+
+      // 魔方狀態引擎：每個面 3x3 陣列，使用顏色代碼
+      window.cubeState = {
+        U: Array.from({length: 3}, () => Array(3).fill('U')),
+        D: Array.from({length: 3}, () => Array(3).fill('D')),
+        F: Array.from({length: 3}, () => Array(3).fill('F')),
+        B: Array.from({length: 3}, () => Array(3).fill('B')),
+        L: Array.from({length: 3}, () => Array(3).fill('L')),
+        R: Array.from({length: 3}, () => Array(3).fill('R'))
+      };
+
+      const cube = document.getElementById('cube');
+      cube.innerHTML = '';
+      ['F', 'B', 'U', 'D', 'R', 'L'].forEach(faceKey => {
+        const face = document.createElement('div');
+        face.className = 'face face--' + faceKey;
+        face.dataset.face = faceKey;
+        for (let i = 0; i < 9; i++) {
+          const s = document.createElement('div');
+          s.className = 'sticker';
+          s.dataset.idx = i;
+          face.appendChild(s);
+        }
+        cube.appendChild(face);
+      });
+
+      // 更新貼紙顏色
+      window.updateStickers = function() {
+        try {
+          const currentPalette = palette[document.getElementById('paletteSelect').value] || palette.standard;
+          document.querySelectorAll('.face').forEach(face => {
+            const faceKey = face.dataset.face;
+            const stickers = face.children;
+            for (let i = 0; i < 3; i++) {
+              for (let j = 0; j < 3; j++) {
+                const idx = i * 3 + j;
+                const colorKey = cubeState[faceKey][i][j];
+                if (!currentPalette[colorKey]) {
+                  console.warn(`無效顏色代碼: ${colorKey} 在 ${faceKey}`);
+                  return;
+                }
+                stickers[idx].style.background = currentPalette[colorKey];
+              }
+            }
+          });
+        } catch (e) {
+          console.error('更新貼紙失敗:', e);
+        }
+      };
+
+      window._paletteApply = function(name = 'standard') {
+        updateStickers();
+      };
+
+      updateStickers();
+    })();
+
+    // ----------------- 旋轉互動 -----------------
+    (function() {
+      const cube = document.getElementById('cube');
+      const wrap = document.getElementById('cubeWrap');
+      const readout = document.getElementById('angleReadout');
+      const resetBtn = document.getElementById('resetBtn');
+      let rotX = -18, rotY = -32, scale = 1, dragging = false, lastX = 0, lastY = 0;
+      function render() {
+        cube.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${scale})`;
+        readout.textContent = `旋轉：${Math.round(rotX)}°, ${Math.round(rotY)}°`;
+      }
+      function onDown(x, y) { dragging = true; lastX = x; lastY = y; }
+      function onMove(x, y) {
+        if (!dragging) return;
+        const dx = x - lastX, dy = y - lastY;
+        rotY += dx * 0.4;
+        rotX -= dy * 0.4;
+        lastX = x;
+        lastY = y;
+        render();
+      }
+      function onUp() { dragging = false; }
+      wrap.addEventListener('mousedown', e => onDown(e.clientX, e.clientY));
+      window.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
+      window.addEventListener('mouseup', onUp);
+      wrap.addEventListener('touchstart', e => {
+        if (e.touches.length === 1) {
+          const t = e.touches[0];
+          onDown(t.clientX, t.clientY);
+        }
+      }, { passive: true });
+      wrap.addEventListener('touchmove', e => {
+        if (e.touches.length === 1) {
+          const t = e.touches[0];
+          onMove(t.clientX, t.clientY);
+        }
+      }, { passive: true });
+      wrap.addEventListener('touchend', onUp);
+      resetBtn.addEventListener('click', () => {
+        rotX = -18; rotY = -32; scale = 1; render();
+      });
+      render();
+    })();
+
+    // ----------------- 視覺設定 控制 -----------------
+    (function() {
+      const sizeInput = document.getElementById('sizeInput');
+      const gapInput = document.getElementById('gapInput');
+      const paletteSelect = document.getElementById('paletteSelect');
+      const resetColors = document.getElementById('resetColors');
+      function applySize(v) {
+        document.documentElement.style.setProperty('--cube-size', v + 'px');
+      }
+      function applyGap(v) {
+        document.querySelectorAll('.face').forEach(f => {
+          const g = v + 'px';
+          f.style.gap = g;
+          f.style.padding = g;
+        });
+      }
+      sizeInput.addEventListener('input', e => applySize(e.target.value));
+      gapInput.addEventListener('input', e => applyGap(e.target.value));
+      paletteSelect.addEventListener('change', e => window._paletteApply(e.target.value));
+      resetColors.addEventListener('click', () => {
+        paletteSelect.value = 'standard';
+        window._paletteApply('standard');
+      });
+      applySize(160); // 最小尺寸
+      applyGap(2);   // 最小邊距
+    })();
+
+    // ----------------- 複製按鈕 -----------------
+    (function() {
+      function copy(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+          return navigator.clipboard.writeText(text);
+        }
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        return Promise.resolve();
+      }
+      document.addEventListener('click', async e => {
+        const cbtn = e.target.closest('[data-copy]');
+        if (cbtn) {
+          const val = cbtn.getAttribute('data-copy');
+          try {
+            await copy(val);
+            cbtn.textContent = '已複製';
+            setTimeout(() => cbtn.textContent = '複製', 900);
+          } catch {
+            cbtn.textContent = '複製失敗';
+            setTimeout(() => cbtn.textContent = '複製', 900);
+          }
+          return;
+        }
+        const algoBtn = e.target.closest('.algoBtn');
+        if (!algoBtn) return;
+        const algo = algoBtn.dataset.algo;
+        try { await copy(algo); } catch {}
+        playSequence(algo.split(/\s+|,\s*/));
+      });
+    })();
+
+    // ----------------- 狀態引擎：旋轉單一面 -----------------
+    function rotateFace(face, clockwise = true) {
+      const newFace = Array.from({ length: 3 }, () => Array(3).fill(null));
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          if (clockwise) {
+            newFace[j][2 - i] = face[i][j];
+          } else {
+            newFace[2 - j][i] = face[i][j];
+          }
+        }
+      }
+      return newFace;
+    }
+
+    // ----------------- 狀態引擎：循環相鄰邊緣 -----------------
+    function cycleForMove(faceLetter) {
+      const cs = cubeState;
+      try {
+        switch (faceLetter) {
+          case 'R':
+            let temp = cs.U.map(row => row[2]);
+            let bLeft = [cs.B[0][0], cs.B[1][0], cs.B[2][0]].reverse();
+            cs.U[0][2] = bLeft[0]; cs.U[1][2] = bLeft[1]; cs.U[2][2] = bLeft[2];
+            let dRight = [cs.D[0][2], cs.D[1][2], cs.D[2][2]].reverse();
+            cs.B[0][0] = dRight[0]; cs.B[1][0] = dRight[1]; cs.B[2][0] = dRight[2];
+            let fRight = [cs.F[0][2], cs.F[1][2], cs.F[2][2]];
+            cs.D[0][2] = fRight[0]; cs.D[1][2] = fRight[1]; cs.D[2][2] = fRight[2];
+            cs.F[0][2] = temp[0]; cs.F[1][2] = temp[1]; cs.F[2][2] = temp[2];
+            break;
+          case 'L':
+            let tempL = cs.U.map(row => row[0]);
+            let bRight = [cs.B[0][2], cs.B[1][2], cs.B[2][2]].reverse();
+            cs.U[0][0] = bRight[0]; cs.U[1][0] = bRight[1]; cs.U[2][0] = bRight[2];
+            let dLeft = [cs.D[0][0], cs.D[1][0], cs.D[2][0]].reverse();
+            cs.B[0][2] = dLeft[0]; cs.B[1][2] = dLeft[1]; cs.B[2][2] = dLeft[2];
+            let fLeft = [cs.F[0][0], cs.F[1][0], cs.F[2][0]];
+            cs.D[0][0] = fLeft[0]; cs.D[1][0] = fLeft[1]; cs.D[2][0] = fLeft[2];
+            cs.F[0][0] = tempL[0]; cs.F[1][0] = tempL[1]; cs.F[2][0] = tempL[2];
+            break;
+          case 'U':
+            let tempU = cs.F[0].slice();
+            let lTop = cs.L[0].slice();
+            cs.F[0][0] = lTop[0]; cs.F[0][1] = lTop[1]; cs.F[0][2] = lTop[2];
+            let bTop = cs.B[0].slice();
+            cs.L[0][0] = bTop[0]; cs.L[0][1] = bTop[1]; cs.L[0][2] = bTop[2];
+            let rTop = cs.R[0].slice();
+            cs.B[0][0] = rTop[0]; cs.B[0][1] = rTop[1]; cs.B[0][2] = rTop[2];
+            cs.R[0][0] = tempU[0]; cs.R[0][1] = tempU[1]; cs.R[0][2] = tempU[2];
+            break;
+          case 'D':
+            let tempD = cs.F[2].slice();
+            let rBottom = cs.R[2].slice();
+            cs.F[2][0] = rBottom[0]; cs.F[2][1] = rBottom[1]; cs.F[2][2] = rBottom[2];
+            let bBottom = cs.B[2].slice();
+            cs.R[2][0] = bBottom[0]; cs.R[2][1] = bBottom[1]; cs.R[2][2] = bBottom[2];
+            let lBottom = cs.L[2].slice();
+            cs.B[2][0] = lBottom[0]; cs.B[2][1] = lBottom[1]; cs.B[2][2] = lBottom[2];
+            cs.L[2][0] = tempD[0]; cs.L[2][1] = tempD[1]; cs.L[2][2] = tempD[2];
+            break;
+          case 'F':
+            let tempF = cs.U[2].slice();
+            let lRight = [cs.L[0][2], cs.L[1][2], cs.L[2][2]].reverse();
+            cs.U[2][0] = lRight[0]; cs.U[2][1] = lRight[1]; cs.U[2][2] = lRight[2];
+            let dTop = cs.D[0].slice().reverse();
+            cs.L[0][2] = dTop[0]; cs.L[1][2] = dTop[1]; cs.L[2][2] = dTop[2];
+            let rLeft = [cs.R[0][0], cs.R[1][0], cs.R[2][0]];
+            cs.D[0][0] = rLeft[0]; cs.D[0][1] = rLeft[1]; cs.D[0][2] = rLeft[2];
+            cs.R[0][0] = tempF[0]; cs.R[1][0] = tempF[1]; cs.R[2][0] = tempF[2];
+            break;
+          case 'B':
+            let tempB = cs.U[0].slice();
+            let rRight = [cs.R[0][2], cs.R[1][2], cs.R[2][2]].reverse();
+            cs.U[0][0] = rRight[0]; cs.U[0][1] = rRight[1]; cs.U[0][2] = rRight[2];
+            let dBottom = cs.D[2].slice().reverse();
+            cs.R[0][2] = dBottom[0]; cs.R[1][2] = dBottom[1]; cs.R[2][2] = dBottom[2];
+            let lLeft = [cs.L[0][0], cs.L[1][0], cs.L[2][0]];
+            cs.D[2][0] = lLeft[0]; cs.D[2][1] = lLeft[1]; cs.D[2][2] = lLeft[2];
+            cs.L[0][0] = tempB[0]; cs.L[1][0] = tempB[1]; cs.L[2][0] = tempB[2];
+            break;
+          default:
+            console.warn(`無效面: ${faceLetter}`);
+        }
+      } catch (e) {
+        console.error(`循環邊緣失敗 (${faceLetter}):`, e);
+      }
+    }
+
+    // ----------------- 狀態引擎：應用單一移動 -----------------
+    function applyMove(move) {
+      try {
+        const faceLetter = move.replace(/'|\d/, '');
+        if (!['R', 'L', 'U', 'D', 'F', 'B'].includes(faceLetter)) {
+          console.warn(`無效移動: ${move}`);
+          return;
+        }
+        let turns = 1;
+        let clockwise = true;
+        if (move.includes("'")) {
+          turns = 1;
+          clockwise = false;
+        } else if (move.includes('2')) {
+          turns = 2;
+        }
+        for (let t = 0; t < turns; t++) {
+          cubeState[faceLetter] = rotateFace(cubeState[faceLetter], clockwise);
+        }
+        let cycleTurns = turns;
+        if (!clockwise) {
+          cycleTurns = 3;
+        }
+        for (let t = 0; t < cycleTurns; t++) {
+          cycleForMove(faceLetter);
+        }
+      } catch (e) {
+        console.error(`應用移動失敗 (${move}):`, e);
+      }
+    }
+
+    // ----------------- 播放引擎 -----------------
+    let playState = { timer: null, idx: 0, seq: [], running: false, paused: false };
+    const movesContainer = document.getElementById('movesContainer');
+    const speedRange = document.getElementById('speedRange');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const stopBtn = document.getElementById('stopBtn');
+
+    function normalizeMoves(arr) {
+      return arr.map(s => s.trim()).filter(Boolean).map(s => s.replace(/\u2019/g, "'").replace(/–/g, '-'));
+    }
+
+    function renderMoves(seq) {
+      movesContainer.innerHTML = '';
+      seq.forEach((m, i) => {
+        const el = document.createElement('div');
+        el.className = 'move';
+        el.textContent = m;
+        el.dataset.idx = i;
+        movesContainer.appendChild(el);
+      });
+    }
+
+    function highlight(idx) {
+      Array.from(movesContainer.children).forEach(ch => ch.classList.toggle('active', Number(ch.dataset.idx) === idx));
+    }
+
+    function applyVisualMove(move) {
+      try {
+        // 移除整體旋轉動畫，僅更新狀態和貼紙
+        applyMove(move);
+        updateStickers();
+      } catch (e) {
+        console.error(`應用視覺移動失敗 (${move}):`, e);
+      }
+    }
+
+    async function playSequence(seqRaw) {
+      const seq = normalizeMoves(seqRaw);
+      if (seq.length === 0) return;
+      if (playState.running) stopPlayback();
+      playState.seq = seq;
+      playState.idx = 0;
+      playState.running = true;
+      playState.paused = false;
+      renderMoves(seq);
+      highlight(0);
+      const delay = () => Number(speedRange.value);
+      while (playState.idx < seq.length && playState.running) {
+        if (playState.paused) {
+          await new Promise(r => setTimeout(r, 80));
+          continue;
+        }
+        const m = seq[playState.idx];
+        highlight(playState.idx);
+        applyVisualMove(m);
+        await new Promise(r => setTimeout(r, delay()));
+        playState.idx++;
+      }
+      playState.running = false;
+    }
+
+    function stopPlayback() {
+      playState.running = false;
+      playState.paused = false;
+      playState.idx = 0;
+      highlight(-1);
+    }
+
+    function resetCube() {
+      window.cubeState = {
+        U: Array.from({length: 3}, () => Array(3).fill('U')),
+        D: Array.from({length: 3}, () => Array(3).fill('D')),
+        F: Array.from({length: 3}, () => Array(3).fill('F')),
+        B: Array.from({length: 3}, () => Array(3).fill('B')),
+        L: Array.from({length: 3}, () => Array(3).fill('L')),
+        R: Array.from({length: 3}, () => Array(3).fill('R'))
+      };
+      updateStickers();
+      stopPlayback();
+    }
+
+    pauseBtn.addEventListener('click', () => {
+      if (!playState.running) return;
+      playState.paused = !playState.paused;
+      pauseBtn.textContent = playState.paused ? '繼續' : '暫停';
+    });
+    stopBtn.addEventListener('click', stopPlayback);
+    document.getElementById('resetCube').addEventListener('click', resetCube);
+
+    document.getElementById('playCustom').addEventListener('click', () => {
+      const v = document.getElementById('customAlgo').value;
+      if (!v) return;
+      playSequence(v.split(/\s+|,\s*/));
+    });
+    document.getElementById('copyCustom').addEventListener('click', async () => {
+      const v = document.getElementById('customAlgo').value;
+      try {
+        await navigator.clipboard.writeText(v);
+        alert('已複製');
+      } catch {
+        alert('複製失敗');
+      }
+    });
+
+    window.playSequence = playSequence;
+    window.addEventListener('pagehide', stopPlayback);
+
+    // 初始檢查與序列執行
+    window.addEventListener('load', () => {
+      if (!document.getElementById('cube')) {
+        console.error('未找到魔方元素');
+      }
+      updateStickers();
+      // 執行初始序列
+      playSequence(['R\'', 'R\'', 'R\'', 'R\'', 'U', 'U', 'U', 'U', 'D', 'D', 'D', 'D', 'R\'']);
+    });
+  </script>
+</body>
+</html>
