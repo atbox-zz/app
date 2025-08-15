@@ -159,7 +159,7 @@ const MusicPlayer = () => {
       buttons: [
         { text: "🐍\nvertices64d1", filename: "./vertices64d1.html", isEnglish: false, isGame: true },
         { text: "3d", filename: "./vertices3d.html", isEnglish: false, isGame: true },
-        { text: "🎮\nGAME\n魔術方塊", filename: "./cude6.html", isEnglish: true, isGame: true },
+        { text: "🎮\nGAME\n魔術方塊", filename: "./cude6a.html", isEnglish: true, isGame: true },
         { text: "🎯\nvis6e\n", filename: "vis6e.html", isEnglish: false, isGame: true },
       ]
     }

@@ -82,6 +82,16 @@
     </section>
     <main class="panel">
       <div class="group">
+        <h2>公式速查（點選播放）</h2>
+        <p class="note">播放時會在下方顯示移動序列與當前步驟。</p>
+        <div style="margin-top:10px">
+          <label class="small">自訂序列（空格或逗號分隔）：</label>
+          <input id="customAlgo" class="input" value="R" placeholder="例如：R U R' U' R' F R2 U'" aria-label="輸入自訂魔方公式序列" />
+         
+            <button class="playbtn" id="playCustom" aria-label="播放自訂公式序列">播放自訂</button>
+            <button class="btn" id="copyCustom" aria-label="複製自訂公式序列">複製序列</button>
+          </div>
+        </div>
         <h2>視覺設定（自訂）</h2>
         <div class="controls">
           <label class="small">尺寸：<input id="sizeInput" class="input" type="range" min="160" max="420" value="160" aria-label="調整魔方尺寸" /></label>
@@ -96,18 +106,6 @@
           <button class="btn" id="resetColors" aria-label="重置為標準配色">重置配色</button>
         </div>
         <p class="note">調整尺寸與間距會即時反應；配色可選常見預設或單色方便教學。</p>
-      </div>
-      <div class="group">
-        <h2>公式速查（點選播放）</h2>
-        <p class="note">播放時會在下方顯示移動序列與當前步驟。</p>
-        <div style="margin-top:10px">
-          <label class="small">自訂序列（空格或逗號分隔）：</label>
-          <input id="customAlgo" class="input" value="R" placeholder="例如：R U R' U' R' F R2 U'" aria-label="輸入自訂魔方公式序列" />
-         
-            <button class="playbtn" id="playCustom" aria-label="播放自訂公式序列">播放自訂</button>
-            <button class="btn" id="copyCustom" aria-label="複製自訂公式序列">複製序列</button>
-          </div>
-        </div>
         <div style="margin-top:12px">
           <div id="movesContainer" class="moves" aria-live="polite"></div>
           <div style="margin-top:8px;display:flex;gap:8px">
