@@ -205,31 +205,16 @@
             <div class="toggle-info" onclick="toggleInfoPanel()">顯示資訊</div>
             <div class="controls">
                 <div class="control-group">
-                    <label>旋轉速度:</label>
-                    <input type="range" id="rotationSpeed" min="0" max="0.03" step="0.001" value="0.005">
-                </div>
-                <div class="control-group">
-                    <label>卦象大小:</label>
-                    <input type="range" id="hexagramSize" min="0.5" max="2" step="0.1" value="1">
-                </div>
-                <div class="control-group">
-                    <label>連線顯示:</label>
+             <input id="hexagramSize" value="0">
                     <input type="checkbox" id="showLines" checked>
+                    <input type="checkbox" id="showNames" checked>
                 </div>
-                <div class="control-group">
-                    <label>卦象名稱:</label>
-                    <input type="checkbox" id="showNames">
-                </div>
-            </div>
+            </div-->
         </div>
 
-        <div class="info-panel" id="infoPanel">
-            <div id="selectedHexagram" class="hexagram-info">
-                <div class="hexagram-name">點擊卦象查看詳情</div>
-                <div class="description">在六維超立方體中，每個卦象對應一個頂點。陰爻(⚋)對應0，陽爻(⚊)對應1。六爻從下到上對應六個維度的坐標。</div>
-            </div>
+        <!--div class="info-panel" id="infoPanel">
 
-            <div class="legend">
+            <!div class="legend">
                 <h3>顏色說明</h3>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #ff6b6b;"></div>
@@ -264,7 +249,7 @@
                     <span>兌卦系統</span>
                 </div>
             </div>
-        </div>
+        </div-->
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
