@@ -4,12 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>3×3 魔術方塊｜互動示意 × 公式速查（含回放與自訂）</title>
-  <meta name="description" content="手機友善：上方可拖曳旋轉的 3D 魔方示意；下方提供 CFOP / F2L / OLL / PLL 與群論核心公式；支援公式回放、自訂配色與尺寸。" />
+  <meta name="description" content="手機友善：上方可拖曳旋轉的 3D 魔方示意；下方提供 CFOP / F2L / OLL / PLL 與群論核心公式；支援公式回放、自訂配色與尺寸；包含移動頻率圖表。" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       --bg: #0b0f14; --fg: #e8f0ff; --muted: #9fb3d1; --card: #0f1724; --accent: #60a5fa; --border: #223046;
       --red: #e11d48; --orange: #f97316; --yellow: #facc15; --green: #16a34a; --blue: #2563eb; --white: #e5e7eb;
-      --cube-size: 160px; /* 最小尺寸 */
+      --cube-size: 160px;
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; margin: 0; background: var(--bg); color: var(--fg); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans TC, "PingFang TC", sans-serif; }
@@ -20,10 +21,9 @@
     header .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
     .viewer { position: relative; flex: 0 0 auto; }
     .stage { height: 46vh; min-height: 300px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--border); }
-    .hud { position: absolute; left: 12px; bottom: 12px; display: flex; gap: 8px; align-items: center; }
+    .hud { position: absolute; bottom: 12px; width: 100%; padding: 0 12px; display: flex; justify-content: space-between; align-items: center; }
+    .hud-left, .hud-right { display: flex; gap: 8px; align-items: center; }
     .chip { background: rgba(255,255,255,.04); border: 1px solid var(--border); padding: 6px 10px; border-radius: 999px; font-size: 12px; color: var(--muted); }
-
-    /* 3D 容器 */
     .cube-wrap { perspective: 1200px; touch-action: none; overflow: visible; will-change: transform; z-index: 10; }
     .cube { position: relative; width: var(--cube-size); height: var(--cube-size); transform-style: preserve-3d; transition: transform .15s ease; will-change: transform; }
     .face { position: absolute; width: 100%; height: 100%; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 2px; padding: 2px; }
@@ -34,7 +34,7 @@
     .face--D { transform: rotateX(-90deg) translateZ(calc(var(--cube-size)/2)); }
     .face--R { transform: rotateY(90deg) translateZ(calc(var(--cube-size)/2)); }
     .face--L { transform: rotateY(-90deg) translateZ(calc(var(--cube-size)/2)); }
-
+    .face.active-face { box-shadow: 0 0 8px var(--accent); }
     .panel { flex: 1 1 auto; padding: 12px; overflow: auto; }
     .group { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
     .group h2 { font-size: 15px; margin: 0 0 8px; }
@@ -42,7 +42,6 @@
     .algo { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; margin: 8px 0; border-radius: 10px; background: rgba(255,255,255,.02); }
     .algo pre { margin: 0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 14px; }
     .btn { appearance: none; border: 1px solid var(--border); background: transparent; padding: 8px 10px; border-radius: 10px; color: var(--fg); font-size: 13px; }
-    .playbtn { appearance: none; border: 1px solid var(--border); background: #ffffff; padding: 8px 10px; border-radius: 10px; color: rgba(255,0,.02); font-size: 13px; }
     .row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
     .note { font-size: 12px; color: var(--muted); }
     .kbd { font-family: ui-monospace, Consolas, monospace; background: rgba(255,255,255,.03); border: 1px solid var(--border); padding: 2px 6px; border-radius: 6px; }
@@ -53,13 +52,14 @@
     .moves { display: flex; gap: 6px; flex-wrap: wrap; }
     .move { padding: 6px 8px; border-radius: 8px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.02); }
     .move.active { background: var(--accent); color: #02102a; }
+    .chart-container { max-width: 600px; margin: 20px auto; }
   </style>
 </head>
 <body>
   <div class="app">
     <header>
-      <h1>3×3 魔術方塊｜互動示意｜與自訂公式 </h1>
-      <div class="sub">上方示意可拖曳旋轉，下方可選公式並回放；支援配色與尺寸自訂。</div>
+      <h1>3×3 魔術方塊｜互動示意 × 公式速查（含回放與自訂）</h1>
+      <div class="sub">上方示意可拖曳旋轉，下方可選公式並回放；支援配色、尺寸自訂及移動頻率圖表。</div>
     </header>
     <section class="viewer">
       <div class="stage">
@@ -74,59 +74,78 @@
           </div>
         </div>
         <div class="hud">
-          <span class="chip" id="angleReadout">旋轉：0°, 0°</span>
-          <button class="btn" id="resetBtn" aria-label="重置魔方視角">重置視角</button>
-          <button class="btn" id="resetCube" aria-label="重置魔方狀態">重置魔方</button>
+          <div class="hud-left">
+            <span class="chip" id="angleReadout">旋轉：0°, 0°</span>
+            <button class="btn" id="lBtn" aria-label="執行 L 動作">L下</button>
+            <button class="btn" id="lPrimeBtn" aria-label="執行 L' 動作">L'上</button>
+          </div>
+          <div class="hud-right">
+            <button class="btn" id="rBtn" aria-label="執行 R 動作">R下</button>
+            <button class="btn" id="rPrimeBtn" aria-label="執行 R' 動作">R'上</button>
+            <button class="btn" id="uBtn" aria-label="執行 U 動作">U右</button>
+            <button class="btn" id="uPrimeBtn" aria-label="執行 U' 動作">U'左</button>
+            <button class="btn" id="dBtn" aria-label="執行 D 動作">D左</button>
+            <button class="btn" id="dPrimeBtn" aria-label="執行 D' 動作">D'右</button>
+            <button class="btn" id="resetBtn" aria-label="重置魔方視角">重置視角</button>
+            <button class="btn" id="resetCube" aria-label="重置魔方狀態">重置魔方</button>
+            <button class="btn" id="scrambleBtn" aria-label="生成隨機打亂序列">隨機打亂</button>
+          </div>
         </div>
       </div>
     </section>
+    <!--section class="chart-container">
+      <h2 style="font-size: 15px; text-align: center;">移動頻率圖表</h2>
+      <p class="note">此圖表顯示所有公式（F2L、OLL、PLL 及自訂序列）中各移動（R, L, U, D, F, B）的使用頻率，幫助分析常用動作。</p>
+      <canvas id="moveChart"></canvas>
+    </section-->
     <main class="panel">
       <div class="group">
-        <h2>公式速查（點選播放）</h2>
-        <p class="note">播放時會在下方顯示移動序列與當前步驟。</p>
-        <div style="margin-top:10px">
-          <label class="small">自訂序列（空格或逗號分隔）：</label>
-          <input id="customAlgo" class="input" value="R" placeholder="例如：R U R' U' R' F R2 U'" aria-label="輸入自訂魔方公式序列" />
-         
-            <button class="playbtn" id="playCustom" aria-label="播放自訂公式序列">播放自訂</button>
-            <button class="btn" id="copyCustom" aria-label="複製自訂公式序列">複製序列</button>
-          </div>
-        </div>
         <h2>視覺設定（自訂）</h2>
         <div class="controls">
-          <label class="small">尺寸：<input id="sizeInput" class="input" type="range" min="160" max="420" value="160" aria-label="調整魔方尺寸" /></label>
+          <label class="small">尺寸：<input id="sizeInput" class="input" type="range" min="120" max="420" value="120" aria-label="調整魔方尺寸" /></label>
           <label class="small">貼紙邊距：<input id="gapInput" class="input" type="range" min="2" max="12" value="2" aria-label="調整貼紙邊距" /></label>
           <label class="small">配色：
             <select id="paletteSelect" class="input" aria-label="選擇魔方配色">
               <option value="standard">標準（白黃紅橙綠藍）</option>
               <option value="highcontrast">高對比（白 黃 紅 橙 綠 藍）</option>
-              <option value="mono">單色（灰階）</option>
             </select>
           </label>
           <button class="btn" id="resetColors" aria-label="重置為標準配色">重置配色</button>
         </div>
         <p class="note">調整尺寸與間距會即時反應；配色可選常見預設或單色方便教學。</p>
+      </div>
+      <!--div class="group">
+        <h2>符號約定（Notation）</h2>
+        <p><span class="kbd">R L U D F B</span>：右左上下前後；無撇號＝順時針 90°，<span class="kbd">'</span>＝逆時針 90°，<span class="kbd">2</span>＝180°。</p>
+        <p class="note">符號表示魔方各面（右、左、上、下、前、後）的旋轉方向與角度，支援快速執行單一動作（如 R右、L左）。</p>
+        <div class="row">
+          <button class="btn algoBtn" data-algo="R U R' U'" aria-label="複製並播放觸發器公式">複製 / 播放：觸發器（R U R' U'）</button>
+          <button class="btn algoBtn" data-algo="R U R' U R U2 R'" aria-label="複製並播放OLL小魚公式">複製 / 播放：OLL 小魚</button>
+          <button class="btn algoBtn" data-algo="R2 U R U R' U' R' U' R' U R'" aria-label="複製並播放PLL U-perm公式">複製 / 播放：PLL（U-perm）</button>
+        </div>
+      </div-->
+      <div class="group">
+        <!--h2>公式速查（點選播放）</h2>
+        <div class="algo"><pre>F2（F2L 範例）: U R U' R' U' F' U F</pre><button class="btn algoBtn" data-algo="U R U' R' U' F' U F" aria-label="播放F2L範例公式">播放</button></div>
+        <div class="algo"><pre>OLL（小魚）: R U R' U R U2 R'</pre><button class="btn algoBtn" data-algo="R U R' U R U2 R'" aria-label="播放OLL小魚公式">播放</button></div>
+        <div class="algo"><pre>PLL（T-perm）: R U R' F' R U R' U' R' F R2 U' R' U'</pre><button class="btn algoBtn" data-algo="R U R' F' R U R' U' R' F R2 U' R' U'" aria-label="播放PLL T-perm公式">播放</button></div-->
+        <p class="note">播放時會在下方顯示移動序列與當前步驟。</p>
+        <div style="margin-top:10px">
+          <label class="small">自訂序列（空格或逗號分隔）：</label>
+          <input id="customAlgo" class="input" placeholder="例如：R U R' U' R' F R2 U'" aria-label="輸入自訂魔方公式序列" />
+          <div style="margin-top:8px;display:flex;gap:8px">
+            <button class="btn" id="playCustom" aria-label="播放自訂公式序列">播放自訂</button>
+            <button class="btn" id="copyCustom" aria-label="複製自訂公式序列">複製序列</button>
+          </div>
+        </div>
         <div style="margin-top:12px">
           <div id="movesContainer" class="moves" aria-live="polite"></div>
           <div style="margin-top:8px;display:flex;gap:8px">
             <button class="btn" id="pauseBtn" aria-label="暫停或繼續公式回放">暫停</button>
             <button class="btn" id="stopBtn" aria-label="停止公式回放">停止</button>
-            <label class="small">速度：<input id="speedRange" type="range" min="200" max="1200" value="400" aria-label="調整公式回放速度" /></label>
+            <label class="small">速度：<input id="speedRange" type="range" min="300" max="800" value="600" aria-label="調整公式回放速度" /></label>
           </div>
         </div>
-      </div>
-      <div class="group">
-        <h2>符號約定（Notation）</h2>
-        <p><span class="kbd">R L U D F B</span>：右左上下前後；無撇號＝順時針 90°，<span class="kbd">'</span>＝逆時針 90°，<span class="kbd">2</span>＝180°。</p>
-        <div class="row">
-          <button class="btn algoBtn" data-algo="R U R' U'" aria-label="複製並播放觸發器公式">複製 / 播放：觸發器（R U R' U'）</button>
-          <button class="btn algoBtn" data-algo="R U R' U R U2 R'" aria-label="複製並播放OLL小魚公式">複製 / 播放：OLL 小魚</button>
-          <button class="btn algoBtn" data-algo="R2 U R U R' U' R' U' R' U R'" aria-label="複製並播放PLL U-perm公式">複製 / 播放：PLL（U-perm）</button>
-        </div>        
-        <div class="algo"><pre>F2（F2L 範例）: U R U' R' U' F' U F</pre><button class="btn algoBtn" data-algo="U R U' R' U' F' U F" aria-label="播放F2L範例公式">播放</button></div>
-        <div class="algo"><pre>OLL（小魚）: R U R' U R U2 R'</pre><button class="btn algoBtn" data-algo="R U R' U R U2 R'" aria-label="播放OLL小魚公式">播放</button></div>
-        <div class="algo"><pre>PLL（T-perm）: R U R' F' R U R' U' R' F R2 U' R' U'</pre><button class="btn algoBtn" data-algo="R U R' F' R U R' U' R' F R2 U' R' U'" aria-label="播放PLL T-perm公式">播放</button></div>
-
       </div>
       <!--div class="group">
         <h2>群論核心（理解用）</h2>
@@ -135,10 +154,9 @@
         <p class="note">換位（commutator）與共軛（conjugate）是設計魔方公式的核心工具。</p>
       </div-->
     </main>
-    <footer>
-      <div>說明：支援真實魔方狀態追蹤與視覺化回放，轉動命令（R右 L左 U上 D下 F前 B後）</div>
-      <div>尺寸與邊距預設為最小值，頁面載入時自動執行指定序列。</div>
-    </footer>
+    <!--footer>
+      <div>說明：支援真實魔方狀態追蹤與視覺化回放，所有轉動（R L U D F B）無晃動，尺寸與邊距預設為最小值，包含移動頻率圖表。</div>
+    </footer-->
   </div>
   <script>
     // ----------------- 初始化貼紙 DOM -----------------
@@ -149,7 +167,6 @@
         mono: { U: '#f3f4f6', D: '#d1d5db', F: '#bfc7cf', B: '#9aa6b2', L: '#8b8b8b', R: '#a3a3a3' }
       };
 
-      // 魔方狀態引擎：每個面 3x3 陣列，使用顏色代碼
       window.cubeState = {
         U: Array.from({length: 3}, () => Array(3).fill('U')),
         D: Array.from({length: 3}, () => Array(3).fill('D')),
@@ -174,7 +191,6 @@
         cube.appendChild(face);
       });
 
-      // 更新貼紙顏色
       window.updateStickers = function() {
         try {
           const currentPalette = palette[document.getElementById('paletteSelect').value] || palette.standard;
@@ -186,7 +202,7 @@
                 const idx = i * 3 + j;
                 const colorKey = cubeState[faceKey][i][j];
                 if (!currentPalette[colorKey]) {
-                  console.warn(`無效顏色代碼: ${colorKey} 在 ${faceKey}`);
+                  console.warn(`Invalid color code: ${colorKey} on face ${faceKey}`);
                   return;
                 }
                 stickers[idx].style.background = currentPalette[colorKey];
@@ -194,7 +210,7 @@
             }
           });
         } catch (e) {
-          console.error('更新貼紙失敗:', e);
+          console.error('Failed to update stickers:', e);
         }
       };
 
@@ -265,6 +281,12 @@
           f.style.padding = g;
         });
       }
+      function adjustCubeSize() {
+        const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+        const size = Math.min(Math.max(vw * 0.4, 120), 120);
+        applySize(size);
+        sizeInput.value = size;
+      }
       sizeInput.addEventListener('input', e => applySize(e.target.value));
       gapInput.addEventListener('input', e => applyGap(e.target.value));
       paletteSelect.addEventListener('change', e => window._paletteApply(e.target.value));
@@ -272,8 +294,9 @@
         paletteSelect.value = 'standard';
         window._paletteApply('standard');
       });
-      applySize(160); // 最小尺寸
-      applyGap(2);   // 最小邊距
+      window.addEventListener('resize', adjustCubeSize);
+      adjustCubeSize();
+      applyGap(2);
     })();
 
     // ----------------- 複製按鈕 -----------------
@@ -393,10 +416,10 @@
             cs.L[0][0] = tempB[0]; cs.L[1][0] = tempB[1]; cs.L[2][0] = tempB[2];
             break;
           default:
-            console.warn(`無效面: ${faceLetter}`);
+            console.warn(`Invalid face: ${faceLetter}`);
         }
       } catch (e) {
-        console.error(`循環邊緣失敗 (${faceLetter}):`, e);
+        console.error(`Edge cycle failed (${faceLetter}):`, e);
       }
     }
 
@@ -405,7 +428,7 @@
       try {
         const faceLetter = move.replace(/'|\d/, '');
         if (!['R', 'L', 'U', 'D', 'F', 'B'].includes(faceLetter)) {
-          console.warn(`無效移動: ${move}`);
+          console.warn(`Invalid move: ${move}`);
           return;
         }
         let turns = 1;
@@ -427,7 +450,7 @@
           cycleForMove(faceLetter);
         }
       } catch (e) {
-        console.error(`應用移動失敗 (${move}):`, e);
+        console.error(`Apply move failed (${move}):`, e);
       }
     }
 
@@ -437,9 +460,22 @@
     const speedRange = document.getElementById('speedRange');
     const pauseBtn = document.getElementById('pauseBtn');
     const stopBtn = document.getElementById('stopBtn');
+    const scrambleBtn = document.getElementById('scrambleBtn');
+    const rBtn = document.getElementById('rBtn');
+    const rPrimeBtn = document.getElementById('rPrimeBtn');
+    const lBtn = document.getElementById('lBtn');
+    const lPrimeBtn = document.getElementById('lPrimeBtn');
+    const uBtn = document.getElementById('uBtn');
+    const uPrimeBtn = document.getElementById('uPrimeBtn');
+    const dBtn = document.getElementById('dBtn');
+    const dPrimeBtn = document.getElementById('dPrimeBtn');
 
     function normalizeMoves(arr) {
       return arr.map(s => s.trim()).filter(Boolean).map(s => s.replace(/\u2019/g, "'").replace(/–/g, '-'));
+    }
+
+    function isValidMove(move) {
+      return /^[RLUDFB]['2]?$/.test(move);
     }
 
     function renderMoves(seq) {
@@ -459,17 +495,63 @@
 
     function applyVisualMove(move) {
       try {
-        // 移除整體旋轉動畫，僅更新狀態和貼紙
+        const faceLetter = move.replace(/'|\d/, '');
+        const faceEl = document.querySelector(`.face--${faceLetter}`);
+        faceEl.classList.add('active-face');
         applyMove(move);
         updateStickers();
+        setTimeout(() => faceEl.classList.remove('active-face'), 200);
       } catch (e) {
-        console.error(`應用視覺移動失敗 (${move}):`, e);
+        console.error(`Apply visual move failed (${move}):`, e);
       }
+    }
+
+    // ----------------- 圖表生成 -----------------
+    let moveChart = null;
+    function updateMoveChart(seq = []) {
+      const algorithms = [
+        "U R U' R' U' F' U F",
+        "R U R' U R U2 R'",
+        "R U R' F' R U R' U' R' F R2 U' R' U'",
+        ...seq
+      ].map(s => normalizeMoves(s.split(/\s+|,\s*/))).flat();
+      const moveCounts = { R: 0, L: 0, U: 0, D: 0, F: 0, B: 0 };
+      algorithms.forEach(move => {
+        const face = move.replace(/'|\d/, '');
+        if (moveCounts[face] !== undefined) moveCounts[face]++;
+      });
+
+      if (moveChart) moveChart.destroy();
+      moveChart = new Chart(document.getElementById('moveChart'), {
+        type: 'bar',
+        data: {
+          labels: ['R', 'L', 'U', 'D', 'F', 'B'],
+          datasets: [{
+            label: '移動頻率',
+            data: [moveCounts.R, moveCounts.L, moveCounts.U, moveCounts.D, moveCounts.F, moveCounts.B],
+            backgroundColor: ['#ef4444', '#fb923c', '#f8fafc', '#facc15', '#16a34a', '#2563eb'],
+            borderColor: ['#b91c1c', '#c2410c', '#d4d7db', '#ca8a04', '#15803d', '#1e40af'],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true, title: { display: true, text: '次數', color: 'var(--fg)' } },
+            x: { title: { display: true, text: '移動', color: 'var(--fg)' } }
+          },
+          plugins: { legend: { labels: { color: 'var(--fg)' } } }
+        }
+      });
     }
 
     async function playSequence(seqRaw) {
       const seq = normalizeMoves(seqRaw);
       if (seq.length === 0) return;
+      if (!seq.every(isValidMove)) {
+        alert('無效的移動序列！請使用 R, L, U, D, F, B 並可選 \' 或 2。');
+        return;
+      }
       if (playState.running) stopPlayback();
       playState.seq = seq;
       playState.idx = 0;
@@ -477,6 +559,7 @@
       playState.paused = false;
       renderMoves(seq);
       highlight(0);
+      updateMoveChart(seq);
       const delay = () => Number(speedRange.value);
       while (playState.idx < seq.length && playState.running) {
         if (playState.paused) {
@@ -510,6 +593,7 @@
       };
       updateStickers();
       stopPlayback();
+      updateMoveChart();
     }
 
     pauseBtn.addEventListener('click', () => {
@@ -519,6 +603,25 @@
     });
     stopBtn.addEventListener('click', stopPlayback);
     document.getElementById('resetCube').addEventListener('click', resetCube);
+    scrambleBtn.addEventListener('click', () => {
+      const moves = ['R', 'L', 'U', 'D', 'F', 'B'];
+      const modifiers = ['', "'", '2'];
+      const scramble = Array.from({ length: 20 }, () => {
+        const move = moves[Math.floor(Math.random() * moves.length)];
+        const modifier = modifiers[Math.floor(Math.random() * modifiers.length)];
+        return move + modifier;
+      });
+      playSequence(scramble);
+    });
+
+    rBtn.addEventListener('click', () => playSequence(['R']));
+    rPrimeBtn.addEventListener('click', () => playSequence(['R\'']));
+    lBtn.addEventListener('click', () => playSequence(['L']));
+    lPrimeBtn.addEventListener('click', () => playSequence(['L\'']));
+    uBtn.addEventListener('click', () => playSequence(['U']));
+    uPrimeBtn.addEventListener('click', () => playSequence(['U\'']));
+    dBtn.addEventListener('click', () => playSequence(['D']));
+    dPrimeBtn.addEventListener('click', () => playSequence(['D\'']));
 
     document.getElementById('playCustom').addEventListener('click', () => {
       const v = document.getElementById('customAlgo').value;
@@ -538,12 +641,12 @@
     window.playSequence = playSequence;
     window.addEventListener('pagehide', stopPlayback);
 
-    // 初始檢查與序列執行
     window.addEventListener('load', () => {
       if (!document.getElementById('cube')) {
         console.error('未找到魔方元素');
       }
       updateStickers();
+      //updateMoveChart();
       // 執行初始序列
       playSequence(['R\'', 'R\'', 'R\'', 'R\'', 'U', 'U', 'U', 'U', 'D', 'D', 'D', 'D', 'R\'']);
     });
