@@ -60,9 +60,9 @@
 <body>
   <div class="app">
     <header>
-      <h1>3×3 魔術方塊｜互動示意 × 公式速查（含回放與自訂）</h1>
-      <div class="sub">上方示意可拖曳旋轉，下方可選公式並回放；支援配色、尺寸自訂及移動頻率圖表。</div>
-            <span class="chip" id="angleReadout">旋轉：0°, 0°</span>
+      <h1>3×3 魔術方塊｜互動示意｜自訂公式</h1>
+      <div class="sub">上方示意可拖曳旋轉，下方可選公式並回放；尺寸自訂及。
+      <span class="chip" id="angleReadout">旋轉：0°, 0°</span></div>
     </header>
     <section class="viewer">
       <div class="stage">
@@ -78,9 +78,6 @@
         </div>
         <div class="hud">
           <div class="hud-right">
-            <button class="btn" id="resetBtn" aria-label="重置魔方視角">重置視角</button>
-            <button class="btn" id="resetCube" aria-label="重置魔方狀態">重置魔方</button>
-            <button class="btn" id="scrambleBtn" aria-label="生成隨機打亂序列">隨機打亂</button>
             <button class="btn" id="lBtn"      aria-label="執行 L 動作">L下</button>
             <button class="btn" id="lPrimeBtn" aria-label="執行 L' 動作">L'上</button>
             <button class="btn" id="rBtn"      aria-label="執行 R 動作">R下</button>
@@ -106,7 +103,10 @@
     </section-->
     <main class="panel">
       <div class="group">
-        <h2>視覺設定（自訂）</h2>
+        <!--h2>視覺設定（自訂）</h2-->            
+        <button class="btn" id="resetBtn" aria-label="重置魔方視角">重置視角</button>
+        <button class="btn" id="resetCube" aria-label="重置魔方狀態">重置魔方</button>
+        <button class="btn" id="scrambleBtn" aria-label="生成隨機打亂序列">隨機打亂</button>
         <div class="controls">
           <label class="small">尺寸：<input id="sizeInput" class="input" type="range" min="120" max="420" value="120" aria-label="調整魔方尺寸" /></label>
           <label class="small">貼紙邊距：<input id="gapInput" class="input" type="range" min="2" max="12" value="2" aria-label="調整貼紙邊距" /></label>
@@ -135,12 +135,11 @@
         <div class="algo"><pre>F2（F2L 範例）: U R U' R' U' F' U F</pre><button class="btn algoBtn" data-algo="U R U' R' U' F' U F" aria-label="播放F2L範例公式">播放</button></div>
         <div class="algo"><pre>OLL（小魚）: R U R' U R U2 R'</pre><button class="btn algoBtn" data-algo="R U R' U R U2 R'" aria-label="播放OLL小魚公式">播放</button></div>
         <div class="algo"><pre>PLL（T-perm）: R U R' F' R U R' U' R' F R2 U' R' U'</pre><button class="btn algoBtn" data-algo="R U R' F' R U R' U' R' F R2 U' R' U'" aria-label="播放PLL T-perm公式">播放</button></div-->
-        <p class="note">播放時會在下方顯示移動序列與當前步驟。</p>
         <div style="margin-top:10px">
-          <label class="small">自訂序列（空格或逗號分隔）：</label>
+          <label class="small">自訂步驟（空格或逗號分隔）：</label>
           <input id="customAlgo" class="input" value="R" placeholder="例如：R U R' U' R' F R2 U'" aria-label="輸入自訂魔方公式序列" />
           <div style="margin-top:8px;display:flex;gap:8px">
-            <button class="playbtn" id="playCustom" aria-label="播放自訂公式序列">播放自訂</button>
+            <button class="playbtn" id="playCustom" aria-label="播放自訂公式序列">播放步驟</button>
             <button class="btn" id="copyCustom" aria-label="複製自訂公式序列">複製序列</button>
           </div>
         </div>
@@ -517,6 +516,7 @@
     }
 
     // ----------------- 圖表生成 -----------------
+    
     let moveChart = null;
     function updateMoveChart(seq = []) {
       const algorithms = [
@@ -569,7 +569,7 @@
       playState.paused = false;
       renderMoves(seq);
       highlight(0);
-      updateMoveChart(seq);
+      //updateMoveChart(seq);
       const delay = () => Number(speedRange.value);
       while (playState.idx < seq.length && playState.running) {
         if (playState.paused) {
@@ -603,7 +603,7 @@
       };
       updateStickers();
       stopPlayback();
-      updateMoveChart();
+      //updateMoveChart();
     }
 
     pauseBtn.addEventListener('click', () => {
