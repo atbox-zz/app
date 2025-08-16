@@ -72,30 +72,30 @@
       position: absolute; 
       padding: 6px 12px; 
       font-size: 12px; 
-      background: rgba(15,23,36,0.9); 
+      background: rgba(222, 226, 231, 0.9); 
       border: 1px solid var(--border); 
       backdrop-filter: blur(8px);
     }
 
     /* 左側 L 按鈕 */
-    .btn-l { left: 0; top: 50%; transform: translateY(-50%); }
-    .btn-l-prime { left: 0; top: calc(50% - 40px); transform: translateY(-50%); }
+    .btn-l { left: 0; top: 50%; transform: translateY(-50%); color: rgba(255,0,.02); }
+    .btn-l-prime { left: 0; top: calc(50% - 40px); transform: translateY(-50%);color: rgba(255,0,.02); }
 
     /* 右側 R 按鈕 */
-    .btn-r { right: 0; top: 50%; transform: translateY(-50%); }
-    .btn-r-prime { right: 0; top: calc(50% - 40px); transform: translateY(-50%); }
+    .btn-r { right: 0; top: 50%; transform: translateY(-50%); color: rgba(255,0,.02);}
+    .btn-r-prime { right: 0; top: calc(50% - 40px); transform: translateY(-50%); color: rgba(255,0,.02); }
 
     /* 上方 U 和 B 按鈕 */
-    .btn-u { top: 0; left: 50%; transform: translateX(-50%); }
-    .btn-u-prime { top: 0; left: calc(50% - 40px); transform: translateX(-50%); }
-    .btn-b-prime { top: 0; right: 20px; }
-    .btn-b { top: 0; right: 60px; }
+    .btn-u { top: 0; left: 50%; transform: translateX(-50%); color: rgba(255,0,.02); }
+    .btn-u-prime { top: 0; left: calc(50% - 40px); transform: translateX(-50%); color: rgba(255,0,.02); }
+    .btn-b-prime { top: 0; right: 20px; color: rgba(255,0,.02); }
+    .btn-b { top: 0; right: 60px; color: rgba(255,0,.02); }
 
     /* 下方 D 和 F 按鈕 */
-    .btn-d-prime { bottom: 0; left: 50%; transform: translateX(-50%); }
-    .btn-d { bottom: 0; left: calc(50% - 40px); transform: translateX(-50%); }
-    .btn-f-prime { bottom: 0; left: 20px; }
-    .btn-f { bottom: 0; left: 60px; }
+    .btn-d-prime { bottom: 0; left: 50%; transform: translateX(-50%); color: rgba(255,0,.02); }
+    .btn-d { bottom: 0; left: calc(50% - 40px); transform: translateX(-50%); color: rgba(255,0,.02); }
+    .btn-f-prime { bottom: 0; left: 20px; color: rgba(255,0,.02); }
+    .btn-f { bottom: 0; left: 60px; color: rgba(255,0,.02); }
   </style>
 </head>
 <body>
@@ -157,7 +157,7 @@
           </label>
           <button class="btn" id="resetColors" aria-label="重置為標準配色">重置配色</button>
         </div>
-        <p class="note">調整尺寸與間距會即時反應；配色可選常見預設或單色方便教學。</p>
+        <!--p class="note">調整尺寸與間距會即時反應；配色可選常見預設或單色方便教學。</p-->
       </div>
       <div class="group">
         <div style="margin-top:10px">
