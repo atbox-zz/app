@@ -149,7 +149,7 @@ const MusicPlayer = () => {
       title: "遊戲專區1",
       buttons: [
         { text: "🐍\n貪食蛇\n遊戲", filename: "./snake1.html", isEnglish: false, isGame: true },
-        { text: "🎮\nGAME\n魔術方塊", filename: "./cude6b.html", isEnglish: true, isGame: true },
+        { text: "🎮\nGAME\n魔術方塊", filename: "./cude6c.html", isEnglish: true, isGame: true },
         { text: "🎮\nGAME\n增刪卜易金錢卦", filename: "./gua1a.html", isEnglish: true, isGame: true },
         { text: "🎯\n多物種演化\n生態系統\n", filename: "game of liveinlive中文2.html", isEnglish: false, isGame: true },
       ]
