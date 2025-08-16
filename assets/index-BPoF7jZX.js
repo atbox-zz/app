@@ -54,7 +54,7 @@ WHY?`,filename:"./Tellmewhy.mp3",isEnglish:!0},{text:"啊能能!",filename:"./�
 貪食蛇
 遊戲`,filename:"./snake1.html",isEnglish:!1,isGame:!0},{text:`🎮
 GAME
-魔術方塊`,filename:"./cude6b.html",isEnglish:!0,isGame:!0},{text:`🎮
+魔術方塊`,filename:"./cude6c.html",isEnglish:!0,isGame:!0},{text:`🎮
 GAME
 增刪卜易金錢卦`,filename:"./gua1a.html",isEnglish:!0,isGame:!0},{text:`🎯
 多物種演化
