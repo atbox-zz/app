@@ -1,70 +1,595 @@
-<!doctype html>
-<html lang="zh-Hant">
+<!DOCTYPE html>
+<html lang="zh-TW">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>八字大運與流年（精確節氣版 + 五行吉凶）</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;600;800&display=swap" rel="stylesheet">
-<style>
-body { font-family: 'Noto Sans TC', sans-serif; padding: 20px; background: #f4f4f4; }
-h1 { font-size: 1.6em; margin-bottom: 0.3em; }
-table { border-collapse: collapse; width: 100%; background: white; margin-bottom: 20px; }
-th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: center; }
-th { background: #eee; }
-tr:nth-child(even) { background: #fafafa; }
-.ji { color: green; font-weight: bold; }
-.xiong { color: red; font-weight: bold; }
-</style>
-<script src="lunar.js"></script>
-<script>
-// 天干與五行
-const ganWuXing = { 甲:'木', 乙:'木', 丙:'火', 丁:'火', 戊:'土', 己:'土', 庚:'金', 辛:'金', 壬:'水', 癸:'水' };
-// 地支與五行
-const zhiWuXing = { 子:'水', 丑:'土', 寅:'木', 卯:'木', 辰:'土', 巳:'火', 午:'火', 未:'土', 申:'金', 酉:'金', 戌:'土', 亥:'水' };
-// 五行相生
-const sheng = { 木:'火', 火:'土', 土:'金', 金:'水', 水:'木' };
-// 判斷吉凶
-function jiXiong(dayGanWuXing, gan, zhi) {
-    let tgWX = ganWuXing[gan], dzWX = zhiWuXing[zhi];
-    let score = 0;
-    [tgWX, dzWX].forEach(wx => {
-        if (wx === dayGanWuXing) score += 1; // 同我
-        else if (sheng[wx] === dayGanWuXing) score += 1; // 生我
-        else if (sheng[dayGanWuXing] === wx) score -= 1; // 我生
-        else score -= 1; // 剋我
-    });
-    return score > 0 ? '吉' : '凶';
-}
-function genDaYunAndLiuNian(birthY, birthM, birthD, birthH) {
-    const lunar = Lunar.fromYmdHms(birthY, birthM, birthD, birthH, 0, 0);
-    const eightChar = lunar.getEightChar();
-    const dayGan = eightChar.getDayGan();
-    const dayGanWX = ganWuXing[dayGan];
-    let html = `<h1>大運</h1><table><tr><th>序</th><th>干支</th><th>五行</th><th>起運年齡</th><th>起運年份</th></tr>`;
-    eightChar.getYun(1).getDaYun().forEach((dy, idx) => {
-        if (idx === 0) return;
-        let gan = dy.getGanZhi().substr(0,1), zhi = dy.getGanZhi().substr(1,1);
-        html += `<tr><td>${idx}</td><td>${dy.getGanZhi()}</td><td>${ganWuXing[gan]}${zhiWuXing[zhi]}</td><td>${dy.getStartAge()}</td><td>${dy.getStartYear()}</td></tr>`;
-    });
-    html += `</table>`;
-    html += `<h1>流年</h1><table><tr><th>年份</th><th>干支</th><th>五行</th><th>吉凶</th></tr>`;
-    for (let y = birthY; y <= birthY+80; y++) {
-        const liunian = LunarYear.fromYear(y).getGanZhi();
-        let gan = liunian.substr(0,1), zhi = liunian.substr(1,1);
-        let wuxing = ganWuXing[gan] + zhiWuXing[zhi];
-        let jx = jiXiong(dayGanWX, gan, zhi);
-        html += `<tr><td>${y}</td><td>${liunian}</td><td>${wuxing}</td><td class="${jx==='吉'?'ji':'xiong'}">${jx}</td></tr>`;
-    }
-    html += `</table>`;
-    document.body.innerHTML += html;
-}
-window.onload = function() {
-    genDaYunAndLiuNian(1968, 10, 30, 18); // 範例：1990年5月12日14時
-};
-</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>四柱八字命盤計算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .title {
+            text-align: center;
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .input-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        .input-group input, .input-group select {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .calculate-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .result-section {
+            margin-top: 40px;
+        }
+
+        .bazi-chart {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .pillar {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transform: perspective(1000px) rotateX(5deg);
+            transition: transform 0.3s ease;
+        }
+
+        .pillar:hover {
+            transform: perspective(1000px) rotateX(0deg) translateY(-5px);
+        }
+
+        .pillar h3 {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .pillar .stem-branch {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .pillar .elements {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+
+        .lunar-info {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .lunar-info h4 {
+            margin-bottom: 10px;
+            color: #8b4513;
+            font-size: 1.3em;
+        }
+
+        .lunar-info p {
+            margin: 5px 0;
+            color: #8b4513;
+        }
+
+        .dayun-section {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .dayun-section h3 {
+            color: #333;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .dayun-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+        }
+
+        .dayun-item {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .dayun-item:hover {
+            transform: translateY(-3px);
+        }
+
+        .dayun-item .age {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .dayun-item .stems-branches {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .info-section {
+            background: rgba(118, 75, 162, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            border-left: 5px solid #764ba2;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .calculate-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #c62828;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .title {
+                font-size: 2em;
+            }
+            
+            .input-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .bazi-chart {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .pillar .stem-branch {
+                font-size: 1.5em;
+            }
+        }
+    </style>
 </head>
 <body>
-<h1>八字大運與流年對照</h1>
-<p>此版本使用精確節氣計算，並加上流年五行與吉凶判斷。</p>
+    <div class="container">
+        <h1 class="title">四柱八字命盤計算器</h1>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <label for="birthYear">出生年份</label>
+                <input type="number" id="birthYear" min="1900" max="2100" value="1990">
+            </div>
+            <div class="input-group">
+                <label for="birthMonth">出生月份</label>
+                <select id="birthMonth">
+                    <option value="1">1月</option>
+                    <option value="2">2月</option>
+                    <option value="3">3月</option>
+                    <option value="4">4月</option>
+                    <option value="5">5月</option>
+                    <option value="6" selected>6月</option>
+                    <option value="7">7月</option>
+                    <option value="8">8月</option>
+                    <option value="9">9月</option>
+                    <option value="10">10月</option>
+                    <option value="11">11月</option>
+                    <option value="12">12月</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="birthDay">出生日</label>
+                <input type="number" id="birthDay" min="1" max="31" value="15">
+            </div>
+            <div class="input-group">
+                <label for="birthHour">出生時</label>
+                <input type="number" id="birthHour" min="0" max="23" value="12" placeholder="24小時制，如：14">
+            </div>
+            <div class="input-group">
+                <label for="birthMinute">出生分</label>
+                <input type="number" id="birthMinute" min="0" max="59" value="0">
+            </div>
+            <div class="input-group">
+                <label for="gender">性別</label>
+                <select id="gender">
+                    <option value="1">男</option>
+                    <option value="0">女</option>
+                </select>
+            </div>
+        </div>
+        
+        <button class="calculate-btn" onclick="calculateBazi()">計算八字命盤</button>
+        
+        <div id="loading" class="loading hidden">正在計算中...</div>
+        
+        <div id="result" class="result-section hidden">
+            <div class="lunar-info" id="lunarInfo"></div>
+            <div class="bazi-chart" id="baziChart"></div>
+            <div class="dayun-section">
+                <h3>大運流年</h3>
+                <div class="info-section" id="dayunInfo"></div>
+                <div class="dayun-grid" id="dayunGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入 lunar-javascript 庫 -->
+    <script>
+        // 動態載入 lunar-javascript 庫
+        function loadLunarLibrary() {
+            return new Promise((resolve, reject) => {
+                // 嘗試多個 CDN 源
+                const cdnUrls = [
+                    'https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.3/lunar.min.js',
+                    'https://unpkg.com/lunar-javascript@1.7.3/lunar.min.js',
+                    'https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.7.3/lunar.min.js'
+                ];
+                
+                let currentIndex = 0;
+                
+                function tryLoad() {
+                    if (currentIndex >= cdnUrls.length) {
+                        reject(new Error('所有 CDN 源都載入失敗'));
+                        return;
+                    }
+                    
+                    const script = document.createElement('script');
+                    script.src = cdnUrls[currentIndex];
+                    script.onload = function() {
+                        console.log('成功載入:', cdnUrls[currentIndex]);
+                        setTimeout(() => {
+                            if (typeof Lunar !== 'undefined' || typeof Solar !== 'undefined') {
+                                resolve();
+                            } else {
+                                reject(new Error('庫載入但對象不可用'));
+                            }
+                        }, 100);
+                    };
+                    script.onerror = function() {
+                        console.log('載入失敗:', cdnUrls[currentIndex]);
+                        currentIndex++;
+                        tryLoad();
+                    };
+                    document.head.appendChild(script);
+                }
+                
+                tryLoad();
+            });
+        }
+        
+        // 頁面載入完成後載入庫
+        window.addEventListener('load', function() {
+            loadLunarLibrary().catch(error => {
+                console.error('庫載入失敗:', error);
+                document.querySelector('.calculate-btn').disabled = true;
+                document.querySelector('.calculate-btn').textContent = '庫載入失敗';
+            });
+        });
+    </script>
+    
+    <script>
+        // 檢查 lunar 庫是否載入成功
+        function checkLunarLibrary() {
+            if (typeof Lunar === 'undefined' && typeof Solar === 'undefined') {
+                console.error('lunar-javascript 庫未正確載入');
+                alert('計算庫載入失敗，請檢查網路連接後重新載入頁面');
+                return false;
+            }
+            console.log('可用的對象:', typeof Lunar, typeof Solar);
+            return true;
+        }
+
+        // 五行對應表
+        const elementMap = {
+            '甲': '木', '乙': '木',
+            '丙': '火', '丁': '火',
+            '戊': '土', '己': '土',
+            '庚': '金', '辛': '金',
+            '壬': '水', '癸': '水',
+            '子': '水', '亥': '水',
+            '寅': '木', '卯': '木',
+            '巳': '火', '午': '火',
+            '申': '金', '酉': '金',
+            '辰': '土', '戌': '土', '丑': '土', '未': '土'
+        };
+
+        // 時辰名稱對應
+        const timeNames = {
+            '子': '子時 (23:00-01:00)',
+            '丑': '丑時 (01:00-03:00)',
+            '寅': '寅時 (03:00-05:00)',
+            '卯': '卯時 (05:00-07:00)',
+            '辰': '辰時 (07:00-09:00)',
+            '巳': '巳時 (09:00-11:00)',
+            '午': '午時 (11:00-13:00)',
+            '未': '未時 (13:00-15:00)',
+            '申': '申時 (15:00-17:00)',
+            '酉': '酉時 (17:00-19:00)',
+            '戌': '戌時 (19:00-21:00)',
+            '亥': '亥時 (21:00-23:00)'
+        };
+
+        // 計算大運
+        function calculateDayun(eightChar, gender) {
+            try {
+                const yun = eightChar.getYun(gender); // gender: 1=男, 0=女
+                const dayunList = [];
+                
+                // 獲取大運列表
+                const dayuns = yun.getDaYun();
+                
+                for (let i = 0; i < Math.min(8, dayuns.length); i++) {
+                    const dayun = dayuns[i];
+                    dayunList.push({
+                        age: yun.getStartAge() + i * 10,
+                        stem: dayun.getGanZhi().substring(0, 1),
+                        branch: dayun.getGanZhi().substring(1, 2),
+                        ganZhi: dayun.getGanZhi(),
+                        startYear: yun.getStartYear() + i * 10,
+                        endYear: yun.getStartYear() + i * 10 + 9
+                    });
+                }
+                
+                return {
+                    dayuns: dayunList,
+                    startAge: yun.getStartAge(),
+                    direction: yun.isShun() ? '順排' : '逆排',
+                    startYear: yun.getStartYear(),
+                    info: yun
+                };
+            } catch (error) {
+                console.error('計算大運時發生錯誤:', error);
+                return null;
+            }
+        }
+
+        // 主計算函數
+        function calculateBazi() {
+            if (!checkLunarLibrary()) {
+                return;
+            }
+
+            // 顯示載入狀態
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('result').classList.add('hidden');
+
+            try {
+                const year = parseInt(document.getElementById('birthYear').value);
+                const month = parseInt(document.getElementById('birthMonth').value);
+                const day = parseInt(document.getElementById('birthDay').value);
+                const hour = parseInt(document.getElementById('birthHour').value);
+                const minute = parseInt(document.getElementById('birthMinute').value);
+                const gender = parseInt(document.getElementById('gender').value);
+
+                // 使用 lunar-javascript 庫創建陽曆日期
+                let solar;
+                if (typeof Lunar !== 'undefined' && Lunar.Solar) {
+                    solar = Lunar.Solar.fromYmdHms(year, month, day, hour, minute, 0);
+                } else if (typeof Solar !== 'undefined') {
+                    solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+                } else {
+                    throw new Error('lunar-javascript 庫未正確載入');
+                }
+                
+                // 轉換為農曆
+                const lunar = solar.getLunar();
+                
+                // 獲取八字
+                const eightChar = lunar.getEightChar();
+
+                // 獲取四柱
+                const yearPillar = eightChar.getYear();
+                const monthPillar = eightChar.getMonth();
+                const dayPillar = eightChar.getDay();
+                const timePillar = eightChar.getTime();
+
+                // 計算大運
+                const dayunResult = calculateDayun(eightChar, gender);
+
+                // 顯示結果
+                displayResults(solar, lunar, eightChar, yearPillar, monthPillar, dayPillar, timePillar, dayunResult);
+
+                // 隱藏載入狀態，顯示結果
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('result').classList.remove('hidden');
+
+            } catch (error) {
+                console.error('計算八字時發生錯誤:', error);
+                alert('計算失敗，請檢查輸入的日期是否正確');
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        // 顯示結果
+        function displayResults(solar, lunar, eightChar, yearPillar, monthPillar, dayPillar, timePillar, dayunResult) {
+            // 顯示農曆資訊
+            const lunarInfo = document.getElementById('lunarInfo');
+            lunarInfo.innerHTML = `
+                <h4>農曆資訊</h4>
+                <p><strong>陽曆：</strong>${solar.toFullString()}</p>
+                <p><strong>農曆：</strong>${lunar.toString()}</p>
+                <p><strong>節氣：</strong>${solar.getJieQi() || '無'}</p>
+                <p><strong>生肖：</strong>${lunar.getYearShengXiao()}</p>
+                <p><strong>納音：</strong>${eightChar.getDayNaYin()}</p>
+            `;
+
+            const pillars = [
+                { 
+                    name: '年柱', 
+                    ganZhi: yearPillar,
+                    stem: yearPillar.substring(0, 1),
+                    branch: yearPillar.substring(1, 2)
+                },
+                { 
+                    name: '月柱', 
+                    ganZhi: monthPillar,
+                    stem: monthPillar.substring(0, 1),
+                    branch: monthPillar.substring(1, 2)
+                },
+                { 
+                    name: '日柱 (日主)', 
+                    ganZhi: dayPillar,
+                    stem: dayPillar.substring(0, 1),
+                    branch: dayPillar.substring(1, 2)
+                },
+                { 
+                    name: '時柱', 
+                    ganZhi: timePillar,
+                    stem: timePillar.substring(0, 1),
+                    branch: timePillar.substring(1, 2)
+                }
+            ];
+
+            // 顯示四柱
+            const baziChart = document.getElementById('baziChart');
+            baziChart.innerHTML = pillars.map(p => `
+                <div class="pillar">
+                    <h3>${p.name}</h3>
+                    <div class="stem-branch">${p.ganZhi}</div>
+                    <div class="elements">
+                        ${p.stem}(${elementMap[p.stem]}) ${p.branch}(${elementMap[p.branch]})
+                    </div>
+                    ${p.name === '時柱' ? `<div class="elements">${timeNames[p.branch]}</div>` : ''}
+                </div>
+            `).join('');
+
+            // 顯示大運資訊
+            if (dayunResult) {
+                const dayunInfo = document.getElementById('dayunInfo');
+                dayunInfo.innerHTML = `
+                    <p><strong>起運資訊：</strong></p>
+                    <p>起運年齡：${dayunResult.startAge}歲 (${dayunResult.startYear}年)</p>
+                    <p>排運方向：${dayunResult.direction}</p>
+                    <p><strong>說明：</strong>根據出生年份陰陽干支和性別確定大運順逆排列</p>
+                `;
+
+                // 顯示大運
+                const dayunGrid = document.getElementById('dayunGrid');
+                dayunGrid.innerHTML = dayunResult.dayuns.map(d => `
+                    <div class="dayun-item">
+                        <div class="age">${d.age}-${d.age + 9}歲</div>
+                        <div class="stems-branches">${d.ganZhi}</div>
+                        <div class="elements">${d.startYear}-${d.endYear}年</div>
+                    </div>
+                `).join('');
+            } else {
+                document.getElementById('dayunInfo').innerHTML = '<p>大運計算失敗</p>';
+                document.getElementById('dayunGrid').innerHTML = '';
+            }
+        }
+
+        // 頁面載入完成後檢查庫
+        window.addEventListener('load', function() {
+            setTimeout(checkLunarLibrary, 1000);
+        });
+    </script>
 </body>
 </html>

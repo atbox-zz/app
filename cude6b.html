@@ -76,15 +76,15 @@
         <div class="hud">
           <div class="hud-left">
             <span class="chip" id="angleReadout">旋轉：0°, 0°</span>
-            <button class="btn" id="lBtn" aria-label="執行 L 動作">L左</button>
-            <button class="btn" id="lPrimeBtn" aria-label="執行 L' 動作">L'左</button>
+            <button class="btn" id="lBtn" aria-label="執行 L 動作">L下</button>
+            <button class="btn" id="lPrimeBtn" aria-label="執行 L' 動作">L'上</button>
           </div>
           <div class="hud-right">
-            <button class="btn" id="rBtn" aria-label="執行 R 動作">R右</button>
-            <button class="btn" id="rPrimeBtn" aria-label="執行 R' 動作">R'右</button>
+            <button class="btn" id="rBtn" aria-label="執行 R 動作">R下</button>
+            <button class="btn" id="rPrimeBtn" aria-label="執行 R' 動作">R'上</button>
             <button class="btn" id="uBtn" aria-label="執行 U 動作">U右</button>
-            <button class="btn" id="uPrimeBtn" aria-label="執行 U' 動作">U'右</button>
-            <button class="btn" id="dBtn" aria-label="執行 D 動作">D右</button>
+            <button class="btn" id="uPrimeBtn" aria-label="執行 U' 動作">U'左</button>
+            <button class="btn" id="dBtn" aria-label="執行 D 動作">D左</button>
             <button class="btn" id="dPrimeBtn" aria-label="執行 D' 動作">D'右</button>
             <button class="btn" id="resetBtn" aria-label="重置魔方視角">重置視角</button>
             <button class="btn" id="resetCube" aria-label="重置魔方狀態">重置魔方</button>
@@ -102,7 +102,7 @@
       <div class="group">
         <h2>視覺設定（自訂）</h2>
         <div class="controls">
-          <label class="small">尺寸：<input id="sizeInput" class="input" type="range" min="160" max="420" value="160" aria-label="調整魔方尺寸" /></label>
+          <label class="small">尺寸：<input id="sizeInput" class="input" type="range" min="120" max="420" value="120" aria-label="調整魔方尺寸" /></label>
           <label class="small">貼紙邊距：<input id="gapInput" class="input" type="range" min="2" max="12" value="2" aria-label="調整貼紙邊距" /></label>
           <label class="small">配色：
             <select id="paletteSelect" class="input" aria-label="選擇魔方配色">
@@ -283,7 +283,7 @@
       }
       function adjustCubeSize() {
         const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-        const size = Math.min(Math.max(vw * 0.4, 160), 420);
+        const size = Math.min(Math.max(vw * 0.4, 120), 120);
         applySize(size);
         sizeInput.value = size;
       }
