@@ -149,7 +149,7 @@ const MusicPlayer = () => {
       title: "遊戲專區1",
       buttons: [
         { text: "🐍\n貪食蛇\n遊戲", filename: "./snake1.html", isEnglish: false, isGame: true },
-        { text: "vis4d", filename: "./vis4d.html", isEnglish: false, isGame: true },
+        { text: "🎮\nGAME\n魔術方塊", filename: "./cude6b.html", isEnglish: true, isGame: true },
         { text: "🎮\nGAME\n增刪卜易金錢卦", filename: "./gua1a.html", isEnglish: true, isGame: true },
         { text: "🎯\n多物種演化\n生態系統\n", filename: "game of liveinlive中文2.html", isEnglish: false, isGame: true },
       ]
@@ -159,7 +159,7 @@ const MusicPlayer = () => {
       buttons: [
         { text: "🐍\nvertices64d1", filename: "./vertices64d1.html", isEnglish: false, isGame: true },
         { text: "3d", filename: "./vertices3d.html", isEnglish: false, isGame: true },
-        { text: "🎮\nGAME\n魔術方塊", filename: "./cude6a.html", isEnglish: true, isGame: true },
+        { text: "vis4d", filename: "./vis4d.html", isEnglish: false, isGame: true },
         { text: "🎯\nvis6e\n", filename: "vis6e.html", isEnglish: false, isGame: true },
       ]
     }
