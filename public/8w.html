@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>八字大運與流年 - 精確節氣計算</title>
+<title>八字大運與流年 - 精確節氣計算 + 十神強弱統計</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#fbf7ec;--panel:#fffaf0;--card:#fffdf6;--accent:#cfa85a;--muted:#8a6b2f;--line:#e6d6a9;--ok:#d7f7d7;--bad:#f7d7d7;--mid:#efefef;--text:#222;--shadow:0 12px 30px rgba(0,0,0,0.06)}
 html,body{height:100%;margin:0;background:var(--bg);font-family:'Noto Sans TC',system-ui,-apple-system,'Segoe UI',Roboto,Arial;color:var(--text)}
-.wrap{max-width:1180px;margin:18px auto;padding:18px;background:linear-gradient(180deg,var(--card),#ffffff);border-radius:12px;box-shadow:var(--shadow)}
+.wrap{max-width:1200px;margin:18px auto;padding:18px;background:linear-gradient(180deg,var(--card),#ffffff);border-radius:12px;box-shadow:var(--shadow)}
 h1{margin:0 0 12px;font-size:20px;text-align:center}
 .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:12px}
 .col{flex:1;min-width:160px}
@@ -39,6 +39,8 @@ button.secondary{background:#8a6b2f}
 table{width:100%;border-collapse:collapse}
 th,td{border:1px solid var(--line);padding:8px;font-size:13px;text-align:center}
 th{background:#fff6e6}
+#dayunTable tbody tr{cursor:pointer;transition:background-color 0.2s ease}
+#dayunTable tbody tr:hover{background-color:#fff8e6}
 .biggz{font-weight:900;font-size:16px;color:#3b2b1a}
 .ok{background:var(--ok)}
 .bad{background:var(--bad)}
@@ -48,12 +50,33 @@ th{background:#fff6e6}
 .footer{font-size:12px;color:#666;text-align:right;margin-top:12px}
 .switches{display:flex;gap:8px;align-items:center;margin-top:8px}
 .highlight{background-color:#fff3cd;font-weight:bold}
-@media (max-width:980px){.pillars{grid-template-columns:repeat(2,1fr)}.info{width:100%}.toprow{flex-direction:column}.area{flex-direction:column}}
+
+/* 新增：十神統計面板 */
+.stats-area{display:flex;gap:12px;margin-top:12px;align-items:flex-start}
+.stats-panel{flex:1;background:white;padding:12px;border-radius:10px;border:1px solid var(--line)}
+.stats-panel h4{margin:0 0 12px;font-size:15px;color:#2b2b1a}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat-category{background:#fafafa;padding:10px;border-radius:8px;border:1px solid #e6d6a9}
+.stat-category h5{margin:0 0 8px;font-size:14px;color:#6b4f2a}
+.stat-item{display:flex;justify-content:space-between;align-items:center;margin:4px 0;font-size:13px}
+.stat-value{font-weight:bold;color:#2b2b1a}
+.strength-meter{width:60px;height:8px;background:#e6d6a9;border-radius:4px;overflow:hidden;margin-left:8px}
+.strength-fill{height:100%;transition:width 0.3s ease;border-radius:4px}
+.strength-weak{background:#f7d7d7}
+.strength-mid{background:#efefef}
+.strength-strong{background:#d7f7d7}
+.strength-very-strong{background:#b8e6b8}
+.overall-strength{margin-top:12px;padding:12px;background:linear-gradient(135deg,#fff6e6,#fff);border:2px solid rgba(207,168,90,0.3);border-radius:10px;text-align:center}
+.overall-strength h5{margin:0 0 8px;font-size:16px;color:#6b4f2a}
+.strength-score{font-size:24px;font-weight:900;margin:8px 0}
+.strength-description{font-size:13px;color:#666;line-height:1.4}
+
+@media (max-width:980px){.pillars{grid-template-columns:repeat(2,1fr)}.info{width:100%}.toprow{flex-direction:column}.area{flex-direction:column}.stats-area{flex-direction:column}.stats-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>八字命盤 — 節氣起運計算</h1>
+  <h1>八字命盤 — 節氣起運計算 + 十神強弱分析</h1>
 
   <div class="controls">
     <div class="col" style="flex:0 0 160px"><label>姓名</label><input id="name" type="text" value="測試人" maxlength="8" placeholder="最多8個字"></div>
@@ -100,19 +123,56 @@ th{background:#fff6e6}
 
     <div class="area">
       <div class="panel"><h4>大運（節氣計算）</h4>
-        <table id="dayunTable"><thead><tr><th>序</th><th>起運年齡</th><th>干支</th><th>十神</th><th>起運年</th><th>止運年</th><th>順逆</th></tr></thead><tbody></tbody></table></div>
+        <table id="dayunTable">
+          <thead>
+            <tr>
+              <th>序</th>
+              <th>起運年齡</th>
+              <th>干支</th>
+              <th>天干十神</th>
+              <th>地支十神</th>
+              <th>起運年</th>
+              <th>止運年</th>
+              <th>順逆</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
 
       <div class="panel"><h4>流年（僅顯示「當前大運」的 10 年）</h4>
         <table id="liunianTable"><thead><tr><th>西元</th><th>干支</th><th>年齡</th><th>十神</th><th>吉凶</th></tr></thead><tbody></tbody></table></div>
     </div>
 
+    <!-- 新增：十神強弱統計面板 -->
+    <div class="stats-area">
+      <div class="stats-panel">
+        <h4>大運十神強弱統計（當前人生階段）</h4>
+        <div class="stats-grid">
+          <div class="stat-category">
+            <h5>天干十神統計</h5>
+            <div id="tianganStats"></div>
+          </div>
+          <div class="stat-category">
+            <h5>地支十神統計</h5>
+            <div id="dizhiStats"></div>
+          </div>
+        </div>
+        <div class="overall-strength">
+          <h5>整體十神強弱等級評估</h5>
+          <div class="strength-score" id="overallScore">—</div>
+          <div class="strength-description" id="strengthDesc">請先生成命盤以查看詳細分析</div>
+        </div>
+      </div>
+    </div>
+
     <div class="debug"><strong>起運計算過程</strong><pre id="debug">—</pre></div>
-    <div class="footer">資料來源：lunar-javascript（CDN）· 節氣起運算法</div>
+    <div class="footer">資料來源：lunar-javascript（CDN）· 節氣起運算法 + 十神強弱分析</div>
   </div>
 </div>
 
 <!-- lunar-javascript + html2canvas -->
-<script src="lunar.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.7.3/lunar.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
@@ -164,9 +224,21 @@ const tenGodMap = (function() {
   return o;
 })();
 
+// 地支對天干的轉換（取主氣）
+const branchToStemMap = {
+  '子': '癸', '丑': '己', '寅': '甲', '卯': '乙', '辰': '戊', '巳': '丙',
+  '午': '丁', '未': '己', '申': '庚', '酉': '辛', '戌': '戊', '亥': '壬'
+};
+
 const tenLuck = {
   '正印': '吉', '偏印': '中', '比肩': '中', '劫財': '中', '食神': '吉', '傷官': '凶',
   '正財': '吉', '偏財': '吉', '正官': '吉', '七殺': '凶'
+};
+
+// 十神强弱权重
+const tenGodStrength = {
+  '正印': 85, '偏印': 65, '比肩': 70, '劫財': 60, '食神': 80, 
+  '傷官': 45, '正財': 88, '偏財': 75, '正官': 90, '七殺': 35
 };
 
 function westernZodiac(m, d) {
@@ -336,8 +408,8 @@ function calculatePreciseStartAge(birthDate, yearStem, gender) {
     let distanceDays = 0;
     let calculationDetail = '';
     
-    console.log('所有節氣:', allJieQi.map(jq => `${jq.name}:${jq.date.toLocaleDateString()}`));
-    console.log('生日:', birthDate.toLocaleDateString());
+    console.log('所有節氣:', allJieQi.map(jq => `${jq.name}: ${jq.date.toLocaleDateString()} ${jq.date.toLocaleTimeString()}`));
+    console.log('生日:', `${birthDate.toLocaleDateString()} ${birthDate.toLocaleTimeString()}`);
     console.log('順逆行:', isForward ? '順行' : '逆行');
     
     if (isForward) {
@@ -345,30 +417,27 @@ function calculatePreciseStartAge(birthDate, yearStem, gender) {
       targetJieQi = allJieQi.find(jq => jq.date > birthDate);
       if (targetJieQi) {
         distanceDays = Math.ceil((targetJieQi.date - birthDate) / (1000 * 60 * 60 * 24));
-        calculationDetail = `順行：從生日 ${birthDate.toLocaleDateString()} 到下個節氣 ${targetJieQi.name} ${targetJieQi.date.toLocaleDateString()}`;
+        calculationDetail = `順行：從生日 ${birthDate.toLocaleDateString()} ${birthDate.toLocaleTimeString()} 到下個節氣 ${targetJieQi.name} ${targetJieQi.date.toLocaleDateString()} ${targetJieQi.date.toLocaleTimeString()}`;
       } else {
-        // 如果找不到，可能是年底，找下一年的第一個節氣
         const nextYearJieQi = getJieQiForYear(birthYear + 2);
         targetJieQi = nextYearJieQi[0];
         if (targetJieQi) {
           distanceDays = Math.ceil((targetJieQi.date - birthDate) / (1000 * 60 * 60 * 24));
-          calculationDetail = `順行：從生日 ${birthDate.toLocaleDateString()} 到下年節氣 ${targetJieQi.name} ${targetJieQi.date.toLocaleDateString()}`;
+          calculationDetail = `順行：從生日 ${birthDate.toLocaleDateString()} ${birthDate.toLocaleTimeString()} 到下年節氣 ${targetJieQi.name} ${targetJieQi.date.toLocaleDateString()} ${targetJieQi.date.toLocaleTimeString()}`;
         }
       }
     } else {
-      // 逆行：找上一個節氣
       const reversedJieQi = [...allJieQi].reverse();
       targetJieQi = reversedJieQi.find(jq => jq.date < birthDate);
       if (targetJieQi) {
         distanceDays = Math.ceil((birthDate - targetJieQi.date) / (1000 * 60 * 60 * 24));
-        calculationDetail = `逆行：從上個節氣 ${targetJieQi.name} ${targetJieQi.date.toLocaleDateString()} 到生日 ${birthDate.toLocaleDateString()}`;
+        calculationDetail = `逆行：從上個節氣 ${targetJieQi.name} ${targetJieQi.date.toLocaleDateString()} ${targetJieQi.date.toLocaleTimeString()} 到生日 ${birthDate.toLocaleDateString()} ${birthDate.toLocaleTimeString()}`;
       } else {
-        // 如果找不到，可能是年初，找上一年的最後一個節氣
         const prevYearJieQi = getJieQiForYear(birthYear - 2);
         targetJieQi = prevYearJieQi[prevYearJieQi.length - 1];
         if (targetJieQi) {
           distanceDays = Math.ceil((birthDate - targetJieQi.date) / (1000 * 60 * 60 * 24));
-          calculationDetail = `逆行：從上年節氣 ${targetJieQi.name} ${targetJieQi.date.toLocaleDateString()} 到生日 ${birthDate.toLocaleDateString()}`;
+          calculationDetail = `逆行：從上年節氣 ${targetJieQi.name} ${targetJieQi.date.toLocaleDateString()} ${targetJieQi.date.toLocaleTimeString()} 到生日 ${birthDate.toLocaleDateString()} ${birthDate.toLocaleTimeString()}`;
         }
       }
     }
@@ -445,6 +514,8 @@ function calculateDayunPrecise(lunar, gender, birthYear, birthDate, yearGz, mont
       startYear: startYear,
       endYear: startYear + 9,
       gz: gz,
+      tianganStem: stems[currentStemIndex],
+      dizhiBranch: branches[currentBranchIndex],
       startDate: new Date(startYear, 0, 1),
       direction: isForward ? '順行' : '逆行'
     });
@@ -460,6 +531,161 @@ function calculateDayunPrecise(lunar, gender, birthYear, birthDate, yearGz, mont
   }
   
   return { dayunList, isForward, startInfo };
+}
+
+// 計算十神統計和強弱分析 - 支持特定大运或整体分析
+function calculateTenGodStats(dayunList, dayStem, currentAge, specificDayunIndex = null) {
+  const tianganStats = {};
+  const dizhiStats = {};
+  let totalStrength = 0;
+  let validCount = 0;
+  
+  let relevantDayun;
+  
+  if (specificDayunIndex !== null) {
+    // 分析特定大运
+    relevantDayun = [dayunList[specificDayunIndex]].filter(d => d);
+  } else {
+    // 分析当前人生阶段的大运（从当前年龄开始的未来40年）
+    relevantDayun = dayunList.filter(d => 
+      d.startAge <= currentAge + 40 && d.startAge + 9 >= currentAge
+    );
+  }
+  
+  relevantDayun.forEach(dayun => {
+    if (dayun.tianganStem && dayun.dizhiBranch) {
+      // 天干十神統計
+      const tianganTenGod = getTenGod(dayStem, dayun.tianganStem);
+      if (tianganTenGod) {
+        tianganStats[tianganTenGod] = (tianganStats[tianganTenGod] || 0) + 1;
+        totalStrength += tenGodStrength[tianganTenGod] || 50;
+        validCount++;
+      }
+      
+      // 地支十神統計（轉換為對應天干）
+      const dizhiStem = branchToStemMap[dayun.dizhiBranch];
+      if (dizhiStem) {
+        const dizhiTenGod = getTenGod(dayStem, dizhiStem);
+        if (dizhiTenGod) {
+          dizhiStats[dizhiTenGod] = (dizhiStats[dizhiTenGod] || 0) + 1;
+          totalStrength += (tenGodStrength[dizhiTenGod] || 50) * 0.7; // 地支影響權重較小
+          validCount++;
+        }
+      }
+    }
+  });
+  
+  const avgStrength = validCount > 0 ? totalStrength / validCount : 50;
+  
+  return {
+    tianganStats,
+    dizhiStats,
+    avgStrength,
+    relevantCount: relevantDayun.length,
+    isSpecificDayun: specificDayunIndex !== null,
+    dayunInfo: specificDayunIndex !== null ? dayunList[specificDayunIndex] : null
+  };
+}
+
+// 渲染十神統計
+function renderTenGodStats(tianganStats, dizhiStats, avgStrength, statsResult = null) {
+  // 更新統計面板標題
+  const statsTitle = document.querySelector('.stats-panel h4');
+  if (statsResult && statsResult.isSpecificDayun && statsResult.dayunInfo) {
+    const dayun = statsResult.dayunInfo;
+    statsTitle.textContent = `大運十神強弱統計（第${dayun.index}步：${dayun.startAge}-${dayun.startAge + 9}歲 ${dayun.gz}）`;
+  } else {
+    statsTitle.textContent = `大運十神強弱統計（當前人生階段）`;
+  }
+  
+  // 渲染天干統計
+  const tianganContainer = document.getElementById('tianganStats');
+  tianganContainer.innerHTML = '';
+  
+  const allTenGods = ['正印', '偏印', '比肩', '劫財', '食神', '傷官', '正財', '偏財', '正官', '七殺'];
+  
+  allTenGods.forEach(tenGod => {
+    const count = tianganStats[tenGod] || 0;
+    const strength = tenGodStrength[tenGod] || 50;
+    
+    const item = document.createElement('div');
+    item.className = 'stat-item';
+    item.innerHTML = `
+      <span>${tenGod}</span>
+      <div style="display: flex; align-items: center;">
+        <span class="stat-value">${count}</span>
+        <div class="strength-meter">
+          <div class="strength-fill ${getStrengthClass(strength)}" style="width: ${strength}%"></div>
+        </div>
+      </div>
+    `;
+    tianganContainer.appendChild(item);
+  });
+  
+  // 渲染地支統計
+  const dizhiContainer = document.getElementById('dizhiStats');
+  dizhiContainer.innerHTML = '';
+  
+  allTenGods.forEach(tenGod => {
+    const count = dizhiStats[tenGod] || 0;
+    const strength = (tenGodStrength[tenGod] || 50) * 0.7;
+    
+    const item = document.createElement('div');
+    item.className = 'stat-item';
+    item.innerHTML = `
+      <span>${tenGod}</span>
+      <div style="display: flex; align-items: center;">
+        <span class="stat-value">${count}</span>
+        <div class="strength-meter">
+          <div class="strength-fill ${getStrengthClass(strength)}" style="width: ${strength}%"></div>
+        </div>
+      </div>
+    `;
+    dizhiContainer.appendChild(item);
+  });
+  
+  // 更新整體強弱評估
+  updateOverallStrength(avgStrength);
+}
+
+function getStrengthClass(strength) {
+  if (strength >= 85) return 'strength-very-strong';
+  if (strength >= 70) return 'strength-strong';
+  if (strength >= 50) return 'strength-mid';
+  return 'strength-weak';
+}
+
+function updateOverallStrength(avgStrength) {
+  const scoreEl = document.getElementById('overallScore');
+  const descEl = document.getElementById('strengthDesc');
+  
+  let level, description, color;
+  
+  if (avgStrength >= 85) {
+    level = '極佳';
+    color = '#2d5a2d';
+    description = '十神配置極為有利，大運走勢非常理想。事業財運皆有良好發展，人生運勢呈上升趨勢，把握機會可獲得重大成就。';
+  } else if (avgStrength >= 70) {
+    level = '良好';
+    color = '#4a6741';
+    description = '十神配置整體良好，大運走勢穩定向上。多數時期運勢平順，有望在事業或財運方面取得不錯的進展。';
+  } else if (avgStrength >= 50) {
+    level = '平穩';
+    color = '#8a6b2f';
+    description = '十神配置趨於平衡，大運走勢中等。運勢起伏不大，需要通過努力和智慧來創造機會，穩步前進。';
+  } else if (avgStrength >= 35) {
+    level = '需謹慎';
+    color = '#a0522d';
+    description = '十神配置偏弱，大運中有挑戰性階段。需要更加謹慎處事，避免冒險投資，通過踏實努力來度過困難期。';
+  } else {
+    level = '挑戰較大';
+    color = '#8b4513';
+    description = '十神配置存在較大挑戰，大運走勢需特別注意。建議保守穩健，避免重大決策，通過學習提升來改善運勢。';
+  }
+  
+  scoreEl.textContent = `${level} (${avgStrength.toFixed(0)}分)`;
+  scoreEl.style.color = color;
+  descEl.textContent = description;
 }
 
 /* main */
@@ -588,6 +814,7 @@ document.getElementById('genBtn').addEventListener('click', () => {
   
   // 確定當前大運（用於高亮顯示）
   const currentYear = new Date().getFullYear();
+  const currentAge = currentYear - birthYear;
   let currentDayunIndex = 0;
   for (let i = 0; i < dayunList.length; i++) {
     const d = dayunList[i];
@@ -600,20 +827,59 @@ document.getElementById('genBtn').addEventListener('click', () => {
   }
   
   dayunList.forEach((d, index) => {
-    const ten = getTenGod(dayStem, s(d.gz)[0]) || '—';
+    const tianganTen = getTenGod(dayStem, d.tianganStem) || '—';
+    const dizhiStem = branchToStemMap[d.dizhiBranch];
+    const dizhiTen = dizhiStem ? getTenGod(dayStem, dizhiStem) || '—' : '—';
+    
     const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    
     if (index === currentDayunIndex) {
       tr.className = 'highlight';
     }
-    tr.innerHTML = `<td>${d.index}</td><td>${d.startAge}</td><td class="biggz">${d.gz}</td><td>${ten}</td><td>${d.startYear || '—'}</td><td>${d.endYear || '—'}</td><td class="small">${d.direction}</td>`;
+    
+    // 添加點擊事件
+    tr.addEventListener('click', () => {
+      // 移除所有高亮
+      document.querySelectorAll('#dayunTable tbody tr').forEach(row => {
+        row.classList.remove('highlight');
+      });
+      // 高亮當前選中的行
+      tr.classList.add('highlight');
+      
+      // 更新流年表格
+      renderLiuNianForDayun(d, index, dayStem, birthYear);
+      
+      // 更新十神統計分析
+      const specificStats = calculateTenGodStats(dayunList, dayStem, currentAge, index);
+      renderTenGodStats(specificStats.tianganStats, specificStats.dizhiStats, specificStats.avgStrength, specificStats);
+      
+      // 更新流年標題
+      const currentYearForTitle = new Date().getFullYear();
+      let titleSuffix;
+      if (currentYearForTitle >= d.startYear && currentYearForTitle <= d.endYear) {
+        titleSuffix = `（當前大運 第${d.index}步）`;
+      } else if (currentYearForTitle < d.startYear) {
+        titleSuffix = `（未來大運 第${d.index}步）`;
+      } else {
+        titleSuffix = `（過去大運 第${d.index}步）`;
+      }
+      
+      document.querySelector('#liunianTable').parentElement.querySelector('h4').textContent = 
+        `流年（${d.startAge}-${d.startAge + 9}歲）${titleSuffix}`;
+    });
+    
+    tr.innerHTML = `<td>${d.index}</td><td>${d.startAge}</td><td class="biggz">${d.gz}</td><td>${tianganTen}</td><td>${dizhiTen}</td><td>${d.startYear || '—'}</td><td>${d.endYear || '—'}</td><td class="small">${d.direction}</td>`;
     dayunTbody.appendChild(tr);
   });
 
   // 渲染流年
-  function renderLiuNianForDayun(d) {
+  function renderLiuNianForDayun(d, dayunIndex, dayStem, birthYear) {
     const liuTbody = document.querySelector('#liunianTable tbody');
     liuTbody.innerHTML = '';
     const startYear = Number(d.startYear);
+    const currentYear = new Date().getFullYear();
+    
     for (let i = 0; i < 10; i++) {
       const y = startYear + i;
       let yGz = '—';
@@ -640,11 +906,19 @@ document.getElementById('genBtn').addEventListener('click', () => {
     }
   }
 
-  // 渲染當前大運的流年
-  renderLiuNianForDayun(dayunList[currentDayunIndex]);
+// 渲染當前大運的流年
+  renderLiuNianForDayun(dayunList[currentDayunIndex], currentDayunIndex, dayStem, birthYear);
 
-  // 儲存狀態
-  window._bazi_state = { dayunList, solar, lunar, dayStem, birthYear, currentDayunIndex, startInfo };
+  // 計算並渲染十神統計（初始显示整体分析）
+  const tenGodStatsResult = calculateTenGodStats(dayunList, dayStem, currentAge);
+  renderTenGodStats(tenGodStatsResult.tianganStats, tenGodStatsResult.dizhiStats, tenGodStatsResult.avgStrength, tenGodStatsResult);
+
+  debug.push(`\n=== 十神強弱分析 ===`);
+  debug.push(`分析範圍：當前年齡 ${currentAge} 歲，未來40年大運`);
+  debug.push(`相關大運數量：${tenGodStatsResult.relevantCount} 步`);
+  debug.push(`整體強弱評分：${tenGodStatsResult.avgStrength.toFixed(1)} 分`);
+
+  window._bazi_state = { dayunList, solar, lunar, dayStem, birthYear, currentDayunIndex, startInfo, currentAge };
 
   document.getElementById('debug').textContent = debug.join('\n');
 });
@@ -653,7 +927,7 @@ document.getElementById('genBtn').addEventListener('click', () => {
 document.getElementById('showFullBtn').addEventListener('click', () => {
   const state = window._bazi_state;
   if (!state) { alert('請先生成命盤'); return; }
-  const { dayunList, solar, dayStem } = state;
+  const { dayunList, solar, dayStem, currentAge } = state;
   const startYear = dayunList[0].startYear;
   const endYear = solar.getYear() + 100;
   const currentYear = new Date().getFullYear();
@@ -684,7 +958,17 @@ document.getElementById('showFullBtn').addEventListener('click', () => {
     tr.innerHTML = `<td>${y}</td><td>${yGz}</td><td>${(y - solar.getYear())}</td><td>${ten}</td><td>${luck}</td>`;
     liuTbody.appendChild(tr);
   }
-  document.querySelector('#board .panel h4').textContent = '流年（完整人生直到 +100 歲）';
+  
+  // 重置所有大運表格的高亮
+  document.querySelectorAll('#dayunTable tbody tr').forEach(row => {
+    row.classList.remove('highlight');
+  });
+  
+  // 恢復整體十神分析
+  const overallStats = calculateTenGodStats(dayunList, dayStem, currentAge);
+  renderTenGodStats(overallStats.tianganStats, overallStats.dizhiStats, overallStats.avgStrength, overallStats);
+  
+  document.querySelector('#liunianTable').parentElement.querySelector('h4').textContent = '流年（完整人生直到 +100 歲）';
 });
 
 // download PNG
@@ -697,13 +981,13 @@ document.getElementById('downloadBtn').addEventListener('click', () => {
   
   // 獲取生日資訊作為檔名
   const birthInput = document.getElementById('birth').value;
-  let filename = 'bazi.png';
+  let filename = 'bazi_enhanced.png';
   if (birthInput) {
     const dt = new Date(birthInput);
     const year = dt.getFullYear();
     const month = String(dt.getMonth() + 1).padStart(2, '0');
     const day = String(dt.getDate()).padStart(2, '0');
-    filename = `bazi_${year}${month}${day}.png`;
+    filename = `bazi_enhanced_${year}${month}${day}.png`;
   }
   
   const dbg = document.querySelector('.debug');

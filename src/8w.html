@@ -172,7 +172,7 @@ th{background:#fff6e6}
 </div>
 
 <!-- lunar-javascript + html2canvas -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.6.12/lunar.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.7.3/lunar.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
@@ -274,6 +274,7 @@ function getJieQiForYear(year) {
   
   try {
     // 使用 lunar-javascript 的正確方法獲取節氣
+    // 遍歷整年的每一天，獲取節氣信息
     for (let month = 1; month <= 12; month++) {
       for (let day = 1; day <= 31; day++) {
         try {
@@ -283,8 +284,10 @@ function getJieQiForYear(year) {
           const lunar = solar.getLunar();
           if (!lunar) continue;
           
+          // 檢查這一天是否為節氣
           const jieQi = lunar.getJieQi();
           if (jieQi) {
+            // 找到節氣日
             jieQiList.push({
               name: jieQi,
               date: new Date(year, month - 1, day),
@@ -292,20 +295,24 @@ function getJieQiForYear(year) {
             });
           }
         } catch (e) {
+          // 忽略無效日期（如2月30日）
           continue;
         }
       }
     }
     
+    // 如果還是沒有找到足夠的節氣，嘗試另一種方法
     if (jieQiList.length < 20) {
       console.log('第一種方法獲取的節氣數量不足，嘗試第二種方法');
       jieQiList = [];
       
+      // 方法2：使用更直接的方式
       for (let month = 1; month <= 12; month++) {
         try {
           const solar = Solar.fromYmd(year, month, 15);
           const lunar = solar.getLunar();
           
+          // 嘗試獲取該月的節氣表
           if (lunar.getJieQiTable) {
             const jieQiTable = lunar.getJieQiTable();
             Object.keys(jieQiTable).forEach(jqName => {
@@ -325,6 +332,7 @@ function getJieQiForYear(year) {
       }
     }
     
+    // 方法3：如果以上方法都不行，嘗試從年度對象直接獲取
     if (jieQiList.length < 20) {
       console.log('第二種方法也不夠，嘗試第三種方法');
       try {
@@ -353,12 +361,14 @@ function getJieQiForYear(year) {
     console.error('獲取節氣時發生錯誤:', e);
   }
   
+  // 如果所有方法都失敗，拋出錯誤而不是使用近似值
   if (jieQiList.length === 0) {
     throw new Error(`無法獲取 ${year} 年的節氣數據，請檢查 lunar-javascript 庫版本`);
   }
   
   console.log(`成功獲取 ${year} 年的 ${jieQiList.length} 個節氣`);
   
+  // 去除重複並按日期排序
   const uniqueJieQi = [];
   const seen = new Set();
   jieQiList.forEach(jq => {
@@ -380,15 +390,18 @@ function calculatePreciseStartAge(birthDate, yearStem, gender) {
   const yangStems = ['甲', '丙', '戊', '庚', '壬'];
   const isYearStemYang = yangStems.includes(yearStem);
   
+  // 判斷順逆行
   const isForward = (isMale && isYearStemYang) || (!isMale && !isYearStemYang);
   
   try {
+    // 獲取出生年份和前後年份的節氣
     const jieQiThisYear = getJieQiForYear(birthYear);
     const jieQiNextYear = getJieQiForYear(birthYear + 1);
     const jieQiPrevYear = getJieQiForYear(birthYear - 1);
     
+    // 合併所有節氣並排序
     const allJieQi = [...jieQiPrevYear, ...jieQiThisYear, ...jieQiNextYear]
-      .filter(jq => jq && jq.date && jq.name)
+      .filter(jq => jq && jq.date && jq.name) // 確保數據完整
       .sort((a, b) => a.date - b.date);
     
     let targetJieQi = null;
@@ -400,6 +413,7 @@ function calculatePreciseStartAge(birthDate, yearStem, gender) {
     console.log('順逆行:', isForward ? '順行' : '逆行');
     
     if (isForward) {
+      // 順行：找下一個節氣
       targetJieQi = allJieQi.find(jq => jq.date > birthDate);
       if (targetJieQi) {
         distanceDays = Math.ceil((targetJieQi.date - birthDate) / (1000 * 60 * 60 * 24));
@@ -428,6 +442,7 @@ function calculatePreciseStartAge(birthDate, yearStem, gender) {
       }
     }
     
+    // 計算起運歲數：3天為1歲，不足3天按1歲計算
     let startAge = 0;
     if (distanceDays > 0) {
       startAge = Math.max(1, Math.ceil(distanceDays / 3));
@@ -451,6 +466,7 @@ function calculatePreciseStartAge(birthDate, yearStem, gender) {
   } catch (error) {
     console.error('節氣計算失敗:', error);
     
+    // 如果節氣計算完全失敗，給出明確的錯誤信息
     return {
       startAge: 0,
       isForward,
@@ -468,13 +484,16 @@ function calculateDayunPrecise(lunar, gender, birthYear, birthDate, yearGz, mont
   const monthStem = s(monthGz)[0] || '';
   const monthBranch = s(monthGz)[1] || '';
   
+  // 使用精確計算獲取起運資訊
   const startInfo = calculatePreciseStartAge(birthDate, yearStem, gender);
   const { startAge, isForward } = startInfo;
   
+  // 從月柱開始排大運
   const dayunList = [];
   let currentStemIndex = stems.indexOf(monthStem);
   let currentBranchIndex = branches.indexOf(monthBranch);
   
+  // 第一步大運應該是月柱的下一柱（順行）或上一柱（逆行）
   if (isForward) {
     currentStemIndex = (currentStemIndex + 1) % 10;
     currentBranchIndex = (currentBranchIndex + 1) % 12;
@@ -501,6 +520,7 @@ function calculateDayunPrecise(lunar, gender, birthYear, birthDate, yearGz, mont
       direction: isForward ? '順行' : '逆行'
     });
     
+    // 繼續排下一個大運
     if (isForward) {
       currentStemIndex = (currentStemIndex + 1) % 10;
       currentBranchIndex = (currentBranchIndex + 1) % 12;
@@ -773,7 +793,7 @@ document.getElementById('genBtn').addEventListener('click', () => {
   debug.push(`日干（日主）：${dayStem || '—'}  日支：${dayBranch || '—'}`);
   debug.push(`年干：${s(yearGz)[0] || '—'}  月干：${s(monthGz)[0] || '—'}`);
 
-  // 使用精確大運計算
+  // ---------- 使用精確大運計算 ----------
   const { dayunList, isForward, startInfo } = calculateDayunPrecise(lunar, gender, birthYear, dt, yearGz, monthGz);
   
   debug.push(`\n=== 精確起運計算 ===`);
@@ -792,6 +812,7 @@ document.getElementById('genBtn').addEventListener('click', () => {
   const dayunTbody = document.querySelector('#dayunTable tbody');
   dayunTbody.innerHTML = '';
   
+  // 確定當前大運（用於高亮顯示）
   const currentYear = new Date().getFullYear();
   const currentAge = currentYear - birthYear;
   let currentDayunIndex = 0;
@@ -873,6 +894,7 @@ document.getElementById('genBtn').addEventListener('click', () => {
       const luck = tenLuck[ten] || '中';
       const tr = document.createElement('tr');
       
+      // 高亮當前年份
       if (y === currentYear) {
         tr.className = (luck === '吉') ? 'ok highlight' : (luck === '凶') ? 'bad highlight' : 'mid highlight';
       } else {
@@ -884,6 +906,7 @@ document.getElementById('genBtn').addEventListener('click', () => {
     }
   }
 
+// 渲染當前大運的流年
   renderLiuNianForDayun(dayunList[currentDayunIndex], currentDayunIndex, dayStem, birthYear);
 
   // 計算並渲染十神統計（初始显示整体分析）
@@ -925,6 +948,7 @@ document.getElementById('showFullBtn').addEventListener('click', () => {
     const luck = tenLuck[ten] || '中';
     const tr = document.createElement('tr');
     
+    // 高亮當前年份
     if (y === currentYear) {
       tr.className = (luck === '吉') ? 'ok highlight' : (luck === '凶') ? 'bad highlight' : 'mid highlight';
     } else {
@@ -955,6 +979,7 @@ document.getElementById('downloadBtn').addEventListener('click', () => {
   const state = window._bazi_state;
   if (!state) { alert('請先生成命盤'); return; }
   
+  // 獲取生日資訊作為檔名
   const birthInput = document.getElementById('birth').value;
   let filename = 'bazi_enhanced.png';
   if (birthInput) {
