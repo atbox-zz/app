@@ -1,0 +1,961 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="免費八字命盤生成工具，提供精確節氣計算與十神強弱分析，生成個人化四柱、大運與流年報告。">
+  <meta name="keywords" content="八字, 命盤, 大運, 流年, 十神, 節氣計算">
+  <meta property="og:title" content="八字命盤生成器">
+  <meta property="og:description" content="生成個人化八字命盤，包含四柱、大運、流年和十神分析。">
+  <meta property="og:type" content="website">
+  <title>八字大運與流年 - 精確節氣計算 + 十神強弱分析</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#fbf7ec;--panel:#fffaf0;--card:#fffdf6;--accent:#cfa85a;--muted:#8a6b2f;--line:#e6d6a9;--ok:#d7f7d7;--bad:#f7d7d7;--mid:#efefef;--text:#222;--shadow:0 12px 30px rgba(0,0,0,0.06)}
+    html,body{height:100%;margin:0;background:var(--bg);font-family:'Noto Sans TC',system-ui,-apple-system,'Segoe UI',Roboto,Arial;color:var(--text)}
+    .wrap{max-width:1200px;margin:18px auto;padding:18px;background:linear-gradient(180deg,var(--card),#ffffff);border-radius:12px;box-shadow:var(--shadow)}
+    h1{margin:0 0 12px;font-size:20px;text-align:center}
+    .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:12px}
+    .col{flex:1;min-width:160px}
+    label{display:block;font-size:13px;color:#444;margin-bottom:6px}
+    input[type="text"], input[type="datetime-local"], select {width:80%;padding:10px;border:1px solid var(--line);border-radius:8px;background:white;font-size:14px;box-sizing:border-box}
+    button{padding:10px 14px;border-radius:8px;border:none;background:var(--accent);color:white;font-weight:700;cursor:pointer}
+    button.secondary{background:#8a6b2f}
+    .board{display:none;margin-top:12px;background:var(--panel);padding:14px;border-radius:12px;border:1px solid var(--line)}
+    .toprow{display:flex;gap:12px;align-items:stretch}
+    .pillars{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .pillar{background:linear-gradient(180deg,#fff,#fff8e6);border:2px solid rgba(210,170,90,0.18);border-radius:10px;padding:18px;text-align:center;display:flex;flex-direction:column;justify-content:center;min-height:180px;box-shadow:0 6px 18px rgba(0,0,0,0.04)}
+    .pillar .label{font-size:13px;color:#6b4f2a}
+    .pillar .ten{font-size:13px;color:var(--muted);margin-top:6px}
+    .pillar .gz{font-size:50px;font-weight:900;letter-spacing:8px;margin-top:6px;color:#2b2b1b}
+    .pillar .hidden{font-size:13px;color:#4b3a1a;margin-top:8px}
+    .pillar .ten-branch{font-size:13px;color:var(--muted);margin-top:6px}
+    .info{width:320px;background:white;border:1px solid var(--line);border-radius:10px;padding:14px}
+    .info h3{margin:0 0 8px;font-size:15px}
+    .info pre{margin:0;font-size:13px;white-space:pre-wrap}
+    .meta{display:flex;gap:12px;margin-top:12px}
+    .card{flex:1;background:white;padding:12px;border-radius:10px;border:1px solid var(--line)}
+    .card strong{display:block;margin-bottom:8px}
+    .area{display:flex;gap:12px;margin-top:12px;align-items:flex-start}
+    .panel{flex:1;background:white;padding:12px;border-radius:10px;border:1px solid var(--line)}
+    .panel h4{margin:0 0 8px;font-size:15px}
+    table{width:100%;border-collapse:collapse}
+    th,td{border:1px solid var(--line);padding:8px;font-size:13px;text-align:center}
+    th{background:#fff6e6}
+    #dayunTable tbody tr{cursor:pointer;transition:background-color 0.2s ease}
+    #dayunTable tbody tr:hover{background-color:#fff8e6}
+    .biggz{font-weight:900;font-size:16px;color:#3b2b1a}
+    .ok{background:var(--ok)}
+    .bad{background:var(--bad)}
+    .mid{background:var(--mid)}
+    .small{font-size:12px}
+    .footer{font-size:12px;color:#666;text-align:right;margin-top:12px}
+    .highlight{background-color:#fff3cd;font-weight:bold}
+    .stats-area{display:flex;gap:12px;margin-top:12px;align-items:flex-start}
+    .stats-panel{flex:1;background:white;padding:12px;border-radius:10px;border:1px solid var(--line)}
+    .stats-panel h4{margin:0 0 12px;font-size:15px;color:#2b2b1a}
+    .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .stat-category{background:#fafafa;padding:10px;border-radius:8px;border:1px solid #e6d6a9}
+    .stat-category h5{margin:0 0 8px;font-size:14px;color:#6b4f2a}
+    .stat-item{display:flex;justify-content:space-between;align-items:center;margin:4px 0;font-size:13px}
+    .stat-value{font-weight:bold;color:#2b2b1a}
+    .strength-meter{width:60px;height:8px;background:#e6d6a9;border-radius:4px;overflow:hidden;margin-left:8px}
+    .strength-fill{height:100%;transition:width 0.3s ease;border-radius:4px}
+    .strength-weak{background:#f7d7d7}
+    .strength-mid{background:#efefef}
+    .strength-strong{background:#d7f7d7}
+    .strength-very-strong{background:#b8e6b8}
+    .overall-strength{margin-top:12px;padding:12px;background:linear-gradient(135deg,#fff6e6,#fff);border:2px solid rgba(207,168,90,0.3);border-radius:10px;text-align:center}
+    .overall-strength h5{margin:0 0 8px;font-size:16px;color:#6b4f2a}
+    .strength-score{font-size:24px;font-weight:900;margin:8px 0}
+    .strength-description{font-size:13px;color:#666;line-height:1.4}
+    #errorPanel, #debugPanel{display:none;background:#f7d7d7;padding:12px;border-radius:8px;margin-bottom:12px;font-size:13px;color:#8b4513}
+    #debugPanel button{background:#8a6b2f;color:white;padding:8px;border-radius:8px;border:none;cursor:pointer;margin-top:8px}
+    @media (max-width:980px){
+      .pillars{grid-template-columns:repeat(4,1fr) !important}
+      .info{width:100%}
+      .toprow{flex-direction:column}
+      .area{flex-direction:column}
+      .stats-area{flex-direction:column}
+      .stats-grid{grid-template-columns:1fr}
+      #dayunTable thead tr, #dayunTable tbody tr {display: block;}
+      #dayunTable thead {display: none;}
+      #dayunTable td {display: block; text-align:left;}
+      #errorPanel, #debugPanel {font-size:12px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>八字命盤 — 節氣起運計算 + 十神強弱分析</h1>
+    <div id="errorPanel">
+      <h4>錯誤訊息</h4>
+      <div id="errorMessages"></div>
+    </div>
+    <div id="debugPanel">
+      <h4>除錯訊息</h4>
+      <div id="debugMessages"></div>
+      <button id="clearDebugBtn">清除除錯訊息</button>
+    </div>
+    <div class="controls">
+      <div class="col" style="flex:0 0 160px"><label for="name">姓名</label><input id="name" type="text" value="寒露" maxlength="8" placeholder="最多8個字"></div>
+      <div class="col" style="flex:0 0 80px"><label for="gender">性別</label><select id="gender"><option value="男">男</option><option value="女">女</option></select></div>
+      <div class="col" style="flex:1"><label for="birth">出生（公曆）</label><input id="birth" type="datetime-local" value="1968-10-30T18:30"></div>
+      <div class="col" style="flex:0 0 120px"><label for="lang">語言</label><select id="lang"><option value="zh-TW">正體中文</option><option value="zh-CN">簡體中文</option><option value="en">English</option></select></div>
+      <button id="genBtn">生成命盤</button>
+      <button id="downloadBtn" class="secondary">下載 PNG</button>
+      <button id="showFullBtn">顯示完整人生（到100歲）</button>
+      <button id="toggleDebugBtn" class="secondary">顯示/隱藏除錯面板</button>
+    </div>
+    <div class="board" id="board">
+      <div class="toprow">
+        <div class="pillars" id="pillars">
+          <div class="pillar"><div class="label">年柱</div><div class="ten" id="ten_year">—</div><div class="gz" id="gz_year">—</div><div class="ten-branch" id="ten_branch_year">—</div><div class="hidden" id="hid_year">藏干：—</div></div>
+          <div class="pillar"><div class="label">月柱</div><div class="ten" id="ten_month">—</div><div class="gz" id="gz_month">—</div><div class="ten-branch" id="ten_branch_month">—</div><div class="hidden" id="hid_month">藏干：—</div></div>
+          <div class="pillar"><div class="label">日柱</div><div class="ten" id="ten_day">日主</div><div class="gz" id="gz_day">—</div><div class="ten-branch" id="ten_branch_day">—</div><div class="hidden" id="hid_day">藏干：—</div></div>
+          <div class="pillar"><div class="label">時柱</div><div class="ten" id="ten_time">—</div><div class="gz" id="gz_time">—</div><div class="ten-branch" id="ten_branch_time">—</div><div class="hidden" id="hid_time">藏干：—</div></div>
+        </div>
+        <div class="info">
+          <h3 class="basic-title">基本資訊</h3>
+          <pre id="basic">—</pre>
+          <div style="height:8px"></div>
+          <h3 class="extras-title">補充資訊</h3>
+          <pre id="extras">—</pre>
+        </div>
+      </div>
+      <div class="meta">
+        <div class="card"><strong>五行統計 & 日主</strong><pre id="wx">—</pre><canvas id="fiveChart" height="150"></canvas></div>
+        <div class="card"><strong>納音用神格局</strong><pre id="nayinYongshen">—</pre></div>
+      </div>
+      <div class="area">
+        <div class="panel"><h4>大運（節氣計算）</h4>
+          <table id="dayunTable">
+            <thead><tr><th>序</th><th>起運年齡</th><th>干支</th><th>天干十神</th><th>地支十神</th><th>起運年</th><th>止運年</th><th>順逆</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <canvas id="dayunChart" height="200"></canvas>
+        </div>
+        <div class="panel"><h4>流年（僅顯示「當前大運」的 10 年）</h4>
+          <table id="liunianTable">
+            <thead><tr><th>西元</th><th>干支</th><th>年齡</th><th>十神</th><th>吉凶</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <canvas id="liunianChart" height="200"></canvas>
+        </div>
+      </div>
+      <div class="stats-area">
+        <div class="stats-panel">
+          <h4>大運十神強弱統計（當前人生階段）</h4>
+          <div class="stats-grid">
+            <div class="stat-category"><h5>天干十神統計</h5><div id="tianganStats"></div></div>
+            <div class="stat-category"><h5>地支十神統計</h5><div id="dizhiStats"></div></div>
+          </div>
+          <div class="overall-strength">
+            <h5>整體十神強弱等級評估</h5>
+            <div class="strength-score" id="overallScore">—</div>
+            <div class="strength-description" id="strengthDesc">請先生成命盤以查看詳細分析</div>
+          </div>
+        </div>
+      </div>
+      <div class="footer">資料來源：lunar-javascript（CDN）· 節氣起運算法 + 十神強弱分析</div>
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.7.3/lunar.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/i18next@23.11.5/dist/umd/i18next.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 確認 debugPanel 存在
+      const debugPanel = document.getElementById('debugPanel');
+      if (!debugPanel) {
+        console.error('初始化失敗：未找到 debugPanel 元素');
+        return; // 提前退出，防止後續錯誤
+      }
+
+      // 初始化除錯面板狀態
+      debugPanel.style.display = 'none'; // 確保初始隱藏
+      logDebug('頁面載入完成，除錯面板初始化為隱藏狀態');      
+      
+      let fiveChartInstance = null;
+      let dayunChartInstance = null;
+      let liunianChartInstance = null;
+
+      function setTextContent(id, content, context = '未知') {
+        const element = document.getElementById(id);
+        if (element) {
+          element.textContent = content || '—';
+        } else {
+          logError(`未找到 ID 為 "${id}" 的元素（上下文：${context}）`);
+        }
+      }
+
+      function setInnerHTML(id, html, context = '未知') {
+        const element = document.getElementById(id);
+        if (element) {
+          element.innerHTML = html;
+        } else {
+          logError(`未找到 ID 為 "${id}" 的元素（上下文：${context}）`);
+        }
+      }
+      // 優化 logError 函數，同時記錄到除錯面板
+      function logError(message) {
+        const errorMessages = document.getElementById('errorMessages');
+        const errorPanel = document.getElementById('errorPanel');
+        const debugMessages = document.getElementById('debugMessages');
+        const timestamp = `[${new Date().toLocaleString()}] `;
+        if (errorMessages && errorPanel) {
+          const errorItem = document.createElement('div');
+          errorItem.textContent = timestamp + message;
+          errorMessages.appendChild(errorItem);
+          errorPanel.style.display = 'block';
+        }
+        if (debugMessages) {
+          const debugItem = document.createElement('div');
+          debugItem.textContent = timestamp + `錯誤：${message}`;
+          debugMessages.appendChild(debugItem);
+          debugPanel.scrollTop = debugPanel.scrollHeight;
+        }
+        console.warn(message);
+      }
+      // 修正 toggleDebugBtn 事件處理
+      document.getElementById('toggleDebugBtn').addEventListener('click', () => {
+        if (!debugPanel) {
+          logError('未找到 debugPanel 元素（上下文：切換除錯面板）');
+          return;
+        }
+        // 使用更穩定的顯示切換邏輯
+        const isVisible = debugPanel.style.display === 'block';
+        debugPanel.style.display = isVisible ? 'none' : 'block';
+        logDebug(`除錯面板已${isVisible ? '隱藏' : '顯示'}`);
+      });
+
+      // 清除除錯訊息
+      document.getElementById('clearDebugBtn').addEventListener('click', () => {
+        const debugMessages = document.getElementById('debugMessages');
+        if (debugMessages) {
+          debugMessages.innerHTML = '';
+          logDebug('已清除除錯訊息');
+        } else {
+          logError('未找到 debugMessages 元素（上下文：清除除錯訊息）');
+        }
+      });
+
+      function logDebug(message) {
+        const debugMessages = document.getElementById('debugMessages');
+        const debugPanel = document.getElementById('debugPanel');
+        if (debugMessages && debugPanel) {
+          const debugItem = document.createElement('div');
+          debugItem.textContent = `[${new Date().toLocaleString()}] ${message}`;
+          debugMessages.appendChild(debugItem);
+          if (debugPanel.style.display !== 'none') {
+            debugPanel.scrollTop = debugPanel.scrollHeight;
+          }
+        }
+        console.log(message);
+      }
+
+      function checkBoardVisibility() {
+        const board = document.getElementById('board');
+        if (!board || board.style.display === 'none') {
+          logError('命盤區域未顯示，請先點擊「生成命盤」');
+          return false;
+        }
+        return true;
+      }
+
+      i18next.init({
+        lng: 'zh-TW',
+        resources: {
+          'zh-TW': { translation: { title: '八字命盤 — 節氣起運計算 + 十神強弱分析', basic: '基本資訊', extras: '補充資訊', wx: '五行統計 & 日主', nayin: '納音用神格局', dayun: '大運（節氣計算）', liunian: '流年（僅顯示「當前大運」的 10 年）', stats: '大運十神強弱統計（當前人生階段）', generate: '生成命盤', download: '下載 PNG', fullLife: '顯示完整人生（到100歲）', toggleDebug: '顯示/隱藏除錯面板', clearDebug: '清除除錯訊息' } },
+          'zh-CN': { translation: { title: '八字命盘 — 节气起运计算 + 十神强弱分析', basic: '基本信息', extras: '补充信息', wx: '五行统计 & 日主', nayin: '纳音用神格局', dayun: '大运（节气计算）', liunian: '流年（仅显示“当前大运”的 10 年）', stats: '大运十神强弱统计（当前人生阶段）', generate: '生成命盘', download: '下载 PNG', fullLife: '显示完整人生（到100岁）', toggleDebug: '显示/隐藏调试面板', clearDebug: '清除调试信息' } },
+          'en': { translation: { title: 'BaZi Chart — Solar Term Calculation + Ten Gods Analysis', basic: 'Basic Info', extras: 'Additional Info', wx: 'Five Elements & Day Master', nayin: 'Nayin & Yongshen Pattern', dayun: 'Luck Cycles (Solar Term Calculation)', liunian: 'Annual Influences (Current Luck Cycle 10 Years)', stats: 'Luck Cycle Ten Gods Strength Analysis (Current Life Stage)', generate: 'Generate Chart', download: 'Download PNG', fullLife: 'Show Full Life (to 100 Years)', toggleDebug: 'Show/Hide Debug Panel', clearDebug: 'Clear Debug Messages' } }
+        }
+      }).then(() => updateLanguage());
+
+      function updateLanguage() {
+        setTextContent('genBtn', i18next.t('generate'), '更新語言：生成按鈕');
+        setTextContent('downloadBtn', i18next.t('download'), '更新語言：下載按鈕');
+        setTextContent('showFullBtn', i18next.t('fullLife'), '更新語言：完整人生按鈕');
+        setTextContent('toggleDebugBtn', i18next.t('toggleDebug'), '更新語言：除錯按鈕');
+        setTextContent('clearDebugBtn', i18next.t('clearDebug'), '更新語言：清除除錯按鈕');
+        const h1 = document.querySelector('h1');
+        if (h1) h1.textContent = i18next.t('title');
+        else logError('未找到 h1 元素（上下文：更新語言）');
+        const basicH3 = document.querySelector('.info .basic-title');
+        if (basicH3) basicH3.textContent = i18next.t('basic');
+        else logError('未找到基本資訊 h3（上下文：更新語言）');
+        const extrasH3 = document.querySelector('.info .extras-title');
+        if (extrasH3) extrasH3.textContent = i18next.t('extras');
+        else logError('未找到補充資訊 h3（上下文：更新語言）');
+        const wxStrong = document.querySelector('.meta .card strong:first-child');
+        if (wxStrong) wxStrong.textContent = i18next.t('wx');
+        else logError('未找到五行統計 strong（上下文：更新語言）');
+        const nayinStrong = document.querySelector('.meta .card:nth-child(2) strong');
+        if (nayinStrong) nayinStrong.textContent = i18next.t('nayin');
+        else logError('未找到納音用神 strong（上下文：更新語言）');
+        const dayunH4 = document.querySelector('.area .panel h4:first-child');
+        if (dayunH4) dayunH4.textContent = i18next.t('dayun');
+        else logError('未找到大運 h4（上下文：更新語言）');
+        const liunianH4 = document.querySelector('.area .panel:nth-child(2) h4');
+        if (liunianH4) liunianH4.textContent = i18next.t('liunian');
+        else logError('未找到流年 h4（上下文：更新語言）');
+        const statsH4 = document.querySelector('.stats-panel h4');
+        if (statsH4) statsH4.textContent = i18next.t('stats');
+        else logError('未找到統計 h4（上下文：更新語言）');
+      }
+
+      const stems = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+      const branches = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+      const hiddenMap = { '子': '癸', '丑': '己辛癸', '寅': '甲丙戊', '卯': '乙', '辰': '戊乙癸', '巳': '丙戊庚', '午': '丁己', '未': '己丁乙', '申': '庚壬戊', '酉': '辛', '戌': '戊辛丁', '亥': '壬甲' };
+      const xunkongByDayStem = { '甲': ['戌', '亥'], '乙': ['戌', '亥'], '丙': ['午', '未'], '丁': ['午', '未'], '戊': ['寅', '卯'], '己': ['寅', '卯'], '庚': ['子', '丑'], '辛': ['子', '丑'], '壬': ['辰', '巳'], '癸': ['辰', '巳'] };
+      const tenGodMap = (function() {
+        const m = {
+          '甲': ['比肩', '劫財', '食神', '傷官', '偏財', '正財', '七殺', '正官', '偏印', '正印'],
+          '乙': ['劫財', '比肩', '傷官', '食神', '正財', '偏財', '正官', '七殺', '正印', '偏印'],
+          '丙': ['偏印', '正印', '比肩', '劫財', '食神', '傷官', '偏財', '正財', '七殺', '正官'],
+          '丁': ['正印', '偏印', '劫財', '比肩', '傷官', '食神', '正財', '偏財', '正官', '七殺'],
+          '戊': ['七殺', '正官', '偏印', '正印', '比肩', '劫財', '食神', '傷官', '偏財', '正財'],
+          '己': ['正官', '七殺', '正印', '偏印', '劫財', '比肩', '傷官', '食神', '正財', '偏財'],
+          '庚': ['偏財', '正財', '七殺', '正官', '偏印', '正印', '比肩', '劫財', '食神', '傷官'],
+          '辛': ['正財', '偏財', '正官', '七殺', '正印', '偏印', '劫財', '比肩', '傷官', '食神'],
+          '壬': ['傷官', '食神', '偏財', '正財', '七殺', '正官', '偏印', '正印', '比肩', '劫財'],
+          '癸': ['食神', '傷官', '正財', '偏財', '正官', '七殺', '正印', '偏印', '劫財', '比肩']
+        };
+        const o = {};
+        Object.keys(m).forEach(k => { o[k] = {}; for (let i = 0; i < 10; i++) o[k][stems[i]] = m[k][i]; });
+        return o;
+      })();
+      const branchToStemMap = { '子': '癸', '丑': '己', '寅': '甲', '卯': '乙', '辰': '戊', '巳': '丙', '午': '丁', '未': '己', '申': '庚', '酉': '辛', '戌': '戊', '亥': '壬' };
+      const tenLuck = { '正印': '吉', '偏印': '中', '比肩': '中', '劫財': '中', '食神': '吉', '傷官': '凶', '正財': '吉', '偏財': '吉', '正官': '吉', '七殺': '凶' };
+      const tenGodStrength = { '正印': 85, '偏印': 65, '比肩': 70, '劫財': 60, '食神': 80, '傷官': 45, '正財': 88, '偏財': 75, '正官': 90, '七殺': 35 };
+      const map = {
+        '甲': '木', '乙': '木', '丙': '火', '丁': '火', '戊': '土', '己': '土',
+        '庚': '金', '辛': '金', '壬': '水', '癸': '水', '子': '水', '丑': '土',
+        '寅': '木', '卯': '木', '辰': '土', '巳': '火', '午': '火', '未': '土',
+        '申': '金', '酉': '金', '戌': '土', '亥': '水'
+      };
+
+      const nayinTable = {
+        '甲子': '海中金', '乙丑': '海中金', '丙寅': '爐中火', '丁卯': '爐中火', '戊辰': '大林木',
+        '己巳': '大林木', '庚午': '路旁土', '辛未': '路旁土', '壬申': '劍鋒金', '癸酉': '劍鋒金',
+        '甲戌': '山頭火', '乙亥': '山頭火', '丙子': '澗下水', '丁丑': '澗下水', '戊寅': '城頭土',
+        '己卯': '城頭土', '庚辰': '白蠟金', '辛巳': '白蠟金', '壬午': '楊柳木', '癸未': '楊柳木',
+        '甲申': '泉中水', '乙酉': '泉中水', '丙戌': '屋上土', '丁亥': '屋上土', '戊子': '霹靂火',
+        '己丑': '霹靂火', '庚寅': '松柏木', '辛卯': '松柏木', '壬辰': '長流水', '癸巳': '長流水',
+        '甲午': '沙中金', '乙未': '沙中金', '丙申': '山下火', '丁酉': '山下火', '戊戌': '平地木',
+        '己亥': '平地木', '庚子': '壁上土', '辛丑': '壁上土', '壬寅': '金箔金', '癸卯': '金箔金',
+        '甲辰': '覆燈火', '乙巳': '覆燈火', '丙午': '天河水', '丁未': '天河水', '戊申': '大驛土',
+        '己酉': '大驛土', '庚戌': '釵釧金', '辛亥': '釵釧金', '壬子': '桑柘木', '癸丑': '桑柘木',
+        '甲寅': '大溪水', '乙卯': '大溪水', '丙辰': '沙中土', '丁巳': '沙中土', '戊午': '天上火',
+        '己未': '天上火', '庚申': '石榴木', '辛酉': '石榴木', '壬戌': '大海水', '癸亥': '大海水'
+      };
+
+      function getNayinAndYongshen(dayGz) {
+        if (!dayGz || dayGz.length < 2) return { nayin: '—', yongshen: '—' };
+        const nayin = nayinTable[dayGz] || '—';
+        let yongshen = '—';
+        const fiveElement = nayin.includes('金') ? '金' : nayin.includes('木') ? '木' : nayin.includes('水') ? '水' : nayin.includes('火') ? '火' : '土';
+        if (fiveElement === '金') yongshen = '喜火克制，忌水生旺，土為次喜';
+        else if (fiveElement === '木') yongshen = '喜水生扶，忌金克制，火為次喜';
+        else if (fiveElement === '水') yongshen = '喜木生扶，忌土克制，金為次喜';
+        else if (fiveElement === '火') yongshen = '喜木生扶，忌水克制，土為次喜';
+        else if (fiveElement === '土') yongshen = '喜火生扶，忌木克制，水為次喜';
+        return { nayin, yongshen };
+      }
+
+      function sanitizeInput(input) {
+        const div = document.createElement('div');
+        div.textContent = input;
+        return div.innerHTML.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      function westernZodiac(m, d) {
+        const table = [
+          { name: '摩羯', start: [12, 22] }, { name: '水瓶', start: [1, 20] }, { name: '雙魚', start: [2, 19] },
+          { name: '牡羊', start: [3, 21] }, { name: '金牛', start: [4, 21] }, { name: '雙子', start: [5, 21] },
+          { name: '巨蟹', start: [6, 22] }, { name: '獅子', start: [7, 23] }, { name: '處女', start: [8, 23] },
+          { name: '天秤', start: [9, 23] }, { name: '天蠍', start: [10, 24] }, { name: '射手', start: [11, 23] }
+        ];
+        for (let i = 0; i < table.length; i++) {
+          const [mm, dd] = table[i].start;
+          if ((m === mm && d >= dd) || (m === ((mm % 12) + 1) && d < table[(i + 1) % 12].start[1])) return table[i].name;
+        }
+        return '';
+      }
+
+      function shiftArr(arr, item, step) {
+        const idx = arr.indexOf(item);
+        if (idx === -1) return '';
+        return arr[(idx + step + arr.length) % arr.length];
+      }
+
+      function getTenGod(dayStem, otherStem) {
+        if (!dayStem || !otherStem) return '';
+        return (tenGodMap[dayStem] && tenGodMap[dayStem][otherStem]) || '';
+      }
+
+      function s(x) { return x == null ? '' : String(x); }
+
+      const jieQiCache = {};
+      function getJieQiForYear(year) {
+        if (jieQiCache[year]) return jieQiCache[year];
+        try {
+          const solar = Solar.fromYmd(year, 6, 15);
+          const lunar = solar.getLunar();
+          const jieQiTable = lunar.getJieQiTable();
+          const jieQiList = Object.entries(jieQiTable)
+            .filter(([_, jq]) => jq.getYear() === year)
+            .map(([name, jq]) => ({
+              name,
+              date: new Date(jq.getYear(), jq.getMonth() - 1, jq.getDay(), jq.getHour(), jq.getMinute()),
+              solar: jq
+            }))
+            .sort((a, b) => a.date - b.date);
+          jieQiCache[year] = jieQiList;
+          return jieQiList;
+        } catch (e) {
+          logError(`獲取 ${year} 年節氣失敗: ${e.message}`);
+          return [];
+        }
+      }
+
+      function calculatePreciseStartAge(birthDate, yearStem, gender) {
+        const birthYear = birthDate.getFullYear();
+        const isMale = (gender === '男');
+        const yangStems = ['甲', '丙', '戊', '庚', '壬'];
+        const isForward = (isMale && yangStems.includes(yearStem)) || (!isMale && !yangStems.includes(yearStem));
+        const jieQiThisYear = getJieQiForYear(birthYear);
+        const jieQiNextYear = getJieQiForYear(birthYear + 1);
+        const jieQiPrevYear = getJieQiForYear(birthYear - 1);
+        const allJieQi = [...jieQiPrevYear, ...jieQiThisYear, ...jieQiNextYear].sort((a, b) => a.date - b.date);
+        let targetJieQi = null;
+        let distanceDays = 0;
+        let calculationDetail = '';
+        if (isForward) {
+          targetJieQi = allJieQi.find(jq => jq.date > birthDate);
+          if (targetJieQi) {
+            distanceDays = Math.ceil((targetJieQi.date - birthDate) / (1000 * 60 * 60 * 24));
+            calculationDetail = `順行：從生日 ${birthDate.toLocaleDateString()} ${birthDate.toLocaleTimeString()} 到下個節氣 ${targetJieQi.name}`;
+          }
+        } else {
+          const reversedJieQi = [...allJieQi].reverse();
+          targetJieQi = reversedJieQi.find(jq => jq.date < birthDate);
+          if (targetJieQi) {
+            distanceDays = Math.ceil((birthDate - targetJieQi.date) / (1000 * 60 * 60 * 24));
+            calculationDetail = `逆行：從上個節氣 ${targetJieQi.name} 到生日 ${birthDate.toLocaleDateString()} ${birthDate.toLocaleTimeString()}`;
+          }
+        }
+        let startAge = distanceDays > 0 ? Math.max(1, Math.ceil(distanceDays / 3)) : 0;
+        const ageCalculation = `距離 ${distanceDays} 天，${distanceDays} ÷ 3 = ${(distanceDays / 3).toFixed(2)} → 起運 ${startAge} 歲`;
+        return { startAge, isForward, targetJieQi: targetJieQi ? targetJieQi.name : '未找到', calculationDetail: calculationDetail + '\n' + ageCalculation };
+      }
+
+      function calculateDayunPrecise(lunar, gender, birthYear, birthDate, yearGz, monthGz) {
+        const yearStem = s(yearGz)[0] || '';
+        const monthStem = s(monthGz)[0] || '';
+        const monthBranch = s(monthGz)[1] || '';
+        const startInfo = calculatePreciseStartAge(birthDate, yearStem, gender);
+        const { startAge, isForward } = startInfo;
+        const dayunList = [];
+        let currentStemIndex = stems.indexOf(monthStem);
+        let currentBranchIndex = branches.indexOf(monthBranch);
+        if (isForward) {
+          currentStemIndex = (currentStemIndex + 1) % 10;
+          currentBranchIndex = (currentBranchIndex + 1) % 12;
+        } else {
+          currentStemIndex = (currentStemIndex - 1 + 10) % 10;
+          currentBranchIndex = (currentBranchIndex - 1 + 12) % 12;
+        }
+        for (let i = 0; i < 10; i++) {
+          const age = startAge + i * 10;
+          const startYear = birthYear + age;
+          const gz = stems[currentStemIndex] + branches[currentBranchIndex];
+          dayunList.push({
+            index: i + 1,
+            startAge: age,
+            startYear: startYear,
+            endYear: startYear + 9,
+            gz: gz,
+            tianganStem: stems[currentStemIndex],
+            dizhiBranch: branches[currentBranchIndex],
+            startDate: new Date(startYear, 0, 1),
+            direction: isForward ? '順行' : '逆行'
+          });
+          if (isForward) {
+            currentStemIndex = (currentStemIndex + 1) % 10;
+            currentBranchIndex = (currentBranchIndex + 1) % 12;
+          } else {
+            currentStemIndex = (currentStemIndex - 1 + 10) % 10;
+            currentBranchIndex = (currentBranchIndex - 1 + 12) % 12;
+          }
+        }
+        return { dayunList, isForward, startInfo };
+      }
+
+      function calculateTenGodStats(dayunList, dayStem, currentAge, specificDayunIndex = null) {
+        const tianganStats = {};
+        const dizhiStats = {};
+        let totalStrength = 0;
+        let validCount = 0;
+        let relevantDayun = specificDayunIndex !== null ? [dayunList[specificDayunIndex]] : dayunList.filter(d => d.startAge <= currentAge + 40 && d.startAge + 9 >= currentAge);
+        relevantDayun.forEach(dayun => {
+          if (dayun.tianganStem && dayun.dizhiBranch) {
+            const tianganTenGod = getTenGod(dayStem, dayun.tianganStem);
+            if (tianganTenGod) {
+              tianganStats[tianganTenGod] = (tianganStats[tianganTenGod] || 0) + 1;
+              totalStrength += tenGodStrength[tianganTenGod] || 50;
+              validCount++;
+            }
+            const dizhiStem = branchToStemMap[dayun.dizhiBranch];
+            if (dizhiStem) {
+              const dizhiTenGod = getTenGod(dayStem, dizhiStem);
+              if (dizhiTenGod) {
+                dizhiStats[dizhiTenGod] = (dizhiStats[dizhiTenGod] || 0) + 1;
+                totalStrength += (tenGodStrength[dizhiTenGod] || 50) * 0.7;
+                validCount++;
+              }
+            }
+          }
+        });
+        const avgStrength = validCount > 0 ? totalStrength / validCount : 50;
+        return { tianganStats, dizhiStats, avgStrength, relevantCount: relevantDayun.length, isSpecificDayun: specificDayunIndex !== null, dayunInfo: specificDayunIndex !== null ? dayunList[specificDayunIndex] : null };
+      }
+
+      function renderFiveChart(five, dayStem) {
+        if (!checkBoardVisibility()) return;
+        const fiveChart = document.getElementById('fiveChart');
+        if (!fiveChart) return logError('未找到 fiveChart 畫布（上下文：renderFiveChart）');
+        if (fiveChartInstance) {
+          fiveChartInstance.destroy();
+          logDebug('已銷毀 fiveChart 的 Chart.js 實例');
+        }
+        try {
+          fiveChartInstance = new Chart(fiveChart.getContext('2d'), {
+            type: 'bar',
+            data: {
+              labels: ['金', '木', '水', '火', '土'],
+              datasets: [{ label: '五行分佈', data: [five['金'], five['木'], five['水'], five['火'], five['土']], backgroundColor: ['#607D8B', '#4CAF50', '#2196F3', '#FF5722', '#FFC107'] }]
+            },
+            options: { scales: { y: { beginAtZero: true } }, plugins: { title: { display: true, text: i18next.t('wx') }, legend: { display: true, position: 'top' } } }
+          });
+          logDebug('成功渲染 fiveChart');
+        } catch (e) {
+          logError(`渲染 fiveChart 失敗: ${e.message}（上下文：renderFiveChart）`);
+        }
+      }
+
+      function renderDayunBarChart(dayunList) {
+        if (!checkBoardVisibility()) return;
+        const ctx = document.getElementById('dayunChart');
+        if (!ctx) return logError('未找到 dayunChart 畫布（上下文：renderDayunBarChart）');
+        if (dayunChartInstance) {
+          dayunChartInstance.destroy();
+          logDebug('已銷毀 dayunChart 的 Chart.js 實例');
+        }
+        try {
+          const fiveCounts = dayunList.map(d => {
+            const five = { 金: 0, 木: 0, 水: 0, 火: 0, 土: 0 };
+            const gz = d.gz;
+            if (gz && gz.length === 2) {
+              five[map[gz[0]]] = (five[map[gz[0]]] || 0) + 1;
+              five[map[gz[1]]] = (five[map[gz[1]]] || 0) + 1;
+            }
+            return five;
+          });
+          const labels = dayunList.map(d => `${d.gz} (${d.startAge}-${d.startAge + 9}歲)`);
+          const datasets = [
+            { label: '金', data: fiveCounts.map(f => f.金), backgroundColor: '#607D8B' },
+            { label: '木', data: fiveCounts.map(f => f.木), backgroundColor: '#4CAF50' },
+            { label: '水', data: fiveCounts.map(f => f.水), backgroundColor: '#2196F3' },
+            { label: '火', data: fiveCounts.map(f => f.火), backgroundColor: '#FF5722' },
+            { label: '土', data: fiveCounts.map(f => f.土), backgroundColor: '#FFC107' }
+          ];
+          dayunChartInstance = new Chart(ctx.getContext('2d'), {
+            type: 'bar',
+            data: { labels, datasets },
+            options: { scales: { y: { beginAtZero: true } }, plugins: { title: { display: true, text: '大運五行分佈' }, legend: { display: true, position: 'top' } } }
+          });
+          logDebug('成功渲染 dayunChart');
+        } catch (e) {
+          logError(`渲染 dayunChart 失敗: ${e.message}（上下文：renderDayunBarChart）`);
+        }
+      }
+
+      function renderLiunianBarChart(startYear, endYear, dayStem, birthYear) {
+        if (!checkBoardVisibility()) return;
+        const ctx = document.getElementById('liunianChart');
+        if (!ctx) return logError('未找到 liunianChart 畫布（上下文：renderLiunianBarChart）');
+        if (liunianChartInstance) {
+          liunianChartInstance.destroy();
+          logDebug('已銷毀 liunianChart 的 Chart.js 實例');
+        }
+        try {
+          const fiveCounts = [];
+          const labels = [];
+          for (let y = startYear; y <= endYear; y++) {
+            let yGz = '—';
+            try {
+              const s = Solar.fromYmd(y, 1, 1);
+              yGz = s.getLunar().getYearInGanZhi();
+            } catch (e) {
+              logError(`獲取 ${y} 年干支失敗: ${e.message}（上下文：renderLiunianBarChart）`);
+            }
+            labels.push(`${y} (${yGz})`);
+            const five = { 金: 0, 木: 0, 水: 0, 火: 0, 土: 0 };
+            if (yGz && yGz.length === 2) {
+              five[map[yGz[0]]] = (five[map[yGz[0]]] || 0) + 1;
+              five[map[yGz[1]]] = (five[map[yGz[1]]] || 0) + 1;
+            }
+            fiveCounts.push(five);
+          }
+          const datasets = [
+            { label: '金', data: fiveCounts.map(f => f.金), backgroundColor: '#607D8B' },
+            { label: '木', data: fiveCounts.map(f => f.木), backgroundColor: '#4CAF50' },
+            { label: '水', data: fiveCounts.map(f => f.水), backgroundColor: '#2196F3' },
+            { label: '火', data: fiveCounts.map(f => f.火), backgroundColor: '#FF5722' },
+            { label: '土', data: fiveCounts.map(f => f.土), backgroundColor: '#FFC107' }
+          ];
+          liunianChartInstance = new Chart(ctx.getContext('2d'), {
+            type: 'bar',
+            data: { labels, datasets },
+            options: { scales: { y: { beginAtZero: true } }, plugins: { title: { display: true, text: '流年五行分佈' }, legend: { display: true, position: 'top' } } }
+          });
+          logDebug(`成功渲染 liunianChart (${startYear} 至 ${endYear})`);
+        } catch (e) {
+          logError(`渲染 liunianChart 失敗: ${e.message}（上下文：renderLiunianBarChart）`);
+        }
+      }
+
+      function renderTenGodStats(tianganStats, dizhiStats, avgStrength, statsResult = null) {
+        if (!checkBoardVisibility()) return;
+        const statsTitle = document.querySelector('.stats-panel h4');
+        if (statsTitle && statsResult && statsResult.isSpecificDayun && statsResult.dayunInfo) {
+          const dayun = statsResult.dayunInfo;
+          statsTitle.textContent = `大運十神強弱統計（第${dayun.index}步：${dayun.gz} ${dayun.startAge}-${dayun.startAge + 9}歲）`;
+        } else if (statsTitle) {
+          statsTitle.textContent = i18next.t('stats');
+        } else {
+          logError('未找到統計 h4（上下文：renderTenGodStats）');
+        }
+        const allTenGods = ['正印', '偏印', '比肩', '劫財', '食神', '傷官', '正財', '偏財', '正官', '七殺'];
+        const fragmentT = document.createDocumentFragment();
+        allTenGods.forEach(tenGod => {
+          const count = tianganStats[tenGod] || 0;
+          const strength = tenGodStrength[tenGod] || 50;
+          const item = document.createElement('div');
+          item.className = 'stat-item';
+          item.innerHTML = `<span>${tenGod}</span><div style="display: flex; align-items: center;"><span class="stat-value">${count}</span><div class="strength-meter"><div class="strength-fill ${getStrengthClass(strength)}" style="width: ${strength}%"></div></div></div>`;
+          fragmentT.appendChild(item);
+        });
+        setInnerHTML('tianganStats', '', 'renderTenGodStats: 天干統計');
+        document.getElementById('tianganStats').appendChild(fragmentT);
+        const fragmentD = document.createDocumentFragment();
+        allTenGods.forEach(tenGod => {
+          const count = dizhiStats[tenGod] || 0;
+          const strength = (tenGodStrength[tenGod] || 50) * 0.7;
+          const item = document.createElement('div');
+          item.className = 'stat-item';
+          item.innerHTML = `<span>${tenGod}</span><div style="display: flex; align-items: center;"><span class="stat-value">${count}</span><div class="strength-meter"><div class="strength-fill ${getStrengthClass(strength)}" style="width: ${strength}%"></div></div></div>`;
+          fragmentD.appendChild(item);
+        });
+        setInnerHTML('dizhiStats', '', 'renderTenGodStats: 地支統計');
+        document.getElementById('dizhiStats').appendChild(fragmentD);
+        updateOverallStrength(avgStrength);
+      }
+
+      function getStrengthClass(strength) {
+        if (strength >= 85) return 'strength-very-strong';
+        if (strength >= 70) return 'strength-strong';
+        if (strength >= 50) return 'strength-mid';
+        return 'strength-weak';
+      }
+
+      function updateOverallStrength(avgStrength) {
+        if (!checkBoardVisibility()) return;
+        let level, description, color;
+        if (avgStrength >= 85) {
+          level = '極佳'; color = '#2d5a2d'; description = '十神配置極為有利，大運走勢非常理想。事業財運皆有良好發展，人生運勢呈上升趨勢。';
+        } else if (avgStrength >= 70) {
+          level = '良好'; color = '#4a6741'; description = '十神配置整體良好，大運走勢穩定向上。多數時期運勢平順。';
+        } else if (avgStrength >= 50) {
+          level = '平穩'; color = '#8a6b2f'; description = '十神配置趨於平衡，大運走勢中等。運勢起伏不大，需努力創造機會。';
+        } else if (avgStrength >= 35) {
+          level = '需謹慎'; color = '#a0522d'; description = '十神配置偏弱，大運中有挑戰性階段。需謹慎處事，避免冒險投資。';
+        } else {
+          level = '挑戰較大'; color = '#8b4513'; description = '十神配置存在較大挑戰，需特別注意，建議保守穩健。';
+        }
+        setTextContent('overallScore', `${level} (${avgStrength.toFixed(0)}分)`, 'updateOverallStrength');
+        const overallScore = document.getElementById('overallScore');
+        if (overallScore) overallScore.style.color = color;
+        else logError('未找到 overallScore 元素（上下文：updateOverallStrength）');
+        setTextContent('strengthDesc', description, 'updateOverallStrength');
+      }
+function renderLiuNianForDayun(d, dayunIndex, dayStem, birthYear) {
+    if (!checkBoardVisibility()) return;
+    const liuTbody = document.querySelector('#liunianTable tbody');
+    if (!liuTbody) return logError('未找到 liunianTable tbody（上下文：renderLiuNianForDayun）');
+    liuTbody.innerHTML = '';
+    const startYear = Number(d.startYear);
+    const currentYear = new Date().getFullYear();
+    for (let i = 0; i < 10; i++) {
+      const y = startYear + i;
+      let yGz = '—';
+      try {
+        const s = Solar.fromYmd(y, 1, 1);
+        yGz = s.getLunar().getYearInGanZhi();
+      } catch (e) {
+        logError(`獲取 ${y} 年干支失敗: ${e.message}（上下文：renderLiuNianForDayun）`);
+      }
+      const stem = s(yGz)[0] || '';
+      const ten = dayStem ? getTenGod(dayStem, stem) || '—' : '—';
+      const luck = tenLuck[ten] || '中';
+      const tr = document.createElement('tr');
+      tr.className = y === currentYear ? (luck === '吉' ? 'ok highlight' : luck === '凶' ? 'bad highlight' : 'mid highlight') : (luck === '吉' ? 'ok' : luck === '凶' ? 'bad' : 'mid');
+      tr.innerHTML = `<td>${y}</td><td>${yGz}</td><td>${(y - birthYear)}</td><td>${ten}</td><td>${luck}</td>`;
+      liuTbody.appendChild(tr);
+    }
+    renderLiunianBarChart(startYear, startYear + 9, dayStem, birthYear);
+    const liunianH4 = document.querySelector('#liunianTable').parentElement.querySelector('h4');
+    if (liunianH4) {
+      let titleSuffix = currentYear >= d.startYear && currentYear <= d.endYear ? `（當前大運 第${d.index}步）` : currentYear < d.startYear ? `（未來大運 第${d.index}步）` : `（過去大運 第${d.index}步）`;
+      liunianH4.textContent = `${i18next.t('liunian')} ${d.gz} ${d.startAge}-${d.startAge + 9}歲 ${titleSuffix}`;
+      logDebug(`更新流年標題: ${liunianH4.textContent}`);
+    } else {
+      logError('未找到流年 h4 元素（上下文：renderLiuNianForDayun）');
+    }
+  }
+
+  document.getElementById('genBtn').addEventListener('click', () => {
+    const rawName = document.getElementById('name').value.trim() || '無名氏';
+    const name = sanitizeInput(rawName);
+    const gender = document.getElementById('gender').value;
+    const b = document.getElementById('birth').value;
+    logDebug(`生成命盤 - 輸入參數: 姓名=${name}, 性別=${gender}, 出生=${b}`);
+    if (!b) return logError('請輸入出生日期時間（格式：YYYY-MM-DDTHH:MM）');
+    const datetimePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+    if (!datetimePattern.test(b)) return logError('無效的日期格式，請使用 YYYY-MM-DDTHH:MM');
+    const dt = new Date(b);
+    if (isNaN(dt.getTime())) return logError('無效的日期時間，請檢查輸入');
+    if (dt > new Date()) return logError('出生日期不能晚於當前時間');
+    if (dt.getFullYear() < 1900) return logError('出生年份過早，僅支援1900年後');
+    if (!gender) return logError('請選擇性別');
+    document.getElementById('errorMessages').innerHTML = '';
+    document.getElementById('errorPanel').style.display = 'none';
+    const board = document.getElementById('board');
+    if (!board) return logError('未找到 board 元素（上下文：生成命盤）');
+    board.style.display = 'block';
+    const solar = Solar.fromDate(dt);
+    const lunar = solar.getLunar();
+    const birthYear = solar.getYear();
+    const yearGz = lunar.getYearInGanZhi();
+    const monthGz = lunar.getMonthInGanZhi();
+    const dayGz = lunar.getDayInGanZhi();
+    const timeGz = lunar.getTimeInGanZhi();
+    logDebug(`四柱計算結果: 年柱=${yearGz}, 月柱=${monthGz}, 日柱=${dayGz}, 時柱=${timeGz}`);
+    setTextContent('gz_year', yearGz, '生成命盤: 年柱干支');
+    setTextContent('gz_month', monthGz, '生成命盤: 月柱干支');
+    setTextContent('gz_day', dayGz, '生成命盤: 日柱干支');
+    setTextContent('gz_time', timeGz, '生成命盤: 時柱干支');
+    const dayStem = s(dayGz)[0] || '';
+    const dayBranch = s(dayGz)[1] || '';
+    function showHidden(gz) {
+      if (!gz) return '—';
+      const z = gz[1];
+      const p = hiddenMap[z] || '';
+      return p ? ('藏干：' + p.split('').join(' ')) : '藏干：—';
+    }
+    setTextContent('hid_year', showHidden(yearGz), '生成命盤: 年柱藏干');
+    setTextContent('hid_month', showHidden(monthGz), '生成命盤: 月柱藏干');
+    setTextContent('hid_day', showHidden(dayGz), '生成命盤: 日柱藏干');
+    setTextContent('hid_time', showHidden(timeGz), '生成命盤: 時柱藏干');
+    setTextContent('ten_year', getTenGod(dayStem, s(yearGz)[0]), '生成命盤: 年柱十神');
+    setTextContent('ten_month', getTenGod(dayStem, s(monthGz)[0]), '生成命盤: 月柱十神');
+    setTextContent('ten_day', '日主', '生成命盤: 日柱十神');
+    setTextContent('ten_time', getTenGod(dayStem, s(timeGz)[0]), '生成命盤: 時柱十神');
+    setTextContent('ten_branch_year', getTenGod(dayStem, branchToStemMap[s(yearGz)[1]]), '生成命盤: 年柱地支十神');
+    setTextContent('ten_branch_month', getTenGod(dayStem, branchToStemMap[s(monthGz)[1]]), '生成命盤: 月柱地支十神');
+    setTextContent('ten_branch_day', getTenGod(dayStem, branchToStemMap[s(dayGz)[1]]), '生成命盤: 日柱地支十神');
+    setTextContent('ten_branch_time', getTenGod(dayStem, branchToStemMap[s(timeGz)[1]]), '生成命盤: 時柱地支十神');
+    const basic = `姓名：${name}\n性別：${gender}\n公曆：${solar.toFullString()}\n農曆：${lunar.toFullString().split(' ').slice(0, 2).join(' ')}`;
+    setTextContent('basic', basic, '生成命盤: 基本資訊');
+    const mStem = s(monthGz)[0] || '';
+    const mBranch = s(monthGz)[1] || '';
+    const zodiac = westernZodiac(dt.getMonth() + 1, dt.getDate());
+    const xunkong = xunkongByDayStem[dayStem] ? xunkongByDayStem[dayStem].join('、') : '—';
+    const taiStem = shiftArr(stems, mStem, 1);
+    const taiBranch = shiftArr(branches, mBranch, 3);
+    const taiYuan = taiStem + taiBranch;
+    const taiXiBranch = shiftArr(branches, taiBranch, 1);
+    const taiXi = taiStem + taiXiBranch;
+    const monthIdx = branches.indexOf(mBranch);
+    const timeBranch = s(timeGz)[1] || '';
+    const timeIdx = branches.indexOf(timeBranch);
+    const mingIdx = ((monthIdx >= 0 ? monthIdx : 0) + (timeIdx >= 0 ? timeIdx : 0)) % 12;
+    const mingBranch = branches[mingIdx];
+    const mingStem = branchToStemMap[mingBranch] || '';
+    const mingGz = mingStem + mingBranch;
+    const shenIdx = (mingIdx + 3) % 12;
+    const shenBranch = branches[shenIdx];
+    const shenStem = branchToStemMap[shenBranch] || '';
+    const shenGz = shenStem + shenBranch;
+    const extrasText = `西洋星座：${zodiac}\n空亡（旬空）：${xunkong}\n胎元：${taiYuan}\n胎息：${taiXi}\n命宮：${mingGz}（地支:${mingBranch}）\n身宮：${shenGz}（地支:${shenBranch}）`;
+    setTextContent('extras', extrasText, '生成命盤: 補充資訊');
+    const { nayin, yongshen } = getNayinAndYongshen(dayGz);
+    setTextContent('nayinYongshen', `日柱納音：${nayin}\n用神建議：${yongshen}`, '生成命盤: 納音用神');
+    logDebug(`納音計算: 日柱=${dayGz}, 納音=${nayin}, 用神=${yongshen}`);
+    const five = { 金: 0, 木: 0, 水: 0, 火: 0, 土: 0 };
+    [yearGz, monthGz, dayGz, timeGz].forEach(gz => {
+      if (gz) { five[map[gz[0]]] = (five[map[gz[0]]] || 0) + 1; five[map[gz[1]]] = (five[map[gz[1]]] || 0) + 1; }
+    });
+    setTextContent('wx', `五行：金 ${five['金']}  木 ${five['木']}  水 ${five['水']}  火 ${five['火']}  土 ${five['土']}\n日主：${dayStem || '—'}`, '生成命盤: 五行統計');
+    logDebug(`五行統計: 金=${five['金']}, 木=${five['木']}, 水=${five['水']}, 火=${five['火']}, 土=${five['土']}, 日主=${dayStem}`);
+    renderFiveChart(five, dayStem);
+    const { dayunList, isForward, startInfo } = calculateDayunPrecise(lunar, gender, birthYear, dt, yearGz, monthGz);
+    logDebug(`大運計算: 起運年齡=${startInfo.startAge}, 順逆=${isForward ? '順行' : '逆行'}, 目標節氣=${startInfo.targetJieQi}, 計算詳情=${startInfo.calculationDetail}`);
+    const currentYear = new Date().getFullYear();
+    const currentAge = currentYear - birthYear;
+    let currentDayunIndex = 0;
+    for (let i = 0; i < dayunList.length; i++) {
+      const d = dayunList[i];
+      if (currentYear >= d.startYear && currentYear <= d.endYear) {
+        currentDayunIndex = i;
+        break;
+      }
+    }
+    const dayunTbody = document.querySelector('#dayunTable tbody');
+    if (dayunTbody) {
+      dayunTbody.innerHTML = '';
+      dayunList.forEach((d, index) => {
+        const tianganTen = getTenGod(dayStem, d.tianganStem) || '—';
+        const dizhiStem = branchToStemMap[d.dizhiBranch];
+        const dizhiTen = dizhiStem ? getTenGod(dayStem, dizhiStem) || '—' : '—';
+        const tr = document.createElement('tr');
+        tr.setAttribute('tabindex', '0');
+        tr.setAttribute('aria-selected', index === currentDayunIndex ? 'true' : 'false');
+        if (index === currentDayunIndex) tr.className = 'highlight';
+        tr.innerHTML = `<td>${d.index}</td><td>${d.startAge}</td><td class="biggz">${d.gz}</td><td>${tianganTen}</td><td>${dizhiTen}</td><td>${d.startYear}</td><td>${d.endYear}</td><td>${d.direction}</td>`;
+        tr.addEventListener('click', () => {
+          if (!checkBoardVisibility()) return;
+          document.querySelectorAll('#dayunTable tbody tr').forEach(row => {
+            row.classList.remove('highlight');
+            row.setAttribute('aria-selected', 'false');
+          });
+          tr.classList.add('highlight');
+          tr.setAttribute('aria-selected', 'true');
+          renderLiuNianForDayun(d, index, dayStem, birthYear);
+          const specificStats = calculateTenGodStats(dayunList, dayStem, currentAge, index);
+          renderTenGodStats(specificStats.tianganStats, specificStats.dizhiStats, specificStats.avgStrength, specificStats);
+          renderDayunBarChart(dayunList);
+          renderFiveChart(five, dayStem);
+          logDebug(`點擊大運行: 第${d.index}步, 干支=${d.gz}, 年齡=${d.startAge}-${d.endYear}, 順逆=${d.direction}`);
+        });
+        dayunTbody.appendChild(tr);
+      });
+      renderDayunBarChart(dayunList);
+      renderLiuNianForDayun(dayunList[currentDayunIndex], currentDayunIndex, dayStem, birthYear);
+      const stats = calculateTenGodStats(dayunList, dayStem, currentAge);
+      renderTenGodStats(stats.tianganStats, stats.dizhiStats, stats.avgStrength);
+      logDebug(`渲染十神統計: 天干=${JSON.stringify(stats.tianganStats)}, 地支=${JSON.stringify(stats.dizhiStats)}, 平均強度=${stats.avgStrength.toFixed(0)}`);
+    } else {
+      logError('未找到 dayunTable tbody（上下文：生成命盤）');
+    }
+  });
+
+  document.getElementById('showFullBtn').addEventListener('click', () => {
+    if (!checkBoardVisibility()) return;
+    const birth = document.getElementById('birth').value;
+    if (!birth) return logError('請先輸入出生日期時間');
+    const dt = new Date(birth);
+    if (isNaN(dt.getTime())) return logError('無效的日期時間，請檢查輸入');
+    const birthYear = dt.getFullYear();
+    const dayunTbody = document.querySelector('#dayunTable tbody');
+    if (!dayunTbody) return logError('未找到 dayunTable tbody（上下文：顯示完整人生）');
+    const dayStem = s(document.getElementById('gz_day').textContent)[0] || '';
+    const lunar = Solar.fromDate(dt).getLunar();
+    const yearGz = lunar.getYearInGanZhi();
+    const monthGz = lunar.getMonthInGanZhi();
+    const gender = document.getElementById('gender').value;
+    const { dayunList } = calculateDayunPrecise(lunar, gender, birthYear, dt, yearGz, monthGz);
+    dayunTbody.innerHTML = '';
+    const extendedDayunList = dayunList.concat();
+    let lastDayun = dayunList[dayunList.length - 1];
+    let currentStemIndex = stems.indexOf(lastDayun.tianganStem);
+    let currentBranchIndex = branches.indexOf(lastDayun.dizhiBranch);
+    const isForward = lastDayun.direction === '順行';
+    for (let i = dayunList.length; i < 10; i++) {
+      if (isForward) {
+        currentStemIndex = (currentStemIndex + 1) % 10;
+        currentBranchIndex = (currentBranchIndex + 1) % 12;
+      } else {
+        currentStemIndex = (currentStemIndex - 1 + 10) % 10;
+        currentBranchIndex = (currentBranchIndex - 1 + 12) % 12;
+      }
+      const age = lastDayun.startAge + (i + 1) * 10;
+      const startYear = birthYear + age;
+      const gz = stems[currentStemIndex] + branches[currentBranchIndex];
+      extendedDayunList.push({
+        index: i + 1,
+        startAge: age,
+        startYear: startYear,
+        endYear: startYear + 9,
+        gz: gz,
+        tianganStem: stems[currentStemIndex],
+        dizhiBranch: branches[currentBranchIndex],
+        startDate: new Date(startYear, 0, 1),
+        direction: isForward ? '順行' : '逆行'
+      });
+    }
+    extendedDayunList.forEach((d, index) => {
+      const tianganTen = getTenGod(dayStem, d.tianganStem) || '—';
+      const dizhiStem = branchToStemMap[d.dizhiBranch];
+      const dizhiTen = dizhiStem ? getTenGod(dayStem, dizhiStem) || '—' : '—';
+      const tr = document.createElement('tr');
+      tr.setAttribute('tabindex', '0');
+      tr.innerHTML = `<td>${d.index}</td><td>${d.startAge}</td><td class="biggz">${d.gz}</td><td>${tianganTen}</td><td>${dizhiTen}</td>
+      <td>${d.startYear}</td><td>${d.endYear}</td><td>${d.direction}</td>`;
+      tr.addEventListener('click', () => {
+        if (!checkBoardVisibility()) return;
+        document.querySelectorAll('#dayunTable tbody tr').forEach(row => {
+          row.classList.remove('highlight');
+          row.setAttribute('aria-selected', 'false');
+        });
+        tr.classList.add('highlight');
+        tr.setAttribute('aria-selected', 'true');
+        renderLiuNianForDayun(d, index, dayStem, birthYear);
+        const specificStats = calculateTenGodStats(extendedDayunList, dayStem, new Date().getFullYear() - birthYear, index);
+        renderTenGodStats(specificStats.tianganStats, specificStats.dizhiStats, specificStats.avgStrength, specificStats);
+        renderDayunBarChart(extendedDayunList);
+        logDebug(`點擊完整人生大運行: 第${d.index}步, 干支=${d.gz}, 年齡=${d.startAge}-${d.endYear}, 順逆=${d.direction}`);
+      });
+      dayunTbody.appendChild(tr);
+    });
+    renderDayunBarChart(extendedDayunList);
+    logDebug('已顯示完整人生大運（到100歲）');
+  });
+
+  document.getElementById('downloadBtn').addEventListener('click', () => {
+    if (!checkBoardVisibility()) return;
+    const board = document.getElementById('board');
+    if (!board) return logError('未找到 board 元素（上下文：下載 PNG）');
+    html2canvas(board, { scale: 2 }).then(canvas => {
+      const link = document.createElement('a');
+      link.download = `八字命盤_${new Date().toISOString().slice(0,10)}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      logDebug('命盤 PNG 下載已觸發');
+    }).catch(e => {
+      logError(`生成 PNG 失敗: ${e.message}（上下文：下載 PNG）`);
+    });
+  });
+
+  document.getElementById('lang').addEventListener('change', (e) => {
+    i18next.changeLanguage(e.target.value).then(() => {
+      updateLanguage();
+      logDebug(`語言切換至: ${e.target.value}`);
+    });
+  });
+});
+</script>
+</body>
+</html>

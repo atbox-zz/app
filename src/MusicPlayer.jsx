@@ -151,8 +151,8 @@ const MusicPlayer = () => {
     {
       title: "搞笑語音",
       buttons: [
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "64方圓圖", filename: "./g.html", isEnglish: false, isGame: true },
+        { text: "井字棋", filename: "./xx.html", isEnglish: false, isGame: true },
         { text: "", filename: "", isEnglish: false, isEmpty: true },
         { text: "", filename: "", isEnglish: false, isEmpty: true },
 
