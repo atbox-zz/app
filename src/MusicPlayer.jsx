@@ -119,7 +119,7 @@ const MusicPlayer = () => {
   // 音頻數據配置
   const audioPages = [
     {
-      title: "小明劍魔回答我！",
+      title: "小明劍魔",
       buttons: [
         { text: "回答我!", filename: "https://atbox-zz.github.io/app/answerme.mp3", isEnglish: false },
         { text: "LOOK\nIN\nMY EYES", filename: "https://atbox-zz.github.io/app/Lookmyeyes.mp3", isEnglish: true },
@@ -128,26 +128,79 @@ const MusicPlayer = () => {
       ]
     },
     {
-      title: "童話故事柯佳嬿金句",
+      title: "童話故事",
       buttons: [
         { text: "你老師咧", filename: "https://atbox-zz.github.io/app/你老師咧.mp3", isEnglish: false },
         { text: "參加喪禮會想死", filename: "https://atbox-zz.github.io/app/參加喪禮會想死.mp3", isEnglish: false },
         { text: "吃賽啦", filename: "https://atbox-zz.github.io/app/吃屎啦.mp3", isEnglish: false },
         { text: "哭北哦", filename: "https://atbox-zz.github.io/app/哭北.mp3", isEnglish: false },
-      ]
-    },
-    {
-      title: "搞笑語音動感節拍",
-      buttons: [
         { text: "我信你個鬼", filename: "https://atbox-zz.github.io/app/我信你個鬼.mp3", isEnglish: false },
         { text: "不可能的任務", filename: "https://atbox-zz.github.io/app/不可能的任務.mp3", isEnglish: false },
         { text: "你不要過來啊!", filename: "https://atbox-zz.github.io/app/你不要過來啊.mp3", isEnglish: false },
         { text: "五姑媽", filename: "https://atbox-zz.github.io/app/五姑媽.mp3", isEnglish: false },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+      ]
+    },
+    {
+      title: "搞笑語音",
+      buttons: [
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+      ]
+    },
+    {
+      title: "遊戲專區",
+      buttons: [
+        { text: "🐍", filename: "./snake1.html", isEnglish: false, isGame: true },
+        { text: "🎮魔術方塊", filename: "./cude6c.html", isEnglish: true, isGame: true },
+        { text: "🎲金錢卦", filename: "./gua1a.html", isEnglish: true, isGame: true },
+        { text: "🌱生命系統", filename: "game of liveinlive中文2.html", isEnglish: false, isGame: true },
+        { text: "🔺64D", filename: "./vertices64d1.html", isEnglish: false, isGame: true },
+        { text: "🎯3d", filename: "./vertices3d.html", isEnglish: false, isGame: true },
+        { text: "👁vis4d", filename: "./vis4d.html", isEnglish: false, isGame: true },
+        { text: "✨vis6e", filename: "vis6e.html", isEnglish: false, isGame: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isEmpty: true },
       ]
     }
   ];
 
-  const playMusic = (filename, buttonIndex) => {
+  const playMusic = (filename, buttonIndex, isGame = false, isDisabled = false, isEmpty = false) => {
+    // 如果按鈕被禁用或為空，直接返回
+    if (isDisabled || isEmpty) {
+      return;
+    }
+
     // 移除之前按鈕的效果
     if (currentButton !== null) {
       setCurrentButton(null);
@@ -161,6 +214,16 @@ const MusicPlayer = () => {
     
     // 添加按下效果
     setCurrentButton(buttonIndex);
+    
+    // 如果是遊戲，打開新窗口
+    if (isGame) {
+      window.open(filename, '_blank');
+      // 500ms後移除按下效果
+      setTimeout(() => {
+        setCurrentButton(null);
+      }, 500);
+      return;
+    }
     
     // 播放音樂
     const audio = new Audio(filename);
@@ -212,7 +275,7 @@ const MusicPlayer = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [audioPages.length, currentPage]);
+  }, [currentPage]);
 
   const buttonStyle = {
     background: 'linear-gradient(145deg, #f5f5dc, #e6e6d4)',
@@ -246,20 +309,79 @@ const MusicPlayer = () => {
 
   const chineseTextStyle = {
     textShadow: '2px 2px 4px rgba(255, 255, 255, 0.8)',
-    fontSize: '4vw',
+    fontSize: '2.5vw',
   };
 
   const englishTextStyle = {
     textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)',
-    fontSize: '3vw',
+    fontSize: '2.2vw',
     lineHeight: '1.2',
   };
 
   const pageColors = [
-    ['#e6f3ff', '#cce7ff', '#e6ffe6', '#ccffcc'], // 經典語音
-    ['#fff0e6', '#ffe0cc', '#f0e6ff', '#e0ccff'], // 搞笑語音
-    ['#ffe6f0', '#ffccdd', '#e6fffa', '#ccfff7'], // 動感節拍
+    ['#e6f3ff', '#cce7ff', '#e6ffe6', '#ccffcc'], // 小明劍魔區 (2x2)
+    ['#fff0e6', '#ffe0cc', '#f0e6ff', '#e0ccff', '#ffe6f0', '#ffccdd', '#e6fffa', '#ccfff7', '#f0f8ff', '#e6f3ff', '#fff8dc', '#f5f5dc', '#ffefd5', '#ffd4aa', '#e6f7ff', '#cceeff'], // 童話故事 (4x4)
+    ['#ffe6f0', '#ffccdd', '#e6fffa', '#ccfff7', '#fff0e6', '#ffe0cc', '#f0e6ff', '#e0ccff', '#f0f8ff', '#e6f3ff', '#fff8dc', '#f5f5dc', '#ffefd5', '#ffd4aa', '#e6f7ff', '#cceeff'], // 搞笑語音 (4x4)
+    ['#f0f8ff', '#e6f3ff', '#fff8dc', '#f5f5dc', '#ffefd5', '#ffd4aa', '#e6f7ff', '#cceeff', '#ffe6f0', '#ffccdd', '#e6fffa', '#ccfff7', '#fff0e6', '#ffe0cc', '#f0e6ff', '#e0ccff'], // 遊戲專區 (4x4)
   ];
+
+  // 根據當前頁面和按鈕數量決定佈局
+  const getGridLayout = (currentPageIndex) => {
+    const buttonsCount = audioPages[currentPageIndex].buttons.length;
+    if (currentPageIndex === 0) {
+      // 小明劍魔區保持2x2佈局
+      return {
+        gridTemplateColumns: '1fr 1fr',
+        gridTemplateRows: '1fr 1fr',
+        gap: '3vw',
+        width: '85vw',
+        padding: '4vw',
+      };
+    } else {
+      // 其他區都使用4x4佈局
+      return {
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gridTemplateRows: 'repeat(4, 1fr)',
+        gap: '2vw',
+        width: '90vw',
+        padding: '3vw',
+        maxHeight: '70vh',
+        overflowY: 'auto',
+      };
+    }
+  };
+
+  // 根據按鈕數量調整按鈕樣式
+  const getButtonStyle = (currentPageIndex, index) => {
+    const colors = pageColors[currentPageIndex];
+    const colorIndex = index < colors.length ? index : index % colors.length;
+    
+    let baseStyle = { ...buttonStyle };
+    
+    if (currentPageIndex === 0) {
+      // 小明劍魔區保持原尺寸
+      baseStyle = {
+        ...buttonStyle,
+        minWidth: '35vw',
+        minHeight: '15vh',
+      };
+    } else {
+      // 其他區使用4x4小按鈕
+      baseStyle = {
+        ...buttonStyle,
+        padding: '2vw 1vw',
+        fontSize: '2.5vw',
+        minHeight: '10vh',
+        minWidth: '18vw',
+      };
+    }
+    
+    return {
+      ...baseStyle,
+      background: `linear-gradient(145deg, ${colors[colorIndex]}, ${colors[colorIndex].replace('e6', 'cc')})`,
+      ...(currentButton === index ? pressedStyle : {}),
+    };
+  };
 
   return (
     <div
@@ -287,11 +409,12 @@ const MusicPlayer = () => {
       {/* 標題 */}
       <div style={{
         color: '#fff',
-        fontSize: '6vw',
+        fontSize: '4.5vw',
         fontWeight: 'bold',
-        marginBottom: '3vh',
+        marginBottom: '2vh',
         textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)',
         textAlign: 'center',
+        paddingTop: '2vh',
       }}>
         {audioPages[currentPage].title}
       </div>
@@ -299,19 +422,21 @@ const MusicPlayer = () => {
       {/* 頁面指示器 */}
       <div style={{
         display: 'flex',
-        gap: '8vw',
-        marginBottom: '5vh',
+        gap: '6vw',
+        marginBottom: '3vh',
       }}>
         {audioPages.map((_, index) => (
           <div
             key={index}
             style={{
-              width: '5vw',
-              height: '5vw',
+              width: '4vw',
+              height: '4vw',
               borderRadius: '50%',
               background: index === currentPage ? '#fff' : 'rgba(255, 255, 255, 0.3)',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
+              minWidth: '12px',
+              minHeight: '12px',
             }}
             onClick={() => setCurrentPage(index)}
             onTouchStart={(e) => e.stopPropagation()}
@@ -323,30 +448,29 @@ const MusicPlayer = () => {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '2vw',
-          padding: '5vw',
+          ...getGridLayout(currentPage),
           background: 'linear-gradient(145deg, #556b23, #6b8e23)',
-          borderRadius: '5vw',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
-          border: '1vw solid #8fbc87',
-          width: '85vw',
-          maxWidth: '85vw',
+          borderRadius: '4vw',
+          boxShadow: '0 8px 25px rgba(0, 0, 0, 0.5)',
+          border: '0.8vw solid #8fbc87',
+          maxWidth: '95vw',
+          // 添加滾動條樣式
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#8fbc8f #556b23',
         }}
+        // 為遊戲專區添加 CSS 滾動條樣式
+        className={audioPages[currentPage].buttons.length > 4 ? 'game-section' : ''}
       >
         {audioPages[currentPage].buttons.map((button, index) => (
           <button
             key={index}
-            style={{
-              ...buttonStyle,
-              background: `linear-gradient(145deg, ${pageColors[currentPage][index]}, ${pageColors[currentPage][index].replace('e6', 'cc')})`,
-              ...(currentButton === index ? pressedStyle : {}),
-            }}
-            onClick={() => playMusic(button.filename, index)}
+            style={getButtonStyle(currentPage, index)}
+            onClick={() => playMusic(button.filename, index, button.isGame, button.isDisabled)}
             onTouchStart={(e) => {
               e.stopPropagation();
-              playMusic(button.filename, index);
+              playMusic(button.filename, index, button.isGame, button.isDisabled);
             }}
+            disabled={button.isDisabled}
           >
             <span style={button.isEnglish ? englishTextStyle : chineseTextStyle}>
               {button.text.split('\n').map((line, i) => (
@@ -365,16 +489,18 @@ const MusicPlayer = () => {
         <div
           style={{
             position: 'absolute',
-            left: '3vw',
+            left: '2vw',
             top: '50%',
             transform: 'translateY(-50%)',
-            fontSize: '8vw',
-            color: 'rgba(255, 255, 255, 0.7)',
+            fontSize: '7vw',
+            color: 'rgba(255, 255, 255, 0.8)',
             cursor: 'pointer',
             userSelect: 'none',
             webkitUserSelect: 'none',
             webkitTouchCallout: 'none',
             transition: 'color 0.3s ease',
+            zIndex: 10,
+            padding: '2vw',
           }}
           onClick={() => setCurrentPage(currentPage - 1)}
           onTouchStart={(e) => {
@@ -390,16 +516,18 @@ const MusicPlayer = () => {
         <div
           style={{
             position: 'absolute',
-            right: '3vw',
+            right: '2vw',
             top: '50%',
             transform: 'translateY(-50%)',
-            fontSize: '8vw',
-            color: 'rgba(255, 255, 255, 0.7)',
+            fontSize: '7vw',
+            color: 'rgba(255, 255, 255, 0.8)',
             cursor: 'pointer',
             userSelect: 'none',
             webkitUserSelect: 'none',
             webkitTouchCallout: 'none',
             transition: 'color 0.3s ease',
+            zIndex: 10,
+            padding: '2vw',
           }}
           onClick={() => setCurrentPage(currentPage + 1)}
           onTouchStart={(e) => {

@@ -157,10 +157,10 @@ const MusicPlayer = () => {
     {
       title: "遊戲專區2",
       buttons: [
-        { text: "🐍\nvertices64d1", filename: "./vertices64d1.html", isEnglish: false, isGame: true },
+        { text: "🧊\ntesseract", filename: "./vertices64d1.html", isEnglish: false, isGame: true },
         { text: "3d", filename: "./vertices3d.html", isEnglish: false, isGame: true },
         { text: "vis4d", filename: "./vis4d.html", isEnglish: false, isGame: true },
-        { text: "🎯\nvis6e\n", filename: "vis6e.html", isEnglish: false, isGame: true },
+        { text: "𒆙\nvis6e\n", filename: "vis6e.html", isEnglish: false, isGame: true },
       ]
     }
   ];
