@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>井字棋遊戲 - X O 對戰</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-info {
+            margin: 20px 0;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .current-player {
+            color: #ffeb3b;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+            margin: 20px auto;
+            background: #333;
+            padding: 5px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .cell {
+            background: linear-gradient(145deg, #f0f0f0, #d0d0d0);
+            border: none;
+            border-radius: 10px;
+            font-size: 2.5em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 2px 2px 5px rgba(255, 255, 255, 0.5),
+                        inset -2px -2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .cell:hover:not(.filled) {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3),
+                        inset 2px 2px 5px rgba(255, 255, 255, 0.5),
+                        inset -2px -2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .cell.filled {
+            cursor: not-allowed;
+            transform: scale(0.95);
+        }
+
+        .cell.x {
+            color: #e74c3c;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .cell.o {
+            color: #3498db;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .winning-line {
+            background: linear-gradient(145deg, #f39c12, #e67e22) !important;
+            animation: winner-glow 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes winner-glow {
+            from {
+                box-shadow: 0 0 10px #f39c12;
+            }
+            to {
+                box-shadow: 0 0 20px #f39c12, 0 0 30px #f39c12;
+            }
+        }
+
+        .controls {
+            margin-top: 20px;
+        }
+
+        .reset-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(238, 90, 82, 0.4);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(238, 90, 82, 0.6);
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+        }
+
+        .score {
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 2em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .x-score { color: #e74c3c; }
+        .o-score { color: #3498db; }
+        .tie-score { color: #f39c12; }
+
+        .game-status {
+            margin: 15px 0;
+            font-size: 1.3em;
+            font-weight: bold;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .winner-announcement {
+            color: #f39c12;
+            animation: celebration 0.8s ease-in-out;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+
+        @keyframes celebration {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .sound-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .sound-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+        }
+
+        .sound-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="sound-controls">
+        <button class="sound-btn" id="soundToggle" title="音效開關">🔊</button>
+    </div>
+
+    <div class="container">
+        <h1>井字棋對戰</h1>
+        
+        <div class="score-board">
+            <div class="score">
+                <div class="score-label x-score">❌ 玩家</div>
+                <div class="score-value x-score" id="xScore">0</div>
+            </div>
+            <div class="score">
+                <div class="score-label tie-score">平局</div>
+                <div class="score-value tie-score" id="tieScore">0</div>
+            </div>
+            <div class="score">
+                <div class="score-label o-score">⭕ 玩家</div>
+                <div class="score-value o-score" id="oScore">0</div>
+            </div>
+        </div>
+
+        <div class="game-info">
+            當前回合: <span class="current-player" id="currentPlayer">❌</span>
+        </div>
+
+        <div class="game-status" id="gameStatus">開始遊戲！</div>
+
+        <div class="game-board" id="gameBoard">
+            <button class="cell" data-index="0"></button>
+            <button class="cell" data-index="1"></button>
+            <button class="cell" data-index="2"></button>
+            <button class="cell" data-index="3"></button>
+            <button class="cell" data-index="4"></button>
+            <button class="cell" data-index="5"></button>
+            <button class="cell" data-index="6"></button>
+            <button class="cell" data-index="7"></button>
+            <button class="cell" data-index="8"></button>
+        </div>
+
+        <div class="controls">
+            <button class="reset-btn" id="resetBtn">重新開始</button>
+        </div>
+    </div>
+
+    <script>
+        class TicTacToeGame {
+            constructor() {
+                this.board = Array(9).fill('');
+                this.currentPlayer = 'X';
+                this.gameActive = true;
+                this.soundEnabled = true;
+                this.scores = { X: 0, O: 0, tie: 0 };
+                this.audioContext = null;
+                
+                this.winningCombinations = [
+                    [0, 1, 2], [3, 4, 5], [6, 7, 8], // 橫線
+                    [0, 3, 6], [1, 4, 7], [2, 5, 8], // 直線
+                    [0, 4, 8], [2, 4, 6] // 斜線
+                ];
+
+                this.initializeElements();
+                this.initializeAudio();
+                this.attachEventListeners();
+                this.updateDisplay();
+            }
+
+            initializeElements() {
+                this.cells = document.querySelectorAll('.cell');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.currentPlayerEl = document.getElementById('currentPlayer');
+                this.gameStatusEl = document.getElementById('gameStatus');
+                this.soundToggleBtn = document.getElementById('soundToggle');
+                this.xScoreEl = document.getElementById('xScore');
+                this.oScoreEl = document.getElementById('oScore');
+                this.tieScoreEl = document.getElementById('tieScore');
+            }
+
+            initializeAudio() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.log('Web Audio API not supported');
+                }
+            }
+
+            attachEventListeners() {
+                this.cells.forEach((cell, index) => {
+                    cell.addEventListener('click', () => this.handleCellClick(index));
+                });
+
+                this.resetBtn.addEventListener('click', () => this.resetGame());
+                this.soundToggleBtn.addEventListener('click', () => this.toggleSound());
+
+                // 點擊任意位置啟動音訊上下文
+                document.addEventListener('click', () => {
+                    if (this.audioContext && this.audioContext.state === 'suspended') {
+                        this.audioContext.resume();
+                    }
+                }, { once: true });
+            }
+
+            // 音效生成函數
+            playSound(frequency, duration, type = 'sine', volume = 0.1) {
+                if (!this.soundEnabled || !this.audioContext) return;
+
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+
+                oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+                oscillator.type = type;
+
+                gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(volume, this.audioContext.currentTime + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
+
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + duration);
+            }
+
+            // 不同的音效
+            playClickSoundX() {
+                // X 的音效 - 較低音調
+                this.playSound(400, 0.2, 'square', 0.15);
+            }
+
+            playClickSoundO() {
+                // O 的音效 - 較高音調
+                this.playSound(600, 0.2, 'sine', 0.15);
+            }
+
+            playWinSound() {
+                // 勝利音樂 - 一系列上升音調
+                const notes = [523, 659, 784, 1047]; // C5, E5, G5, C6
+                notes.forEach((note, index) => {
+                    setTimeout(() => {
+                        this.playSound(note, 0.3, 'triangle', 0.2);
+                    }, index * 150);
+                });
+            }
+
+            playTieSound() {
+                // 平局音效 - 中性音調
+                this.playSound(440, 0.5, 'sawtooth', 0.1);
+            }
+
+            handleCellClick(index) {
+                if (!this.gameActive || this.board[index] !== '') {
+                    return;
+                }
+
+                // 播放對應玩家的音效
+                if (this.currentPlayer === 'X') {
+                    this.playClickSoundX();
+                } else {
+                    this.playClickSoundO();
+                }
+
+                this.board[index] = this.currentPlayer;
+                this.updateCellDisplay(index);
+
+                if (this.checkWinner()) {
+                    this.handleGameEnd('win');
+                } else if (this.board.every(cell => cell !== '')) {
+                    this.handleGameEnd('tie');
+                } else {
+                    this.switchPlayer();
+                }
+            }
+
+            updateCellDisplay(index) {
+                const cell = this.cells[index];
+                if (this.currentPlayer === 'X') {
+                    cell.textContent = '❌';
+                    cell.classList.add('x', 'filled');
+                } else {
+                    cell.textContent = '⭕';
+                    cell.classList.add('o', 'filled');
+                }
+            }
+
+            checkWinner() {
+                for (let combination of this.winningCombinations) {
+                    const [a, b, c] = combination;
+                    if (this.board[a] && 
+                        this.board[a] === this.board[b] && 
+                        this.board[a] === this.board[c]) {
+                        this.highlightWinningLine(combination);
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            highlightWinningLine(combination) {
+                combination.forEach(index => {
+                    this.cells[index].classList.add('winning-line');
+                });
+            }
+
+            handleGameEnd(result) {
+                this.gameActive = false;
+                
+                if (result === 'win') {
+                    const winner = this.currentPlayer;
+                    this.scores[winner]++;
+                    this.gameStatusEl.innerHTML = `<span class="winner-announcement">🎉 ${winner === 'X' ? '❌' : '⭕'} 玩家獲勝！🎉</span>`;
+                    this.playWinSound();
+                } else {
+                    this.scores.tie++;
+                    this.gameStatusEl.innerHTML = `<span class="winner-announcement">🤝 平局！</span>`;
+                    this.playTieSound();
+                }
+
+                this.updateScores();
+            }
+
+            switchPlayer() {
+                this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
+                this.updateDisplay();
+            }
+
+            updateDisplay() {
+                this.currentPlayerEl.textContent = this.currentPlayer === 'X' ? '❌' : '⭕';
+                if (this.gameActive) {
+                    this.gameStatusEl.textContent = `輪到 ${this.currentPlayer === 'X' ? '❌' : '⭕'} 玩家`;
+                }
+            }
+
+            updateScores() {
+                this.xScoreEl.textContent = this.scores.X;
+                this.oScoreEl.textContent = this.scores.O;
+                this.tieScoreEl.textContent = this.scores.tie;
+            }
+
+            resetGame() {
+                this.board = Array(9).fill('');
+                this.currentPlayer = 'X';
+                this.gameActive = true;
+
+                this.cells.forEach(cell => {
+                    cell.textContent = '';
+                    cell.classList.remove('x', 'o', 'filled', 'winning-line');
+                });
+
+                this.gameStatusEl.textContent = '開始新遊戲！';
+                this.updateDisplay();
+
+                // 重置音效
+                this.playSound(330, 0.1, 'triangle', 0.1);
+            }
+
+            toggleSound() {
+                this.soundEnabled = !this.soundEnabled;
+                this.soundToggleBtn.textContent = this.soundEnabled ? '🔊' : '🔇';
+                this.soundToggleBtn.title = this.soundEnabled ? '點擊關閉音效' : '點擊開啟音效';
+                
+                if (this.soundEnabled) {
+                    this.playSound(500, 0.1, 'sine', 0.1);
+                }
+            }
+        }
+
+        // 啟動遊戲
+        document.addEventListener('DOMContentLoaded', () => {
+            new TicTacToeGame();
+        });
+    </script>
+</body>
+</html>

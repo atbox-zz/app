@@ -79,9 +79,9 @@ th{background:#fff6e6}
   <h1>八字命盤 — 節氣起運計算 + 十神強弱分析</h1>
 
   <div class="controls">
-    <div class="col" style="flex:0 0 160px"><label>姓名</label><input id="name" type="text" value="測試人" maxlength="8" placeholder="最多8個字"></div>
-    <div class="col" style="flex:0 0 80px"><label>性別</label><select id="gender"><option value="未定">未定</option><option value="男">男</option><option value="女">女</option></select></div>
-    <div class="col" style="flex:1"><label>出生（公曆）</label><input id="birth" type="datetime-local" value="2015-08-25T09:00"></div>
+    <div class="col" style="flex:0 0 160px"><label>姓名</label><input id="name" type="text" value="寒露" maxlength="8" placeholder="最多8個字"></div>
+    <div class="col" style="flex:0 0 80px"><label>性別</label><select id="gender"><option value="男">男</option><option value="男">男</option><option value="女">女</option></select></div>
+    <div class="col" style="flex:1"><label>出生（公曆）</label><input id="birth" type="datetime-local" value="1968-10-30T18:30"></div>
     <button id="genBtn">生成命盤</button>
       <button id="downloadBtn" class="secondary">下載 PNG</button>
       <button id="showFullBtn">顯示完整人生（到100歲）</button>
@@ -141,7 +141,19 @@ th{background:#fff6e6}
       </div>
 
       <div class="panel"><h4>流年（僅顯示「當前大運」的 10 年）</h4>
-        <table id="liunianTable"><thead><tr><th>西元</th><th>干支</th><th>年齡</th><th>十神</th><th>吉凶</th></tr></thead><tbody></tbody></table></div>
+        <table id="liunianTable">
+          <thead>
+                <tr>
+                <th>西元</th>
+                <th>干支</th>
+                <th>年齡</th>
+                <th>十神</th>
+                <th>吉凶</th>
+                </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- 新增：十神強弱統計面板 -->
@@ -172,7 +184,7 @@ th{background:#fff6e6}
 </div>
 
 <!-- lunar-javascript + html2canvas -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.6.12/lunar.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.7.3/lunar.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
