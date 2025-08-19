@@ -153,7 +153,7 @@ const MusicPlayer = () => {
       buttons: [
         { text: "64方圓圖", filename: "./g.html", isEnglish: false, isGame: true },
         { text: "井字棋", filename: "./xx.html", isEnglish: false, isGame: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "六十四卦速見表", filename: "./guaorder.html", isEnglish: false, isGame: true },
         { text: "", filename: "", isEnglish: false, isEmpty: true },
 
         { text: "", filename: "", isEnglish: false, isEmpty: true },
@@ -183,7 +183,7 @@ const MusicPlayer = () => {
         { text: "🎯3d", filename: "./vertices3d.html", isEnglish: false, isGame: true },
         { text: "👁vis4d", filename: "./vis4d.html", isEnglish: false, isGame: true },
         { text: "✨vis6e", filename: "vis6e.html", isEnglish: false, isGame: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "大運流年", filename: "8w2.html", isEnglish: false, isGame: true },
         { text: "", filename: "", isEnglish: false, isEmpty: true },
         { text: "", filename: "", isEnglish: false, isEmpty: true },
         { text: "", filename: "", isEnglish: false, isEmpty: true },
@@ -282,7 +282,7 @@ const MusicPlayer = () => {
     color: '#2c3e50',
     border: '4px solid #8fbc8f',
     padding: '4vw 3vw',
-    fontSize: '4vw',
+    fontSize: '8vw',
     fontWeight: 'bold',
     borderRadius: '3vw',
     cursor: 'pointer',
@@ -309,12 +309,12 @@ const MusicPlayer = () => {
 
   const chineseTextStyle = {
     textShadow: '2px 2px 4px rgba(255, 255, 255, 0.8)',
-    fontSize: '2.5vw',
+    fontSize: '3.5vw',
   };
 
   const englishTextStyle = {
     textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)',
-    fontSize: '2.2vw',
+    fontSize: '3.2vw',
     lineHeight: '1.2',
   };
 
@@ -370,7 +370,7 @@ const MusicPlayer = () => {
       baseStyle = {
         ...buttonStyle,
         padding: '2vw 1vw',
-        fontSize: '2.5vw',
+        fontSize: '5.5vw',
         minHeight: '10vh',
         minWidth: '18vw',
       };
