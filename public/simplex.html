@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作業研究線性規劃單行法</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --light: #ecf0f1;
+            --dark: #34495e;
+            --purple: #9b59b6;
+            --orange: #e67e22;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--light);
+            padding: 20px;
+            min-height: 100vh;
+            overflow-x: auto;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 20px;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #fff, #a8e6cf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 1000px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .panel-title {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--secondary);
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .icon {
+            font-size: 1.5rem;
+        }
+        
+        .problem-input {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        label {
+            font-weight: 600;
+            color: var(--light);
+            font-size: 1rem;
+        }
+        
+        input, select, textarea {
+            padding: 14px;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        button {
+            background: linear-gradient(45deg, var(--secondary), var(--purple));
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, Rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        button:hover::before {
+            left: 100%;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:disabled {
+            background: linear-gradient(45deg, #7f8c8d, #95a5a6);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .controls button {
+            flex: 1;
+        }
+        
+        .btn-reset {
+            background: linear-gradient(45deg, var(--accent), #c0392b);
+        }
+        
+        .btn-next {
+            background: linear-gradient(45deg, var(--success), #27ae60);
+        }
+        
+        .btn-prev {
+            background: linear-gradient(45deg, var(--warning), #d68910);
+        }
+        
+        .result-panel {
+            grid-column: 1 / -1;
+        }
+        
+        .tableau-container {
+            overflow-x: auto;
+            margin-top: 20px;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 15px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        th {
+            background: linear-gradient(45deg, var(--dark), var(--primary));
+            padding: 16px 12px;
+            text-align: center;
+            font-weight: 700;
+            color: white;
+            font-size: 0.9rem;
+        }
+        
+        td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        tr:hover td {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .pivot {
+            background: linear-gradient(45deg, rgba(231, 76, 60, 0.7), rgba(192, 57, 43, 0.7));
+            font-weight: bold;
+            position: relative;
+            animation: pulse 2s infinite;
+        }
+        
+        .pivot::after {
+            content: "🎯 樞軸";
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 6px;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
+        
+        .basis {
+            background: linear-gradient(45deg, rgba(46, 204, 113, 0.3), rgba(39, 174, 96, 0.3));
+        }
+        
+        .entering {
+            background: linear-gradient(45deg, rgba(52, 152, 219, 0.3), rgba(41, 128, 185, 0.3));
+        }
+        
+        .solution-box {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+        
+        .solution-card {
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1));
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .solution-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .solution-card h3 {
+            margin-bottom: 15px;
+            color: var(--light);
+            font-size: 1.2rem;
+        }
+        
+        .solution-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--success), #2ecc71);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .variables {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .variable {
+            background: linear-gradient(45deg, rgba(52, 152, 219, 0.3), rgba(41, 128, 185, 0.3));
+            padding: 10px 18px;
+            border-radius: 25px;
+            font-weight: 600;
+            border: 1px solid rgba(52, 152, 219, 0.5);
+        }
+        
+        .step-info {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1));
+            border-radius: 15px;
+            line-height: 1.7;
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .step-title {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--success));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .case-description {
+            background: linear-gradient(145deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.1));
+            border: 2px solid rgba(52, 152, 219, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            line-height: 1.7;
+        }
+        
+        .case-description h3 {
+            color: var(--secondary);
+            margin-bottom: 15px;
+            margin-top: 25px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .case-description h3:first-child {
+            margin-top: 0;
+        }
+        
+        .case-description ul {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        .case-description li {
+            margin-bottom: 10px;
+        }
+        
+        .instructions {
+            margin-top: 30px;
+            padding: 30px;
+            background: linear: linear-gradient(145deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1));
+            border-radius: 20px;
+            line-height: 1.8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .instructions h2 {
+            margin-bottom: 20px;
+            color: white;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .instructions ul {
+            padding-left: 30px;
+            margin-top: 15px;
+        }
+        
+        .instructions li {
+            margin-bottom: 15px;
+        }
+        
+        .instructions code {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            color: var(--warning);
+            font-weight: 600;
+        }
+        
+        .highlight {
+            color: var(--success);
+            font-weight: bold;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .legend-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+        }
+        
+        .legend-pivot {
+            background: linear-gradient(45deg, rgba(231, 76, 60, 0.7), rgba(192, 57, 43, 0.7));
+        }
+        
+        .legend-basis {
+            background: linear-gradient(45deg, rgba(46, 204, 113, 0.3), rgba(39, 174, 96, 0.3));
+        }
+        
+        .legend-entering {
+            background: linear-gradient(45deg, rgba(52, 152, 219, 0.3), rgba(41, 128, 185, 0.3));
+        }
+        
+        .error-message {
+            background: linear-gradient(45deg, rgba(231, 76, 60, 0.2), rgba(192, 57, 43, 0.2));
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 18px;
+            margin: 15px 0;
+            color: white;
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 30px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95rem;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            line-height: 1.6;
+        }
+        
+        .algorithm-info {
+            background: linear-gradient(145deg, rgba(155, 89, 182, 0.1), rgba(142, 68, 173, 0.1));
+            border: 2px solid rgba(155, 89, 182, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            line-height: 1.7;
+        }
+        
+        .algorithm-info h3 {
+            color: var(--purple);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-counter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .counter {
+            background: var(--secondary);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 作業研究線性規劃單行法</h1>
+            <p class="subtitle">
+                此工具採用單行法 (Simplex Method) 求解線性規劃問題，並提供完整的計算過程可視化。
+                適用於生產規劃、資源分配、利潤最大化等實際商業問題的求解與教學。
+            </p>
+        </header>
+        
+        <div class="content">
+            <div class="panel">
+                <h2 class="panel-title">
+                    <span class="icon">📊</span>
+                    問題輸入
+                </h2>
+                <div class="problem-input">
+                    <div class="input-group">
+                        <label for="objective">🎯 目標函數類型</label>
+                        <select id="objective">
+                            <option value="max">最大化 (Maximize)</option>
+                            <option value="min">最小化 (Minimize)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="function">💰 目標函數係數 (用逗號分隔，例如: 800,1200)</label>
+                        <input type="text" id="function" value="800,1200" placeholder="例如: 800,1200">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="constraints">⚖️ 約束條件 (每行一個約束，格式: 係數1,係數2,運算符,常數)</label>
+                        <textarea id="constraints" rows="6">4,6,<=,2400
+2,2,<=,800
+1,3,<=,900
+1,0,<=,300
+0,1,<=,250</textarea>
+                    </div>
+                    
+                    <button id="solve-btn">🚀 求解問題</button>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2 class="panel-title">
+                    <span class="icon">🎮</span>
+                    計算控制
+                </h2>
+                
+                <div class="step-counter">
+                    <span>當前步驟：</span>
+                    <span class="counter" id="step-counter">0 / 0</span>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                </div>
+                
+                <div class="controls">
+                    <button id="prev-btn" class="btn-prev" disabled>⬅️ 上一步</button>
+                    <button id="next-btn" class="btn-next" disabled>下一步 ➡️</button>
+                    <button id="reset-btn" class="btn-reset">🔄 重置</button>
+                </div>
+                
+                <div class="step-info">
+                    <h3 class="step-title">
+                        <span>📝</span>
+                        步驟說明
+                    </h3>
+                    <p id="step-description">點擊"求解"按鈕開始計算。求解完成後，使用"下一步"按鈕查看單體法的每一步運算過程。</p>
+                </div>
+                
+                <div class="solution-box">
+                    <div class="solution-card">
+                        <h3>🏭 最優解 (生產數量)</h3>
+                        <div class="variables" id="solution-variables">
+                            <div class="variable">5nm晶片 = <span id="x1">0</span> 片</div>
+                            <div class="variable">3nm晶片 = <span id="x2">0</span> 片</div>
+                        </div>
+                    </div>
+                    
+                    <div class="solution-card">
+                        <h3>💰 最大利潤</h3>
+                        <div class="solution-value" id="optimal-value">0</div>
+                        <div style="font-size: 0.9rem; margin-top: 8px; opacity: 0.8;">萬台幣</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel result-panel">
+                <h2 class="panel-title">
+                    <span class="icon">📋</span>
+                    單體表計算過程
+                </h2>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color legend-pivot"></div>
+                        <span>樞軸元素 (Pivot Element)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-basis"></div>
+                        <span>基變量 (Basic Variables)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-entering"></div>
+                        <span>進入變量 (Entering Variable)</span>
+                    </div>
+                </div>
+                
+                <div class="tableau-container" id="tableau-container">
+                    <p class="step-info">輸入問題並點擊"求解"按鈕後，這裡將顯示計算過程。</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="case-description">
+            <h3>🏢 實際案例：台積電晶片生產規劃</h3>
+            <p>
+                本工具以台積電晶片生產為例，展示線性規劃在實際製造業中的應用。
+                假設台積電需要決定5nm和3nm晶片的最優生產配置，以最大化利潤。
+            </p>
+            
+            <h3>📊 問題設定</h3>
+            <ul>
+                <li><strong>決策變量：</strong>x₁ = 5nm晶片生產數量，x₂ = 3nm晶片生產數量</li>
+                <li><strong>目標函數：</strong>最大化利潤 = 800x₁ + 1200x₂ (萬台幣)</li>
+                <li><strong>約束條件：</strong>
+                    <ul>
+                        <li>設備時間限制：4x₁ + 6x₂ ≤ 2400 (小時)</li>
+                        <li>原料限制：2x₁ + 2x₂ ≤ 800 (單位)</li>
+                        <li>技術人員限制：x₁ + 3x₂ ≤ 900 (人時)</li>
+                        <li>5nm產能上限：x₁ ≤ 300 (片)</li>
+                        <li>3nm產能上限：x₂ ≤ 250 (片)</li>
+                    </ul>
+                </li>
+            </ul>
+            
+            <h3>🎯 學習目標</h3>
+            <ul>
+                <li>理解線性規劃問題的標準形式轉換</li>
+                <liνομ: 掌握單體法的計算步驟與樞軸運算</li>
+                <li>學習如何解讀單體表中的數據意義</li>
+                <li>了解基變量、非基變量的概念</li>
+                <li>掌握最優性檢驗與解的判定</li>
+            </ul>
+        </div>
+        
+        <div class="algorithm-info">
+            <h3>🧮 單體法算法說明</h3>
+            <p>
+                單行法 (Simplex Method) 是求解線性規劃問題最經典的算法，由 George Dantzig 於1947年提出。
+                該算法通過系統性地移動到相鄰的基可行解，逐步改善目標函數值，直到找到最優解。
+            </p>
+            <ul>
+                <li><strong>第一步：</strong>將問題轉換為標準形式，添加鬆弛變數</li>
+                <li><strong>第二步：</strong>建立初始單體表，找到初始基可行解</li>
+                <li><strong>第三步：</strong>檢查最優性條件（目標函數行係數）</li>
+                <li><strong>第四步：</strong>若未達最優，選擇進入變數和離開變數</li>
+                <li><strong>第五步：</strong>執行樞軸運算，更新單體表</li>
+                <li><strong>重複步驟3-5</strong>直到達到最優解</li>
+            </ul>
+        </div>
+        
+        <div class="instructions">
+            <h2>📖 詳細使用說明</h2>
+            <ul>
+                <li><span class="highlight">目標函數設定</span>：輸入目標函數的係數，用逗號分隔。例如最大化利潤 z = 800x₁ + 1200x₂ 應輸入 <code>800,1200</code></li>
+                <li><span class="highlight">約束條件格式</span>：每行輸入一個約束條件，格式為 <code>係數1,係數2,運算符,常數</code>。例如 4x₁ + 6x₂ ≤ 2400 應輸入 <code>4,6,<=,2400</code></li>
+                <li><span class="highlight">支持運算符</span>：<code>&lt;=</code> (小於等於), <code>=</code> (等於), <code>&gt;=</code> (大於等於)</li>
+                <li><span class="highlight">求解過程</span>：點擊"求解"按鈕後，系統將自動計算並顯示初始單體表</li>
+                <li><span class="highlight">逐步演示</span>：使用"下一步"按鈕查看單體法的每一步計算過程</li>
+                <li><span class="highlight">視覺化元素</span>：表格中不同顏色標示不同類型的變數和操作</li>
+                <li><span class="highlight">進度追蹤</span>：頂部進度條顯示當前求解進度</li>
+            </ul>
+        </div>
+        
+        <footer>
+            <p><strong>🎓 線性規劃單體法可視化教學工具</strong></p>
+            <p>
+                本工具專為線性規劃教學設計，幫助學生理解單體法的計算原理和實際應用。
+                適用於運籌學、管理科學、工業工程等相關課程的教學與自學。
+            </p>
+            <p style="margin-top: 15px;">
+                <em>💡 提示：建議配合教科書內容使用，深入理解</em>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // 儲存單體法迭代歷史
+        let tableauHistory = [];
+        let currentStep = 0;
+        let basisVariables = [];
+
+        // 初始化按鈕事件
+        document.getElementById('solve-btn').addEventListener('click', solveProblem);
+        document.getElementById('next-btn').addEventListener('click', showNextStep);
+        document.getElementById('prev-btn').addEventListener('click', showPreviousStep);
+        document.getElementById('reset-btn').addEventListener('click', reset);
+
+        function solveProblem() {
+            // 重置狀態
+            tableauHistory = [];
+            currentStep = 0;
+            basisVariables = [];
+
+            // 解析輸入
+            const objectiveType = document.getElementById('objective').value;
+            const objectiveInput = document.getElementById('function').value;
+            const constraintsInput = document.getElementById('constraints').value;
+
+            // 驗證目標函數
+            const objectiveCoefficients = objectiveInput.split(',')
+                .map(x => parseFloat(x.trim()))
+                .filter(x => !isNaN(x));
+            if (objectiveCoefficients.length < 1) {
+                displayError('請輸入有效的目標函數係數（例如：800,1200）。');
+                return;
+            }
+
+            // 解析約束條件
+            const constraints = constraintsInput.split('\n')
+                .map(line => line.trim())
+                .filter(line => line !== '')
+                .map(line => {
+                    const parts = line.split(',');
+                    if (parts.length < 3) return null;
+                    const coefficients = parts.slice(0, -2)
+                        .map(x => parseFloat(x.trim()))
+                        .filter(x => !isNaN(x));
+                    const operator = parts[parts.length - 2].trim();
+                    const rhs = parseFloat(parts[parts.length - 1]);
+                    if (coefficients.length !== objectiveCoefficients.length || !['<=', '=', '>='].includes(operator) || isNaN(rhs)) {
+                        return null;
+                    }
+                    return { coefficients, operator, rhs };
+                })
+                .filter(c => c !== null);
+
+            if (constraints.length === 0) {
+                displayError('請輸入至少一個有效的約束條件（格式：係數1,係數2,運算符,常數）。');
+                return;
+            }
+
+            // 初始化單體表
+            try {
+                const tableau = initializeTableau(objectiveCoefficients, constraints, objectiveType);
+                tableauHistory.push({
+                    tableau: JSON.parse(JSON.stringify(tableau.tableau)),
+                    basis: [...tableau.basis],
+                    description: '初始單體表已建立，準備進行最優性檢查。'
+                });
+
+                // 執行單體法
+                runSimplex(tableau, objectiveType);
+
+                // 顯示第一步
+                currentStep = 0;
+                updateUI();
+                document.getElementById('next-btn').disabled = tableauHistory.length <= 1;
+                document.getElementById('prev-btn').disabled = true;
+            } catch (e) {
+                displayError(`錯誤：${e.message}`);
+            }
+        }
+
+        function initializeTableau(objective, constraints, type) {
+            const numVars = objective.length;
+            const numConstraints = constraints.length;
+            const tableau = [];
+            const basis = [];
+
+            // 添加約束條件行
+            constraints.forEach((constraint, i) => {
+                const row = [...constraint.coefficients];
+                // 添加鬆弛/剩餘變量
+                for (let j = 0; j < numConstraints; j++) {
+                    if (constraint.operator === '<=') {
+                        row[numVars + j] = i === j ? 1 : 0; // 鬆弛變量
+                    } else if (constraint.operator === '>=') {
+                        row[numVars + j] = i === j ? -1 : 0; // 剩餘變量
+                        row[numVars + numConstraints + i] = i === j ? 1 : 0; // 人工變量（後續實現）
+                    } else {
+                        row[numVars + j] = i === j ? 1 : 0; // 等式約束視為鬆弛
+                    }
+                }
+                row.push(constraint.rhs);
+                tableau.push(row);
+                basis.push(numVars + i); // 初始基變量為鬆弛變量
+            });
+
+            // 添加目標函數行
+            const objRow = objective.map(x => (type === 'max' ? -x : x));
+            for (let i = 0; i < numConstraints; i++) {
+                objRow[numVars + i] = 0;
+                if (constraints[i].operator === '>=') {
+                    objRow[numVars + numConstraints + i] = 0; // 人工變量（後續實現）
+                }
+            }
+            objRow.push(0);
+            tableau.push(objRow);
+
+            return { tableau, basis };
+        }
+
+        function runSimplex(tableauObj, objectiveType) {
+            let { tableau, basis } = tableauObj;
+            let iteration = 0;
+            const maxIterations = 100; // 防止無限迴圈
+
+            while (iteration < maxIterations) {
+                // 檢查最優性
+                const objRow = tableau[tableau.length - 1];
+                const pivotCol = objectiveType === 'max'
+                    ? objRow.slice(0, -1).reduce((minIdx, val, idx) => val < objRow[minIdx] ? idx : minIdx, 0)
+                    : objRow.slice(0, -1).reduce((maxIdx, val, idx) => val > objRow[maxIdx] ? idx : maxIdx, 0);
+
+                if ((objectiveType === 'max' && objRow[pivotCol] >= 0) || (objectiveType === 'min' && objRow[pivotCol] <= 0)) {
+                    tableauHistory.push({
+                        tableau: JSON.parse(JSON.stringify(tableau)),
+                        basis: [...basis],
+                        description: '已達到最優解，計算完成。'
+                    });
+                    break;
+                }
+
+                // 最小比率測試
+                let minRatio = Infinity;
+                let pivotRow = -1;
+                for (let i = 0; i < tableau.length - 1; i++) {
+                    if (tableau[i][pivotCol] > 0) {
+                        const ratio = tableau[i][tableau[0].length - 1] / tableau[i][pivotCol];
+                        if (ratio < minRatio && ratio >= 0) {
+                            minRatio = ratio;
+                            pivotRow = i;
+                        }
+                    }
+                }
+
+                if (pivotRow === -1) {
+                    throw new Error('問題無界，無法找到有限的最優解。');
+                }
+
+                // 執行樞軸運算
+                const pivotValue = tableau[pivotRow][pivotCol];
+                for (let j = 0; j < tableau[0].length; j++) {
+                    tableau[pivotRow][j] /= pivotValue;
+                }
+
+                for (let i = 0; i < tableau.length; i++) {
+                    if (i !== pivotRow) {
+                        const factor = tableau[i][pivotCol];
+                        for (let j = 0; j < tableau[0].length; j++) {
+                            tableau[i][j] -= factor * tableau[pivotRow][j];
+                        }
+                    }
+                }
+
+                // 更新基變量
+                basis[pivotRow] = pivotCol;
+
+                // 記錄步驟
+                tableauHistory.push({
+                    tableau: JSON.parse(JSON.stringify(tableau)),
+                    basis: [...basis],
+                    description: `迭代 ${iteration + 1}：選擇進入變量 x${pivotCol + 1}，離開變量 x${basis[pivotRow] + 1}，樞軸元素位於第 ${pivotRow + 1} 行，第 ${pivotCol + 1} 列。`
+                });
+
+                iteration++;
+            }
+
+            if (iteration >= maxIterations) {
+                throw new Error('迭代次數過多，可能存在退化或無解問題。');
+            }
+        }
+
+        function updateUI() {
+            const step = tableauHistory[currentStep];
+            if (!step) return;
+
+            // 更新單體表
+            renderTableau(step.tableau, step.basis);
+
+            // 更新步驟說明
+            document.getElementById('step-description').textContent = step.description;
+
+            // 更新步驟計數器和進度條
+            document.getElementById('step-counter').textContent = `${currentStep + 1} / ${tableauHistory.length}`;
+            const progress = (currentStep / (tableauHistory.length - 1)) * 100;
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+
+            // 更新按鈕狀態
+            document.getElementById('next-btn').disabled = currentStep >= tableauHistory.length - 1;
+            document.getElementById('prev-btn').disabled = currentStep <= 0;
+
+            // 更新解決方案
+            if (currentStep === tableauHistory.length - 1) {
+                const solution = extractSolution(step.tableau, step.basis);
+                document.getElementById('solution-variables').innerHTML = solution.variables
+                    .map((val, i) => `<div class="variable">x${i + 1} = <span id="x${i + 1}">${val.toFixed(2)}</span> 片</div>`)
+                    .join('');
+                document.getElementById('optimal-value').textContent = solution.optimalValue.toFixed(2);
+            } else {
+                document.getElementById('solution-variables').innerHTML = '<div class="variable">尚未達到最優解</div>';
+                document.getElementById('optimal-value').textContent = '0';
+            }
+        }
+
+        function renderTableau(tableau, basis) {
+            const container = document.getElementById('tableau-container');
+            const numVars = tableau[0].length - 1 - (tableau.length - 1); // 原變量數
+            const numSlack = tableau.length - 1; // 鬆弛變量數
+            let html = '<table><thead><tr>';
+            
+            // 生成表頭
+            for (let i = 0; i < numVars; i++) {
+                html += `<th>x${i + 1}</th>`;
+            }
+            for (let i = 0; i < numSlack; i++) {
+                html += `<th>s${i + 1}</th>`;
+            }
+            html += '<th>RHS</th></tr></thead><tbody>';
+
+            // 生成表格內容
+            tableau.forEach((row, rowIndex) => {
+                html += '<tr>';
+                row.forEach((cell, colIndex) => {
+                    let cellClass = '';
+                    if (rowIndex < tableau.length - 1 && basis[rowIndex] === colIndex) {
+                        cellClass = 'basis';
+                    }
+                    if (rowIndex === tableau.length - 1 && colIndex < row.length - 1 && 
+                        ((document.getElementById('objective').value === 'max' && cell < 0) || 
+                         (document.getElementById('objective').value === 'min' && cell > 0))) {
+                        cellClass = 'entering';
+                    }
+                    if (rowIndex === tableauHistory[currentStep].pivotRow && colIndex === tableauHistory[currentStep].pivotCol) {
+                        cellClass = 'pivot';
+                    }
+                    html += `<td class="${cellClass}">${cell.toFixed(2)}</td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function extractSolution(tableau, basis) {
+            const numVars = tableau[0].length - 1 - (tableau.length - 1);
+            const variables = Array(numVars).fill(0);
+            basis.forEach((varIdx, rowIdx) => {
+                if (varIdx < numVars) {
+                    variables[varIdx] = tableau[rowIdx][tableau[0].length - 1];
+                }
+            });
+            const optimalValue = document.getElementById('objective').value === 'max' 
+                ? tableau[tableau.length - 1][tableau[0].length - 1]
+                : -tableau[tableau.length - 1][tableau[0].length - 1];
+            return { variables, optimalValue };
+        }
+
+        function showNextStep() {
+            if (currentStep < tableauHistory.length - 1) {
+                currentStep++;
+                updateUI();
+            }
+        }
+
+        function showPreviousStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                updateUI();
+            }
+        }
+
+        function reset() {
+            tableauHistory = [];
+            currentStep = 0;
+            document.getElementById('tableau-container').innerHTML = '<p class="step-info">輸入問題並點擊"求解"按鈕後，這裡將顯示計算過程。</p>';
+            document.getElementById('step-description').textContent = '點擊"求解"按鈕開始計算。求解完成後，使用"下一步"按鈕查看單體法的每一步運算過程。';
+            document.getElementById('step-counter').textContent = '0 / 0';
+            document.getElementById('progress-fill').style.width = '0%';
+            document.getElementById('next-btn').disabled = true;
+            document.getElementById('prev-btn').disabled = true;
+            document.getElementById('solution-variables').innerHTML = `
+                <div class="variable">5nm晶片 = <span id="x1">0</span> 片</div>
+                <div class="variable">3nm晶片 = <span id="x2">0</span> 片</div>`;
+            document.getElementById('optimal-value').textContent = '0';
+        }
+
+        function displayError(message) {
+            const container = document.getElementById('tableau-container');
+            container.innerHTML = `<div class="error-message">${message}</div>`;
+            document.getElementById('next-btn').disabled = true;
+            document.getElementById('prev-btn').disabled = true;
+        }
+    </script>
+</body>
+</html>

@@ -128,7 +128,7 @@ const MusicPlayer = () => {
       ]
     },
     {
-      title: "童話故事",
+      title: "童話故事搞笑語音",
       buttons: [
         { text: "你老師咧", filename: "https://atbox-zz.github.io/app/你老師咧.mp3", isEnglish: false },
         { text: "參加喪禮會想死", filename: "https://atbox-zz.github.io/app/參加喪禮會想死.mp3", isEnglish: false },
@@ -149,12 +149,13 @@ const MusicPlayer = () => {
       ]
     },
     {
-      title: "搞笑語音",
+      title: "研究課題",
       buttons: [
         { text: "64方圓圖", filename: "./g.html", isEnglish: false, isGame: true },
-        { text: "井字棋", filename: "./xx.html", isEnglish: false, isGame: true },
         { text: "六十四卦速見表", filename: "./guaorder.html", isEnglish: false, isGame: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "DeepDeek OR單行法", filename: "./simplex.html", isEnglish: false, isGame: true },
+        { text: "Grok OR單行法", filename: "./simplex1.html", isEnglish: false, isGame: true },
+
 
         { text: "", filename: "", isEnglish: false, isEmpty: true },
         { text: "", filename: "", isEnglish: false, isEmpty: true },
@@ -178,6 +179,7 @@ const MusicPlayer = () => {
         { text: "🐍", filename: "./snake1.html", isEnglish: false, isGame: true },
         { text: "🎮魔術方塊", filename: "./cude6c.html", isEnglish: true, isGame: true },
         { text: "🎲金錢卦", filename: "./gua1a.html", isEnglish: true, isGame: true },
+        { text: "井字棋", filename: "./xx.html", isEnglish: false, isGame: true },
         { text: "🌱生命系統", filename: "game of liveinlive中文2.html", isEnglish: false, isGame: true },
         { text: "🔺64D", filename: "./vertices64d1.html", isEnglish: false, isGame: true },
         { text: "🎯3d", filename: "./vertices3d.html", isEnglish: false, isGame: true },
