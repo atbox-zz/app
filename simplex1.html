@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>線性規劃單體法可視化</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+            --success: #2ecc71;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: var(--light);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 900px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .panel-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--secondary);
+            color: white;
+        }
+        
+        .problem-input {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        label {
+            font-weight: 600;
+            color: var(--light);
+        }
+        
+        input, select {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
+        }
+        
+        button {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .controls button {
+            flex: 1;
+        }
+        
+        .btn-reset {
+            background: var(--accent);
+        }
+        
+        .btn-reset:hover {
+            background: #c0392b;
+        }
+        
+        .btn-next {
+            background: var(--success);
+        }
+        
+        .btn-next:hover {
+            background: #27ae60;
+        }
+        
+        .result-panel {
+            grid-column: 1 / -1;
+        }
+        
+        .tableau-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        th {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .pivot {
+            background-color: rgba(231, 76, 60, 0.3);
+            font-weight: bold;
+            position: relative;
+        }
+        
+        .pivot::after {
+            content: "樞紐元素";
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: white;
+            font-size: 0.8rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        
+        .basis {
+            background-color: rgba(46, 204, 113, 0.2);
+        }
+        
+        .solution-box {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+        
+        .solution-card {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .solution-card h3 {
+            margin-bottom: 15px;
+            color: var(--light);
+        }
+        
+        .solution-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--success);
+        }
+        
+        .variables {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .variable {
+            background: rgba(52, 152, 219, 0.2);
+            padding: 8px 15px;
+            border-radius: 6px;
+        }
+        
+        .step-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            line-height: 1.6;
+        }
+        
+        .step-title {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: var(--secondary);
+        }
+        
+        .instructions {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            line-height: 1.7;
+        }
+        
+        .instructions h2 {
+            margin-bottom: 15px;
+            color: white;
+        }
+        
+        .instructions ul {
+            padding-left: 25px;
+            margin-top: 10px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+        }
+        
+        .instructions code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .highlight {
+            color: var(--success);
+            font-weight: bold;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        
+        .legend-pivot {
+            background: rgba(231, 76, 60, 0.3);
+        }
+        
+        .legend-basis {
+            background: rgba(46, 204, 113, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>線性規劃單體法可視化解決方案</h1>
+            <p class="subtitle">此工具可解決線性規劃問題，並使用單體法逐步展示計算過程。輸入您的問題參數，點擊"求解"按鈕開始計算，然後使用"下一步"按鈕逐步查看單體法的運算過程。</p>
+        </header>
+        
+        <div class="content">
+            <div class="panel">
+                <h2 class="panel-title">問題輸入</h2>
+                <div class="problem-input">
+                    <div class="input-group">
+                        <label for="objective">目標函數類型</label>
+                        <select id="objective">
+                            <option value="max">最大化</option>
+                            <option value="min">最小化</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="function">目標函數係數 (用逗號分隔，例如: 3,2)</label>
+                        <input type="text" id="function" value="3,2" placeholder="例如: 3,2">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="constraints">約束條件 (每行一個約束，格式: 係數,運算符,常數，例如: 2,1,<=,100)</label>
+                        <textarea id="constraints" rows="5">2,1,<=,100
+1,1,<=,80
+1,0,<=,40</textarea>
+                    </div>
+                    
+                    <button id="solve-btn">求解問題</button>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2 class="panel-title">計算控制</h2>
+                <div class="controls">
+                    <button id="prev-btn" disabled>上一步</button>
+                    <button id="next-btn" disabled>下一步</button>
+                    <button id="reset-btn" class="btn-reset">重置</button>
+                </div>
+                
+                <div class="step-info">
+                    <h3 class="step-title">步驟說明</h3>
+                    <p>點擊"求解"按鈕開始計算。求解完成後，使用"下一步"按鈕查看單體法的每一步運算過程。</p>
+                </div>
+                
+                <div class="solution-box">
+                    <div class="solution-card">
+                        <h3>最優解</h3>
+                        <div class="variables">
+                            <div class="variable">x₁ = <span id="x1">0</span></div>
+                            <div class="variable">x₂ = <span id="x2">0</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="solution-card">
+                        <h3>最優值</h3>
+                        <div class="solution-value" id="optimal-value">0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel result-panel">
+                <h2 class="panel-title">單體表計算過程</h2>
+                <div class="tableau-container" id="tableau-container">
+                    <p class="step-info">輸入問題並點擊"求解"按鈕後，這裡將顯示計算過程。</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h2>使用說明</h2>
+            <ul>
+                <li><span class="highlight">目標函數</span>: 輸入目標函數的係數，用逗號分隔。例如最大化利潤 z = 3x₁ + 2x₂ 應輸入 "3,2"</li>
+                <li><span class="highlight">約束條件</span>: 每行輸入一個約束條件，格式為"係數1,係數2,運算符,常數"。例如 2x₁ + x₂ ≤ 100 應輸入 "2,1,<=,100"</li>
+                <li>支持的運算符: <code>&lt;=</code> (小於等於), <code>=</code> (等於), <code>&gt;=</code> (大於等於)</li>
+                <li>點擊"求解"按鈕後，系統將使用單體法計算問題，並在下方顯示初始單體表</li>
+                <li>使用"下一步"按鈕逐步查看單體法的每一步計算過程，包括樞軸元素的選擇和樞軸運算</li>
+                <li>在單體表中，<span class="highlight">樞軸元素</span>會以紅色高亮顯示，<span class="highlight">基變量</span>會以綠色高亮顯示</li>
+            </ul>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color legend-pivot"></div>
+                    <span>樞軸元素</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color legend-basis"></div>
+                    <span>基變量</span>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>線性規劃單體法可視化解決方案 | 作業研究工具</p>
+            <p>單體法是一種用於求解線性規劃問題的強大算法</p>
+        </footer>
+    </div>
+
+    <script>
+        class SimplexSolver {
+            constructor() {
+                this.c = [];
+                this.A = [];
+                this.b = [];
+                this.m = 0;
+                this.n = 0;
+                this.tableau = [];
+                this.basis = [];
+                this.history = [];
+                this.currentStep = 0;
+                this.solution = [];
+                this.optimalValue = 0;
+            }
+            
+            // 初始化求解器
+            init(c, A, b, objective) {
+                this.c = c;
+                this.A = A;
+                this.b = b;
+                this.m = b.length;
+                this.n = c.length;
+                this.objective = objective;
+                this.history = [];
+                this.currentStep = 0;
+                
+                // 初始化單體表
+                this.initializeTableau();
+            }
+            
+            // 初始化單體表
+            initializeTableau() {
+                this.tableau = Array(this.m + 1).fill().map(() => Array(this.n + this.m + 1).fill(0));
+                this.basis = Array(this.m).fill().map((_, i) => this.n + i);
+                
+                // 填充約束係數和鬆弛變量
+                for (let i = 0; i < this.m; i++) {
+                    // 原始變量係數
+                    for (let j = 0; j < this.n; j++) {
+                        this.tableau[i][j] = this.A[i][j];
+                    }
+                    // 鬆弛變量係數 (單位矩陣)
+                    this.tableau[i][this.n + i] = 1;
+                    // 右端項
+                    this.tableau[i][this.n + this.m] = this.b[i];
+                }
+                
+                // 目標函數行
+                for (let j = 0; j < this.n; j++) {
+                    this.tableau[this.m][j] = this.objective === 'max' ? -this.c[j] : this.c[j];
+                }
+                
+                // 記錄初始狀態
+                this.recordStep("初始化單體表");
+            }
+            
+            // 記錄當前步驟
+            recordStep(description, pivotRow = -1, pivotCol = -1) {
+                // 深拷貝當前單體表
+                const tableauCopy = JSON.parse(JSON.stringify(this.tableau));
+                const basisCopy = [...this.basis];
+                
+                this.history.push({
+                    step: this.history.length + 1,
+                    description,
+                    tableau: tableauCopy,
+                    basis: basisCopy,
+                    pivotRow,
+                    pivotCol
+                });
+            }
+            
+            // 檢查是否達到最優解
+            isOptimal() {
+                for (let j = 0; j < this.n + this.m; j++) {
+                    if (this.objective === 'max' && this.tableau[this.m][j] > 0) return false;
+                    if (this.objective === 'min' && this.tableau[this.m][j] < 0) return false;
+                }
+                return true;
+            }
+            
+            // 選擇進入變量
+            getEnteringVariable() {
+                let value = 0;
+                let col = -1;
+                
+                if (this.objective === 'max') {
+                    // 最大化問題：選擇最大正係數
+                    for (let j = 0; j < this.n + this.m; j++) {
+                        if (this.tableau[this.m][j] > value) {
+                            value = this.tableau[this.m][j];
+                            col = j;
+                        }
+                    }
+                } else {
+                    // 最小化問題：選擇最小負係數
+                    for (let j = 0; j < this.n + this.m; j++) {
+                        if (this.tableau[this.m][j] < value) {
+                            value = this.tableau[this.m][j];
+                            col = j;
+                        }
+                    }
+                }
+                
+                return col;
+            }
+            
+            // 選擇離開變量
+            getLeavingVariable(enterCol) {
+                let minRatio = Infinity;
+                let row = -1;
+                
+                for (let i = 0; i < this.m; i++) {
+                    if (this.tableau[i][enterCol] <= 0) continue;
+                    
+                    const ratio = this.tableau[i][this.n + this.m] / this.tableau[i][enterCol];
+                    if (ratio < minRatio) {
+                        minRatio = ratio;
+                        row = i;
+                    }
+                }
+                
+                return row;
+            }
+            
+            // 樞軸運算
+            pivot(row, col) {
+                // 更新基變量
+                this.basis[row] = col;
+                
+                // 正規化樞紐行
+                const pivotValue = this.tableau[row][col];
+                for (let j = 0; j <= this.n + this.m; j++) {
+                    this.tableau[row][j] /= pivotValue;
+                }
+                
+                // 更新其他行
+                for (let i = 0; i <= this.m; i++) {
+                    if (i === row) continue;
+                    
+                    const factor = this.tableau[i][col];
+                    for (let j = 0; j <= this.n + this.m; j++) {
+                        this.tableau[i][j] -= factor * this.tableau[row][j];
+                    }
+                }
+            }
+            
+            // 求解主方法
+            solve() {
+                this.recordStep("開始求解");
+                
+                while (!this.isOptimal()) {
+                    const enterCol = this.getEnteringVariable();
+                    if (enterCol === -1) break;
+                    
+                    const leaveRow = this.getLeavingVariable(enterCol);
+                    if (leaveRow === -1) {
+                        this.recordStep("問題無界，無最優解");
+                        throw new Error("問題無界，無最優解");
+                    }
+                    
+                    // 記錄樞軸選擇步驟
+                    this.recordStep(`選擇進入變量: ${this.getVariableName(enterCol)}, 離開變量: ${this.getVariableName(this.basis[leaveRow])}`, leaveRow, enterCol);
+                    
+                    // 執行樞軸運算
+                    this.pivot(leaveRow, enterCol);
+                    
+                    // 記錄樞軸運算後狀態
+                    this.recordStep(`樞軸運算後狀態`);
+                }
+                
+                // 記錄最終解
+                this.recordStep("達到最優解");
+                
+                // 提取最終解
+                this.getSolution();
+                
+                return true;
+            }
+            
+            // 獲取變量名稱
+            getVariableName(index) {
+                if (index < this.n) {
+                    return `x${index + 1}`;
+                } else {
+                    return `s${index - this.n + 1}`;
+                }
+            }
+            
+            // 提取最終解
+            getSolution() {
+                this.solution = Array(this.n).fill(0);
+                
+                // 提取基變量值
+                for (let i = 0; i < this.m; i++) {
+                    const col = this.basis[i];
+                    if (col < this.n) {
+                        this.solution[col] = this.tableau[i][this.n + this.m];
+                    }
+                }
+                
+                // 最優目標值
+                this.optimalValue = this.tableau[this.m][this.n + this.m];
+                if (this.objective === 'max') {
+                    this.optimalValue = -this.optimalValue;
+                }
+            }
+            
+            // 獲取當前步驟數據
+            getCurrentStep() {
+                if (this.currentStep >= 0 && this.currentStep < this.history.length) {
+                    return this.history[this.currentStep];
+                }
+                return null;
+            }
+        }
+
+        // DOM元素引用
+        const solveBtn = document.getElementById('solve-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const tableauContainer = document.getElementById('tableau-container');
+        const x1Display = document.getElementById('x1');
+        const x2Display = document.getElementById('x2');
+        const optimalValueDisplay = document.getElementById('optimal-value');
+        
+        // 創建求解器實例
+        const solver = new SimplexSolver();
+        
+        // 解決按鈕點擊事件
+        solveBtn.addEventListener('click', () => {
+            try {
+                // 獲取輸入值
+                const objective = document.getElementById('objective').value;
+                const funcInput = document.getElementById('function').value;
+                const constraintsInput = document.getElementById('constraints').value;
+                
+                // 解析目標函數
+                const c = funcInput.split(',').map(Number);
+                
+                // 解析約束條件
+                const constraints = constraintsInput.split('\n').filter(line => line.trim() !== '');
+                const A = [];
+                const b = [];
+                
+                for (const line of constraints) {
+                    const parts = line.split(',');
+                    if (parts.length < 3) continue;
+                    
+                    const coeffs = parts.slice(0, parts.length - 2).map(Number);
+                    const rhs = Number(parts[parts.length - 1]);
+                    
+                    A.push(coeffs);
+                    b.push(rhs);
+                }
+                
+                // 初始化求解器
+                solver.init(c, A, b, objective);
+                
+                // 求解問題
+                solver.solve();
+                
+                // 啟用控制按鈕
+                prevBtn.disabled = false;
+                nextBtn.disabled = false;
+                
+                // 重置到第一步
+                solver.currentStep = 0;
+                
+                // 顯示結果
+                displaySolution();
+                displayTableau();
+                
+            } catch (error) {
+                alert(`求解錯誤: ${error.message}`);
+            }
+        });
+        
+        // 上一步按鈕
+        prevBtn.addEventListener('click', () => {
+            if (solver.currentStep > 0) {
+                solver.currentStep--;
+                displayTableau();
+                updateControls();
+            }
+        });
+        
+        // 下一步按鈕
+        nextBtn.addEventListener('click', () => {
+            if (solver.currentStep < solver.history.length - 1) {
+                solver.currentStep++;
+                displayTableau();
+                updateControls();
+                
+                // 如果是最後一步，顯示最終解
+                if (solver.currentStep === solver.history.length - 1) {
+                    displaySolution();
+                }
+            }
+        });
+        
+        // 重置按鈕
+        resetBtn.addEventListener('click', () => {
+            solver.history = [];
+            solver.currentStep = 0;
+            tableauContainer.innerHTML = '<p>輸入問題並點擊"求解"按鈕後，這裡將顯示計算過程。</p>';
+            prevBtn.disabled = true;
+            nextBtn.disabled = true;
+            x1Display.textContent = '0';
+            x2Display.textContent = '0';
+            optimalValueDisplay.textContent = '0';
+        });
+        
+        // 顯示解
+        function displaySolution() {
+            if (solver.solution.length >= 1) {
+                x1Display.textContent = solver.solution[0].toFixed(2);
+            }
+            if (solver.solution.length >= 2) {
+                x2Display.textContent = solver.solution[1].toFixed(2);
+            }
+            optimalValueDisplay.textContent = solver.optimalValue.toFixed(2);
+        }
+        
+        // 顯示單體表
+        function displayTableau() {
+            const step = solver.getCurrentStep();
+            if (!step) return;
+            
+            let html = `<div class="step-info">
+                <h3 class="step-title">步驟 ${step.step}: ${step.description}</h3>
+            </div>`;
+            
+            html += '<table><thead><tr><th>基變量</th>';
+            
+            // 添加列標題 (決策變量)
+            for (let j = 0; j < solver.n; j++) {
+                html += `<th>x<sub>${j+1}</sub></th>`;
+            }
+            
+            // 添加列標題 (鬆弛變量)
+            for (let j = 0; j < solver.m; j++) {
+                html += `<th>s<sub>${j+1}</sub></th>`;
+            }
+            
+            // 添加RHS列
+            html += '<th>解</th></tr></thead><tbody>';
+            
+            // 添加行數據
+            for (let i = 0; i <= solver.m; i++) {
+                html += '<tr>';
+                
+                // 添加行標題
+                if (i < solver.m) {
+                    html += `<td class="basis">${solver.getVariableName(step.basis[i])}</td>`;
+                } else {
+                    html += '<td>z</td>';
+                }
+                
+                // 添加單體表數據
+                for (let j = 0; j <= solver.n + solver.m; j++) {
+                    let cellClass = '';
+                    
+                    // 檢查是否為樞軸元素
+                    if (i === step.pivotRow && j === step.pivotCol) {
+                        cellClass = 'pivot';
+                    }
+                    // 檢查是否為基變量列
+                    else if (i < solver.m && j === step.basis[i]) {
+                        cellClass = 'basis';
+                    }
+                    
+                    const value = step.tableau[i][j].toFixed(2);
+                    html += `<td class="${cellClass}">${value}</td>`;
+                }
+                
+                html += '</tr>';
+            }
+            
+            html += '</tbody></table>';
+            tableauContainer.innerHTML = html;
+        }
+        
+        // 更新控制按鈕狀態
+        function updateControls() {
+            prevBtn.disabled = solver.currentStep === 0;
+            nextBtn.disabled = solver.currentStep === solver.history.length - 1;
+        }
+        
+        // 初始化頁面
+        function initPage() {
+            // 設置示例問題
+            document.getElementById('objective').value = 'max';
+            document.getElementById('function').value = '3,2';
+            document.getElementById('constraints').value = `2,1,<=,100
+1,1,<=,80
+1,0,<=,40`;
+        }
+        
+        // 頁面加載時初始化
+        window.addEventListener('DOMContentLoaded', initPage);
+    </script>
+</body>
+</html>
