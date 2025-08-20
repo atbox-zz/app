@@ -1,9 +1,10 @@
+<!-- Deepseek OR 單形法-->
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>線性規劃單體法可視化</title>
+    <title>DeepSeek線性規劃單形法可視化</title>
     <style>
         :root {
             --primary: #2c3e50;
@@ -349,8 +350,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>線性規劃單體法可視化解決方案</h1>
-            <p class="subtitle">此工具可解決線性規劃問題，並使用單體法逐步展示計算過程。輸入您的問題參數，點擊"求解"按鈕開始計算，然後使用"下一步"按鈕逐步查看單體法的運算過程。</p>
+            <h1>線性規劃單形法可視化解決方案</h1>
+            <p class="subtitle">此工具可解決線性規劃問題，並使用單形法逐步展示計算過程。輸入您的問題參數，點擊"求解"按鈕開始計算，然後使用"下一步"按鈕逐步查看單形法的運算過程。</p>
         </header>
         
         <div class="content">
@@ -391,7 +392,7 @@
                 
                 <div class="step-info">
                     <h3 class="step-title">步驟說明</h3>
-                    <p>點擊"求解"按鈕開始計算。求解完成後，使用"下一步"按鈕查看單體法的每一步運算過程。</p>
+                    <p>點擊"求解"按鈕開始計算。求解完成後，使用"下一步"按鈕查看單形法的每一步運算過程。</p>
                 </div>
                 
                 <div class="solution-box">
@@ -411,7 +412,7 @@
             </div>
             
             <div class="panel result-panel">
-                <h2 class="panel-title">單體表計算過程</h2>
+                <h2 class="panel-title">單形表計算過程</h2>
                 <div class="tableau-container" id="tableau-container">
                     <p class="step-info">輸入問題並點擊"求解"按鈕後，這裡將顯示計算過程。</p>
                 </div>
@@ -424,9 +425,9 @@
                 <li><span class="highlight">目標函數</span>: 輸入目標函數的係數，用逗號分隔。例如最大化利潤 z = 3x₁ + 2x₂ 應輸入 "3,2"</li>
                 <li><span class="highlight">約束條件</span>: 每行輸入一個約束條件，格式為"係數1,係數2,運算符,常數"。例如 2x₁ + x₂ ≤ 100 應輸入 "2,1,<=,100"</li>
                 <li>支持的運算符: <code>&lt;=</code> (小於等於), <code>=</code> (等於), <code>&gt;=</code> (大於等於)</li>
-                <li>點擊"求解"按鈕後，系統將使用單體法計算問題，並在下方顯示初始單體表</li>
-                <li>使用"下一步"按鈕逐步查看單體法的每一步計算過程，包括樞軸元素的選擇和樞軸運算</li>
-                <li>在單體表中，<span class="highlight">樞軸元素</span>會以紅色高亮顯示，<span class="highlight">基變量</span>會以綠色高亮顯示</li>
+                <li>點擊"求解"按鈕後，系統將使用單形法計算問題，並在下方顯示初始單形表</li>
+                <li>使用"下一步"按鈕逐步查看單形法的每一步計算過程，包括樞軸元素的選擇和樞軸運算</li>
+                <li>在單形表中，<span class="highlight">樞軸元素</span>會以紅色高亮顯示，<span class="highlight">基變量</span>會以綠色高亮顯示</li>
             </ul>
             
             <div class="legend">
@@ -442,8 +443,8 @@
         </div>
         
         <footer>
-            <p>線性規劃單體法可視化解決方案 | 作業研究工具</p>
-            <p>單體法是一種用於求解線性規劃問題的強大算法</p>
+            <p>線性規劃單形法可視化解決方案 | 作業研究工具</p>
+            <p>單形法是一種用於求解線性規劃問題的強大算法</p>
         </footer>
     </div>
 
@@ -474,11 +475,11 @@
                 this.history = [];
                 this.currentStep = 0;
                 
-                // 初始化單體表
+                // 初始化單形表
                 this.initializeTableau();
             }
             
-            // 初始化單體表
+            // 初始化單形表
             initializeTableau() {
                 this.tableau = Array(this.m + 1).fill().map(() => Array(this.n + this.m + 1).fill(0));
                 this.basis = Array(this.m).fill().map((_, i) => this.n + i);
@@ -501,12 +502,12 @@
                 }
                 
                 // 記錄初始狀態
-                this.recordStep("初始化單體表");
+                this.recordStep("初始化單形表");
             }
             
             // 記錄當前步驟
             recordStep(description, pivotRow = -1, pivotCol = -1) {
-                // 深拷貝當前單體表
+                // 深拷貝當前單形表
                 const tableauCopy = JSON.parse(JSON.stringify(this.tableau));
                 const basisCopy = [...this.basis];
                 
@@ -773,7 +774,7 @@
             optimalValueDisplay.textContent = solver.optimalValue.toFixed(2);
         }
         
-        // 顯示單體表
+        // 顯示單形表
         function displayTableau() {
             const step = solver.getCurrentStep();
             if (!step) return;
@@ -808,7 +809,7 @@
                     html += '<td>z</td>';
                 }
                 
-                // 添加單體表數據
+                // 添加單形表數據
                 for (let j = 0; j <= solver.n + solver.m; j++) {
                     let cellClass = '';
                     
