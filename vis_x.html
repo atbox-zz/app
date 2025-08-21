@@ -53,34 +53,11 @@
             transform: translateY(0);
         }
         
-        .close-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: #ff6b6b;
-            color: white;
-            border: none;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            font-size: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            line-height: 1;
-        }
-        
-        .close-btn:hover {
-            background: #ff5252;
-        }
-        
         .title {
             position: absolute;
             top: 20px;
             left: 20px;
-            font-size: 20px;
+            font-size: 24px;
             font-weight: bold;
             color: #333;
             z-index: 100;
@@ -92,105 +69,55 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         
-        /* 手機控制按鈕樣式 */
-        .mobile-controls {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 150;
-        }
-        
-        .control-btn {
-            width: 50px;
-            height: 50px;
-            border: none;
-            border-radius: 50%;
-            background: rgba(0,0,0,0.8);
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-        
-        .control-btn:hover {
-            transform: scale(1.1);
-            background: rgba(0,0,0,0.9);
-        }
-        
-        .control-btn:active {
-            transform: scale(0.95);
-        }
-        
-        /* 浮動控制面板 */
-        .floating-controls {
-            position: fixed;
-            top: 100px;
-            right: 20px;
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
             background: rgba(0,0,0,0.9);
             padding: 20px;
-            border-radius: 15px;
+            border-radius: 12px;
             backdrop-filter: blur(10px);
-            z-index: 140;
             min-width: 250px;
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
         }
         
-        .floating-controls.show {
-            transform: translateX(0);
+        .control-group {
+            margin-bottom: 15px;
         }
         
-        .control-slider {
-            margin-bottom: 20px;
-        }
-        
-        .control-slider:last-child {
+        .control-group:last-child {
             margin-bottom: 0;
         }
         
-        .control-slider label {
+        .control-group label {
             color: #fff;
             font-size: 14px;
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-weight: bold;
         }
         
-        .control-slider input[type="range"] {
+        .control-group input[type="range"] {
             width: 100%;
             background: #333;
             border: none;
             border-radius: 5px;
             height: 8px;
-            cursor: pointer;
         }
         
-        .control-slider input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #4CAF50;
-            cursor: pointer;
+        .control-group input[type="checkbox"] {
+            margin-right: 8px;
+            transform: scale(1.2);
         }
         
-        .control-slider input[type="range"]::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #4CAF50;
-            cursor: pointer;
-            border: none;
+        .control-group select {
+            width: 100%;
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 14px;
         }
         
         .hexagram-info {
@@ -287,93 +214,50 @@
             text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
         }
         
-        /* 響應式設計 */
-        @media (max-width: 768px) {
-            .title {
-                font-size: 16px;
-                padding: 10px 15px;
-                top: 10px;
-                left: 10px;
-            }
-            
-            .mobile-controls {
-                top: 10px;
-                right: 10px;
-            }
-            
-            .control-btn {
-                width: 45px;
-                height: 45px;
-                font-size: 18px;
-            }
-            
-            .floating-controls {
-                top: 80px;
-                right: 10px;
-                min-width: 200px;
-                padding: 15px;
-            }
-            
-            .info-panel {
-                padding: 15px;
-                max-height: 70vh;
-            }
-            
-            .hexagram-name {
-                font-size: 20px;
-            }
-            
-            .hexagram-symbol {
-                font-size: 28px;
-            }
+        .toggle-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
         
-        @media (max-width: 480px) {
-            .title {
-                font-size: 14px;
-                padding: 8px 12px;
-            }
-            
-            .floating-controls {
-                min-width: 180px;
-            }
-            
-            .control-btn {
-                width: 40px;
-                height: 40px;
-                font-size: 16px;
-            }
+        .toggle-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .toggle-button:active {
+            transform: translateY(0px);
+        }
+        
+        .legend.hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="title">六十四卦六維超立方體</div>
         <div class="main-view" id="mainView"></div>
         
-        <!-- 手機控制按鈕 -->
-        <div class="mobile-controls">
-            <button class="control-btn" id="infoBtn">ℹ️</button>
-            <button class="control-btn" id="settingsBtn">⚙️</button>
-        </div>
-        
-        <!-- 浮動控制面板 -->
         <div class="floating-controls" id="floatingControls">
             <div class="control-slider">
-                <label>卦象大小</label>
+                <label>大小</label>
                 <input type="range" id="hexagramSize" min="0.5" max="3" step="0.1" value="1.5">
             </div>
             <div class="control-slider">
-                <label>投影維度</label>
+                <label>投影</label>
                 <input type="range" id="projectionDimension" min="0" max="5" step="1" value="3">
-            </div>
-            <div class="control-slider">
-                <label>旋轉速度</label>
-                <input type="range" id="rotationSpeed" min="0.01" max="0.2" step="0.01" value="0.1">
             </div>
         </div>
         
-        <!-- 資訊面板 -->
         <div class="info-panel" id="infoPanel">
             <button class="close-btn" id="closeInfo">×</button>
             
@@ -387,41 +271,50 @@
                 <p>• 用手指拖動畫面來旋轉視角</p>
                 <p>• 點擊卦象查看詳細資訊</p>
                 <p>• 調整投影維度來改變投影方式</p>
-                <p>• 調整卦象大小和旋轉速度</p>
             </div>
             
             <div class="legend" id="legend">
                 <h3>顏色說明</h3>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #ff6b6b;"></div>
-                    <span>乾卦系統 (純陽)</span>
+                    <span>乾卦系統 (多陽爻)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #4ecdc4;"></div>
-                    <span>坤卦系統 (純陰)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #ff8e53;"></div>
-                    <span>一陰五陽卦</span>
+                    <span>坤卦系統 (多陰爻)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #45b7d1;"></div>
-                    <span>一陽五陰卦</span>
+                    <span>震卦系統</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #f7dc6f;"></div>
-                    <span>二陰四陽卦</span>
+                    <span>艮卦系統</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #bb8fce;"></div>
-                    <span>二陽四陰卦</span>
+                    <span>坎卦系統</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #82e0aa;"></div>
-                    <span>三陰三陽卦 (平衡)</span>
+                    <span>離卦系統</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f8c471;"></div>
+                    <span>巽卦系統</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #85c1e9;"></div>
+                    <span>兌卦系統</span>
                 </div>
             </div>
         </div>
+    </div>
+    
+    <!-- 移動控制按鈕到最後 -->
+    <div class="mobile-controls">
+        <button class="control-btn" id="infoBtn">ℹ️</button>
+        <button class="control-btn" id="settingsBtn">⚙️</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -501,18 +394,20 @@
         
         const container = document.querySelector('.main-view');
         renderer.setSize(container.offsetWidth, container.offsetHeight);
-        renderer.setClearColor(0xffffff, 0);
+        renderer.setClearColor(0xffffff, 1);
         container.appendChild(renderer.domElement);
+
+        // 確保按鈕顯示在最上層
+        const mobileControls = document.querySelector('.mobile-controls');
+        document.body.appendChild(mobileControls);
 
         // 觸控和鼠標控制變數
         let isDragging = false;
-        let dragStartTime = 0;
         let previousMousePosition = { x: 0, y: 0 };
         let rotationX = 0.3;
         let rotationY = 0.3;
         let targetRotationX = 0.3;
         let targetRotationY = 0.3;
-        let rotationSpeed = 0.1;
 
         // 生成64個6維頂點
         const vertices6D = [];
@@ -530,14 +425,14 @@
             
             // 根據投影維度動態調整高維度的投影
             for (let i = 3; i < 6; i++) {
-                const weight = i === projectionDim ? 0.8 : 0.4;
+                const weight = i === projectionDim ? 0.6 : 0.3;
                 const angle = (i - 2) * Math.PI / 3;
                 x += weight * Math.cos(angle) * (vertex6D[i] - 0.5);
                 y += weight * Math.sin(angle) * (vertex6D[i] - 0.5);
                 z += weight * Math.cos(angle * 0.7) * (vertex6D[i] - 0.5);
             }
             
-            return [x * 4, y * 4, z * 4];
+            return [x * 3, y * 3, z * 3];
         }
 
         // 根據卦象生成顏色
@@ -627,9 +522,9 @@
                     if (diff === 1) {
                         const geometry = new THREE.BufferGeometry();
                         const material = new THREE.LineBasicMaterial({ 
-                            color: 0x666666,
+                            color: 0x444444,
                             transparent: true,
-                            opacity: 0.3
+                            opacity: 0.2
                         });
                         const line = new THREE.Line(geometry, material);
                         sceneGroup.add(line);
@@ -642,7 +537,7 @@
         createLines();
 
         // 設置相機位置
-        camera.position.set(10, 10, 10);
+        camera.position.set(8, 8, 8);
         camera.lookAt(0, 0, 0);
 
         // 觸控和鼠標事件處理
@@ -656,7 +551,6 @@
         function onPointerDown(event) {
             event.preventDefault();
             isDragging = true;
-            dragStartTime = Date.now();
             const pos = getEventPos(event);
             previousMousePosition = { x: pos.x, y: pos.y };
         }
@@ -670,8 +564,8 @@
             const deltaX = pos.x - previousMousePosition.x;
             const deltaY = pos.y - previousMousePosition.y;
             
-            targetRotationY += deltaX * 0.008;
-            targetRotationX += deltaY * 0.008;
+            targetRotationY += deltaX * 0.01;
+            targetRotationX += deltaY * 0.01;
             
             // 限制X軸旋轉範圍
             targetRotationX = Math.max(-Math.PI/2, Math.min(Math.PI/2, targetRotationX));
@@ -680,15 +574,12 @@
         }
 
         function onPointerUp(event) {
-            const dragDuration = Date.now() - dragStartTime;
-            setTimeout(() => {
-                isDragging = false;
-            }, 50); // 短暫延遲避免誤觸點擊
+            isDragging = false;
         }
 
         // 點擊事件處理
         function onPointerClick(event) {
-            if (isDragging || Date.now() - dragStartTime > 300) return; // 如果正在拖動或拖動時間過長，不處理點擊
+            if (isDragging) return; // 如果正在拖動，不處理點擊
             
             const pos = getEventPos(event);
             const rect = renderer.domElement.getBoundingClientRect();
@@ -701,7 +592,6 @@
             if (intersects.length > 0) {
                 const selectedHexagram = intersects[0].object.userData.hexagram;
                 displayHexagramInfo(selectedHexagram);
-                showInfoPanel();
             }
         }
 
@@ -718,6 +608,7 @@
         canvas.addEventListener('touchstart', onPointerDown, { passive: false });
         canvas.addEventListener('touchmove', onPointerMove, { passive: false });
         canvas.addEventListener('touchend', onPointerUp, { passive: false });
+        canvas.addEventListener('touchstart', onPointerClick, { passive: false });
 
         function displayHexagramInfo(hexagram) {
             const infoDiv = document.getElementById('selectedHexagram');
@@ -732,30 +623,18 @@
             `;
         }
 
-        // 手機介面控制函數
-        function showInfoPanel() {
-            document.getElementById('infoPanel').classList.add('show');
-        }
-
-        function hideInfoPanel() {
-            document.getElementById('infoPanel').classList.remove('show');
-        }
-
-        function toggleSettingsPanel() {
-            document.getElementById('floatingControls').classList.toggle('show');
-        }
-
         // 動畫循環
         function animate() {
             requestAnimationFrame(animate);
             
             const size = parseFloat(document.getElementById('hexagramSize').value);
+            const showLines = true; // 預設顯示連線
+            const showNames = true; // 預設顯示名稱
             const projectionDim = parseInt(document.getElementById('projectionDimension').value);
-            rotationSpeed = parseFloat(document.getElementById('rotationSpeed').value);
             
             // 平滑旋轉插值
-            rotationX += (targetRotationX - rotationX) * rotationSpeed;
-            rotationY += (targetRotationY - rotationY) * rotationSpeed;
+            rotationX += (targetRotationX - rotationX) * 0.1;
+            rotationY += (targetRotationY - rotationY) * 0.1;
             
             // 應用旋轉到場景群組
             sceneGroup.rotation.x = rotationX;
@@ -768,10 +647,11 @@
                 mesh.scale.setScalar(size);
             });
             
-            // 更新標籤位置
+            // 更新標籤位置和顯示
             hexagramLabels.forEach(({ label, vertex6D }) => {
                 const pos3D = project6Dto3D(vertex6D, projectionDim);
-                label.position.set(pos3D[0], pos3D[1] + 0.4, pos3D[2]);
+                label.position.set(pos3D[0], pos3D[1] + 0.3, pos3D[2]);
+                label.visible = showNames;
             });
             
             // 更新連接線
@@ -783,6 +663,7 @@
                     new THREE.Vector3(pos2[0], pos2[1], pos2[2])
                 ];
                 line.geometry.setFromPoints(points);
+                line.visible = showLines;
             });
             
             renderer.render(scene, camera);
@@ -799,61 +680,39 @@
             renderer.setSize(width, height);
         });
 
-        // 防止右鍵選單和默認觸控行為
+        // 防止右鍵選單
         canvas.addEventListener('contextmenu', function(e) {
             e.preventDefault();
         });
         
-        // 手機介面控制事件
-        document.getElementById('infoBtn').addEventListener('click', function(e) {
-            e.stopPropagation();
-            showInfoPanel();
+        // 手機介面控制
+        const infoBtn = document.getElementById('infoBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const infoPanel = document.getElementById('infoPanel');
+        const floatingControls = document.getElementById('floatingControls');
+        const closeInfo = document.getElementById('closeInfo');
+        
+        // 顯示資訊面板
+        infoBtn.addEventListener('click', function() {
+            infoPanel.classList.add('show');
         });
         
-        document.getElementById('settingsBtn').addEventListener('click', function(e) {
-            e.stopPropagation();
-            toggleSettingsPanel();
+        // 顯示設定控制
+        settingsBtn.addEventListener('click', function() {
+            floatingControls.classList.toggle('show');
         });
         
-        document.getElementById('closeInfo').addEventListener('click', function() {
-            hideInfoPanel();
+        // 關閉資訊面板
+        closeInfo.addEventListener('click', function() {
+            infoPanel.classList.remove('show');
         });
         
-        // 點擊面板外部關閉面板
-        document.getElementById('infoPanel').addEventListener('click', function(e) {
-            if (e.target === this) {
-                hideInfoPanel();
+        // 點擊面板外部關閉
+        infoPanel.addEventListener('click', function(e) {
+            if (e.target === infoPanel) {
+                infoPanel.classList.remove('show');
             }
         });
-        
-        // 點擊其他區域關閉設定面板
-        document.addEventListener('click', function(e) {
-            const settingsPanel = document.getElementById('floatingControls');
-            const settingsBtn = document.getElementById('settingsBtn');
-            
-            if (!settingsPanel.contains(e.target) && e.target !== settingsBtn) {
-                settingsPanel.classList.remove('show');
-            }
-        });
-        
-        // 防止面板內點擊事件冒泡
-        document.getElementById('floatingControls').addEventListener('click', function(e) {
-            e.stopPropagation();
-        });
-        
-        document.getElementById('infoPanel').addEventListener('click', function(e) {
-            e.stopPropagation();
-        });
-
-        // 初始化時顯示提示
-        setTimeout(() => {
-            displayHexagramInfo({
-                name: "歡迎",
-                lines: [1,0,1,0,1,0],
-                desc: "這是六十四卦在六維超立方體中的3D視覺化。每個卦象對應六維空間中的一個頂點，用拖動來旋轉視角，點擊卦象球體查看詳細資訊。"
-            });
-            showInfoPanel();
-        }, 1000);
     </script>
 </body>
 </html>
