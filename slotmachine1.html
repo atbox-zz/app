@@ -36,11 +36,37 @@
     .result-message.show { opacity: 1; transform: scale(1); }
     .result-message.win { color: #00ff00; }
     .button-row { display: flex; gap: 10px; }
-    .symbol img { width: 100%; height: 100%; object-fit: contain; }
+
+    /* 🎵 音樂選擇彈窗 */
+    .music-modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center;
+      z-index: 9999;
+    }
+    .music-box {
+      background: #222; padding: 30px; border-radius: 15px; text-align: center; color: #ffd700;
+      box-shadow: 0 0 20px #ffd700;
+    }
+    .music-box h2 { margin-bottom: 20px; }
+    .music-box button {
+      margin: 10px; padding: 10px 20px; font-size: 1.2em;
+      border: none; border-radius: 12px; cursor: pointer;
+    }
+    .music-on { background: #28a745; color: #fff; }
+    .music-off { background: #dc3545; color: #fff; }
   </style>
 </head>
 <body>
-  <div class="game-container" id="gameBox">
+  <!-- 🎵 音樂選擇彈窗 -->
+  <div class="music-modal" id="musicModal">
+    <div class="music-box">
+      <h2>是否開啟音樂？</h2>
+      <button class="music-on" id="musicYes">🔊 開啟</button>
+      <button class="music-off" id="musicNo">🔇 靜音</button>
+    </div>
+  </div>
+
+  <div class="game-container" id="gameBox" style="display:none;">
     <h1 class="title">🎰 拉霸機 🎰</h1>
     <div class="machine">
       <div class="info-bar">
@@ -79,12 +105,12 @@
 <script>
 class SlotMachine {
   constructor() {
-    this.symbols = ['🍒','🍋','🍊','🍇','🔔','💎','⭐','L7']; // 加入 Lucky 7 代號
+    this.symbols = ['🍒','🍋','🍊','🍇','🔔','💎','7️⃣','⭐'];
     this.coins = 100;
     this.bet = 10;
     this.win = 0;
     this.isSpinning = false;
-    this.musicOn = true; // 音樂狀態
+    this.musicOn = true;
 
     this.loadProgress();
     this.initReels();
@@ -145,21 +171,13 @@ class SlotMachine {
   }
   saveProgress(){ localStorage.setItem('slotCoins',this.coins); }
 
-  getSymbolContent(symbol){
-    if(symbol==="L7"){
-      return '<img src="lucky7.png" alt="777">';
-    }
-    return symbol;
-  }
-
   initReels(){
     for(let i=1;i<=3;i++){
       const strip=document.querySelector(`#reel${i} .reel-strip`);
       for(let j=0;j<20;j++){
         const s=document.createElement('div');
         s.className='symbol';
-        let randomSymbol=this.symbols[Math.floor(Math.random()*this.symbols.length)];
-        s.innerHTML=this.getSymbolContent(randomSymbol);
+        s.textContent=this.symbols[Math.floor(Math.random()*this.symbols.length)];
         strip.appendChild(s);
       }
     }
@@ -199,7 +217,7 @@ class SlotMachine {
         if(current<spins){ requestAnimationFrame(animate);}
         else{
           const final=this.symbols[Math.floor(Math.random()*this.symbols.length)];
-          symbols[0].innerHTML=this.getSymbolContent(final);
+          symbols[0].textContent=final; 
           strip.style.transform=`translateY(0px)`;
           resolve(final);
         }
@@ -211,7 +229,7 @@ class SlotMachine {
   checkWin([a,b,c]){
     if(a===b&&b===c){
       if(a==='💎')return 500;
-      if(a==='L7')return 300; // Lucky 7 大獎
+      if(a==='7️⃣')return 300;
       if(a==='⭐')return 200;
       if(a==='🔔')return 100;
       return 50;
@@ -235,7 +253,30 @@ class SlotMachine {
     this.saveProgress();
   }
 }
-window.addEventListener('load',()=>{ window.game=new SlotMachine(); });
+
+// 🎵 音樂選擇彈窗控制
+window.addEventListener('load',()=>{
+  const modal=document.getElementById('musicModal');
+  const gameBox=document.getElementById('gameBox');
+  const bgm=document.getElementById('bgm');
+
+  document.getElementById('musicYes').addEventListener('click',()=>{
+    modal.style.display="none";
+    gameBox.style.display="block";
+    bgm.play().catch(()=>{});
+    window.game=new SlotMachine();
+    window.game.musicOn=true;
+  });
+
+  document.getElementById('musicNo').addEventListener('click',()=>{
+    modal.style.display="none";
+    gameBox.style.display="block";
+    bgm.pause();
+    window.game=new SlotMachine();
+    window.game.musicOn=false;
+    document.getElementById("musicBtn").textContent="🔇 靜音";
+  });
+});
 </script>
 </body>
 </html>
