@@ -375,6 +375,10 @@
                 <label>縮放比例</label>
                 <input type="range" id="zoomControl" min="0.5" max="3" step="0.1" value="1">
             </div>
+            <div class="control-slider">
+                <label>標籤大小</label>
+                <input type="range" id="labelSize" min="0.5" max="2.5" step="0.1" value="1">
+            </div>
         </div>
         
         <!-- 資訊面板 -->
@@ -391,7 +395,9 @@
                 <p>• 用手指拖動畫面來旋轉視角</p>
                 <p>• 點擊卦象查看詳細資訊</p>
                 <p>• 調整投影維度來改變投影方式</p>
-                <p>• 調整卦象大小和旋轉速度</p>
+                <p>• 調整卦象和標籤大小</p>
+                <p>• 使用滾輪或雙指手勢縮放畫面</p>
+                <p>• 選中的卦象及其連線會變為紅色高亮</p>
             </div>
             
             <div class="legend" id="legend">
@@ -589,14 +595,17 @@
             // 創建標籤
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
-            canvas.width = 128;
-            canvas.height = 64;
+            canvas.width = 256;  // 增大canvas尺寸
+            canvas.height = 128;
             
-            context.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            context.fillStyle = 'rgba(255, 255, 255, 0.95)';
             context.fillRect(0, 0, canvas.width, canvas.height);
+            context.strokeStyle = '#333333';
+            context.lineWidth = 2;
+            context.strokeRect(0, 0, canvas.width, canvas.height);
             
             context.fillStyle = '#333333';
-            context.font = 'bold 16px Arial';
+            context.font = 'bold 32px Arial';  // 增大字體
             context.textAlign = 'center';
             context.textBaseline = 'middle';
             context.fillText(hexagram.name, canvas.width / 2, canvas.height / 2);
@@ -605,10 +614,10 @@
             const labelMaterial = new THREE.SpriteMaterial({ 
                 map: texture,
                 transparent: true,
-                opacity: 0.8
+                opacity: 0.9
             });
             const label = new THREE.Sprite(labelMaterial);
-            label.scale.set(0.5, 0.25, 1);
+            label.scale.set(1.2, 0.6, 1);  // 增大標籤尺寸
             sceneGroup.add(label);
             hexagramLabels.push({ label, vertex6D, hexagram });
         });
@@ -727,6 +736,7 @@
 
         function onPointerUp(event) {
             const dragDuration = Date.now() - dragStartTime;
+            touchDistance = 0; // 重設觸控距離
             setTimeout(() => {
                 isDragging = false;
             }, 50); // 短暫延遲避免誤觸點擊
@@ -746,9 +756,33 @@
 
             if (intersects.length > 0) {
                 const selectedHexagram = intersects[0].object.userData.hexagram;
+                const selectedIndex = intersects[0].object.userData.index;
+                selectedHexagramIndex = selectedIndex;
                 displayHexagramInfo(selectedHexagram);
+                updateLineColors(); // 更新連線顏色
                 showInfoPanel();
+            } else {
+                // 點擊空白處取消選取
+                selectedHexagramIndex = -1;
+                updateLineColors();
             }
+        }
+
+        // 更新連線顏色的函數
+        function updateLineColors() {
+            lines.forEach(({ line, i, j }) => {
+                if (selectedHexagramIndex !== -1 && (selectedHexagramIndex === i || selectedHexagramIndex === j)) {
+                    // 選中卦象的連線變紅
+                    line.material.color.setHex(0xff2222);
+                    line.material.opacity = 0.9;
+                    line.material.linewidth = 3;
+                } else {
+                    // 其他連線保持原色
+                    line.material.color.setHex(0x666666);
+                    line.material.opacity = 0.3;
+                    line.material.linewidth = 1;
+                }
+            });
         }
 
         // 註冊事件監聽器
@@ -759,6 +793,7 @@
         canvas.addEventListener('mousemove', onPointerMove);
         canvas.addEventListener('mouseup', onPointerUp);
         canvas.addEventListener('click', onPointerClick);
+        canvas.addEventListener('wheel', handleZoom); // 滾輪縮放
         
         // 觸控事件
         canvas.addEventListener('touchstart', onPointerDown, { passive: false });
@@ -798,26 +833,49 @@
             const size = parseFloat(document.getElementById('hexagramSize').value);
             const projectionDim = parseInt(document.getElementById('projectionDimension').value);
             rotationSpeed = parseFloat(document.getElementById('rotationSpeed').value);
+            const manualZoom = parseFloat(document.getElementById('zoomControl').value);
+            const labelScale = parseFloat(document.getElementById('labelSize').value);
             
-            // 平滑旋轉插值
+            // 合併手動縮放和手勢縮放
+            targetZoom = manualZoom * (targetZoom / zoom);
+            zoom += (targetZoom - zoom) * 0.1;
+            
+            // 平滑旋轉插值（僅在拖拽時旋轉，不自動旋轉）
             rotationX += (targetRotationX - rotationX) * rotationSpeed;
             rotationY += (targetRotationY - rotationY) * rotationSpeed;
             
-            // 應用旋轉到場景群組
+            // 應用旋轉和縮放到場景群組
             sceneGroup.rotation.x = rotationX;
             sceneGroup.rotation.y = rotationY;
+            sceneGroup.scale.setScalar(zoom);
             
-            // 更新卦象位置
-            hexagramMeshes.forEach(({ mesh, vertex6D }) => {
+            // 更新卦象位置和高亮選中的卦象
+            hexagramMeshes.forEach(({ mesh, vertex6D }, index) => {
                 const pos3D = project6Dto3D(vertex6D, projectionDim);
                 mesh.position.set(pos3D[0], pos3D[1], pos3D[2]);
                 mesh.scale.setScalar(size);
+                
+                // 高亮選中的卦象
+                if (index === selectedHexagramIndex) {
+                    mesh.material.opacity = 1.0;
+                    const pulseScale = 1 + 0.3 * Math.sin(Date.now() * 0.005);
+                    mesh.scale.setScalar(size * pulseScale);
+                } else {
+                    mesh.material.opacity = 0.9;
+                }
             });
             
-            // 更新標籤位置
-            hexagramLabels.forEach(({ label, vertex6D }) => {
+            // 更新標籤位置和大小
+            hexagramLabels.forEach(({ label, vertex6D }, index) => {
                 const pos3D = project6Dto3D(vertex6D, projectionDim);
-                label.position.set(pos3D[0], pos3D[1] + 0.4, pos3D[2]);
+                label.position.set(pos3D[0], pos3D[1] + 0.5, pos3D[2]);
+                
+                // 調整標籤大小，選中的標籤更大
+                if (index === selectedHexagramIndex) {
+                    label.scale.set(1.2 * labelScale * 1.5, 0.6 * labelScale * 1.5, 1);
+                } else {
+                    label.scale.set(1.2 * labelScale, 0.6 * labelScale, 1);
+                }
             });
             
             // 更新連接線
