@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>作業研究線性規劃單行法</title>
+    <title>作業研究線性規劃單形法</title>
     <style>
         :root {
             --primary: #2c3e50;
@@ -616,7 +616,7 @@
                         <span>📝</span>
                         步驟說明
                     </h3>
-                    <p id="step-description">點擊"求解"按鈕開始計算。求解完成後，使用"下一步"按鈕查看單體法的每一步運算過程。</p>
+                    <p id="step-description">點擊"求解"按鈕開始計算。求解完成後，使用"下一步"按鈕查看單形法的每一步運算過程。</p>
                 </div>
                 
                 <div class="solution-box">
@@ -639,7 +639,7 @@
             <div class="panel result-panel">
                 <h2 class="panel-title">
                     <span class="icon">📋</span>
-                    單體表計算過程
+                    單形表計算過程
                 </h2>
                 
                 <div class="legend">
@@ -688,25 +688,25 @@
             <h3>🎯 學習目標</h3>
             <ul>
                 <li>理解線性規劃問題的標準形式轉換</li>
-                <liνομ: 掌握單體法的計算步驟與樞軸運算</li>
-                <li>學習如何解讀單體表中的數據意義</li>
+                <liνομ: 掌握單形法的計算步驟與樞軸運算</li>
+                <li>學習如何解讀單形表中的數據意義</li>
                 <li>了解基變量、非基變量的概念</li>
                 <li>掌握最優性檢驗與解的判定</li>
             </ul>
         </div>
         
         <div class="algorithm-info">
-            <h3>🧮 單體法算法說明</h3>
+            <h3>🧮 單形法算法說明</h3>
             <p>
                 單行法 (Simplex Method) 是求解線性規劃問題最經典的算法，由 George Dantzig 於1947年提出。
                 該算法通過系統性地移動到相鄰的基可行解，逐步改善目標函數值，直到找到最優解。
             </p>
             <ul>
                 <li><strong>第一步：</strong>將問題轉換為標準形式，添加鬆弛變數</li>
-                <li><strong>第二步：</strong>建立初始單體表，找到初始基可行解</li>
+                <li><strong>第二步：</strong>建立初始單形表，找到初始基可行解</li>
                 <li><strong>第三步：</strong>檢查最優性條件（目標函數行係數）</li>
                 <li><strong>第四步：</strong>若未達最優，選擇進入變數和離開變數</li>
-                <li><strong>第五步：</strong>執行樞軸運算，更新單體表</li>
+                <li><strong>第五步：</strong>執行樞軸運算，更新單形表</li>
                 <li><strong>重複步驟3-5</strong>直到達到最優解</li>
             </ul>
         </div>
@@ -717,17 +717,17 @@
                 <li><span class="highlight">目標函數設定</span>：輸入目標函數的係數，用逗號分隔。例如最大化利潤 z = 800x₁ + 1200x₂ 應輸入 <code>800,1200</code></li>
                 <li><span class="highlight">約束條件格式</span>：每行輸入一個約束條件，格式為 <code>係數1,係數2,運算符,常數</code>。例如 4x₁ + 6x₂ ≤ 2400 應輸入 <code>4,6,<=,2400</code></li>
                 <li><span class="highlight">支持運算符</span>：<code>&lt;=</code> (小於等於), <code>=</code> (等於), <code>&gt;=</code> (大於等於)</li>
-                <li><span class="highlight">求解過程</span>：點擊"求解"按鈕後，系統將自動計算並顯示初始單體表</li>
-                <li><span class="highlight">逐步演示</span>：使用"下一步"按鈕查看單體法的每一步計算過程</li>
+                <li><span class="highlight">求解過程</span>：點擊"求解"按鈕後，系統將自動計算並顯示初始單形表</li>
+                <li><span class="highlight">逐步演示</span>：使用"下一步"按鈕查看單形法的每一步計算過程</li>
                 <li><span class="highlight">視覺化元素</span>：表格中不同顏色標示不同類型的變數和操作</li>
                 <li><span class="highlight">進度追蹤</span>：頂部進度條顯示當前求解進度</li>
             </ul>
         </div>
         
         <footer>
-            <p><strong>🎓 線性規劃單體法可視化教學工具</strong></p>
+            <p><strong>🎓 線性規劃單形法可視化教學工具</strong></p>
             <p>
-                本工具專為線性規劃教學設計，幫助學生理解單體法的計算原理和實際應用。
+                本工具專為線性規劃教學設計，幫助學生理解單形法的計算原理和實際應用。
                 適用於運籌學、管理科學、工業工程等相關課程的教學與自學。
             </p>
             <p style="margin-top: 15px;">
@@ -737,7 +737,7 @@
     </div>
 
     <script>
-        // 儲存單體法迭代歷史
+        // 儲存單形法迭代歷史
         let tableauHistory = [];
         let currentStep = 0;
         let basisVariables = [];
@@ -792,16 +792,16 @@
                 return;
             }
 
-            // 初始化單體表
+            // 初始化單形表
             try {
                 const tableau = initializeTableau(objectiveCoefficients, constraints, objectiveType);
                 tableauHistory.push({
                     tableau: JSON.parse(JSON.stringify(tableau.tableau)),
                     basis: [...tableau.basis],
-                    description: '初始單體表已建立，準備進行最優性檢查。'
+                    description: '初始單形表已建立，準備進行最優性檢查。'
                 });
 
-                // 執行單體法
+                // 執行單形法
                 runSimplex(tableau, objectiveType);
 
                 // 顯示第一步
@@ -928,7 +928,7 @@
             const step = tableauHistory[currentStep];
             if (!step) return;
 
-            // 更新單體表
+            // 更新單形表
             renderTableau(step.tableau, step.basis);
 
             // 更新步驟說明
@@ -1028,7 +1028,7 @@
             tableauHistory = [];
             currentStep = 0;
             document.getElementById('tableau-container').innerHTML = '<p class="step-info">輸入問題並點擊"求解"按鈕後，這裡將顯示計算過程。</p>';
-            document.getElementById('step-description').textContent = '點擊"求解"按鈕開始計算。求解完成後，使用"下一步"按鈕查看單體法的每一步運算過程。';
+            document.getElementById('step-description').textContent = '點擊"求解"按鈕開始計算。求解完成後，使用"下一步"按鈕查看單形法的每一步運算過程。';
             document.getElementById('step-counter').textContent = '0 / 0';
             document.getElementById('progress-fill').style.width = '0%';
             document.getElementById('next-btn').disabled = true;

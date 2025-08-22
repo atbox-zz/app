@@ -153,8 +153,8 @@ const MusicPlayer = () => {
       buttons: [
         { text: "64方圓圖", filename: "./g.html", isEnglish: false, isGame: true },
         { text: "六十四卦速見表", filename: "./guaorder.html", isEnglish: false, isGame: true },
-        { text: "DeepDeek OR單行法", filename: "./simplex.html", isEnglish: false, isGame: true },
-        { text: "Grok OR單行法", filename: "./simplex1.html", isEnglish: false, isGame: true },
+        { text: "DS OR單形法", filename: "./simplex.html", isEnglish: false, isGame: true },
+        { text: "Grok OR單形法", filename: "./simplex1.html", isEnglish: false, isGame: true },
 
 
         { text: "", filename: "", isEnglish: false, isEmpty: true },
@@ -182,12 +182,12 @@ const MusicPlayer = () => {
         { text: "井字棋", filename: "./xx.html", isEnglish: false, isGame: true },
         { text: "🌱生命系統", filename: "game of liveinlive中文2.html", isEnglish: false, isGame: true },
         { text: "🔺64D", filename: "./vertices64d1.html", isEnglish: false, isGame: true },
+        { text: "🔺64D2", filename: "./vis_mobile.html", isEnglish: false, isGame: true },
         { text: "🎯3d", filename: "./vertices3d.html", isEnglish: false, isGame: true },
         { text: "👁vis4d", filename: "./vis4d.html", isEnglish: false, isGame: true },
+        { text: "👁vis4d0", filename: "./vis4d0.html", isEnglish: false, isGame: true },
         { text: "✨vis6e", filename: "vis6e.html", isEnglish: false, isGame: true },
         { text: "大運流年", filename: "8w2.html", isEnglish: false, isGame: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
         { text: "", filename: "", isEnglish: false, isEmpty: true },
         { text: "", filename: "", isEnglish: false, isEmpty: true },
         { text: "", filename: "", isEnglish: false, isEmpty: true },
