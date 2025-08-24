@@ -2,35 +2,35 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>六十四卦互動地圖（六維超立方體投影）</title>
   <script type="text/javascript" src="https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.js"></script>
   <link href="https://unpkg.com/vis-network@9.1.2/styles/vis-network.min.css" rel="stylesheet" type="text/css" />
   <style>
-    /* 樣式保持不變 */
     body { 
       font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif; 
       margin: 0; 
       background: #ffffff;
       color: #333333;
     }
-    #container { display: flex; height: 100vh; }
+    #container { display: flex; height: 100vh; flex-direction: column; }
     #mynetwork { 
       flex: 1; 
-      border-right: 2px solid #cccccc;
+      border-bottom: 2px solid #cccccc;
       background: #f8f8f8;
       position: relative;
     }
     #panel { 
-      width: 450px; 
-      padding: 20px; 
+      width: 100%;
+      padding: 10px;
       box-sizing: border-box; 
       overflow: auto; 
       background: rgba(255, 255, 255, 0.9);
-      border-left: 1px solid #cccccc;
+      border-top: 1px solid #cccccc;
       transition: transform 0.3s ease;
     }
     .gua-title { 
-      font-size: 28px; 
+      font-size: 24px;
       font-weight: 700; 
       margin-bottom: 8px; 
       color: #d81b60;
@@ -40,13 +40,13 @@
       color: #2e7d32;
       margin-bottom: 12px; 
       font-family: monospace;
-      font-size: 16px;
+      font-size: 14px;
       background: #e8f5e9;
       padding: 8px;
       border-radius: 6px;
     }
     .gua-symbol {
-      font-size: 24px;
+      font-size: 20px;
       margin: 10px 0;
       text-align: center;
       font-family: monospace;
@@ -54,7 +54,7 @@
     }
     .change-list { margin-top: 16px; }
     .change-item { 
-      padding: 10px; 
+      padding: 8px;
       border: 1px solid #cccccc; 
       margin-bottom: 8px; 
       cursor: pointer; 
@@ -75,7 +75,7 @@
     }
     .btn { 
       display: inline-block; 
-      padding: 10px 16px; 
+      padding: 8px 12px;
       border-radius: 8px; 
       background: linear-gradient(135deg, #0288d1, #0277bd);
       color: #ffffff; 
@@ -100,7 +100,7 @@
     }
     .original-text {
       background: #f5f5f5;
-      padding: 15px;
+      padding: 10px;
       border-radius: 8px;
       margin: 10px 0;
       border-left: 4px solid #d81b60;
@@ -130,21 +130,41 @@
     .panel-toggle:focus {
       outline: 2px solid #d81b60;
     }
+    @media (min-width: 601px) {
+      #container { flex-direction: row; }
+      #mynetwork { 
+        border-right: 2px solid #cccccc;
+        border-bottom: none;
+      }
+      #panel { 
+        width: 450px;
+        border-top: none;
+        border-left: 1px solid #cccccc;
+      }
+      .gua-title { font-size: 28px; }
+      .gua-bits { font-size: 16px; }
+      .gua-symbol { font-size: 24px; }
+      .change-item { padding: 10px; }
+      .btn { padding: 10px 16px; }
+      .original-text { padding: 15px; }
+    }
     @media (max-width: 600px) {
-      #panel {
-        width: 100%;
-        position: fixed;
-        right: 0;
-        transform: translateX(100%);
-        height: 100vh;
-        z-index: 999;
+      #container { flex-direction: column; }
+      #mynetwork { order: 1; }
+      #panel { 
+        order: 2;
+        transform: none;
+        position: relative;
+        height: auto;
       }
-      #panel.open {
-        transform: translateX(0);
-      }
-      .panel-toggle {
-        display: block;
-      }
+      .panel-toggle { display: none; }
+      .gua-title { font-size: 20px; }
+      .gua-bits { font-size: 12px; }
+      .gua-symbol { font-size: 18px; }
+      .change-item { padding: 6px; }
+      .btn { padding: 6px 10px; }
+      .original-text { padding: 8px; }
+      .vis-label { font-size: 12px !important; }
     }
     .controls {
       position: absolute;
@@ -183,6 +203,15 @@
       color: #333333 !important;
       font-family: 'Noto Sans TC', sans-serif !important;
       font-size: 14px !important;
+    }
+    @media (max-width: 600px) {
+      .controls { 
+        padding: 10px;
+        left: 10px;
+        top: 10px;
+      }
+      .control-item label { font-size: 12px; }
+      .control-item select, .control-item input { padding: 4px; }
     }
   </style>
 </head>
@@ -232,7 +261,7 @@
 </div>
 
 <script>
-// 確保 kingwenBits 和 guaNames 在邊生成之前定義
+// 定義關鍵數據（文王卦序對應）
 const guaNames = [
   "乾","夬","大有","大壯","小畜","需","大畜","泰",
   "履","兌","睽","歸妹","中孚","節","損","臨",
@@ -255,7 +284,7 @@ const kingwenBits = [
   "000111","000110","000101","000100","000011","000010","000001","000000"
 ];
 
-// 六十四卦數據（保持不變）
+// 完整的六十四卦數據
 const hexagramData = {
   "111111": {name: "乾", desc: "天行健，君子以自強不息", text: "元亨利貞。初九：潛龍勿用。九二：見龍在田，利見大人。九三：君子終日乾乾，夕惕若厲，無咎。九四：或躍在淵，無咎。九五：飛龍在天，利見大人。上九：亢龍有悔。用九：見群龍無首，吉。"},
   "000000": {name: "坤", desc: "地勢坤，君子以厚德載物", text: "元亨，利牝馬之貞。君子有攸往，先迷後得主，利。西南得朋，東北喪朋。安貞，吉。初六：履霜，堅冰至。六二：直方大，不習無不利。六三：含章可貞，或從王事，無成有終。六四：括囊，無咎無譽。六五：黃裳，元吉。上六：龍戰於野，其血玄黃。用六：利永貞。"},
@@ -265,7 +294,7 @@ const hexagramData = {
   "010111": {name: "訟", desc: "天與水違行，訟，君子以作事謀始", text: "有孚，窒惕，中吉，終凶。利見大人，不利涉大川。初六：不永所事，小有言，終吉。九二：不克訟，歸而逋，其邑人三百戶，無眚。六三：食舊德，貞厲，終吉。或從王事，無成。九四：不克訟，復即命，渝安貞，吉。九五：訟，元吉。上九：或錫之鞶帶，終朝三褫之。"},
   "000010": {name: "師", desc: "地中有水，師，君子以容民畜眾", text: "貞，丈人吉，無咎。初六：師出以律，否臧凶。九二：在師中，吉，無咎，王三錫命。六三：師或輿尸，凶。六四：師左次，無咎。六五：田有禽，利執言，無咎。長子帥師，弟子輿尸，貞凶。上六：大君有命，開國承家，小人勿用。"},
   "010000": {name: "比", desc: "地上有水，比，先王以建萬國，親諸侯", text: "吉。原筮，元永貞，無咎。不寧方來，後夫凶。初六：有孚比之，無咎。有孚盈缶，終來有他，吉。六二：比之自內，貞吉。六三：比之匪人。六四：外比之，貞吉。九五：顯比，王用三驅，失前禽，邑人不誡，吉。上六：比之無首，凶。"},
-  "110111": {name: "小畜", desc: "風行天上，小畜，君子以懿文德", text: "亨。密雲不雨，自我西郊。初九：復自道，何其咎？吉。九二：牽復，吉。九三：輿說輻，夫妻反目。六四：有孚，血去惕出，無咎。九五：有孚�禁止，九五：有孚攣如，富以其鄰。上九：既雨既處，尚德載，婦貞厲。月幾望，君子征凶。"},
+  "110111": {name: "小畜", desc: "風行天上，小畜，君子以懿文德", text: "亨。密雲不雨，自我西郊。初九：復自道，何其咎？吉。九二：牽復，吉。九三：輿說輻，夫妻反目。六四：有孚，血去惕出，無咎。九五：有孚攣如，富以其鄰。上九：既雨既處，尚德載，婦貞厲。月幾望，君子征凶。"},
   "111011": {name: "履", desc: "上天下澤，履，君子以辨上下，定民志", text: "履虎尾，不咥人，亨。初九：素履，往無咎。九二：履道坦坦，幽人貞吉。六三：眇能視，跛能履，履虎尾，咥人，凶。武人為于大君。九四：履虎尾，愬愬，終吉。九五：夬履，貞厲。上九：視履考祥，其旋元吉。"},
   "111000": {name: "泰", desc: "天地交，泰，后以財成天地之道，輔相天地之宜，以左右民", text: "小往大來，吉，亨。初九：拔茅茹，以其彙，征吉。九二：包荒，用馮河，不遐遺，朋亡，得尚于中行。九三：無平不陂，無往不復，艱貞無咎。勿恤其孚，于食有福。六四：翩翩，不富以其鄰，不戒以孚。六五：帝乙歸妹，以祉元吉。上六：城復于隍，勿用師。自邑告命，貞吝。"},
   "000111": {name: "否", desc: "天地不交，否，君子以儉德辟難，不可榮以祿", text: "否之匪人，不利君子貞，大往小來。初六：拔茅茹，以其彙，貞吉，亨。六二：包承，小人吉，大人否亨。六三：包羞。九四：有命無咎，疇離祉。九五：休否，大人吉。其亡其亡，繫于苞桑。上九：傾否，先否後喜。"},
@@ -307,14 +336,14 @@ const hexagramData = {
   "011010": {name: "井", desc: "木上有水，井，君子以勞民勸相", text: "改邑不改井，無喪無得，往來井井。汔至，亦未繘井，羸其瓶，凶。初六：井泥不食，舊井無禽。九二：井谷射鮒，甕敝漏。九三：井渫不食，為我心惻，可用汲，王明，並受其福。六四：井甃，無咎。九五：井冽，寒泉食。上六：井收勿幕，有孚元吉。"},
   "101110": {name: "革", desc: "澤中有火，革，君子以治歷明時", text: "巳日乃孚，元亨利貞，悔亡。初九：鞏用黃牛之革。六二：巳日乃革之，征吉，無咎。九三：征凶，貞厲，革言三就有孚。九四：悔亡，有孚改命，吉。九五：大人虎變，未占有孚。上六：君子豹變，小人革面，征凶，居貞吉。"},
   "011101": {name: "鼎", desc: "木上有火，鼎，君子以正位凝命", text: "元吉，亨。初六：鼎顛趾，利出否，得妾以其子，無咎。九二：鼎有實，我仇有疾，不我能即，吉。九三：鼎耳革，其行塞，雉膏不食，方雨虧悔，終吉。九四：鼎折足，覆公餗，其形渥，凶。六五：鼎黃耳金鉉，利貞。上九：鼎玉鉉，大吉，無不利。"},
-  "100100": {name: "震", desc: "洊雷，震，君子以恐懼修省", text: "亨。震來虩虩，笑言啞啞。震驚百里，不喪匕鬯。初九：震來虩虩，後笑言啞啞，吉。六二：震來厲，億喪貝，躋于九陵，勿逐，七日得。六三：震蘇蘇，震行無眚。六四：震遂泥。九五：震往來厲，億無喪，有事。上六：震索索，視矍矍，征凶。震不于其躬，于其鄰，無咎。婚媾有言。"},
+  "100100": {name: "震", desc: "洊雷，震，君子以恐懼修省", text: "亨。震來虩虩，笑言啞啞。震驚百里，不喪匕鬯。初九：震來虩虩，後笑言啞啞，吉。六二：震來厲，億喪貝，躱于九陵，勿逐，七日得。六三：震蘇蘇，震行無眚。六四：震遂泥。九五：震往來厲，億無喪，有事。上六：震索索，視矍矍，征凶。震不于其躬，于其鄰，無咎。婚媾有言。"},
   "001001": {name: "艮", desc: "兼山，艮，君子以思不出其位", text: "艮其背，不獲其身，行其庭，不見其人，無咎。初六：艮其趾，無咎，利永貞。六二：艮其腓，不拯其隨，其心不快。九三：艮其限，列其夤，厲薰心。六四：艮其身，無咎。六五：艮其輔，言有序，悔亡。上九：敦艮，吉。"},
   "001011": {name: "漸", desc: "山上有木，漸，君子以居賢德善俗", text: "女歸吉，利貞。初六：鴻漸于干，小子厲，有言，無咎。六二：鴻漸于磐，飲食衎衎，吉。九三：鴻漸于陸，夫征不復，婦孕不育，凶。利禦寇。六四：鴻漸于木，或得其桷，無咎。九五：鴻漸于陵，婦三歲不孕，終莫之勝，吉。上九：鴻漸于逵，其羽可用為儀，吉。"},
   "110100": {name: "歸妹", desc: "澤上有雷，歸妹，君子以永終知敝", text: "征凶，無攸利。初九：歸妹以娣，跛能履，征吉。九二：眇能視，利幽人之貞。六三：歸妹以須，反歸以娣。九四：歸妹愆期，遲歸有時。六五：帝乙歸妹，其君之袂不如其娣之袂良，月幾望，吉。上六：女承筐無實，士刲羊無血，無攸利。"},
   "101100": {name: "豐", desc: "雷電皆至，豐，君子以折獄致刑", text: "亨，王假之，勿憂，宜日中。初九：遇其配主，雖旬無咎，往有尚。六二：豐其蔀，日中見斗，往得疑疾，有孚發若，吉。九三：豐其沛，日中見沬，折其右肱，無咎。九四：豐其蔀，日中見斗，遇其夷主，吉。六五：來章，有慶譽，吉。上六：豐其屋，蔀其家，窺其戶，闃其無人，三歲不見，凶。"},
   "001101": {name: "旅", desc: "山上有火，旅，君子以明慎用刑而不留獄", text: "小亨，旅貞吉。初六：旅瑣瑣，斯其所取災。六二：旅即次，懷其資，得童僕貞。九三：旅焚其次，喪其童僕，貞厲。九四：旅于處，得其資斧，我心不快。六五：射雉一矢亡，終以譽命。上九：鳥焚其巢，旅人先笑後號啕。喪牛于易，凶。"},
   "011011": {name: "巽", desc: "隨風，巽，君子以申命行事", text: "小亨，利有攸往，利見大人。初六：進退，利武人之貞。九二：巽在床下，用史巫紛若，吉，無咎。九三：頻巽，吝。六四：悔亡，田獲三品。九五：貞吉，悔亡，無不利。無初有終，先庚三日，後庚三日，吉。上九：巽在床下，喪其資斧，貞凶。"},
-  "110110": {name: "兌", desc: "麗澤，兌，君子以朋友講習", text: "亨，利貞。初九：和兌，吉。九二：孚兌，吉，悔亡。六三：來兌，凶。九四：商兌未寧，介疾有喜。九五：�fu于剝，有厲。上六：引兌。"},
+  "110110": {name: "兌", desc: "麗澤，兌，君子以朋友講習", text: "亨，利貞。初九：和兌，吉。九二：孚兌，吉，悔亡。六三：來兌，凶。九四：商兌未寧，介疾有喜。九五：孚于剝，有厲。上六：引兌。"},
   "010011": {name: "渙", desc: "風行水上，渙，先王以享于帝立廟", text: "亨。王假有廟，利涉大川，利貞。初六：用拯馬壯，吉。九二：渙奔其案，悔亡。六三：渙其躬，無悔。六四：渙其群，元吉。渙有丘，匪夷所思。九五：渙汗其大號，渙王居，無咎。上九：渙其血，去逖出，無咎。"},
   "110010": {name: "節", desc: "澤上有水，節，君子以制數度，議德行", text: "亨。苦節，不可貞。初九：不出戶庭，無咎。九二：不出門庭，凶。六三：不節若，則嗟若，無咎。六四：安節，亨。九五：甘節，吉，往有尚。上六：苦節，貞凶，悔亡。"},
   "110011": {name: "中孚", desc: "澤上有風，中孚，君子以議獄緩死", text: "豚魚吉，利涉大川，利貞。初九：虞吉，有他不燕。九二：鳴鶴在陰，其子和之。我有好爵，吾與爾靡之。六三：得敵，或鼓或罷，或泣或歌。六四：月幾望，馬匹亡，無咎。九五：有孚攣如，無咎。上九：翰音登于天，貞凶。"},
@@ -323,13 +352,11 @@ const hexagramData = {
   "010101": {name: "未濟", desc: "火在水上，未濟，君子以慎辨物居方", text: "亨，小狐汔濟，濡其尾，無攸利。初六：濡其尾，吝。九二：曳其輪，貞吉。六三：未濟，征凶，利涉大川。九四：貞吉，悔亡，震用伐鬼方，三年有賞于大國。六五：貞吉，無悔，君子之光，有孚，吉。上九：有孚于飲酒，無咎，濡其首，有孚失是。"}
 };
 
-// 八卦定義（用於顯示模式）
 const bagua = {
   "111": "乾", "110": "兌", "101": "離", "100": "震",
   "011": "巽", "010": "坎", "001": "艮", "000": "坤"
 };
 
-// 卦宮分類（八宮）
 const palaces = {
   "乾": ["111111", "111110", "111101", "111100", "111011", "111010", "111001", "111000"],
   "兌": ["110111", "110110", "110101", "110100", "110011", "110010", "110001", "110000"],
@@ -341,144 +368,114 @@ const palaces = {
   "坤": ["000111", "000110", "000101", "000100", "000011", "000010", "000001", "000000"]
 };
 
-// 生成完整的卦辭數據
+// 全局變數
+let network, nodes, edges, bitToIndex, originalEdgeColors, hexagramTexts;
+
+// 檢查數據初始化
+function checkDataInitialization() {
+  if (!guaNames || guaNames.length !== 64) {
+    console.error('錯誤：guaNames 未正確定義或長度不為64，當前長度：', guaNames ? guaNames.length : '未定義');
+    return false;
+  }
+  if (!kingwenBits || kingwenBits.length !== 64) {
+    console.error('錯誤：kingwenBits 未正確定義或長度不為64，當前長度：', kingwenBits ? kingwenBits.length : '未定義');
+    return false;
+  }
+  if (!hexagramData || Object.keys(hexagramData).length < 3) {
+    console.error('錯誤：hexagramData 未正確定義或數據不足，當前卦數：', hexagramData ? Object.keys(hexagramData).length : '未定義');
+    return false;
+  }
+  console.log('數據初始化檢查通過：guaNames, kingwenBits, hexagramData 均已正確定義');
+  return true;
+}
+
+// 生成卦辭數據
 function generateHexagramTexts() {
   const texts = {};
   const yaoNames = ["初", "二", "三", "四", "五", "上"];
-  
   guaNames.forEach((name, i) => {
     const bits = kingwenBits[i];
-    if (hexagramData[bits]) {
-      texts[bits] = hexagramData[bits];
-    } else {
-      texts[bits] = {
-        name: name,
-        desc: `${name}卦象徵意義的簡述`,
-        text: `${name}：卦辭。${yaoNames.map((yao, j) => {
-          const isYang = bits[j] === '1';
-          return `${yao}${isYang ? '九' : '六'}：${name}${yao}爻辭。`;
-        }).join(' ')}`
-      };
-    }
+    texts[bits] = hexagramData[bits] || {
+      name: name,
+      desc: `${name}卦象徵意義的簡述`,
+      text: `${name}：卦辭。${yaoNames.map((yao, j) => {
+        const isYang = bits[j] === '1';
+        return `${yao}${isYang ? '九' : '六'}：${name}${yao}爻辭。`;
+      }).join(' ')}`
+    };
   });
   return texts;
 }
 
-const hexagramTexts = generateHexagramTexts();
-
-// 建立 nodes 與 edges
-const nodes = [];
-const edges = [];
-const bitToIndex = {};
-const originalEdgeColors = [];
-
-for (let i = 0; i < kingwenBits.length; i++) {
-  const bits = kingwenBits[i];
-  const name = guaNames[i];
-  const yangCount = bits.split('').reduce((a, b) => a + Number(b), 0);
-  
-  const colors = [
-    '#4ecdc4', // 0陽 - 純陰
-    '#45b7d1', // 1陽
-    '#bb8fce', // 2陽
-    '#82e0aa', // 3陽 - 平衡
-    '#f7dc6f', // 4陽
-    '#ff8e53', // 5陽
-    '#ff6b6b'  // 6陽 - 純陽
-  ];
-  
-  const color = colors[yangCount];
-  const size = Math.max(15, 15 + yangCount * 2);
-  
-  nodes.push({
-    id: i, 
-    label: name,
-    title: `<b>${name}卦</b><br>${bits}<br>陽爻數量: ${yangCount}<br><small>點擊查看詳細</small>`, 
-    bits: bits, 
-    gua: name, 
-    value: size,
-    color: { background: color, border: '#333333', highlight: { background: '#d81b60', border: '#b71c1c' } },
-    font: { color: '#333333', size: 14, face: 'Noto Sans TC', align: 'center' },
-    upperTrigram: bits.slice(0, 3),
-    lowerTrigram: bits.slice(3, 6),
-    shape: 'square'
-  });
-  bitToIndex[bits] = i;
+// 生成節點
+function generateNodes() {
+  const nodes = [];
+  const bitToIndex = {};
+  for (let i = 0; i < kingwenBits.length; i++) {
+    const bits = kingwenBits[i];
+    const name = guaNames[i];
+    const yangCount = bits.split('').reduce((a, b) => a + Number(b), 0);
+    const colors = ['#4ecdc4', '#45b7d1', '#bb8fce', '#82e0aa', '#f7dc6f', '#ff8e53', '#ff6b6b'];
+    const color = colors[yangCount];
+    const size = Math.max(15, 15 + yangCount * 2);
+    nodes.push({
+      id: i,
+      label: name,
+      title: `<b>${name}卦</b><br>${bits}<br>陽爻數量: ${yangCount}<br><small>點擊查看詳細</small>`,
+      bits: bits,
+      gua: name,
+      value: size,
+      color: { background: color, border: '#333333', highlight: { background: '#d81b60', border: '#b71c1c' } },
+      font: { color: '#333333', size: 14, face: 'Noto Sans TC', align: 'center' },
+      upperTrigram: bits.slice(0, 3),
+      lowerTrigram: bits.slice(3, 6),
+      shape: 'square'// 明確設置為方形節點
+    });
+    bitToIndex[bits] = i;
+  }
+  console.log(`節點生成完成，總數：${nodes.length}`);
+  return { nodes, bitToIndex };
 }
 
-// 創建邊（修正爻位順序）
-const edgeColors = ['#ff6b6b', '#ff8e53', '#f7dc6f', '#82e0aa', '#45b7d1', '#4ecdc4']; // 第一爻到第六爻
-for (let i = 0; i < kingwenBits.length; i++) {
-  const bits = kingwenBits[i];
-  for (let j = 0; j < 6; j++) {
-    const nb = bits.split('');
-    nb[j] = nb[j] === '1' ? '0' : '1';
-    const nbstr = nb.join('');
-    const k = bitToIndex[nbstr];
-    if (k !== undefined && i < k) {
-      const edge = {
-        from: i,
-        to: k,
-        color: { color: edgeColors[j], opacity: 0.6 },
-        width: 1,
-        smooth: { type: 'continuous' },
-        title: `第${j+1}爻變`
-      };
-      edges.push(edge);
-      originalEdgeColors.push({ from: i, to: k, color: edgeColors[j] });
+// 創建邊（六維超立方體的邊，根據變爻位置著色）
+function generateEdges(bitToIndex) {
+  const edges = [];
+  const originalEdgeColors = [];
+  const edgeColors = ['#ff6b6b', '#ff8e53', '#f7dc6f', '#82e0aa', '#45b7d1', '#4ecdc4'];
+  for (let i = 0; i < kingwenBits.length; i++) {
+    const bits = kingwenBits[i];
+    for (let j = 0; j < 6; j++) {
+      const nb = bits.split('');
+      nb[j] = nb[j] === '1' ? '0' : '1';
+      const nbstr = nb.join('');
+      const k = bitToIndex[nbstr];
+      if (k !== undefined && i < k) {
+        const edge = {
+          from: i,
+          to: k,
+          color: { color: edgeColors[j], opacity: 0.6 },
+          width: 1,
+          smooth: { type: 'continuous' },
+          title: `第${j+1}爻變`
+        };
+        edges.push(edge);
+        originalEdgeColors.push({ from: i, to: k, color: edgeColors[j] });
+      }
     }
   }
-}
-
-// 驗證 kingwenBits 初始化
-console.log(`kingwenBits 已定義，長度: ${kingwenBits.length}, 首卦: ${kingwenBits[0]} (乾), 姤卦: ${kingwenBits[32]} (姤)`);
-if (bitToIndex['111111'] !== undefined && bitToIndex['011111'] !== undefined) {
-  console.log(`乾卦（111111, ID: ${bitToIndex['111111']}）第一爻變應連接到姤卦（011111, ID: ${bitToIndex['011111']}）`);
-}
-
-// 創建網絡
-const container = document.getElementById('mynetwork');
-const data = { nodes: nodes, edges: edges };
-let options = {
-  nodes: {
-    shape: 'square',
-    size: 18,
-    font: { 
-      size: 14, 
-      color: '#333333', 
-      face: 'Noto Sans TC', 
-      align: 'center'
-    },
-    borderWidth: 2,
-    shadow: true,
-    scaling: { 
-      label: { 
-        enabled: true,
-        min: 14,
-        max: 18,
-        maxVisible: 18,
-        drawThreshold: 5
-      } 
-    }
-  },
-  edges: {
-    width: 1,
-    color: { color: '#666666' },
-    smooth: { type: 'continuous' }
-  },
-  physics: { enabled: false },
-  interaction: {
-    hover: false,
-    selectConnectedEdges: false,
-    keyboard: { enabled: true },
-    zoomView: true
-  },
-  layout: {
-    randomSeed: 42
+  console.log(`邊生成完成，總數：${edges.length}`);
+  const dryIdx = bitToIndex['111111'];
+  const meetIdx = bitToIndex['011111'];
+  if (dryIdx !== undefined && meetIdx !== undefined) {
+    console.log(`乾卦（111111, ID: ${dryIdx}）第一爻變連接到姤卦（011111, ID: ${meetIdx}）`);
+    const edgeExists = edges.some(edge => 
+      (edge.from === dryIdx && edge.to === meetIdx && edge.title === '第一爻變') ||
+      (edge.from === meetIdx && edge.to === dryIdx && edge.title === '第一爻變')
+    );
+    console.log(`乾卦到姤卦的邊是否存在且標籤正確：${edgeExists}`);
   }
-};
-
-const network = new vis.Network(container, data, options);
+  return { edges, originalEdgeColors };
+}
 
 // 顯示卦象詳情
 function showGua(idx, highlightLine = null) {
@@ -498,19 +495,12 @@ function showGua(idx, highlightLine = null) {
   const changeList = document.getElementById('changeList');
 
   if (!guaName || !guaBits || !guaSymbol || !guaText || !changeList) {
-    console.error('一個或多個 DOM 元素缺失:', {
-      guaName: !!guaName,
-      guaBits: !!guaBits,
-      guaSymbol: !!guaSymbol,
-      guaText: !!guaText,
-      changeList: !!changeList
-    });
+    console.error('DOM 元素缺失:', { guaName: !!guaName, guaBits: !!guaBits, guaSymbol: !!guaSymbol, guaText: !!guaText, changeList: !!changeList });
     return;
   }
 
   guaName.innerText = `${node.gua}卦 （第${idx+1}卦）`;
   guaBits.innerText = `六維坐標：${bits} （陽爻=1，陰爻=0）`;
-  
   const yaoSymbols = bits.split('').map(bit => bit === '1' ? '⚊' : '⚋').reverse();
   guaSymbol.innerHTML = yaoSymbols.join('<br>');
   
@@ -531,7 +521,7 @@ function showGua(idx, highlightLine = null) {
     const newIdx = bitToIndex[newBits];
     const yaoPos = j + 1;
     const yaoName = bitsArr[j] === '1' ? '陽' : '陰';
-    changeHtml += `<div class="change-item" tabindex="0" onclick="jumpTo(${newIdx}, ${j})" onkeydown="if(event.key === 'Enter') jumpTo(${newIdx}, ${j})">
+    changeHtml += `<div class="change-item" data-idx="${newIdx}" data-yao="${j}" tabindex="0">
       <b>第${yaoPos}爻變${yaoName} → ${guaNames[newIdx]}卦</b><br>
       <small>${newBits}</small>
     </div>`;
@@ -539,17 +529,34 @@ function showGua(idx, highlightLine = null) {
   
   guaText.innerHTML = textHtml;
   changeList.innerHTML = changeHtml;
+
+  document.querySelectorAll('.change-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const idx = parseInt(item.getAttribute('data-idx'));
+      const yao = parseInt(item.getAttribute('data-yao'));
+      jumpTo(idx, yao);
+      console.log(`點擊變卦：從 ${node.gua} (ID: ${idx}) 跳轉到 ${guaNames[idx]}，高亮第 ${yao+1} 爻`);
+    });
+    item.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        const idx = parseInt(item.getAttribute('data-idx'));
+        const yao = parseInt(item.getAttribute('data-yao'));
+        jumpTo(idx, yao);
+        console.log(`鍵盤跳轉：從 ${node.gua} (ID: ${idx}) 跳轉到 ${guaNames[idx]}，高亮第 ${yao+1} 爻`);
+      }
+    });
+  });
   
   network.selectNodes([idx]);
   network.focus(idx, { animation: { duration: 1000, easingFunction: 'easeInOutQuad' } });
-  
+   // 更新節點顏色，但保留標籤
   const nodeUpdates = nodes.map(n => ({
-    id: n.id, 
+    id: n.id,
     color: n.id === idx ? { background: '#d81b60', border: '#b71c1c' } : n.color,
     label: n.label,
     font: n.font
   }));
-
+  // 更新邊的顏色
   const connectedEdges = network.getConnectedEdges(idx);
   const edgeUpdates = edges.map(edge => {
     const isConnected = connectedEdges.includes(edge.from + '-' + edge.to) || connectedEdges.includes(edge.to + '-' + edge.from);
@@ -567,19 +574,14 @@ function showGua(idx, highlightLine = null) {
   
   console.log(`顯示卦象 ${node.gua}，節點 ID: ${idx}，標籤: ${node.label}`);
   console.log(`與節點 ${idx} 相連的邊數量: ${connectedEdges.length}, 已更新為紅色`);
-
-  if (window.innerWidth <= 600) {
-    const panel = document.getElementById('panel');
-    const panelToggle = document.getElementById('panelToggle');
-    if (panel && panelToggle) {
-      panel.classList.add('open');
-      panelToggle.innerText = '關閉面板';
-    }
-  }
 }
 
 // 跳轉到指定卦象
 function jumpTo(idx, movedIndex) {
+  if (typeof showGua !== 'function') {
+    console.error('錯誤：showGua 函數未定義');
+    return;
+  }
   showGua(idx);
   setTimeout(() => {
     const items = document.querySelectorAll('.change-item');
@@ -587,155 +589,231 @@ function jumpTo(idx, movedIndex) {
     if (items[movedIndex]) {
       items[movedIndex].classList.add('highlight');
       items[movedIndex].focus();
+      console.log(`高亮變卦項目：第 ${movedIndex+1} 爻`);
     }
   }, 100);
 }
 
-// 網絡事件
-network.on("click", function(params) {
-  if (params.nodes.length > 0) {
-    const idx = params.nodes[0];
-    showGua(idx);
+// 初始化網絡
+function initializeNetwork() {
+  console.log('開始初始化網絡');
+  if (!checkDataInitialization()) {
+    console.error('初始化失敗：關鍵數據未正確定義');
+    alert('初始化失敗：關鍵數據未正確定義，請檢查控制台錯誤訊息');
+    return; // 合法的 return，位於函數內部
   }
-});
 
-// DOM 事件綁定
-document.addEventListener('DOMContentLoaded', function() {
-  const layoutSelect = document.getElementById('layoutSelect');
-  const nodeSizeSlider = document.getElementById('nodeSizeSlider');
-  const displayMode = document.getElementById('displayMode');
-  const btnCenter = document.getElementById('btnCenter');
-  const btnRandomWalk = document.getElementById('btnRandomWalk');
-  const panelToggle = document.getElementById('panelToggle');
+  hexagramTexts = generateHexagramTexts();
+  const { nodes: generatedNodes, bitToIndex: generatedBitToIndex } = generateNodes();
+  const { edges: generatedEdges, originalEdgeColors: generatedEdgeColors } = generateEdges(generatedBitToIndex);
 
-  const requiredElements = {
-    guaName: document.getElementById('guaName'),
-    guaBits: document.getElementById('guaBits'),
-    guaSymbol: document.getElementById('guaSymbol'),
-    guaText: document.getElementById('guaText'),
-    changeList: document.getElementById('changeList')
+  nodes = generatedNodes;
+  bitToIndex = generatedBitToIndex;
+  edges = generatedEdges;
+  originalEdgeColors = generatedEdgeColors;
+
+  const container = document.getElementById('mynetwork');
+  if (!container) {
+    console.error('錯誤：無法找到 mynetwork 容器');
+    alert('初始化失敗：無法找到網絡容器');
+    return; // 合法的 return，位於函數內部
+  }
+
+  const data = { nodes, edges };
+  const options = {
+    nodes: {
+      shape: 'square',
+      size: 18,
+      font: { size: 14, color: '#333333', face: 'Noto Sans TC', align: 'center' },
+      borderWidth: 2,
+      shadow: true,
+      scaling: { label: { enabled: true, min: 14, max: 18, maxVisible: 18, drawThreshold: 5 } }
+    },
+    edges: {
+      width: 1,
+      color: { color: '#666666' },
+      smooth: { type: 'continuous' }
+    },
+    physics: { enabled: false },
+    interaction: {
+      hover: false,
+      selectConnectedEdges: false,
+      keyboard: { enabled: true },
+      zoomView: true,
+      dragView: true,
+      dragNodes: true
+    },
+    layout: { randomSeed: 42 }
   };
 
-  if (Object.values(requiredElements).some(el => !el)) {
-    console.error('初始化失敗：缺失必要的 DOM 元素:', requiredElements);
-    return;
-  }
+  network = new vis.Network(container, data, options);
+  console.log('網絡初始化完成，節點數: ' + nodes.length + '，邊數: ' + edges.length);
 
-  if (layoutSelect) {
-    layoutSelect.onchange = function() {
-      const layout = this.value;
-      let newOptions = { ...options };
-      
-      switch (layout) {
-        case 'repulsion':
-          newOptions.layout = { randomSeed: 42 };
-          break;
-        case 'hierarchical':
-          newOptions.layout = { hierarchical: { direction: 'UD', sortMethod: 'directed' } };
-          break;
-        case 'forceAtlas2':
-          newOptions.layout = { randomSeed: 42 };
-          break;
-        default:
-          newOptions.layout = { randomSeed: 42 };
-      }
-      network.setOptions(newOptions);
-    };
-  }
-
-  if (nodeSizeSlider) {
-    nodeSizeSlider.oninput = function() {
-      const size = parseInt(this.value);
-      const updateArray = nodes.map(node => ({
-        ...node,
-        size: size,
-        label: node.label,
-        font: node.font
-      }));
-      network.setData({ nodes: updateArray, edges: edges });
-      console.log(`節點大小更新至 ${size}，標籤應保持可見`);
-    };
-  }
-
-  if (displayMode) {
-    displayMode.onchange = function() {
-      const mode = this.value;
-      let filteredNodes = nodes;
-      let filteredEdges = edges;
-      
-      if (mode === 'bagua') {
-        filteredNodes = nodes.filter(node => node.upperTrigram === '111');
-        filteredEdges = edges.filter(edge => 
-          filteredNodes.some(n => n.id === edge.from) && filteredNodes.some(n => n.id === edge.to)
-        );
-      } else if (mode === 'palace') {
-        filteredNodes = nodes.filter(node => palaces['乾'].includes(node.bits));
-        filteredEdges = edges.filter(edge => 
-          filteredNodes.some(n => n.id === edge.from) && filteredNodes.some(n => n.id === edge.to)
-        );
-      }
-      
-      filteredNodes = filteredNodes.map(node => ({
-        ...node,
-        label: node.label,
-        font: node.font
-      }));
-
-      filteredEdges = filteredEdges.map(edge => {
-        const original = originalEdgeColors.find(e => e.from === edge.from && e.to === edge.to);
-        return {
-          ...edge,
-          color: original ? { color: original.color, opacity: 0.6 } : edge.color
-        };
-      });
-
-      network.setData({ nodes: filteredNodes, edges: filteredEdges });
-      console.log(`顯示模式切換至 ${mode}，節點數: ${filteredNodes.length}，邊數: ${filteredEdges.length}`);
-    };
-  }
-
-  if (btnCenter) {
-    btnCenter.onclick = function() { 
-      network.fit({ animation: { duration: 1000, easingFunction: 'easeInOutQuad' } }); 
-      console.log('網絡視角重置，標籤應保持可見');
-    };
-  }
-
-  if (btnRandomWalk) {
-    btnRandomWalk.onclick = function() {
-      const randomIdx = Math.floor(Math.random() * nodes.length);
-      showGua(randomIdx);
-    };
-  }
-
-  if (panelToggle) {
-    panelToggle.onclick = function() {
-      const panel = document.getElementById('panel');
-      if (panel) {
-        const isOpen = panel.classList.contains('open');
-        panel.classList.toggle('open');
-        this.innerText = isOpen ? '開啟面板' : '關閉面板';
-      }
-    };
-  }
-
-  // 初始化顯示第一卦（乾卦）
-  showGua(0);
-});
-
-// 鍵盤導航
-document.addEventListener('keydown', function(event) {
-  if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
-    const currentNode = network.getSelectedNodes()[0];
-    if (currentNode !== undefined) {
-      const connected = network.getConnectedNodes(currentNode);
-      const nextIdx = connected[Math.floor(Math.random() * connected.length)];
-      showGua(nextIdx);
+  network.on("click", function(params) {
+    if (params.nodes.length > 0) {
+      const idx = params.nodes[0];
+      showGua(idx);
+      console.log(`點擊節點：${nodes[idx].gua} (ID: ${idx})`);
     }
-  }
-});
+  });
 
-console.log('網絡初始化完成，節點數: ' + nodes.length + '，邊數: ' + edges.length);
+  // DOM 事件監聽器
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM 完全加載，開始綁定事件');
+    const layoutSelect = document.getElementById('layoutSelect');
+    const nodeSizeSlider = document.getElementById('nodeSizeSlider');
+    const displayMode = document.getElementById('displayMode');
+    const btnCenter = document.getElementById('btnCenter');
+    const btnRandomWalk = document.getElementById('btnRandomWalk');
+    const panelToggle = document.getElementById('panelToggle');
+  // 檢查必要元素是否存在
+    const requiredElements = {
+      guaName: document.getElementById('guaName'),
+      guaBits: document.getElementById('guaBits'),
+      guaSymbol: document.getElementById('guaSymbol'),
+      guaText: document.getElementById('guaText'),
+      changeList: document.getElementById('changeList')
+    };
+
+    if (Object.values(requiredElements).some(el => !el)) {
+      console.error('初始化失敗：缺失必要的 DOM 元素:', requiredElements);
+      alert('初始化失敗：缺失必要的 DOM 元素');
+      return; // 合法的 return，位於事件處理函數內
+    }
+
+    if (layoutSelect) {
+      layoutSelect.addEventListener('change', function() {
+        const layout = this.value;
+        let newOptions = { ...options };
+        switch (layout) {
+          case 'repulsion':
+            newOptions.physics = { repulsion: { nodeDistance: 200 } };
+            break;
+          case 'hierarchical':
+            newOptions.layout = { hierarchical: { direction: 'UD', sortMethod: 'directed' } };
+            newOptions.physics = { enabled: false };
+            break;
+          case 'forceAtlas2':
+            newOptions.physics = { forceAtlas2Based: { gravitationalConstant: -50, centralGravity: 0.01 } };
+            break;
+          default:
+            newOptions.physics = { barnesHut: { gravitationalConstant: -2000, centralGravity: 0.3 } };
+        }
+        network.setOptions(newOptions);
+        console.log(`布局切換至 ${layout}`);
+      });
+    }
+
+    if (nodeSizeSlider) {
+      nodeSizeSlider.addEventListener('input', function() {
+        const size = parseInt(this.value);
+        const updateArray = nodes.map(node => ({
+          id: node.id,
+          size: size,
+          label: node.label,// 保留標籤
+          font: node.font // 保留字體設置
+        }));
+        network.setData({ nodes: updateArray, edges: edges });
+        console.log(`節點大小更新至 ${size}，標籤應保持可見`);
+      });
+    }
+
+    if (displayMode) {
+      displayMode.addEventListener('change', function() {
+        const mode = this.value;
+        let filteredNodes = nodes;
+        let filteredEdges = edges;
+        if (mode === 'bagua') {
+          filteredNodes = nodes.filter(node => node.upperTrigram === '111');
+          filteredEdges = edges.filter(edge => 
+            filteredNodes.some(n => n.id === edge.from) && filteredNodes.some(n => n.id === edge.to)
+          );
+        } else if (mode === 'palace') {
+          filteredNodes = nodes.filter(node => palaces['乾'].includes(node.bits));
+          filteredEdges = edges.filter(edge => 
+            filteredNodes.some(n => n.id === edge.from) && filteredNodes.some(n => n.id === edge.to)
+          );
+        }
+// 確保標籤在模式切換時保留
+          filteredNodes = filteredNodes.map(node => ({
+          id: node.id,
+          label: node.label,
+          font: node.font,
+          color: node.color,
+          size: node.size
+        }));
+        // 重置邊的顏色為原始顏色
+        filteredEdges = filteredEdges.map(edge => {
+          const original = originalEdgeColors.find(e => e.from === edge.from && e.to === edge.to);
+          return {
+            from: edge.from,
+            to: edge.to,
+            color: original ? { color: original.color, opacity: 0.6 } : edge.color,
+            width: edge.width,
+            smooth: edge.smooth,
+            title: edge.title
+          };
+        });
+        network.setData({ nodes: filteredNodes, edges: filteredEdges });
+        console.log(`顯示模式切換至 ${mode}，節點數: ${filteredNodes.length}，邊數: ${filteredEdges.length}`);
+      });
+    }
+
+    if (btnCenter) {
+      btnCenter.addEventListener('click', function() { 
+        network.fit({ animation: { duration: 1000, easingFunction: 'easeInOutQuad' } }); 
+        console.log('網絡視角重置，標籤應保持可見');
+      });
+    }
+
+    if (btnRandomWalk) {
+      btnRandomWalk.addEventListener('click', function() {
+        const randomIdx = Math.floor(Math.random() * nodes.length);
+        showGua(randomIdx);
+        console.log(`隨機漫步至卦象：${nodes[randomIdx].gua} (ID: ${randomIdx})`);
+      });
+    }
+
+    if (panelToggle) {
+      panelToggle.addEventListener('click', function() {
+        const panel = document.getElementById('panel');
+        if (panel) {
+          const isOpen = panel.classList.contains('open');
+          panel.classList.toggle('open');
+          this.innerText = isOpen ? '開啟面板' : '關閉面板';
+          console.log(`面板狀態：${isOpen ? '關閉' : '開啟'}`);
+        }
+      });
+    }
+
+    // 初始化顯示乾卦
+    showGua(0);
+    console.log('初始顯示乾卦 (ID: 0)');
+  });
+
+  // 鍵盤導航
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+      const currentNode = network.getSelectedNodes()[0];
+      if (currentNode !== undefined) {
+        const connected = network.getConnectedNodes(currentNode);
+        const nextIdx = connected[Math.floor(Math.random() * connected.length)];
+        showGua(nextIdx);
+        console.log(`鍵盤導航至卦象：${nodes[nextIdx].gua} (ID: ${nextIdx})`);
+      }
+    }
+  });
+}
+
+// 主程序執行
+try {
+  console.log('主程序開始執行');
+  initializeNetwork();
+  console.log('主程序執行完成');
+} catch (error) {
+  console.error('網絡初始化失敗：', error);
+  alert('應用程序初始化失敗，請檢查控制台以獲取詳細錯誤訊息');
+}
 </script>
 </body>
-</html>      
+</html>

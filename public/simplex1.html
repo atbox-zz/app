@@ -1,4 +1,805 @@
-<!-- Deepseek OR 單形法-->
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GLPK.js 線性規劃求解器</title>
+    <script src="https://cdn.jsdelivr.net/gh/hgourvest/glpk.js@master/dist/glpk.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            background: rgba(248, 249, 250, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+        }
+
+        .form-group h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 15px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        }
+
+        .result-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .result-box {
+            background: rgba(248, 249, 250, 0.8);
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid #28a745;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-box h3 {
+            color: #28a745;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+
+        .solution-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .solution-table th, .solution-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .solution-table th {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+        }
+
+        .solution-table tr:nth-child(even) {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .error {
+            color: #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #dc3545;
+            margin-bottom: 20px;
+        }
+
+        .info {
+            background: rgba(23, 162, 184, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #17a2b8;
+            margin-bottom: 20px;
+            color: #0c5460;
+        }
+
+        .example-problems {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .example-btn {
+            background: linear-gradient(135deg, #20c997, #17a2b8);
+            margin: 0 5px;
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .input-section, .result-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 GLPK.js 線性規劃求解器</h1>
+        
+        <div class="input-section">
+            <div class="form-group">
+                <h3>📊 目標函數設定</h3>
+                <label for="objective">目標函數係數 (以逗號分隔):</label>
+                <input type="text" id="objective" value="800, 1200" placeholder="例如: 3, 2">
+                
+                <label for="direction">目標:</label>
+                <select id="direction">
+                    <option value="maximize">最大化</option>
+                    <option value="minimize">最小化</option>
+                </select>
+
+                <label for="variables">變數名稱 (以逗號分隔):</label>
+                <input type="text" id="variables" value="x1, x2" placeholder="例如: x1, x2">
+            </div>
+
+            <div class="form-group">
+                <h3>⚖️ 約束條件設定</h3>
+                <label for="constraints">約束條件 (每行一個):</label>
+                <textarea id="constraints" placeholder="格式: 係數1, 係數2, 關係, 常數
+例如:
+2, 1, <=, 20
+1, 1, <=, 16
+1, 0, <=, 7">
+4,6,<=,2400
+2,2,<=,800
+1,3,<=,900
+1,0,<=,300
+0,1,<=,250
+</textarea>
+                
+                <div class="info">
+                    <strong>約束格式說明:</strong><br>
+                    每行格式: 係數1, 係數2, 關係, 常數<br>
+                    關係可用: <=, >=, =
+                </div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button onclick="solveLP()">🎯 求解線性規劃</button>
+            <button onclick="clearAll()" class="secondary">🗑️ 清空所有</button>
+        </div>
+
+        <div class="example-problems">
+            <h4>📋 範例問題:</h4>
+            <button onclick="loadExample(1)" class="example-btn">生產規劃問題</button>
+            <button onclick="loadExample(2)" class="example-btn">資源分配問題</button>
+            <button onclick="loadExample(3)" class="example-btn">運輸問題</button>
+        </div>
+
+        <div class="result-section">
+            <div class="result-box">
+                <h3>📈 求解結果</h3>
+                <div id="solution"></div>
+            </div>
+            
+            <div class="result-box">
+                <h3>📊 詳細資訊</h3>
+                <div id="details"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let glpk;
+
+        // 初始化 GLPK
+        window.addEventListener('load', function() {
+            try {
+                // 檢查多種可能的 GLPK 全域變數
+                if (typeof GLPK !== 'undefined') {
+                    console.log('找到 GLPK 全域變數');
+                    initializeGLPK();
+                } else if (typeof glpk !== 'undefined') {
+                    console.log('找到 glpk 全域變數');
+                    window.GLPK = glpk;
+                    initializeGLPK();
+                } else if (typeof window.glpk !== 'undefined') {
+                    console.log('找到 window.glpk');
+                    window.GLPK = window.glpk;
+                    initializeGLPK();
+                } else {
+                    // 等待一段時間讓庫載入
+                    setTimeout(() => {
+                        if (typeof GLPK !== 'undefined') {
+                            console.log('延遲找到 GLPK');
+                            initializeGLPK();
+                        } else if (typeof glpk !== 'undefined') {
+                            console.log('延遲找到 glpk');
+                            window.GLPK = glpk;
+                            initializeGLPK();
+                        } else {
+                            console.warn('無法載入 GLPK，使用備用求解器');
+                            initFallbackSolver();
+                        }
+                    }, 2000);
+                }
+            } catch (error) {
+                console.error('GLPK 初始化錯誤:', error);
+                initFallbackSolver();
+            }
+        });
+
+        function initializeGLPK() {
+            try {
+                // 測試 GLPK 功能
+                if (typeof GLPK === 'function') {
+                    GLPK().then(glpkInstance => {
+                        glpk = glpkInstance;
+                        console.log('GLPK 實例化成功');
+                        showInfo('GLPK.js 專業求解器已就緒！🚀');
+                    }).catch(err => {
+                        console.error('GLPK 實例化失敗:', err);
+                        initFallbackSolver();
+                    });
+                } else if (GLPK && typeof GLPK.solve === 'function') {
+                    glpk = GLPK;
+                    console.log('GLPK 直接可用');
+                    showInfo('GLPK.js 專業求解器已就緒！🚀');
+                } else {
+                    console.warn('GLPK 載入但格式不正確');
+                    initFallbackSolver();
+                }
+            } catch (error) {
+                console.error('GLPK 初始化失敗:', error);
+                initFallbackSolver();
+            }
+        }
+
+        function showError(message) {
+            const solution = document.getElementById('solution');
+            solution.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        function showInfo(message) {
+            const details = document.getElementById('details');
+            details.innerHTML = `<div class="info">${message}</div>`;
+        }
+
+        function parseInput() {
+            try {
+                // 解析目標函數
+                const objectiveStr = document.getElementById('objective').value.trim();
+                const objective = objectiveStr.split(',').map(x => parseFloat(x.trim()));
+                
+                // 解析變數名稱
+                const variablesStr = document.getElementById('variables').value.trim();
+                const variables = variablesStr.split(',').map(x => x.trim());
+                
+                // 解析約束條件
+                const constraintsStr = document.getElementById('constraints').value.trim();
+                const constraintLines = constraintsStr.split('\n').filter(line => line.trim());
+                
+                const constraints = constraintLines.map(line => {
+                    const parts = line.split(',').map(x => x.trim());
+                    if (parts.length !== 4) {
+                        throw new Error(`約束條件格式錯誤: ${line}`);
+                    }
+                    
+                    const coefficients = parts.slice(0, -2).map(x => parseFloat(x));
+                    const relation = parts[parts.length - 2];
+                    const rhs = parseFloat(parts[parts.length - 1]);
+                    
+                    return { coefficients, relation, rhs };
+                });
+
+                const direction = document.getElementById('direction').value;
+
+                return { objective, variables, constraints, direction };
+            } catch (error) {
+                throw new Error(`輸入解析錯誤: ${error.message}`);
+            }
+        }
+
+        function solveLP() {
+            try {
+                const { objective, variables, constraints, direction } = parseInput();
+                
+                if (glpk && typeof glpk.solve === 'function') {
+                    // 使用 GLPK.js 求解
+                    solveWithGLPK(objective, variables, constraints, direction);
+                } else {
+                    // 使用備用求解器
+                    solveWithFallback(objective, variables, constraints, direction);
+                }
+                
+            } catch (error) {
+                showError(error.message);
+                console.error('求解錯誤:', error);
+            }
+        }
+
+        function solveWithGLPK(objective, variables, constraints, direction) {
+            try {
+                // 建立標準的 LP 格式 - 適用於 hgourvest/glpk.js
+                const problem = {
+                    name: 'LP Problem',
+                    objective: {
+                        direction: direction === 'maximize' ? 1 : 2, // 1=GLP_MAX, 2=GLP_MIN
+                        name: 'obj',
+                        vars: objective.map((coeff, i) => ({
+                            name: variables[i] || `x${i+1}`,
+                            coef: coeff
+                        }))
+                    },
+                    subjectTo: constraints.map((constraint, i) => {
+                        let type;
+                        switch (constraint.relation) {
+                            case '<=': type = 1; break; // GLP_UP
+                            case '>=': type = 2; break; // GLP_LO  
+                            case '=': type = 4; break;  // GLP_FX
+                            default: throw new Error(`未知關係: ${constraint.relation}`);
+                        }
+                        
+                        return {
+                            name: `c${i+1}`,
+                            vars: constraint.coefficients.map((coeff, j) => ({
+                                name: variables[j] || `x${j+1}`,
+                                coef: coeff
+                            })),
+                            bnds: { 
+                                type: type,
+                                ub: constraint.relation === '<=' ? constraint.rhs : 0,
+                                lb: constraint.relation === '>=' ? constraint.rhs : (constraint.relation === '=' ? constraint.rhs : 0)
+                            }
+                        };
+                    }),
+                    bounds: objective.map((_, i) => ({
+                        name: variables[i] || `x${i+1}`,
+                        type: 2, // GLP_LO (下界)
+                        lb: 0,
+                        ub: 0
+                    }))
+                };
+
+                console.log('GLPK 問題格式:', problem);
+                
+                // 嘗試不同的求解方法
+                let result;
+                if (typeof glpk.solve === 'function') {
+                    result = glpk.solve(problem);
+                } else if (typeof glpk.glp_simplex === 'function') {
+                    // 較低層級的 API
+                    result = solveWithLowLevelGLPK(problem);
+                } else {
+                    throw new Error('無法識別的 GLPK API');
+                }
+                
+                displayGLPKResults(result, variables, direction);
+                
+            } catch (error) {
+                console.error('GLPK 求解錯誤:', error);
+                showError(`GLPK 求解失敗: ${error.message}，切換到備用求解器`);
+                solveWithFallback(objective, variables, constraints, direction);
+            }
+        }
+
+        function solveWithLowLevelGLPK(problem) {
+            // 如果高層級 API 不可用，嘗試使用較低層級的接口
+            throw new Error('低層級 GLPK API 尚未實現');
+        }
+
+        function displayGLPKResults(result, variables, direction) {
+            const solutionDiv = document.getElementById('solution');
+            const detailsDiv = document.getElementById('details');
+
+            console.log('GLPK 結果:', result);
+            
+            if (result && result.result && (result.result.status === 5 || result.result.status === 'optimal')) {
+                // 5 = GLP_OPT (最佳解)
+                let solutionHtml = `
+                    <div class="info">
+                        <strong>✅ GLPK 找到最佳解！</strong><br>
+                        目標函數值: <strong>${result.result.z ? result.result.z.toFixed(4) : 'N/A'}</strong>
+                    </div>
+                    <table class="solution-table">
+                        <tr><th>變數</th><th>最佳值</th></tr>
+                `;
+
+                if (result.result.vars) {
+                    result.result.vars.forEach((variable, i) => {
+                        const varName = variables[i] || variable.name || `x${i+1}`;
+                        const value = variable.value || 0;
+                        solutionHtml += `<tr><td>${varName}</td><td>${value.toFixed(4)}</td></tr>`;
+                    });
+                } else if (result.result.x) {
+                    // 備選格式
+                    result.result.x.forEach((value, i) => {
+                        const varName = variables[i] || `x${i+1}`;
+                        solutionHtml += `<tr><td>${varName}</td><td>${value.toFixed(4)}</td></tr>`;
+                    });
+                }
+
+                solutionHtml += `</table>`;
+                solutionDiv.innerHTML = solutionHtml;
+
+                detailsDiv.innerHTML = `
+                    <p><strong>求解狀態:</strong> 最佳解 ✅</p>
+                    <p><strong>求解器:</strong> GLPK.js Professional</p>
+                    <p><strong>目標:</strong> ${direction === 'maximize' ? '最大化' : '最小化'}</p>
+                    <p><strong>變數個數:</strong> ${variables.length}</p>
+                `;
+
+            } else {
+                // 處理其他狀態
+                let statusMsg = '求解失敗';
+                if (result && result.result) {
+                    switch (result.result.status) {
+                        case 2: statusMsg = '問題不可行'; break;
+                        case 3: statusMsg = '問題無界'; break;
+                        case 4: statusMsg = '求解失敗'; break;
+                        default: statusMsg = `未知狀態: ${result.result.status}`;
+                    }
+                }
+                
+                solutionDiv.innerHTML = `<div class="error">❌ ${statusMsg}</div>`;
+                detailsDiv.innerHTML = `<p><strong>GLPK 狀態:</strong> ${statusMsg}</p>`;
+            }
+        }
+
+        function initFallbackSolver() {
+            console.log('初始化備用求解器');
+            showInfo('使用內建的單體法求解器 📊');
+        }
+
+        function solveWithFallback(objective, variables, constraints, direction) {
+            // 簡化的線性規劃求解器 (使用單體法的簡化版本)
+            try {
+                const result = simplexSolver(objective, constraints, direction);
+                displayFallbackResults(result, variables, direction);
+            } catch (error) {
+                showError(`求解失敗: ${error.message}`);
+            }
+        }
+
+        function simplexSolver(c, constraints, direction) {
+            // 轉換為標準形式
+            const m = constraints.length;
+            const n = c.length;
+            
+            // 建立單體表格
+            const tableau = [];
+            
+            // 添加約束條件
+            for (let i = 0; i < m; i++) {
+                const row = [...constraints[i].coefficients];
+                // 添加鬆弛變數
+                for (let j = 0; j < m; j++) {
+                    row.push(i === j ? 1 : 0);
+                }
+                row.push(constraints[i].rhs);
+                tableau.push(row);
+            }
+            
+            // 添加目標函數行
+            const objRow = [...c];
+            if (direction === 'maximize') {
+                for (let i = 0; i < objRow.length; i++) {
+                    objRow[i] = -objRow[i];
+                }
+            }
+            // 添加人工變數係數
+            for (let i = 0; i < m; i++) {
+                objRow.push(0);
+            }
+            objRow.push(0);
+            tableau.push(objRow);
+            
+            // 單體法迭代
+            let maxIterations = 100;
+            let iteration = 0;
+            
+            while (iteration < maxIterations) {
+                // 尋找進入變數（最負的係數）
+                const lastRow = tableau[tableau.length - 1];
+                let enteringCol = -1;
+                let minValue = 0;
+                
+                for (let j = 0; j < lastRow.length - 1; j++) {
+                    if (lastRow[j] < minValue) {
+                        minValue = lastRow[j];
+                        enteringCol = j;
+                    }
+                }
+                
+                if (enteringCol === -1) break; // 已找到最優解
+                
+                // 尋找離開變數（最小比值測試）
+                let leavingRow = -1;
+                let minRatio = Infinity;
+                
+                for (let i = 0; i < tableau.length - 1; i++) {
+                    if (tableau[i][enteringCol] > 0) {
+                        const ratio = tableau[i][tableau[i].length - 1] / tableau[i][enteringCol];
+                        if (ratio >= 0 && ratio < minRatio) {
+                            minRatio = ratio;
+                            leavingRow = i;
+                        }
+                    }
+                }
+                
+                if (leavingRow === -1) {
+                    throw new Error('問題無界');
+                }
+                
+                // 主元操作
+                const pivot = tableau[leavingRow][enteringCol];
+                
+                // 標準化主元行
+                for (let j = 0; j < tableau[leavingRow].length; j++) {
+                    tableau[leavingRow][j] /= pivot;
+                }
+                
+                // 消除其他行
+                for (let i = 0; i < tableau.length; i++) {
+                    if (i !== leavingRow) {
+                        const factor = tableau[i][enteringCol];
+                        for (let j = 0; j < tableau[i].length; j++) {
+                            tableau[i][j] -= factor * tableau[leavingRow][j];
+                        }
+                    }
+                }
+                
+                iteration++;
+            }
+            
+            if (iteration >= maxIterations) {
+                throw new Error('達到最大迭代次數');
+            }
+            
+            // 提取解
+            const solution = new Array(n).fill(0);
+            const objValue = tableau[tableau.length - 1][tableau[0].length - 1];
+            
+            // 尋找基變數
+            for (let j = 0; j < n; j++) {
+                let basicRow = -1;
+                let basicCount = 0;
+                
+                for (let i = 0; i < tableau.length - 1; i++) {
+                    if (Math.abs(tableau[i][j] - 1) < 1e-10) {
+                        basicRow = i;
+                        basicCount++;
+                    } else if (Math.abs(tableau[i][j]) > 1e-10) {
+                        basicCount++;
+                    }
+                }
+                
+                if (basicCount === 1 && basicRow !== -1) {
+                    solution[j] = tableau[basicRow][tableau[basicRow].length - 1];
+                }
+            }
+            
+            return {
+                solution: solution,
+                objectiveValue: direction === 'maximize' ? -objValue : objValue,
+                status: 'optimal'
+            };
+        }
+
+        function displayFallbackResults(result, variables, direction) {
+            const solutionDiv = document.getElementById('solution');
+            const detailsDiv = document.getElementById('details');
+
+            if (result.status === 'optimal') {
+                let solutionHtml = `
+                    <div class="info">
+                        <strong>✅ 找到最佳解！（使用內建求解器）</strong><br>
+                        目標函數值: <strong>${result.objectiveValue.toFixed(4)}</strong>
+                    </div>
+                    <table class="solution-table">
+                        <tr><th>變數</th><th>最佳值</th></tr>
+                `;
+
+                result.solution.forEach((value, i) => {
+                    const varName = variables[i] || `x${i+1}`;
+                    solutionHtml += `<tr><td>${varName}</td><td>${value.toFixed(4)}</td></tr>`;
+                });
+
+                solutionHtml += `</table>`;
+                solutionDiv.innerHTML = solutionHtml;
+
+                detailsDiv.innerHTML = `
+                    <p><strong>求解狀態:</strong> 最佳解</p>
+                    <p><strong>求解器:</strong> 內建單體法</p>
+                    <p><strong>目標:</strong> ${direction === 'maximize' ? '最大化' : '最小化'}</p>
+                    <p><strong>變數個數:</strong> ${result.solution.length}</p>
+                `;
+            } else {
+                solutionDiv.innerHTML = `<div class="error">❌ 求解失敗</div>`;
+                detailsDiv.innerHTML = `<p><strong>求解狀態:</strong> 失敗</p>`;
+            }
+        }
+
+        function displayResults(result, variables, direction) {
+            const solutionDiv = document.getElementById('solution');
+            const detailsDiv = document.getElementById('details');
+
+            if (result.result.status === glpk.GLP_OPT) {
+                // 最佳解
+                let solutionHtml = `
+                    <div class="info">
+                        <strong>✅ 找到最佳解！</strong><br>
+                        目標函數值: <strong>${result.result.z.toFixed(4)}</strong>
+                    </div>
+                    <table class="solution-table">
+                        <tr><th>變數</th><th>最佳值</th></tr>
+                `;
+
+                result.result.vars.forEach((variable, i) => {
+                    const varName = variables[i] || variable.name;
+                    solutionHtml += `<tr><td>${varName}</td><td>${variable.value.toFixed(4)}</td></tr>`;
+                });
+
+                solutionHtml += `</table>`;
+                solutionDiv.innerHTML = solutionHtml;
+
+                // 詳細資訊
+                let detailsHtml = `
+                    <p><strong>求解狀態:</strong> 最佳解</p>
+                    <p><strong>目標:</strong> ${direction === 'maximize' ? '最大化' : '最小化'}</p>
+                    <p><strong>變數個數:</strong> ${result.result.vars.length}</p>
+                    <p><strong>約束個數:</strong> ${Object.keys(result.result).includes('constraints') ? result.result.constraints.length : '未知'}</p>
+                `;
+
+                detailsDiv.innerHTML = detailsHtml;
+
+            } else {
+                let statusMessage;
+                switch (result.result.status) {
+                    case glpk.GLP_INFEAS:
+                        statusMessage = '❌ 問題不可行 - 約束條件相互衝突';
+                        break;
+                    case glpk.GLP_UNBND:
+                        statusMessage = '❌ 問題無界 - 目標函數可以無限增大/減小';
+                        break;
+                    case glpk.GLP_NOFEAS:
+                        statusMessage = '❌ 沒有可行解';
+                        break;
+                    default:
+                        statusMessage = `❌ 求解失敗 - 狀態碼: ${result.result.status}`;
+                }
+
+                solutionDiv.innerHTML = `<div class="error">${statusMessage}</div>`;
+                detailsDiv.innerHTML = `<p><strong>求解狀態:</strong> ${statusMessage}</p>`;
+            }
+        }
+
+        function clearAll() {
+            document.getElementById('objective').value = '';
+            document.getElementById('variables').value = '';
+            document.getElementById('constraints').value = '';
+            document.getElementById('solution').innerHTML = '';
+            document.getElementById('details').innerHTML = '';
+        }
+
+        function loadExample(exampleNum) {
+            switch (exampleNum) {
+                case 1:
+                    // 生產規劃問題
+                    document.getElementById('objective').value = '800,1200';
+                    document.getElementById('variables').value = 'x1, x2';
+                    document.getElementById('constraints').value = 
+                        '4, 6, <=,2400\n,2,2,<=,800\n,1,3,<=,900\n,1,0,<=,300\n,0,1,<=,250\n,';
+                    document.getElementById('direction').value = 'maximize';
+                    showInfo('已載入生產規劃問題：最大化利潤 3x₁ + 2x₂');
+                    break;
+                    
+                case 2:
+                    // 資源分配問題
+                    document.getElementById('objective').value = '5, 4, 3';
+                    document.getElementById('variables').value = 'A, B, C';
+                    document.getElementById('constraints').value = 
+                        '2, 3, 1, <=, 15\n4, 1, 2, <=, 20\n1, 2, 3, <=, 10';
+                    document.getElementById('direction').value = 'maximize';
+                    showInfo('已載入資源分配問題：最大化效益 5A + 4B + 3C');
+                    break;
+                    
+                case 3:
+                    // 成本最小化問題
+                    document.getElementById('objective').value = '2, 3';
+                    document.getElementById('variables').value = 'y1, y2';
+                    document.getElementById('constraints').value = 
+                        '1, 2, >=, 4\n3, 1, >=, 6\n2, 2, >=, 8';
+                    document.getElementById('direction').value = 'minimize';
+                    showInfo('已載入運輸問題：最小化成本 2y₁ + 3y₂');
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+<!-- Deepseek OR 單形法
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -853,4 +1654,4 @@
         window.addEventListener('DOMContentLoaded', initPage);
     </script>
 </body>
-</html>
+</html-->
