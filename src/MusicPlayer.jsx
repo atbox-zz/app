@@ -184,7 +184,7 @@ const MusicPlayer = () => {
         { text: "🔺64D2", filename: "./vis_mobile.html", isEnglish: false, isGame: true },
         { text: "🎯3d", filename: "./vertices3d.html", isEnglish: false, isGame: true },
         { text: "👁vis4d", filename: "./vis4d.html", isEnglish: false, isGame: true },
-        { text: "👁vis4d1a", filename: "./vis4d1a.html", isEnglish: false, isGame: true },
+        { text: "👁vis4d1", filename: "./vis4d1.html", isEnglish: false, isGame: true },
         { text: "✨vis6e", filename: "vis6e.html", isEnglish: false, isGame: true },
         { text: "大運流年", filename: "8w2.html", isEnglish: false, isGame: true },
         { text: "拉霸機", filename: "slotmachine.html", isEnglish: false, isGame: true },
