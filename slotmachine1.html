@@ -1,241 +1,634 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>聲光效果拉霸遊戲</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Orbitron', monospace;
-      background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460);
-      min-height: 100vh; display: flex; justify-content: center; align-items: center;
-      overflow: hidden;
-    }
-    .game-container { width: 95%; max-width: 450px; background: linear-gradient(145deg, #2a2a3a, #1a1a2a); border-radius: 20px; padding: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.8); position: relative; overflow: hidden; }
-    .title { text-align: center; color: #ffd700; font-size: 2em; font-weight: 900; margin-bottom: 10px; text-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700; }
-    .machine { background: linear-gradient(145deg, #3a3a4a, #2a2a3a); border-radius: 15px; padding: 15px; margin: 10px 0; }
-    .info-bar { display: flex; justify-content: space-between; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
-    .info-item { flex: 1; text-align: center; background: linear-gradient(145deg, #4a4a5a, #3a3a4a); padding: 5px; border-radius: 8px; color: #ffd700; font-size: 0.9em; font-weight: 700; }
-    .reels-container { display: flex; justify-content: space-between; gap: 5px; margin: 10px 0; }
-    .reel { flex: 1; height: 100px; border: 3px solid #ffd700; border-radius: 8px; overflow: hidden; background: #000; }
-    .reel-strip { display: flex; flex-direction: column; }
-    .symbol { height: 100px; display: flex; align-items: center; justify-content: center; font-size: 2.2em; color: #fff; }
-    .controls { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px; }
-    .bet-controls { display: flex; gap: 10px; align-items: center; }
-    .bet-controls button { background: #444; border: none; color: #ffd700; font-size: 1.2em; padding: 5px 12px; border-radius: 8px; cursor: pointer; }
-    .spin-button { background: linear-gradient(145deg, #ff6b35, #ff4500); color: white; border: none; padding: 15px 30px; font-size: 1.3em; border-radius: 40px; cursor: pointer; }
-    .spin-button:disabled { background: #666; }
-    .fullscreen-btn, .music-btn {
-      background: #333; color: #ffd700; border: none;
-      padding: 10px 20px; border-radius: 12px; font-size: 1em; cursor: pointer;
-    }
-    .result-display { margin-top: 10px; text-align: center; min-height: 40px; }
-    .result-message { font-size: 1.2em; font-weight: 700; color: #ffd700; opacity: 0; transform: scale(0.5); transition: all 0.5s ease; }
-    .result-message.show { opacity: 1; transform: scale(1); }
-    .result-message.win { color: #00ff00; }
-    .button-row { display: flex; gap: 10px; }
-    .symbol img { width: 100%; height: 100%; object-fit: contain; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聲光效果拉霸遊戲</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            background: linear-gradient(145deg, #2a2a3a, #1a1a2a);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 
+                0 20px 40px rgba(0,0,0,0.8),
+                inset 0 2px 4px rgba(255,255,255,0.1);
+            border: 2px solid #4a4a5a;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255,215,0,0.1), transparent, rgba(255,0,255,0.1), transparent);
+            animation: rotate 8s linear infinite;
+            z-index: -1;
+        }
+        
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+        
+        .title {
+            text-align: center;
+            color: #ffd700;
+            font-size: 2.5em;
+            font-weight: 900;
+            margin-bottom: 20px;
+            text-shadow: 
+                0 0 10px #ffd700,
+                0 0 20px #ffd700,
+                0 0 30px #ffd700;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700; }
+            to { text-shadow: 0 0 20px #ffd700, 0 0 30px #ffd700, 0 0 40px #ffd700; }
+        }
+        
+        .machine {
+            background: linear-gradient(145deg, #3a3a4a, #2a2a3a);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            border: 3px solid #5a5a6a;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+        
+        .reels-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .reel {
+            width: 100px;
+            height: 120px;
+            border: 3px solid #ffd700;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(145deg, #1a1a2a, #0a0a1a);
+            box-shadow: 
+                inset 0 0 20px rgba(0,0,0,0.8),
+                0 0 15px rgba(255,215,0,0.3);
+        }
+        
+        .reel.spinning {
+            animation: reel-glow 0.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes reel-glow {
+            from { box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 0 15px rgba(255,215,0,0.3); }
+            to { box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 0 25px rgba(255,215,0,0.8); }
+        }
+        
+        .reel-strip {
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.1s ease-out;
+        }
+        
+        .symbol {
+            width: 100px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            color: #fff;
+            text-shadow: 0 0 10px currentColor;
+            background: radial-gradient(circle, rgba(255,255,255,0.1), transparent);
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .info-bar {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            background: linear-gradient(145deg, #4a4a5a, #3a3a4a);
+            padding: 10px 20px;
+            border-radius: 10px;
+            color: #ffd700;
+            font-weight: 700;
+            border: 2px solid #5a5a6a;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .spin-button {
+            background: linear-gradient(145deg, #ff6b35, #ff4500);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.5em;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 
+                0 8px 15px rgba(255,107,53,0.4),
+                inset 0 2px 4px rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .spin-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 12px 20px rgba(255,107,53,0.6),
+                inset 0 2px 4px rgba(255,255,255,0.3);
+        }
+        
+        .spin-button:active {
+            transform: translateY(0);
+        }
+        
+        .spin-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .spin-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .spin-button:active::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .result-display {
+            margin-top: 20px;
+            text-align: center;
+            min-height: 50px;
+        }
+        
+        .result-message {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #ffd700;
+            text-shadow: 0 0 10px currentColor;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.5s ease;
+        }
+        
+        .result-message.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .result-message.win {
+            color: #00ff00;
+            animation: win-pulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes win-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .lights {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            height: 20px;
+            display: flex;
+            justify-content: space-around;
+            z-index: 10;
+        }
+        
+        .light {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #333;
+            transition: all 0.3s ease;
+        }
+        
+        .light.active {
+            background: #ffd700;
+            box-shadow: 0 0 15px #ffd700;
+        }
+        
+        .fireworks {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        
+        .firework {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            animation: explode 1s ease-out forwards;
+        }
+        
+        @keyframes explode {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(20);
+                opacity: 0;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="game-container" id="gameBox">
-    <h1 class="title">🎰 拉霸機 🎰</h1>
-    <div class="machine">
-      <div class="info-bar">
-        <div class="info-item">金幣: <span id="coins">100</span></div>
-        <div class="info-item">下注: <span id="bet">10</span></div>
-        <div class="info-item">獲勝: <span id="win">0</span></div>
-      </div>
-
-      <div class="reels-container">
-        <div class="reel" id="reel1"><div class="reel-strip"></div></div>
-        <div class="reel" id="reel2"><div class="reel-strip"></div></div>
-        <div class="reel" id="reel3"><div class="reel-strip"></div></div>
-      </div>
-
-      <div class="controls">
-        <div class="bet-controls">
-          <button id="betMinus">-10</button>
-          <span id="betDisplay">10</span>
-          <button id="betPlus">+10</button>
+    <div class="game-container">
+        <div class="lights">
+            <div class="light"></div>
+            <div class="light"></div>
+            <div class="light"></div>
+            <div class="light"></div>
+            <div class="light"></div>
+            <div class="light"></div>
+            <div class="light"></div>
+            <div class="light"></div>
         </div>
-        <button class="spin-button" id="spinBtn">旋轉!</button>
-        <div class="button-row">
-          <button class="fullscreen-btn" id="fullscreenBtn">全螢幕</button>
-          <button class="music-btn" id="musicBtn">🔊 音樂</button>
+        
+        <h1 class="title">🎰 拉霸機 🎰</h1>
+        
+        <div class="machine">
+            <div class="info-bar">
+                <div class="info-item">
+                    <div>金幣: <span id="coins">100</span></div>
+                </div>
+                <div class="info-item">
+                    <div>下注: <span id="bet">10</span></div>
+                </div>
+                <div class="info-item">
+                    <div>獲勝: <span id="win">0</span></div>
+                </div>
+            </div>
+            
+            <div class="reels-container">
+                <div class="reel" id="reel1">
+                    <div class="reel-strip"></div>
+                </div>
+                <div class="reel" id="reel2">
+                    <div class="reel-strip"></div>
+                </div>
+                <div class="reel" id="reel3">
+                    <div class="reel-strip"></div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="spin-button" id="spinBtn">旋轉!</button>
+                <div class="result-display">
+                    <div class="result-message" id="resultMessage"></div>
+                </div>
+            </div>
         </div>
-        <div class="result-display"><div class="result-message" id="resultMessage"></div></div>
-      </div>
     </div>
-  </div>
+    
+    <div class="fireworks" id="fireworks"></div>
 
-  <!-- 🎵 背景音樂 -->
-  <audio id="bgm" loop preload="auto">
-    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_9e53f91c2f.mp3?filename=arcade-game-music-loop-116199.mp3" type="audio/mpeg">
-  </audio>
+    <script>
+        class SlotMachine {
+            constructor() {
+                this.symbols = ['🍒', '🍋', '🍊', '🍇', '🔔', '💎', 'L7', '⭐'];
+                this.coins = 100;
+                this.bet = 10;
+                this.win = 0;
+                this.isSpinning = false;
+                
+                this.initReels();
+                this.updateDisplay();
+                this.initEventListeners();
+                this.startLightAnimation();
+                
+                // 創建音效上下文
+                this.audioContext = null;
+                this.initAudio();
+            }
+            
+            initAudio() {
+                // 創建Web Audio API音效
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.log('Web Audio API not supported');
+                }
+            }
+            
+            playSound(frequency, duration, type = 'sine') {
+                if (!this.audioContext) return;
+                
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.value = frequency;
+                oscillator.type = type;
+                
+                gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+                
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + duration);
+            }
+            
+            playSpinSound() {
+                // 旋轉音效
+                for (let i = 0; i < 10; i++) {
+                    setTimeout(() => {
+                        this.playSound(200 + i * 50, 0.1, 'square');
+                    }, i * 100);
+                }
+            }
+            
+            playWinSound() {
+                // 獲勝音效
+                const notes = [523, 659, 784, 1047];
+                notes.forEach((note, i) => {
+                    setTimeout(() => {
+                        this.playSound(note, 0.5);
+                    }, i * 200);
+                });
+            }
+            
+            playJackpotSound() {
+                // 大獎音效
+                for (let i = 0; i < 20; i++) {
+                    setTimeout(() => {
+                        this.playSound(400 + Math.random() * 400, 0.1, 'sawtooth');
+                    }, i * 50);
+                }
+            }
 
-<script>
-class SlotMachine {
-  constructor() {
-    this.symbols = ['🍒','🍋','🍊','🍇','🔔','💎','⭐','L7']; // 加入 Lucky 7 代號
-    this.coins = 100;
-    this.bet = 10;
-    this.win = 0;
-    this.isSpinning = false;
-    this.musicOn = true; // 音樂狀態
+            getSymbolContent(symbol){
+              if(symbol==="L7"){
+                return '<img src="lucky7.png" alt="777">';
+              }
+              return symbol;
+            }
 
-    this.loadProgress();
-    this.initReels();
-    this.updateDisplay();
-    this.initEvents();
-  }
-
-  initEvents(){
-    document.getElementById('spinBtn').addEventListener('click',()=>{ this.spin(); });
-    document.getElementById('betMinus').addEventListener('click',()=>{ this.changeBet(-10); });
-    document.getElementById('betPlus').addEventListener('click',()=>{ this.changeBet(10); });
-    document.getElementById('fullscreenBtn').addEventListener('click',()=>{ this.toggleFullscreen(); });
-    document.getElementById('musicBtn').addEventListener('click',()=>{ this.toggleMusic(); });
-
-    document.addEventListener("fullscreenchange", () => {
-      const bgm=document.getElementById("bgm");
-      if(document.fullscreenElement && this.musicOn){
-        bgm.play().catch(()=>{});
-      } else {
-        bgm.pause();
-      }
-    });
-  }
-
-  toggleFullscreen(){
-    const elem=document.getElementById("gameBox");
-    if(!document.fullscreenElement){
-      elem.requestFullscreen().catch(err=>{alert("全螢幕失敗: "+err.message);});
-    } else {
-      document.exitFullscreen();
-    }
-  }
-
-  toggleMusic(){
-    const bgm=document.getElementById("bgm");
-    const btn=document.getElementById("musicBtn");
-    this.musicOn=!this.musicOn;
-    if(this.musicOn){
-      btn.textContent="🔊 音樂";
-      if(document.fullscreenElement){
-        bgm.play().catch(()=>{});
-      }
-    } else {
-      btn.textContent="🔇 靜音";
-      bgm.pause();
-    }
-  }
-
-  changeBet(amount){
-    this.bet = Math.max(10,this.bet+amount);
-    document.getElementById('betDisplay').textContent=this.bet;
-    this.updateDisplay();
-  }
-
-  loadProgress(){
-    let saved=localStorage.getItem('slotCoins');
-    if(saved) this.coins=parseInt(saved,10);
-  }
-  saveProgress(){ localStorage.setItem('slotCoins',this.coins); }
-
-  getSymbolContent(symbol){
-    if(symbol==="L7"){
-      return '<img src="lucky7.png" alt="777">';
-    }
-    return symbol;
-  }
-
-  initReels(){
-    for(let i=1;i<=3;i++){
-      const strip=document.querySelector(`#reel${i} .reel-strip`);
-      for(let j=0;j<20;j++){
-        const s=document.createElement('div');
-        s.className='symbol';
-        let randomSymbol=this.symbols[Math.floor(Math.random()*this.symbols.length)];
-        s.innerHTML=this.getSymbolContent(randomSymbol);
-        strip.appendChild(s);
-      }
-    }
-  }
-
-  async spin(){
-    if(this.isSpinning||this.coins<this.bet){ 
-      if(this.coins<this.bet) this.showMessage('💰 金幣不足，遊戲結束! 💰');
-      return;
-    }
-    this.isSpinning=true;
-    this.coins-=this.bet;
-    this.updateDisplay();
-    document.getElementById('spinBtn').disabled=true;
-
-    const results=[];
-    for(let i=0;i<3;i++){
-      let r=await this.spinReel(i+1);
-      results.push(r);
-    }
-    let winAmount=this.checkWin(results);
-    if(winAmount>0){ this.coins+=winAmount; this.win=winAmount; this.showMessage(`🎊 獲勝 +${winAmount} 🎊`,true); }
-    else { this.win=0; this.showMessage("再試一次!"); }
-    this.updateDisplay();
-    setTimeout(()=>{this.isSpinning=false;document.getElementById('spinBtn').disabled=false;},1000);
-  }
-
-  spinReel(reelNumber){
-    return new Promise(resolve=>{
-      const strip=document.querySelector(`#reel${reelNumber} .reel-strip`);
-      const symbols=strip.querySelectorAll('.symbol');
-      let spins=30+reelNumber*10, current=0;
-      const animate=()=>{
-        const offset=(current%symbols.length)*-100;
-        strip.style.transform=`translateY(${offset}px)`;
-        current++;
-        if(current<spins){ requestAnimationFrame(animate);}
-        else{
-          const final=this.symbols[Math.floor(Math.random()*this.symbols.length)];
-          symbols[0].innerHTML=this.getSymbolContent(final);
-          strip.style.transform=`translateY(0px)`;
-          resolve(final);
+            initReels() {
+                for (let i = 1; i <= 3; i++) {
+                    const reel = document.getElementById(`reel${i}`);
+                    const strip = reel.querySelector('.reel-strip');
+                    
+                    // 創建足夠的符號用於旋轉動畫
+                    for (let j = 0; j < 20; j++) {
+                        const symbol = document.createElement('div');
+                        symbol.className = 'symbol';
+                        symbol.textContent = this.symbols[Math.floor(Math.random() * this.symbols.length)];
+                        let randomSymbol=this.symbols[Math.floor(Math.random()*this.symbols.length)];
+                        symbol.innerHTML=this.getSymbolContent(randomSymbol);
+                        strip.appendChild(symbol);
+                    }
+                }
+            }
+            
+            initEventListeners() {
+                document.getElementById('spinBtn').addEventListener('click', () => {
+                    if (!this.audioContext) {
+                        // 用戶互動後初始化音效
+                        this.initAudio();
+                    }
+                    this.spin();
+                });
+            }
+            
+            startLightAnimation() {
+                const lights = document.querySelectorAll('.light');
+                let currentLight = 0;
+                
+                setInterval(() => {
+                    lights.forEach(light => light.classList.remove('active'));
+                    lights[currentLight].classList.add('active');
+                    currentLight = (currentLight + 1) % lights.length;
+                }, 200);
+            }
+            
+            async spin() {
+                if (this.isSpinning || this.coins < this.bet) {
+                    return;
+                }
+                
+                this.isSpinning = true;
+                this.coins -= this.bet;
+                this.updateDisplay();
+                
+                const spinBtn = document.getElementById('spinBtn');
+                spinBtn.disabled = true;
+                spinBtn.textContent = '旋轉中...';
+                
+                // 播放旋轉音效
+                this.playSpinSound();
+                
+                // 開始旋轉動畫
+                const reels = [1, 2, 3].map(i => document.getElementById(`reel${i}`));
+                reels.forEach(reel => reel.classList.add('spinning'));
+                
+                // 旋轉每個捲軸
+                const results = [];
+                for (let i = 0; i < 3; i++) {
+                    const result = await this.spinReel(i + 1);
+                    results.push(result);
+                }
+                
+                // 停止旋轉效果
+                reels.forEach(reel => reel.classList.remove('spinning'));
+                
+                // 檢查獲勝
+                const winAmount = this.checkWin(results);
+                this.displayResult(results, winAmount);
+                
+                if (winAmount > 0) {
+                    this.coins += winAmount;
+                    this.win = winAmount;
+                    
+                    if (winAmount >= 100) {
+                        this.playJackpotSound();
+                        this.createFireworks();
+                    } else {
+                        this.playWinSound();
+                    }
+                }
+                
+                this.updateDisplay();
+                
+                setTimeout(() => {
+                    this.isSpinning = false;
+                    spinBtn.disabled = false;
+                    spinBtn.textContent = '旋轉!';
+                }, 1000);
+            }
+            
+            spinReel(reelNumber) {
+                return new Promise(resolve => {
+                    const reel = document.getElementById(`reel${reelNumber}`);
+                    const strip = reel.querySelector('.reel-strip');
+                    const symbols = strip.querySelectorAll('.symbol');
+                    
+                    let spins = 20 + reelNumber * 5;
+                    let currentSpin = 0;
+                    
+                    const spinInterval = setInterval(() => {
+                        // 旋轉動畫
+                        symbols.forEach((symbol, index) => {
+                            const offset = ((currentSpin + index) % symbols.length) * -120;
+                            strip.style.transform = `translateY(${offset}px)`;
+                        });
+                        
+                        currentSpin++;
+                        
+                        if (currentSpin >= spins) {
+                            clearInterval(spinInterval);
+                            
+                            // 隨機選擇最終符號
+                            const finalSymbol = this.symbols[Math.floor(Math.random() * this.symbols.length)];
+                            const finalIndex = Math.floor(Math.random() * symbols.length);
+                            symbols[finalIndex].textContent = finalSymbol;
+                            
+                            // 確保顯示最終符號
+                            strip.style.transform = `translateY(${-finalIndex * 120}px)`;
+                            
+                            resolve(finalSymbol);
+                        }
+                    }, 50);
+                });
+            }
+            
+            checkWin(results) {
+                const [symbol1, symbol2, symbol3] = results;
+                
+                // 三個相同
+                if (symbol1 === symbol2 && symbol2 === symbol3) {
+                    if (symbol1 === '💎') return 500;
+                    if (symbol1 === 'L7') return 300;
+                    if (symbol1 === '⭐') return 200;
+                    if (symbol1 === '🔔') return 100;
+                    return 50;
+                }
+                
+                // 兩個相同
+                if (symbol1 === symbol2 || symbol2 === symbol3 || symbol1 === symbol3) {
+                    return 20;
+                }
+                
+                return 0;
+            }
+            
+            displayResult(results, winAmount) {
+                const messageEl = document.getElementById('resultMessage');
+                let message = '';
+                
+                if (winAmount >= 500) {
+                    message = '🎉 超級大獎! 🎉';
+                    messageEl.className = 'result-message show win';
+                } else if (winAmount >= 100) {
+                    message = '💎 大獎! 💎';
+                    messageEl.className = 'result-message show win';
+                } else if (winAmount > 0) {
+                    message = `🎊 獲勝 +${winAmount} 🎊`;
+                    messageEl.className = 'result-message show win';
+                } else {
+                    message = '再試一次!';
+                    messageEl.className = 'result-message show';
+                }
+                
+                messageEl.textContent = message;
+                
+                setTimeout(() => {
+                    messageEl.classList.remove('show');
+                }, 3000);
+            }
+            
+            createFireworks() {
+                const fireworksContainer = document.getElementById('fireworks');
+                const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+                
+                for (let i = 0; i < 50; i++) {
+                    setTimeout(() => {
+                        const firework = document.createElement('div');
+                        firework.className = 'firework';
+                        firework.style.left = Math.random() * window.innerWidth + 'px';
+                        firework.style.top = Math.random() * window.innerHeight + 'px';
+                        firework.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                        firework.style.boxShadow = `0 0 20px ${firework.style.backgroundColor}`;
+                        
+                        fireworksContainer.appendChild(firework);
+                        
+                        setTimeout(() => {
+                            firework.remove();
+                        }, 1000);
+                    }, i * 100);
+                }
+            }
+            
+            updateDisplay() {
+                document.getElementById('coins').textContent = this.coins;
+                document.getElementById('bet').textContent = this.bet;
+                document.getElementById('win').textContent = this.win;
+            }
         }
-      };
-      animate();
-    });
-  }
-
-  checkWin([a,b,c]){
-    if(a===b&&b===c){
-      if(a==='💎')return 500;
-      if(a==='L7')return 300; // Lucky 7 大獎
-      if(a==='⭐')return 200;
-      if(a==='🔔')return 100;
-      return 50;
-    }
-    if(a===b||b===c||a===c) return 20;
-    return 0;
-  }
-
-  showMessage(msg,win=false){
-    const el=document.getElementById('resultMessage');
-    el.textContent=msg;
-    el.className='result-message show'+(win?' win':'');
-    setTimeout(()=>{el.classList.remove('show');},2500);
-  }
-
-  updateDisplay(){
-    document.getElementById('coins').textContent=this.coins;
-    document.getElementById('bet').textContent=this.bet;
-    document.getElementById('betDisplay').textContent=this.bet;
-    document.getElementById('win').textContent=this.win;
-    this.saveProgress();
-  }
-}
-window.addEventListener('load',()=>{ window.game=new SlotMachine(); });
-</script>
+        
+        // 初始化遊戲
+        window.addEventListener('load',()=>{ window.game=new SlotMachine();});
+//        window.addEventListener('load',()=>{            new SlotMachine();});
+    </script>
 </body>
 </html>
