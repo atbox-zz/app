@@ -701,6 +701,11 @@ function initializeNetwork() {
         }
         network.setOptions(newOptions);
         console.log(`布局切換至 ${layout}`);
+        
+        // 確保布局切換後網絡仍然可見
+        setTimeout(() => {
+          network.fit({ animation: { duration: 500, easingFunction: 'easeInOutQuad' } });
+        }, 300);
       });
     }
 
@@ -715,6 +720,11 @@ function initializeNetwork() {
         }));
         network.setData({ nodes: updateArray, edges: edges });
         console.log(`節點大小更新至 ${size}，標籤應保持可見`);
+        
+        // 確保節點大小調整後網絡仍然可見
+        setTimeout(() => {
+          network.fit({ animation: { duration: 300, easingFunction: 'easeInOutQuad' } });
+        }, 100);
       });
     }
 
@@ -734,13 +744,18 @@ function initializeNetwork() {
             filteredNodes.some(n => n.id === edge.from) && filteredNodes.some(n => n.id === edge.to)
           );
         }
+        
+        // 確保在模式切換後網絡仍然可見
+        setTimeout(() => {
+          network.fit({ animation: { duration: 500, easingFunction: 'easeInOutQuad' } });
+        }, 100);
 // 確保標籤在模式切換時保留
-          filteredNodes = filteredNodes.map(node => ({
+        filteredNodes = filteredNodes.map(node => ({
           id: node.id,
           label: node.label,
           font: node.font,
           color: node.color,
-          size: node.size
+          size: node.size || 18 // 確保節點大小有默認值
         }));
         // 重置邊的顏色為原始顏色
         filteredEdges = filteredEdges.map(edge => {
@@ -782,6 +797,11 @@ function initializeNetwork() {
           panel.classList.toggle('open');
           this.innerText = isOpen ? '開啟面板' : '關閉面板';
           console.log(`面板狀態：${isOpen ? '關閉' : '開啟'}`);
+          
+          // 確保在面板切換後網絡仍然可見
+          setTimeout(() => {
+            network.fit({ animation: { duration: 500, easingFunction: 'easeInOutQuad' } });
+          }, 100);
         }
       });
     }
@@ -789,6 +809,11 @@ function initializeNetwork() {
     // 初始化顯示乾卦
     showGua(0);
     console.log('初始顯示乾卦 (ID: 0)');
+    
+    // 確保初始化時網絡視圖正確顯示
+    setTimeout(() => {
+      network.fit({ animation: { duration: 500, easingFunction: 'easeInOutQuad' } });
+    }, 500);
   });
 
   // 鍵盤導航

@@ -179,17 +179,19 @@ const MusicPlayer = () => {
         { text: "🎮魔術方塊", filename: "./cude6c.html", isEnglish: true, isGame: true },
         { text: "🎲金錢卦", filename: "./gua1a.html", isEnglish: true, isGame: true },
         { text: "井字棋", filename: "./xx.html", isEnglish: false, isGame: true },
+
         { text: "🌱生命系統", filename: "game of liveinlive中文2.html", isEnglish: false, isGame: true },
         { text: "🔺64D", filename: "./vertices64d1.html", isEnglish: false, isGame: true },
         { text: "🔺64D2", filename: "./vis_mobile.html", isEnglish: false, isGame: true },
         { text: "🎯3d", filename: "./vertices3d.html", isEnglish: false, isGame: true },
+
         { text: "👁vis4d", filename: "./vis4d.html", isEnglish: false, isGame: true },
         { text: "👁vis4d0", filename: "./vis4d0.html", isEnglish: false, isGame: true },
+        { text: "👁vis4d1a", filename: "./vis4d1a.html", isEnglish: false, isGame: true },
         { text: "✨vis6e", filename: "vis6e.html", isEnglish: false, isGame: true },
+
         { text: "大運流年", filename: "8w2.html", isEnglish: false, isGame: true },
         { text: "拉霸機", filename: "slotmachine.html", isEnglish: false, isGame: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
         { text: "", filename: "", isEnglish: false, isEmpty: true },
         { text: "", filename: "", isEnglish: false, isEmpty: true },
       ]
@@ -276,7 +278,7 @@ const MusicPlayer = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentPage]);
+  }, [audioPages.length, currentPage]);
 
   const buttonStyle = {
     background: 'linear-gradient(145deg, #f5f5dc, #e6e6d4)',
@@ -328,7 +330,7 @@ const MusicPlayer = () => {
 
   // 根據當前頁面和按鈕數量決定佈局
   const getGridLayout = (currentPageIndex) => {
-    const buttonsCount = audioPages[currentPageIndex].buttons.length;
+// 移除未使用的變數
     if (currentPageIndex === 0) {
       // 小明劍魔區保持2x2佈局
       return {
