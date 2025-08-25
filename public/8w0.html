@@ -18,7 +18,7 @@
         }
         
         .container {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(219, 161, 108, 0.95);
             border-radius: 20px;
             padding: 40px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
@@ -196,7 +196,7 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="title">今日八字</h1>
+        <h1 class="title">🔮 今日八字</h1>
         
         <div class="date-info" id="dateInfo">
             載入中...
@@ -324,9 +324,12 @@
                 };
                 
                 function formatShiShen(shiShen) {
-                    if (!shiShen || shiShen.length === 2) return shiShen;
-                    // 兩個字的十神分成上下兩行
-                    return shiShen.substring(0, 1) + '<br>' + shiShen.substring(1);
+                    if (!shiShen) return '';
+                    if (shiShen.length === 2) {
+                        // 兩個字的十神分成上下兩行
+                        return shiShen.substring(0, 1) + '<br>' + shiShen.substring(1);
+                    }
+                    return shiShen;
                 }
                 
                 function getZhiShiShen(zhi, dayGan) {
