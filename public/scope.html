@@ -172,6 +172,11 @@
             color: #000;
         }
 
+        .control-button.start {
+            background: #f60606;
+            color: #f4f2f2;
+        }
+
         .canvas-container {
             flex: 1;
             position: relative;
@@ -269,7 +274,7 @@
                     <button class="control-button active" id="timeDomainBtn" onclick="setMode('time')">時域</button>
                     <button class="control-button" id="frequencyBtn" onclick="setMode('frequency')">頻域</button>
                     <button class="control-button" id="xyBtn" onclick="setMode('xy')">XY模式</button>
-                    <button class="control-button" id="recordBtn" onclick="toggleRecording()">🎤 開始</button>
+                    <button class="control-button start" id="recordBtn" onclick="toggleRecording()">🎤 開始</button>
                 </div>
             </div>
             
