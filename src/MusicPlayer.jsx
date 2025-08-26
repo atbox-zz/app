@@ -159,7 +159,7 @@ const MusicPlayer = () => {
         { text: "公車路線", filename: "./indexv12.html", isEnglish: false, isGame: true },
         { text: "64卦狀態機", filename: "./yy.html", isEnglish: false, isGame: true },
         { text: "八宮卦方立體", filename: "./zz.html", isEnglish: false, isGame: true },
-        { text: "🤖AI示波器", filename: "scope.html", isEnglish: false, isEmpty: true },
+        { text: "🤖AI示波器", filename: "./scope.html", isEnglish: false, isGame: true },
 
         { text: "", filename: "", isEnglish: false, isEmpty: true },
         { text: "", filename: "", isEnglish: false, isEmpty: true },
