@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 示波器 - 音訊分析工具</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/addons/p5.sound.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ff88;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* 左側聊天區域 */
+        .chat-panel {
+            width: 35%;
+            background: rgba(0, 0, 0, 0.8);
+            border-right: 2px solid #00ff88;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+        }
+
+        .chat-header {
+            padding: 20px;
+            background: linear-gradient(90deg, #00ff88, #00cc70);
+            color: #000;
+            font-weight: bold;
+            font-size: 18px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 85%;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #00ff88, #00cc70);
+            color: #000;
+            align-self: flex-end;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .ai-message {
+            background: rgba(255, 255, 255, 0.1);
+            color: #00ff88;
+            align-self: flex-start;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        .chat-input {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            border-top: 1px solid #00ff88;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            color: #00ff88;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            border-color: #00cc70;
+        }
+
+        .input-group button {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #00ff88, #00cc70);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .input-group button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 136, 0.4);
+        }
+
+        /* 右側視覺化區域 */
+        .visualization-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: radial-gradient(circle at center, rgba(0, 255, 136, 0.05) 0%, transparent 70%);
+        }
+
+        .viz-header {
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #00ff88;
+        }
+
+        .viz-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .control-button {
+            padding: 8px 16px;
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            border-radius: 6px;
+            color: #00ff88;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .control-button:hover {
+            background: rgba(0, 255, 136, 0.3);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .control-button.active {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* p5.js canvas styling */
+        #p5-canvas {
+            display: block !important;
+        }
+
+        /* 動畫效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .recording {
+            animation: pulse 1s infinite;
+        }
+
+        /* 自訂滾動條 */
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #00ff88;
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #00cc70;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .chat-panel {
+                width: 100%;
+                height: 50%;
+            }
+            
+            .visualization-panel {
+                height: 50%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左側聊天區域 -->
+        <div class="chat-panel">
+            <div class="chat-header">
+                🤖 AI 示波器助手
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <div class="message ai-message">
+                    👋 你好！我是你的 AI 示波器助手。我可以幫你：
+                    <br>• 分析音訊波形特性
+                    <br>• 調整顯示參數
+                    <br>• 解釋頻譜分析結果
+                    <br>• 提供音訊處理建議
+                    <br><br>請允許麥克風權限開始分析，或問我任何問題！
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <div class="input-group">
+                    <input type="text" id="messageInput" placeholder="輸入你的問題...">
+                    <button onclick="sendMessage()">發送</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右側視覺化區域 -->
+        <div class="visualization-panel">
+            <div class="viz-header">
+                <div class="viz-title">🌊 即時音訊分析</div>
+                <div class="controls">
+                    <button class="control-button active" id="timeDomainBtn" onclick="setMode('time')">時域</button>
+                    <button class="control-button" id="frequencyBtn" onclick="setMode('frequency')">頻域</button>
+                    <button class="control-button" id="xyBtn" onclick="setMode('xy')">XY模式</button>
+                    <button class="control-button" id="spectrumBtn" onclick="setMode('spectrum')">3D頻譜</button>
+                    <button class="control-button" id="recordBtn" onclick="toggleRecording()">🎤 開始</button>
+                </div>
+            </div>
+            
+            <div class="canvas-container" id="canvasContainer">
+                <!-- p5.js canvas 將在這裡創建 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全域變數
+        let mic;
+        let fft;
+        let isRecording = false;
+        let currentMode = 'time';
+        let isDemoMode = false;
+        let demoTime = 0;
+        let waveHistory = [];
+        let spectrumHistory = [];
+        let particles = [];
+
+        // p5.js 顏色主題
+        let primaryColor, secondaryColor, bgColor, gridColor;
+        
+        // AI 回應庫
+        const aiResponses = {
+            greeting: ['你好！有什麼我可以幫助你分析的嗎？', '嗨！準備開始音訊分析了嗎？'],
+            frequency: [
+                '頻域分析可以顯示音訊中各個頻率成分的強度。低頻在左側，高頻在右側。',
+                '透過 FFT 轉換，我們可以看到音訊的頻譜分布。峰值表示主要的頻率成分。',
+                '頻譜分析有助於識別音調、諧波和噪音特徵。'
+            ],
+            time: [
+                '時域顯示音訊信號隨時間的變化。振幅反映音量大小。',
+                '波形的形狀告訴我們音訊的特性：正弦波表示純音調，複雜波形表示豐富的諧波內容。',
+                '觀察波形可以幫助識別音訊的動態範圍和失真情況。'
+            ],
+            xy: [
+                'XY 模式創造美麗的李薩茹圖形，顯示左右聲道的相位關係。',
+                '圓形圖案表示單聲道信號，複雜圖形表示立體聲效果。',
+                'XY 模式常用於分析立體聲的寬度和相位一致性。'
+            ],
+            spectrum: [
+                '3D 頻譜模式展示頻率隨時間的變化，創造壯觀的瀑布圖效果。',
+                '縱軸是頻率，橫軸是時間，顏色深度表示能量強度。',
+                '這個視圖最適合觀察音樂的動態變化和頻率演進。'
+            ],
+            analysis: [
+                '我注意到你的音訊有有趣的特徵！需要我詳細分析嗎？',
+                '這個波形顯示了豐富的頻率內容。你想了解特定的頻段嗎？',
+                '音訊信號看起來很穩定。有特定的分析需求嗎？'
+            ]
+        };
+
+        // p5.js 主要函數
+        function setup() {
+            // 創建 canvas 並放置到指定容器中
+            let canvasContainer = document.getElementById('canvasContainer');
+            let canvas = createCanvas(canvasContainer.offsetWidth, canvasContainer.offsetHeight);
+            canvas.parent('canvasContainer');
+            canvas.id('p5-canvas');
+            
+            // 初始化顏色
+            primaryColor = color(0, 255, 136);
+            secondaryColor = color(0, 204, 112);
+            bgColor = color(0, 0, 0, 20);
+            gridColor = color(0, 255, 136, 50);
+            
+            // 初始化音訊
+            fft = new p5.FFT(0.8, 1024);
+            
+            // 初始化粒子系統
+            for (let i = 0; i < 50; i++) {
+                particles.push(new Particle());
+            }
+            
+            // 設置畫布響應式
+            windowResized();
+        }
+
+        function draw() {
+            // 背景
+            fill(bgColor);
+            rect(0, 0, width, height);
+            
+            if (isRecording) {
+                if (isDemoMode) {
+                    generateDemoData();
+                }
+                
+                switch(currentMode) {
+                    case 'time':
+                        drawTimeDomain();
+                        break;
+                    case 'frequency':
+                        drawFrequencyDomain();
+                        break;
+                    case 'xy':
+                        drawXYMode();
+                        break;
+                    case 'spectrum':
+                        draw3DSpectrum();
+                        break;
+                }
+            } else {
+                drawIdleAnimation();
+            }
+            
+            // 繪製網格
+            if (currentMode !== 'spectrum' && currentMode !== 'xy') {
+                drawGrid();
+            }
+        }
+
+        function drawTimeDomain() {
+            let waveform = fft.waveform();
+            
+            stroke(primaryColor);
+            strokeWeight(2);
+            noFill();
+            
+            beginShape();
+            for (let i = 0; i < waveform.length; i++) {
+                let x = map(i, 0, waveform.length, 0, width);
+                let y = map(waveform[i], -1, 1, height, 0);
+                vertex(x, y);
+            }
+            endShape();
+            
+            // 添加發光效果
+            drawGlow(waveform);
+        }
+
+        function drawFrequencyDomain() {
+            let spectrum = fft.analyze();
+            
+            // 創建漸變效果
+            for (let i = 0; i < spectrum.length / 2; i++) {
+                let x = map(i, 0, spectrum.length / 2, 0, width);
+                let h = map(spectrum[i], 0, 255, 0, height);
+                
+                // 彩虹漸變
+                let hue = map(i, 0, spectrum.length / 2, 120, 300);
+                colorMode(HSB);
+                fill(hue, 80, 90, 0.8);
+                
+                rect(x, height - h, width / (spectrum.length / 2), h);
+                
+                // 添加頂部亮點
+                fill(0, 0, 100);
+                ellipse(x + width / (spectrum.length / 2) / 2, height - h, 3, 3);
+            }
+            colorMode(RGB);
+            
+            // 頻率標籤
+            drawFrequencyLabels();
+        }
+
+        function drawXYMode() {
+            let waveform = fft.waveform();
+            
+            // 清除軌跡（部分）
+            fill(0, 0, 0, 10);
+            rect(0, 0, width, height);
+            
+            stroke(primaryColor);
+            strokeWeight(1);
+            noFill();
+            
+            beginShape();
+            for (let i = 0; i < waveform.length - 1; i += 2) {
+                let x = map(waveform[i], -1, 1, 0, width);
+                let y = map(waveform[i + 1], -1, 1, height, 0);
+                
+                // 添加顏色變化
+                let alpha = map(i, 0, waveform.length, 255, 50);
+                stroke(red(primaryColor), green(primaryColor), blue(primaryColor), alpha);
+                
+                vertex(x, y);
+            }
+            endShape();
+            
+            // 中心十字線
+            stroke(gridColor);
+            strokeWeight(1);
+            line(width/2, 0, width/2, height);
+            line(0, height/2, width, height/2);
+        }
+
+        function draw3DSpectrum() {
+            let spectrum = fft.analyze();
+            
+            // 保存頻譜歷史
+            if (frameCount % 2 === 0) { // 每兩幀保存一次
+                spectrumHistory.push([...spectrum]);
+                if (spectrumHistory.length > 100) {
+                    spectrumHistory.shift();
+                }
+            }
+            
+            // 繪製3D瀑布圖
+            for (let t = 0; t < spectrumHistory.length; t++) {
+                let currentSpectrum = spectrumHistory[t];
+                let z = map(t, 0, spectrumHistory.length - 1, 0.1, 1.0);
+                
+                for (let i = 0; i < currentSpectrum.length / 4; i++) {
+                    let x = map(i, 0, currentSpectrum.length / 4, 0, width);
+                    let y = height - map(t, 0, spectrumHistory.length - 1, 0, height * 0.8);
+                    let h = map(currentSpectrum[i], 0, 255, 0, height * 0.3) * z;
+                    
+                    // 3D 效果顏色
+                    let hue = map(currentSpectrum[i], 0, 255, 240, 0);
+                    colorMode(HSB);
+                    fill(hue, 80, 90, z * 0.7);
+                    noStroke();
+                    
+                    rect(x, y - h, width / (currentSpectrum.length / 4), h);
+                }
+            }
+            colorMode(RGB);
+        }
+
+        function drawIdleAnimation() {
+            // 粒子動畫
+            for (let particle of particles) {
+                particle.update();
+                particle.display();
+            }
+            
+            // 波動效果
+            stroke(primaryColor);
+            strokeWeight(2);
+            noFill();
+            
+            beginShape();
+            for (let x = 0; x < width; x += 5) {
+                let y = height/2 + sin((x + frameCount * 2) * 0.01) * 50 * sin(frameCount * 0.005);
+                vertex(x, y);
+            }
+            endShape();
+        }
+
+        function drawGlow(waveform) {
+            // 發光效果
+            for (let i = 0; i < waveform.length - 1; i++) {
+                let x1 = map(i, 0, waveform.length, 0, width);
+                let y1 = map(waveform[i], -1, 1, height, 0);
+                let x2 = map(i + 1, 0, waveform.length, 0, width);
+                let y2 = map(waveform[i + 1], -1, 1, height, 0);
+                
+                // 多層發光
+                for (let j = 0; j < 5; j++) {
+                    stroke(red(primaryColor), green(primaryColor), blue(primaryColor), 20 - j * 3);
+                    strokeWeight(8 - j);
+                    line(x1, y1, x2, y2);
+                }
+            }
+        }
+
+        function drawGrid() {
+            stroke(gridColor);
+            strokeWeight(1);
+            
+            // 水平線
+            for (let y = 0; y < height; y += height / 8) {
+                line(0, y, width, y);
+            }
+            
+            // 垂直線
+            for (let x = 0; x < width; x += width / 10) {
+                line(x, 0, x, height);
+            }
+        }
+
+        function drawFrequencyLabels() {
+            fill(primaryColor);
+            textSize(12);
+            textAlign(CENTER);
+            
+            let labels = ['20Hz', '200Hz', '2kHz', '20kHz'];
+            for (let i = 0; i < labels.length; i++) {
+                let x = map(i, 0, labels.length - 1, 50, width - 50);
+                text(labels[i], x, height - 10);
+            }
+        }
+
+        function windowResized() {
+            let canvasContainer = document.getElementById('canvasContainer');
+            if (canvasContainer) {
+                resizeCanvas(canvasContainer.offsetWidth, canvasContainer.offsetHeight);
+            }
+        }
+
+        // 粒子類
+        class Particle {
+            constructor() {
+                this.x = random(width);
+                this.y = random(height);
+                this.vx = random(-1, 1);
+                this.vy = random(-1, 1);
+                this.alpha = random(50, 150);
+                this.size = random(1, 3);
+            }
+            
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+                
+                this.alpha = 100 + sin(frameCount * 0.05 + this.x * 0.01) * 50;
+            }
+            
+            display() {
+                fill(red(primaryColor), green(primaryColor), blue(primaryColor), this.alpha);
+                noStroke();
+                ellipse(this.x, this.y, this.size);
+            }
+        }
+
+        // 音訊和控制函數
+        async function toggleRecording() {
+            const btn = document.getElementById('recordBtn');
+            
+            if (!isRecording) {
+                try {
+                    // 請求麥克風權限
+                    mic = new p5.AudioIn();
+                    mic.start();
+                    fft.setInput(mic);
+                    
+                    isRecording = true;
+                    isDemoMode = false;
+                    btn.textContent = '⏸️ 停止';
+                    btn.classList.add('recording');
+                    
+                    addMessage('ai', '✅ 麥克風連接成功！現在可以看到你的聲音波形了。試著說話或播放音樂吧！');
+                    
+                } catch (err) {
+                    console.error('音訊權限錯誤:', err);
+                    addMessage('ai', '❌ 麥克風權限被拒絕。點擊地址欄的🔒圖標允許麥克風權限，然後重新整理頁面。');
+                    showDemoOption();
+                }
+            } else {
+                if (mic) {
+                    mic.stop();
+                }
+                isRecording = false;
+                isDemoMode = false;
+                btn.textContent = '🎤 開始';
+                btn.classList.remove('recording');
+                addMessage('ai', '⏹️ 錄製已停止。');
+            }
+        }
+
+        function startDemoMode() {
+            isRecording = true;
+            isDemoMode = true;
+            demoTime = 0;
+            
+            const btn = document.getElementById('recordBtn');
+            btn.textContent = '⏸️ 停止示範';
+            btn.classList.add('recording');
+            
+            addMessage('ai', '🎵 示範模式啟動！正在生成模擬音訊信號...');
+        }
+
+        function generateDemoData() {
+            demoTime += 0.02;
+            
+            // 創建模擬 FFT 數據
+            if (!window.demoWaveform) {
+                window.demoWaveform = new Array(1024);
+                window.demoSpectrum = new Array(1024);
+            }
+            
+            for (let i = 0; i < 1024; i++) {
+                if (currentMode === 'time' || currentMode === 'xy') {
+                    // 時域信號
+                    window.demoWaveform[i] = 
+                        0.5 * sin(2 * PI * 0.1 * i + demoTime * 10) +     // 基波
+                        0.3 * sin(2 * PI * 0.2 * i + demoTime * 15) +     // 2次諧波
+                        0.2 * sin(2 * PI * 0.3 * i + demoTime * 20) +     // 3次諧波
+                        0.1 * random(-1, 1);                               // 噪音
+                } else {
+                    // 頻域信號
+                    let freq = i / 1024.0;
+                    if (freq < 0.1) window.demoSpectrum[i] = 200 + 50 * sin(demoTime * 5);
+                    else if (freq < 0.3) window.demoSpectrum[i] = 150 + 30 * sin(demoTime * 7);
+                    else if (freq < 0.6) window.demoSpectrum[i] = 80 + 20 * sin(demoTime * 10);
+                    else window.demoSpectrum[i] = 20 + 10 * random();
+                }
+            }
+            
+            // 覆蓋 p5.FFT 方法
+            fft.waveform = () => window.demoWaveform;
+            fft.analyze = () => window.demoSpectrum;
+        }
+
+        function showDemoOption() {
+            const demoBtn = document.createElement('button');
+            demoBtn.className = 'control-button';
+            demoBtn.innerHTML = '🎵 示範模式';
+            demoBtn.onclick = startDemoMode;
+            
+            const controls = document.querySelector('.controls');
+            controls.appendChild(demoBtn);
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            
+            // 更新按鈕狀態
+            document.querySelectorAll('.control-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            let activeBtn = document.getElementById(
+                mode === 'time' ? 'timeDomainBtn' :
+                mode === 'frequency' ? 'frequencyBtn' :
+                mode === 'xy' ? 'xyBtn' : 'spectrumBtn'
+            );
+            if (activeBtn) activeBtn.classList.add('active');
+            
+            // 清空歷史數據
+            spectrumHistory = [];
+            
+            // AI 回應
+            if (aiResponses[mode]) {
+                const response = aiResponses[mode][Math.floor(Math.random() * aiResponses[mode].length)];
+                setTimeout(() => addMessage('ai', response), 500);
+            }
+        }
+
+        // 聊天功能
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addMessage('user', message);
+                input.value = '';
+                
+                setTimeout(() => {
+                    const response = generateAIResponse(message);
+                    addMessage('ai', response);
+                }, 1000);
+            }
+        }
+
+        function addMessage(type, content) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`;
+            messageDiv.innerHTML = content;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function generateAIResponse(message) {
+            const msg = message.toLowerCase();
+            
+            if (msg.includes('頻率') || msg.includes('頻域') || msg.includes('fft')) {
+                return aiResponses.frequency[Math.floor(Math.random() * aiResponses.frequency.length)];
+            } else if (msg.includes('時域') || msg.includes('波形') || msg.includes('時間')) {
+                return aiResponses.time[Math.floor(Math.random() * aiResponses.time.length)];
+            } else if (msg.includes('xy') || msg.includes('立體') || msg.includes('相位')) {
+                return aiResponses.xy[Math.floor(Math.random() * aiResponses.xy.length)];
+            } else if (msg.includes('3d') || msg.includes('頻譜') || msg.includes('瀑布')) {
+                return aiResponses.spectrum[Math.floor(Math.random() * aiResponses.spectrum.length)];
+            } else if (msg.includes('分析') || msg.includes('怎麼')) {
+                return aiResponses.analysis[Math.floor(Math.random() * aiResponses.analysis.length)];
+            } else if (msg.includes('你好') || msg.includes('嗨')) {
+                return aiResponses.greeting[Math.floor(Math.random() * aiResponses.greeting.length)];
+            } else {
+                return '這是個很好的問題！' + (isRecording ? 
+                    '我可以看到你的音訊數據，' + (currentMode === 'time' ? '時域波形' : 
+                    currentMode === 'frequency' ? '頻譜分析' : 
+                    currentMode === 'xy' ? 'XY模式圖形' : '3D頻譜瀑布圖') + '顯示了有趣的特徵。' :
+                    '請先開始錄製以便我分析你的音訊。');
+            }
+        }
+
+        // 鍵盤事件
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('messageInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        });
+
+        // 用戶互動需要先啟動音訊上下文
+        function userStartAudio() {
+            if (getAudioContext().state !== 'running') {
+                userStartAudio();
+            }
+        }
+
+        // 點擊啟動音訊
+        document.addEventListener('click', userStartAudio, { once: true });
+        document.addEventListener('touchstart', userStartAudio, { once: true });
