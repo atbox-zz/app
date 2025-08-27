@@ -47,16 +47,17 @@
         }
         
         .bazi-container {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            gap: 10px;
             margin: 30px 0;
         }
         
         .pillar {
             background: linear-gradient(145deg, #f8f9fa, #e9ecef);
             border-radius: 15px;
-            padding: 15px;
+            padding: 10px;
             text-align: center;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
             border: 3px solid transparent;
@@ -65,7 +66,8 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-height: 180px;
+            min-height: 140px;
+            flex: 1;
         }
         
         .pillar::before {
@@ -100,7 +102,7 @@
         
         .gan-zhi-vertical .gan,
         .gan-zhi-vertical .zhi {
-            font-size: 2em;
+            font-size: 1.8em;
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
             color: #e74c3c;
@@ -165,16 +167,18 @@
         }
         
         .input-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
+            display: flex;
+            flex-direction: row;
             gap: 15px;
             margin-bottom: 20px;
+            align-items: flex-end;
         }
         
         .datetime-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            display: flex;
+            flex-direction: row;
             gap: 10px;
+            align-items: flex-end;
         }
         
         .input-group {
@@ -263,18 +267,22 @@
         
         @media (max-width: 768px) {
             .input-grid {
-                grid-template-columns: 1fr;
+                flex-direction: row;
                 gap: 10px;
+                flex-wrap: nowrap;
             }
             
             .datetime-grid {
-                grid-template-columns: repeat(2, 1fr);
+                flex-direction: row;
                 gap: 8px;
+                flex-wrap: nowrap;
+                overflow-x: auto;
             }
             
             .bazi-container {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 15px;
+                flex-direction: row;
+                gap: 5px;
+                overflow-x: auto;
             }
             
             .container {
@@ -288,15 +296,23 @@
             
             .gan-zhi-vertical .gan,
             .gan-zhi-vertical .zhi {
-                font-size: 1.5em;
+                font-size: 1.2em;
+            }
+            
+            .pillar {
+                min-height: 120px;
+                padding: 8px;
+            }
+            
+            .pillar-title {
+                font-size: 0.8em;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="title">🔮 八字排盤</h1>
-        
+        <button class="calculate-btn" onclick="calculateBazi()">排盤</button>
         <!-- 輸入區域 -->
         <div class="input-section">
             <div class="input-grid">
@@ -330,7 +346,7 @@
                     <input type="number" id="hourInput" min="0" max="23" placeholder="12">
                 </div>
             </div>
-            <button class="calculate-btn" onclick="calculateBazi()">🔮 排盤</button>
+            
         </div>
         
         <div class="date-info" id="dateInfo">
