@@ -18,7 +18,7 @@
         }
         
         .container {
-            background: rgba(219, 161, 108, 0.95);
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
             padding: 40px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
@@ -36,7 +36,7 @@
         }
         
         .date-info {
-            background: linear-gradient(45deg, #3498db);
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
             color: white;
             padding: 20px;
             border-radius: 15px;
@@ -103,17 +103,19 @@
             font-size: 2em;
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            color: #e74c3c;
         }
         
         .shishen {
-            font-size: 0.7em;
+            font-size: 0.65em;
             color: #8e44ad;
             font-weight: bold;
-            min-height: 18px;
+            min-height: 25px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            line-height: 1.2;
+            line-height: 1.1;
             text-align: center;
         }
         
@@ -122,7 +124,7 @@
         }
         
         .zhi {
-            color: #e74c3c;
+            color: #3498db;
         }
         
         .info-section {
@@ -154,6 +156,92 @@
             backdrop-filter: blur(5px);
         }
         
+        .input-section {
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .input-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .datetime-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .input-group label {
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .input-group input,
+        .input-group select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+        
+        /* 根據要求設置不同輸入欄位的寬度 */
+        #nameInput {
+            width: 6em;
+        }
+        
+        #genderSelect {
+            width: 1em;
+        }
+        
+        #yearInput {
+            width: 4em;
+        }
+        
+        #monthInput,
+        #dayInput,
+        #hourInput {
+            width: 2em;
+        }
+        
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .calculate-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
+        }
+        
         .refresh-btn {
             background: linear-gradient(45deg, #11998e, #38ef7d);
             color: white;
@@ -174,6 +262,16 @@
         }
         
         @media (max-width: 768px) {
+            .input-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .datetime-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            
             .bazi-container {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 15px;
@@ -188,7 +286,8 @@
                 font-size: 2em;
             }
             
-            .gan-zhi {
+            .gan-zhi-vertical .gan,
+            .gan-zhi-vertical .zhi {
                 font-size: 1.5em;
             }
         }
@@ -196,7 +295,43 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="title">今日八字</h1>
+        <h1 class="title">🔮 八字排盤</h1>
+        
+        <!-- 輸入區域 -->
+        <div class="input-section">
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="nameInput">姓名</label>
+                    <input type="text" id="nameInput" placeholder="請輸入姓名">
+                </div>
+                <div class="input-group">
+                    <label for="genderSelect">性別</label>
+                    <select id="genderSelect">
+                        <option value="男">男</option>
+                        <option value="女">女</option>
+                    </select>
+                </div>
+            </div>
+            <div class="datetime-grid">
+                <div class="input-group">
+                    <label for="yearInput">年</label>
+                    <input type="number" id="yearInput" min="1900" max="2100" placeholder="1990">
+                </div>
+                <div class="input-group">
+                    <label for="monthInput">月</label>
+                    <input type="number" id="monthInput" min="1" max="12" placeholder="1">
+                </div>
+                <div class="input-group">
+                    <label for="dayInput">日</label>
+                    <input type="number" id="dayInput" min="1" max="31" placeholder="1">
+                </div>
+                <div class="input-group">
+                    <label for="hourInput">時</label>
+                    <input type="number" id="hourInput" min="0" max="23" placeholder="12">
+                </div>
+            </div>
+            <button class="calculate-btn" onclick="calculateBazi()">🔮 排盤</button>
+        </div>
         
         <div class="date-info" id="dateInfo">
             載入中...
@@ -207,22 +342,31 @@
         </div>
         
         <div class="info-section">
-
+            <div class="info-title">📅 詳細資訊</div>
             <div class="info-grid" id="detailInfo">
                 <!-- 詳細資訊將在這裡顯示 -->
             </div>
         </div>
-
+        
+        <button class="refresh-btn" onclick="setToday()">📅 使用今日時間</button>
     </div>
 
     <script>
         function calculateBazi() {
             try {
-                // 獲取當前日期和時間
-                const now = new Date();
-                console.log(now);
+                // 獲取輸入值
+                const name = document.getElementById('nameInput').value || '未設定';
+                const gender = document.getElementById('genderSelect').value;
+                const year = parseInt(document.getElementById('yearInput').value) || new Date().getFullYear();
+                const month = parseInt(document.getElementById('monthInput').value) || new Date().getMonth() + 1;
+                const day = parseInt(document.getElementById('dayInput').value) || new Date().getDate();
+                const hour = parseInt(document.getElementById('hourInput').value) || new Date().getHours();
+                
+                // 創建日期對象
+                const inputDate = new Date(year, month - 1, day, hour, 0, 0);
+                
                 // 使用 lunar-javascript 創建農曆對象
-                const lunar = Lunar.fromDate(now);
+                const lunar = Lunar.fromDate(inputDate);
                 const solar = lunar.getSolar();
                 
                 // 獲取八字
@@ -231,7 +375,11 @@
                 // 顯示日期資訊
                 const dateInfo = document.getElementById('dateInfo');
                 dateInfo.innerHTML = `
-                    <div><strong>公曆：</strong>${solar.getYear()}年${solar.getMonth()}月${solar.getDay()}日</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div><strong>姓名：</strong>${name}</div>
+                        <div><strong>性別：</strong>${gender}</div>
+                    </div>
+                    <div><strong>公曆：</strong>${solar.getYear()}年${solar.getMonth()}月${solar.getDay()}日 ${hour}時</div>
                     <div><strong>農曆：</strong>${lunar.getYearInChinese()}年${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}</div>
                     <div><strong>星期：</strong>${solar.getWeekInChinese()}</div>
                 `;
@@ -271,6 +419,33 @@
                     '辰': '陽', '巳': '陰', '午': '陽', '未': '陰',
                     '申': '陽', '酉': '陰', '戌': '陽', '亥': '陰'
                 };
+                
+                const wuIndex = { '木':0,'火':1,'土':2,'金':3,'水':4 };
+                const wuNames = ['木','火','土','金','水'];
+                const wuColors = ['#22c55e','#ef4444','#64748b','#f59e0b','#3b82f6'];
+                
+                function getShiShenColor(shiShen) {
+                    if (!shiShen) return '#8e44ad';
+                    
+                    // 根據十神對應的五行屬性來分配顏色
+                    if (shiShen.includes('比肩') || shiShen.includes('劫財')) {
+                        return '#8e44ad'; // 紫色 - 比劫星
+                    }
+                    if (shiShen.includes('食神') || shiShen.includes('傷官')) {
+                        return '#22c55e'; // 綠色 - 食傷星
+                    }
+                    if (shiShen.includes('正財') || shiShen.includes('偏財')) {
+                        return '#f59e0b'; // 黃色 - 財星
+                    }
+                    if (shiShen.includes('正官') || shiShen.includes('七殺')) {
+                        return '#ef4444'; // 紅色 - 官殺星
+                    }
+                    if (shiShen.includes('正印') || shiShen.includes('偏印')) {
+                        return '#3b82f6'; // 藍色 - 印星
+                    }
+                    
+                    return '#8e44ad'; // 預設紫色
+                }
                 
                 function getShiShen(target, dayGan, isZhi = false) {
                     if (!target) return '';
@@ -412,10 +587,21 @@
             }
         }
         
-        // 頁面載入時自動計算
+        function setToday() {
+            const now = new Date();
+            document.getElementById('yearInput').value = now.getFullYear();
+            document.getElementById('monthInput').value = now.getMonth() + 1;
+            document.getElementById('dayInput').value = now.getDate();
+            document.getElementById('hourInput').value = now.getHours();
+            calculateBazi();
+        }
+        
+        // 頁面載入時自動設定今日時間並計算
         window.addEventListener('load', function() {
             // 稍微延遲以確保庫已載入
-            setTimeout(calculateBazi, 500);
+            setTimeout(() => {
+                setToday();
+            }, 500);
         });
     </script>
 </body>

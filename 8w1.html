@@ -102,10 +102,16 @@
     <div class="board" id="board">
       <div class="toprow">
         <div class="pillars" id="pillars">
-          <div class="pillar"><div class="label">年柱</div><div class="ten" id="ten_year">—</div><div class="gz" id="gz_year">—</div><div class="ten-branch" id="ten_branch_year">—</div><div class="hidden" id="hid_year">藏干：—</div></div>
-          <div class="pillar"><div class="label">月柱</div><div class="ten" id="ten_month">—</div><div class="gz" id="gz_month">—</div><div class="ten-branch" id="ten_branch_month">—</div><div class="hidden" id="hid_month">藏干：—</div></div>
-          <div class="pillar"><div class="label">日柱</div><div class="ten" id="ten_day">日主</div><div class="gz" id="gz_day">—</div><div class="ten-branch" id="ten_branch_day">—</div><div class="hidden" id="hid_day">藏干：—</div></div>
           <div class="pillar"><div class="label">時柱</div><div class="ten" id="ten_time">—</div><div class="gz" id="gz_time">—</div><div class="ten-branch" id="ten_branch_time">—</div><div class="hidden" id="hid_time">藏干：—</div></div>
+          <div class="pillar"><div class="label">日柱</div><div class="ten" id="ten_day">日主</div><div class="gz" id="gz_day">—</div><div class="ten-branch" id="ten_branch_day">—</div><div class="hidden" id="hid_day">藏干：—</div></div>
+          <div class="pillar"><div class="label">月柱</div><div class="ten" id="ten_month">—</div><div class="gz" id="gz_month">—</div><div class="ten-branch" id="ten_branch_month">—</div><div class="hidden" id="hid_month">藏干：—</div></div>
+          <div class="pillar">
+            <div class="label">年柱</div>
+            <div class="ten" id="ten_year">—</div>
+            <div class="gz" id="gz_year">—</div>
+            <div class="ten-branch" id="ten_branch_year">—</div>
+            <div class="hidden" id="hid_year">—</div>
+          </div>
         </div>
         <div class="info">
           <h3 class="basic-title">基本資訊</h3>
@@ -664,7 +670,7 @@
           if (!gz) return '—';
           const z = gz[1];
           const p = hiddenMap[z] || '';
-          return p ? ('藏干：' + p.split('').join(' ')) : '藏干：—';
+          return p ? ('' + p.split('').join(' ')) : '—';
         }
         setTextContent('hid_year', showHidden(yearGz), '生成命盤: 年柱藏干');
         setTextContent('hid_month', showHidden(monthGz), '生成命盤: 月柱藏干');
