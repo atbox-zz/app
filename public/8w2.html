@@ -10,6 +10,12 @@
   <meta property="og:type" content="website">
   <title>八字大運與流年 - 精確節氣計算 + 十神強弱分析</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.7.3/lunar.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/i18next@23.11.5/dist/umd/i18next.min.js"></script>
+
   <style>
     :root{--bg:#fbf7ec;--panel:#fffaf0;--card:#fffdf6;--accent:#cfa85a;--muted:#8a6b2f;--line:#e6d6a9;--ok:#d7f7d7;--bad:#f7d7d7;--mid:#efefef;--text:#222;--shadow:0 12px 30px rgba(0,0,0,0.06)}
     html,body{height:100%;margin:0;background:var(--bg);font-family:'Noto Sans TC',system-ui,-apple-system,'Segoe UI',Roboto,Arial;color:var(--text)}
@@ -175,11 +181,8 @@
       <div class="footer">資料來源：lunar-javascript（CDN）· 節氣起運算法 + 十神強弱分析</div>
     </div>
   </div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.7.3/lunar.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://unpkg.com/i18next@23.11.5/dist/umd/i18next.min.js"></script>
-  <script>
+
+<script>
     document.addEventListener('DOMContentLoaded', () => {
       // 確認 debugPanel 存在
       const debugPanel = document.getElementById('debugPanel');
