@@ -190,7 +190,7 @@ const MusicPlayer = () => {
         { text: "👁vis4d1a", filename: "./vis4d1a.html", isEnglish: false, isGame: true },
         { text: "✨vis6e", filename: "vis6e.html", isEnglish: false, isGame: true },
 
-        { text: "查八字", filename: "8w0a.html", isEnglish: false, isGame: true },
+        { text: "查八字", filename: "8w0b.html", isEnglish: false, isGame: true },
         { text: "大運流年", filename: "8w2.html", isEnglish: false, isGame: true },
         { text: "拉霸機", filename: "slotmachine.html", isEnglish: false, isGame: true },
         { text: "", filename: "", isEnglish: false, isEmpty: true },
