@@ -276,20 +276,35 @@
             background: #ccc;
             cursor: not-allowed;
         }
-
         @media (max-width: 768px) {
-            .controls {
+            .container {
                 flex-direction: column;
-                align-items: center;
+                align-items: left;
             }
-            
+
+            .control-panel {
+                padding: 10px;
+            }
+
             .direction-tabs {
                 flex-direction: column;
-                align-items: center;
+                align-items: left;
             }
-            
-            .map-container {
-                height: 400px;
+
+            select, button {
+                font-size: 14px;
+                padding: 10px;
+            }
+
+            .map-controls {
+                top: 5px;
+                right: 5px;
+                flex-direction: column;
+            }
+
+            .map-control-btn {
+                font-size: 12px;
+                padding: 8px;
             }
         }
     </style>
