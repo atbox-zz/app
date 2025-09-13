@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票分析工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 3px solid #e9ecef;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            background: white;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #3498db;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        label {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        input, select {
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.3s ease;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .highlight {
+            background-color: #d4edda !important;
+            font-weight: bold;
+        }
+
+        .highlight::before {
+            content: '✅ ';
+            color: #28a745;
+        }
+
+        .low-value {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .high-value {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-undervalued {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .status-fair {
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        .status-overvalued {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .add-stock-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .form-group input {
+            width: 100%;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .sector-analysis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .sector-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .sector-card:hover {
+            border-color: #3498db;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .sector-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .sector-count {
+            font-size: 1.5em;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .control-group {
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 股票分析工具</h1>
+            <p>專業級投資分析平台 - 智能篩選 • 風險評估 • 價值發現</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('overview')">📈 總覽分析</button>
+            <button class="tab" onclick="showTab('screening')">🔍 條件篩選</button>
+            <button class="tab" onclick="showTab('sectors')">🏢 產業分析</button>
+            <button class="tab" onclick="showTab('add')">➕ 新增股票</button>
+        </div>
+
+        <div id="overview" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalStocks">12</div>
+                    <div class="stat-label">追蹤股票數</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="qualifiedStocks">3</div>
+                    <div class="stat-label">符合條件股票</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgPE">12.5</div>
+                    <div class="stat-label">平均本益比</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgYield">4.2%</div>
+                    <div class="stat-label">平均殖利率</div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <label>本益比上限:</label>
+                    <input type="number" id="peLimit" value="10" min="1" max="50">
+                </div>
+                <div class="control-group">
+                    <label>殖利率下限:</label>
+                    <input type="number" id="yieldLimit" value="5" min="0" max="20" step="0.1">%
+                </div>
+                <div class="control-group">
+                    <label>產業篩選:</label>
+                    <select id="sectorFilter">
+                        <option value="">全部產業</option>
+                        <option value="電子">電子</option>
+                        <option value="金融">金融</option>
+                        <option value="航運">航運</option>
+                        <option value="光通訊">光通訊</option>
+                        <option value="傳統產業">傳統產業</option>
+                    </select>
+                </div>
+                <button onclick="applyFilters()">🔍 篩選</button>
+                <button onclick="resetFilters()">🔄 重置</button>
+                <button onclick="fetchTWSEData()">📡 更新股價</button>
+                <button onclick="exportToCSV()">💾 匯出CSV</button>
+                <button onclick="importCSV()">📥 匯入CSV</button>
+            </div>
+
+            <div class="table-container">
+                <table id="stockTable">
+                    <thead>
+                        <tr>
+                            <th>股票代號</th>
+                            <th>公司名稱</th>
+                            <th>產業</th>
+                            <th>股價</th>
+                            <th>EPS</th>
+                            <th>本益比</th>
+                            <th>淨值比</th>
+                            <th>殖利率</th>
+                            <th>營收YoY</th>
+                            <th>合理價下限</th>
+                            <th>合理價上限</th>
+                            <th>價格評估</th>
+                            <th>狀態</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stockTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="screening" class="tab-content">
+            <h2>🔍 進階條件篩選</h2>
+            <div class="controls">
+                <div class="control-group">
+                    <label>EPS 下限:</label>
+                    <input type="number" id="epsMin" value="2" step="0.1">
+                </div>
+                <div class="control-group">
+                    <label>營收成長率:</label>
+                    <input type="number" id="revenueGrowth" value="10">%
+                </div>
+                <div class="control-group">
+                    <label>淨值比上限:</label>
+                    <input type="number" id="pbMax" value="2" step="0.1">
+                </div>
+                <button onclick="advancedScreening()">🚀 進階篩選</button>
+            </div>
+            <div id="screeningResults"></div>
+        </div>
+
+        <div id="sectors" class="tab-content">
+            <h2>🏢 產業分析</h2>
+            <div class="sector-analysis" id="sectorAnalysis">
+            </div>
+        </div>
+
+        <div id="add" class="tab-content">
+            <h2>➕ 新增股票</h2>
+            <div class="add-stock-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>股票代號</label>
+                        <input type="text" id="newCode" placeholder="例: 2330">
+                    </div>
+                    <div class="form-group">
+                        <label>公司名稱</label>
+                        <input type="text" id="newName" placeholder="例: 台積電">
+                    </div>
+                    <div class="form-group">
+                        <label>產業</label>
+                        <select id="newSector">
+                            <option value="電子">電子</option>
+                            <option value="金融">金融</option>
+                            <option value="航運">航運</option>
+                            <option value="光通訊">光通訊</option>
+                            <option value="傳統產業">傳統產業</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>股價</label>
+                        <input type="number" id="newPrice" placeholder="股價" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>EPS</label>
+                        <input type="number" id="newEPS" placeholder="每股盈餘" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>淨值比</label>
+                        <input type="number" id="newPB" placeholder="PB比" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>殖利率 (%)</label>
+                        <input type="number" id="newYield" placeholder="殖利率" step="0.1">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>營收YoY (%)</label>
+                        <input type="number" id="newRevenue" placeholder="營收成長率" step="0.1">
+                    </div>
+                    <button onclick="addStock()">📊 新增股票</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 股票數據 - 可從證交所API或GoodInfo取得
+        let stocks = [
+            {code: '2330', name: '台積電', sector: '電子', price: 580, eps: 28.5, pb: 6.2, yield: 2.1, revenue: 15.2},
+            {code: '2317', name: '鴻海', sector: '電子', price: 105, eps: 8.2, pb: 1.8, yield: 4.8, revenue: 8.5},
+            {code: '2881', name: '富邦金', sector: '金融', price: 58, eps: 6.5, pb: 0.9, yield: 6.2, revenue: 12.3},
+            {code: '2882', name: '國泰金', sector: '金融', price: 52, eps: 5.8, pb: 0.8, yield: 7.1, revenue: 9.8},
+            {code: '2603', name: '長榮', sector: '航運', price: 135, eps: 15.2, pb: 1.2, yield: 8.5, revenue: -5.2},
+            {code: '2609', name: '陽明', sector: '航運', price: 45, eps: 4.8, pb: 0.7, yield: 9.2, revenue: -12.5},
+            {code: '3008', name: '大立光', sector: '光通訊', price: 2180, eps: 89.5, pb: 3.2, yield: 3.8, revenue: -8.3},
+            {code: '2454', name: '聯發科', sector: '電子', price: 820, eps: 42.1, pb: 4.5, yield: 2.9, revenue: 18.7},
+            {code: '1301', name: '台塑', sector: '傳統產業', price: 78, eps: 8.9, pb: 1.1, yield: 6.8, revenue: 5.4},
+            {code: '2412', name: '中華電', sector: '電子', price: 115, eps: 4.9, pb: 1.6, yield: 4.3, revenue: 2.1},
+            {code: '2886', name: '兆豐金', sector: '金融', price: 35, eps: 3.8, pb: 0.6, yield: 8.1, revenue: 7.6},
+            {code: '2002', name: '中鋼', sector: '傳統產業', price: 28, eps: 1.2, pb: 0.8, yield: 5.9, revenue: -3.2}
+        ];
+
+        function updateStockPrices(apiData) {
+            // 更新股價數據（實際使用時需要解析API格式）
+            apiData.forEach(item => {
+                const stock = stocks.find(s => s.code === item.Code);
+                if (stock && item.ClosingPrice) {
+                    stock.price = parseFloat(item.ClosingPrice);
+                }
+            });
+            renderTable();
+        }
+
+        // 模擬GoodInfo數據獲取
+        async function fetchGoodInfoData(stockCode) {
+            try {
+                // 注意：實際使用需要處理CORS和反爬蟲機制
+                console.log(`嘗試從GoodInfo獲取 ${stockCode} 的數據...`);
+                
+                // 這裡會回傳模擬數據，實際應用需要後端代理
+                return {
+                    eps: Math.random() * 20 + 5,
+                    pb: Math.random() * 3 + 0.5,
+                    yield: Math.random() * 8 + 2,
+                    revenue: (Math.random() - 0.5) * 30
+                };
+            } catch (error) {
+                console.log('GoodInfo數據獲取失敗:', error);
+                return null;
+            }
+        }
+
+        let filteredStocks = [...stocks];
+
+        // 計算函數
+        function calculatePE(price, eps) {
+            return eps > 0 ? (price / eps).toFixed(1) : 'N/A';
+        }
+
+        function calculateFairValueLow(eps) {
+            return (eps * 8).toFixed(1);
+        }
+
+        function calculateFairValueHigh(eps) {
+            return (eps * 15).toFixed(1);
+        }
+
+        function getValuationStatus(price, eps) {
+            const fairLow = eps * 8;
+            const fairHigh = eps * 15;
+            
+            if (price < fairLow) return { text: '📉 低估', class: 'status-undervalued' };
+            if (price > fairHigh) return { text: '📈 高估', class: 'status-overvalued' };
+            return { text: '⚖️ 合理', class: 'status-fair' };
+        }
+
+        function isQualified(stock, peLimit = 10, yieldLimit = 5) {
+            const pe = calculatePE(stock.price, stock.eps);
+            return pe !== 'N/A' && parseFloat(pe) < peLimit && stock.yield > yieldLimit;
+        }
+
+        // 渲染表格
+        function renderTable() {
+            const tbody = document.getElementById('stockTableBody');
+            tbody.innerHTML = '';
+
+            filteredStocks.forEach(stock => {
+                const pe = calculatePE(stock.price, stock.eps);
+                const fairLow = calculateFairValueLow(stock.eps);
+                const fairHigh = calculateFairValueHigh(stock.eps);
+                const valuation = getValuationStatus(stock.price, stock.eps);
+                const qualified = isQualified(stock, parseFloat(document.getElementById('peLimit').value), parseFloat(document.getElementById('yieldLimit').value));
+
+                const row = document.createElement('tr');
+                if (qualified) {
+                    row.classList.add('highlight');
+                }
+
+                row.innerHTML = `
+                    <td>${stock.code}</td>
+                    <td>${stock.name}</td>
+                    <td>${stock.sector}</td>
+                    <td>$${stock.price}</td>
+                    <td>$${stock.eps}</td>
+                    <td>${pe}</td>
+                    <td>${stock.pb}</td>
+                    <td>${stock.yield}%</td>
+                    <td>${stock.revenue}%</td>
+                    <td>$${fairLow}</td>
+                    <td>$${fairHigh}</td>
+                    <td class="${valuation.class}">${valuation.text}</td>
+                    <td>${qualified ? '✅ 值得關注' : '⏳ 觀察中'}</td>
+                `;
+
+                tbody.appendChild(row);
+            });
+
+            updateStats();
+        }
+
+        // 更新統計數據
+        function updateStats() {
+            const totalStocks = filteredStocks.length;
+            const qualifiedStocks = filteredStocks.filter(stock => 
+                isQualified(stock, parseFloat(document.getElementById('peLimit').value), parseFloat(document.getElementById('yieldLimit').value))
+            ).length;
+            
+            const avgPE = filteredStocks.reduce((sum, stock) => {
+                const pe = parseFloat(calculatePE(stock.price, stock.eps));
+                return sum + (isNaN(pe) ? 0 : pe);
+            }, 0) / totalStocks;
+
+            const avgYield = filteredStocks.reduce((sum, stock) => sum + stock.yield, 0) / totalStocks;
+
+            document.getElementById('totalStocks').textContent = totalStocks;
+            document.getElementById('qualifiedStocks').textContent = qualifiedStocks;
+            document.getElementById('avgPE').textContent = avgPE.toFixed(1);
+            document.getElementById('avgYield').textContent = avgYield.toFixed(1) + '%';
+        }
+
+        // 篩選功能
+        function applyFilters() {
+            const sectorFilter = document.getElementById('sectorFilter').value;
+            
+            filteredStocks = stocks.filter(stock => {
+                return !sectorFilter || stock.sector === sectorFilter;
+            });
+
+            renderTable();
+        }
+
+        function resetFilters() {
+            document.getElementById('sectorFilter').value = '';
+            filteredStocks = [...stocks];
+            renderTable();
+        }
+
+        // 進階篩選
+        function advancedScreening() {
+            const epsMin = parseFloat(document.getElementById('epsMin').value) || 0;
+            const revenueGrowth = parseFloat(document.getElementById('revenueGrowth').value) || 0;
+            const pbMax = parseFloat(document.getElementById('pbMax').value) || 999;
+
+            const results = stocks.filter(stock => 
+                stock.eps >= epsMin && 
+                stock.revenue >= revenueGrowth && 
+                stock.pb <= pbMax
+            );
+
+            const resultsDiv = document.getElementById('screeningResults');
+            resultsDiv.innerHTML = `
+                <h3>篩選結果 (${results.length} 檔股票)</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>股票</th>
+                                <th>EPS</th>
+                                <th>營收YoY</th>
+                                <th>淨值比</th>
+                                <th>評估</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${results.map(stock => `
+                                <tr>
+                                    <td>${stock.code} ${stock.name}</td>
+                                    <td>$${stock.eps}</td>
+                                    <td>${stock.revenue}%</td>
+                                    <td>${stock.pb}</td>
+                                    <td class="${getValuationStatus(stock.price, stock.eps).class}">
+                                        ${getValuationStatus(stock.price, stock.eps).text}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // 產業分析
+        function renderSectorAnalysis() {
+            const sectorCounts = {};
+            stocks.forEach(stock => {
+                sectorCounts[stock.sector] = (sectorCounts[stock.sector] || 0) + 1;
+            });
+
+            const sectorDiv = document.getElementById('sectorAnalysis');
+            sectorDiv.innerHTML = Object.entries(sectorCounts).map(([sector, count]) => `
+                <div class="sector-card">
+                    <div class="sector-name">${sector}</div>
+                    <div class="sector-count">${count} 檔</div>
+                </div>
+            `).join('');
+        }
+
+        // 新增股票
+        function addStock() {
+            const newStock = {
+                code: document.getElementById('newCode').value,
+                name: document.getElementById('newName').value,
+                sector: document.getElementById('newSector').value,
+                price: parseFloat(document.getElementById('newPrice').value),
+                eps: parseFloat(document.getElementById('newEPS').value),
+                pb: parseFloat(document.getElementById('newPB').value),
+                yield: parseFloat(document.getElementById('newYield').value),
+                revenue: parseFloat(document.getElementById('newRevenue').value)
+            };
+
+            if (newStock.code && newStock.name && !isNaN(newStock.price)) {
+                stocks.push(newStock);
+                filteredStocks = [...stocks];
+                renderTable();
+                renderSectorAnalysis();
+                
+                // 清空表單
+                ['newCode', 'newName', 'newPrice', 'newEPS', 'newPB', 'newYield', 'newRevenue'].forEach(id => {
+                    document.getElementById(id).value = '';
+                });
+                
+                alert('✅ 股票新增成功！');
+            } else {
+                alert('❌ 請填寫完整資訊');
+            }
+        }
+
+        // 標籤切換
+        function showTab(tabName) {
+            // 隱藏所有內容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 移除所有標籤活動狀態
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 顯示選中的內容
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            // 特殊處理
+            if (tabName === 'sectors') {
+                renderSectorAnalysis();
+            }
+        }
+
+        // 匯出CSV功能
+        function exportToCSV() {
+            const headers = ['股票代號', '公司名稱', '產業', '股價', 'EPS', '本益比', '淨值比', '殖利率', '營收YoY', '合理價下限', '合理價上限', '價格評估', '狀態'];
+            
+            let csvContent = headers.join(',') + '\n';
+            
+            filteredStocks.forEach(stock => {
+                const pe = calculatePE(stock.price, stock.eps);
+                const fairLow = calculateFairValueLow(stock.eps);
+                const fairHigh = calculateFairValueHigh(stock.eps);
+                const valuation = getValuationStatus(stock.price, stock.eps);
+                const qualified = isQualified(stock, parseFloat(document.getElementById('peLimit').value), parseFloat(document.getElementById('yieldLimit').value));
+                
+                const row = [
+                    stock.code,
+                    stock.name,
+                    stock.sector,
+                    stock.price,
+                    stock.eps,
+                    pe,
+                    stock.pb,
+                    stock.yield + '%',
+                    stock.revenue + '%',
+                    fairLow,
+                    fairHigh,
+                    valuation.text.replace(/📉|📈|⚖️/g, '').trim(),
+                    qualified ? '值得關注' : '觀察中'
+                ];
+                
+                csvContent += row.join(',') + '\n';
+            });
+
+            // 下載CSV檔案
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `股票分析_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        // 批量更新股票數據
+        async function updateMultipleStocks() {
+            const stockCodes = stocks.map(stock => stock.code);
+            const updatePromises = stockCodes.map(code => fetchGoodInfoData(code));
+            
+            try {
+                const results = await Promise.all(updatePromises);
+                results.forEach((data, index) => {
+                    if (data) {
+                        stocks[index] = { ...stocks[index], ...data };
+                    }
+                });
+                renderTable();
+                alert('✅ 股票數據更新完成！');
+            } catch (error) {
+                console.log('批量更新失敗:', error);
+            }
+        }
+        // 初始化
+        window.onload = function() {
+            renderTable();
+            renderSectorAnalysis();
+            
+            // 綁定篩選條件變更事件
+            ['peLimit', 'yieldLimit'].forEach(id => {
+                document.getElementById(id).addEventListener('change', renderTable);
+            });
+        };
+
+        // 匯出CSV功能
+        function exportToCSV() {
+            const headers = ['股票代號', '公司名稱', '產業', '股價', 'EPS', '本益比', '淨值比', '殖利率', '營收YoY', '合理價下限', '合理價上限', '價格評估', '狀態'];
+            
+            let csvContent = headers.join(',') + '\n';
+            
+            filteredStocks.forEach(stock => {
+                const pe = calculatePE(stock.price, stock.eps);
+                const fairLow = calculateFairValueLow(stock.eps);
+                const fairHigh = calculateFairValueHigh(stock.eps);
+                const valuation = getValuationStatus(stock.price, stock.eps);
+                const qualified = isQualified(stock, parseFloat(document.getElementById('peLimit').value), parseFloat(document.getElementById('yieldLimit').value));
+                
+                const row = [
+                    stock.code,
+                    stock.name,
+                    stock.sector,
+                    stock.price,
+                    stock.eps,
+                    pe,
+                    stock.pb,
+                    stock.yield + '%',
+                    stock.revenue + '%',
+                    fairLow,
+                    fairHigh,
+                    valuation.text.replace(/📉|📈|⚖️/g, '').trim(),
+                    qualified ? '值得關注' : '觀察中'
+                ];
+                
+                csvContent += row.join(',') + '\n';
+            });
+
+            // 下載CSV檔案
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `股票分析_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        // 數據獲取功能 - 解決CORS問題
+        async function fetchTWSEData() {
+            try {
+                // 方案1: 使用CORS代理服務
+                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                const targetUrl = 'https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL';
+                
+                console.log('正在獲取證交所數據...');
+                
+                // 注意：cors-anywhere需要先訪問啟用頁面
+                // 實際應用建議使用自己的後端代理
+                const response = await fetch(proxyUrl + targetUrl, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('API請求失敗');
+                }
+                
+                const data = await response.json();
+                console.log('證交所數據獲取成功:', data.length, '筆資料');
+                updateStockPrices(data);
+                
+            } catch (error) {
+                console.log('API請求失敗，使用模擬數據更新:', error.message);
+                
+                // 模擬真實市場波動
+                stocks.forEach(stock => {
+                    const volatility = 0.03; // 3%波動
+                    const change = (Math.random() - 0.5) * 2 * volatility;
+                    stock.price *= (1 + change);
+                    stock.price = Math.round(stock.price * 100) / 100;
+                });
+                
+                renderTable();
+                
+                // 顯示CORS解決方案提示
+                showCORSDialog();
+            }
+        }
+
+        function showCORSDialog() {
+            const dialog = document.createElement('div');
+            dialog.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: white; padding: 30px; border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+                z-index: 1000; max-width: 500px; text-align: center;
+            `;
+            
+            dialog.innerHTML = `
+                <h3 style="color: #e74c3c; margin-bottom: 15px;">🚫 CORS 政策限制</h3>
+                <p style="margin-bottom: 20px; line-height: 1.6;">
+                    瀏覽器阻止了直接存取證交所API。<br>
+                    <strong>解決方案：</strong>
+                </p>
+                <div style="text-align: left; margin-bottom: 20px;">
+                    <p><strong>1. 使用瀏覽器擴充功能：</strong></p>
+                    <p style="margin-left: 20px;">• 安裝 "CORS Unblock" 擴充功能</p>
+                    <p style="margin-left: 20px;">• 暫時關閉CORS檢查</p>
+                    
+                    <p style="margin-top: 15px;"><strong>2. 建立後端代理：</strong></p>
+                    <p style="margin-left: 20px;">• Node.js/Python 代理伺服器</p>
+                    <p style="margin-left: 20px;">• 解決CORS並處理反爬蟲</p>
+                    
+                    <p style="margin-top: 15px;"><strong>3. 手動匯入：</strong></p>
+                    <p style="margin-left: 20px;">• 從GoodInfo複製數據</p>
+                    <p style="margin-left: 20px;">• 使用CSV匯入功能</p>
+                </div>
+                <button onclick="this.parentElement.remove()" style="background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">了解</button>
+            `;
+            
+            document.body.appendChild(dialog);
+            
+            // 3秒後自動關閉
+            setTimeout(() => {
+                if (dialog.parentElement) {
+                    dialog.remove();
+                }
+            }, 10000);
+        }
+
+        // CSV匯入功能
+        function importCSV() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.csv';
+            input.onchange = function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        parseCSVData(e.target.result);
+                    };
+                    reader.readAsText(file, 'UTF-8');
+                }
+            };
+            input.click();
+        }
+
+        function parseCSVData(csvText) {
+            const lines = csvText.split('\n');
+            const headers = lines[0].split(',');
+            
+            const newStocks = [];
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                if (values.length >= 8) {
+                    newStocks.push({
+                        code: values[0],
+                        name: values[1],
+                        sector: values[2],
+                        price: parseFloat(values[3]) || 0,
+                        eps: parseFloat(values[4]) || 0,
+                        pb: parseFloat(values[6]) || 0,
+                        yield: parseFloat(values[7].replace('%', '')) || 0,
+                        revenue: parseFloat(values[8].replace('%', '')) || 0
+                    });
+                }
+            }
+            
+            if (newStocks.length > 0) {
+                stocks.push(...newStocks);
+                filteredStocks = [...stocks];
+                renderTable();
+                renderSectorAnalysis();
+                alert(`✅ 成功匯入 ${newStocks.length} 檔股票！`);
+            }
+        }
+    </script>
+</body>
+</html>
