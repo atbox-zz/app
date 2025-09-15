@@ -161,7 +161,7 @@ const MusicPlayer = () => {
         { text: "八宮卦方立體", filename: "./zz.html", isEnglish: false, isGame: true },
         { text: "🤖AI示波器", filename: "./scope.html", isEnglish: false, isGame: true },
 
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "🦋洛倫茲吸引子", filename: "./Lorenz_system_p.html", isEnglish: false, isGame: true },
         { text: "", filename: "", isEnglish: false, isEmpty: true },
         { text: "", filename: "", isEnglish: false, isEmpty: true },
         { text: "", filename: "", isEnglish: false, isEmpty: true },
