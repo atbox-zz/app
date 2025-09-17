@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>🧠 3D 會思考的風動神經網絡 - Three.js</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #000; }
+    canvas { display: block; }
+    #info {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-family: monospace;
+      background: rgba(0,0,0,0.5);
+      padding: 10px;
+      border-radius: 5px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">點擊神經元觸發思考 • 拖曳旋轉 • 滾輪縮放</div>
+  <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    // ========== 參數設定 ==========
+    const NEURON_COUNT = 5000; // 可增至 10000（視 GPU 效能）
+    const MAX_CONNECTIONS_PER = 5;
+    const CONNECTION_DISTANCE = 150;
+    const SIGNAL_SPEED = 0.05;
+
+    // ========== 初始化場景 ==========
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0a1a);
+
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+    camera.position.set(0, 0, 500);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    document.body.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+
+    // ========== 光源 ==========
+    const ambientLight = new THREE.AmbientLight(0x333333);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+    dirLight.position.set(1, 1, 1);
+    scene.add(dirLight);
+
+    // ========== 神經元節點（InstancedMesh） ==========
+    const neuronGeometry = new THREE.IcosahedronGeometry(1, 1);
+    const neuronMaterial = new THREE.MeshPhongMaterial({
+      color: 0x6688ff,
+      emissive: 0x223366,
+      shininess: 30
+    });
+
+    const neuronMesh = new THREE.InstancedMesh(neuronGeometry, neuronMaterial, NEURON_COUNT);
+    neuronMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); // 每幀更新位置
+    scene.add(neuronMesh);
+
+    // ========== 神經元資料 ==========
+    const neurons = [];
+    const positions = new Float32Array(NEURON_COUNT * 3);
+    const scales = new Float32Array(NEURON_COUNT);
+    const activationCounts = new Uint16Array(NEURON_COUNT); // 記錄被激活次數
+
+    for (let i = 0; i < NEURON_COUNT; i++) {
+      const x = (Math.random() - 0.5) * 800;
+      const y = (Math.random() - 0.5) * 800;
+      const z = (Math.random() - 0.5) * 800;
+      const scale = 1 + Math.random() * 2;
+
+      positions[i * 3] = x;
+      positions[i * 3 + 1] = y;
+      positions[i * 3 + 2] = z;
+      scales[i] = scale;
+
+      neurons.push({
+        id: i,
+        x, y, z,
+        vx: 0, vy: 0, vz: 0,
+        scale,
+        activationCount: 0,
+        connections: []
+      });
+    }
+
+    // 更新 InstancedMesh
+    for (let i = 0; i < NEURON_COUNT; i++) {
+      const matrix = new THREE.Matrix4();
+      matrix.setPosition(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
+      matrix.scale(new THREE.Vector3(scales[i], scales[i], scales[i]));
+      neuronMesh.setMatrixAt(i, matrix);
+    }
+    neuronMesh.instanceMatrix.needsUpdate = true;
+
+    // ========== 連結線（LineSegments） ==========
+    // 預先建立所有可能連結（但只渲染部分）
+    const connections = [];
+    const connectionGeometry = new THREE.BufferGeometry();
+    const connectionPositions = [];
+    const connectionColors = [];
+    const connectionActivation = []; // 記錄連結被激活次數
+
+    // 建立連結
+    for (let i = 0; i < NEURON_COUNT; i++) {
+      const n1 = neurons[i];
+      for (let j = 0; j < MAX_CONNECTIONS_PER; j++) {
+        const targetIndex = Math.floor(Math.random() * NEURON_COUNT);
+        if (i === targetIndex) continue;
+        const n2 = neurons[targetIndex];
+
+        const dx = n2.x - n1.x;
+        const dy = n2.y - n1.y;
+        const dz = n2.z - n1.z;
+        const d = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+        if (d < CONNECTION_DISTANCE) {
+          connections.push({
+            from: i,
+            to: targetIndex,
+            activation: 0,
+            geometryIndex: connectionPositions.length / 3 // 記錄在 geometry 中的起始 index
+          });
+
+          // 起點與終點
+          connectionPositions.push(n1.x, n1.y, n1.z);
+          connectionPositions.push(n2.x, n2.y, n2.z);
+          connectionColors.push(0.3, 0.3, 0.6); // 初始藍灰色
+          connectionColors.push(0.3, 0.3, 0.6);
+          connectionActivation.push(0);
+        }
+      }
+    }
+
+    connectionGeometry.setAttribute('position', new THREE.Float32BufferAttribute(connectionPositions, 3));
+    connectionGeometry.setAttribute('color', new THREE.Float32BufferAttribute(connectionColors, 3));
+    connectionGeometry.computeBoundingSphere();
+
+    const connectionMaterial = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.3,
+      linewidth: 1
+    });
+
+    const connectionLines = new THREE.LineSegments(connectionGeometry, connectionMaterial);
+    scene.add(connectionLines);
+
+    // ========== 訊號脈衝系統 ==========
+    const signals = []; // { from, to, progress, speed, connectionIndex }
+
+    function triggerSignal(fromIndex) {
+      const neuron = neurons[fromIndex];
+      if (neuron.connections.length === 0) {
+        // 如果還沒建立連結，先建立
+        for (let j = 0; j < MAX_CONNECTIONS_PER; j++) {
+          const targetIndex = Math.floor(Math.random() * NEURON_COUNT);
+          if (fromIndex === targetIndex) continue;
+          const n2 = neurons[targetIndex];
+
+          const dx = n2.x - neuron.x;
+          const dy = n2.y - neuron.y;
+          const dz = n2.z - neuron.z;
+          const d = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+          if (d < CONNECTION_DISTANCE) {
+            neuron.connections.push(targetIndex);
+          }
+        }
+      }
+
+      // 從現有連結中隨機選一個傳遞
+      if (neuron.connections.length > 0) {
+        const toIndex = neuron.connections[Math.floor(Math.random() * neuron.connections.length)];
+        const connIndex = connections.findIndex(c => c.from === fromIndex && c.to === toIndex);
+        if (connIndex >= 0) {
+          signals.push({
+            from: fromIndex,
+            to: toIndex,
+            progress: 0,
+            speed: SIGNAL_SPEED,
+            connectionIndex: connIndex
+          });
+
+          // 增加激活次數
+          neurons[fromIndex].activationCount++;
+          neurons[toIndex].activationCount++;
+          connections[connIndex].activation++;
+        }
+      }
+    }
+
+    // 點擊處理器（射線投射）
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    function onClick(event) {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObject(neuronMesh);
+
+      if (intersects.length > 0) {
+        const instanceId = intersects[0].instanceId;
+        triggerSignal(instanceId);
+      }
+    }
+
+    window.addEventListener('click', onClick, false);
+
+    // ========== 風場與動畫 ==========
+    let windPower = 0.5;
+    let turbulence = 0.2;
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const time = Date.now() * 0.001;
+
+      // 更新神經元位置（風 + 噪聲）
+      for (let i = 0; i < NEURON_COUNT; i++) {
+        const n = neurons[i];
+
+        // 風力（統一 X 方向 + 隨機擾動）
+        n.vx += (windPower * 0.01) + (Math.random() - 0.5) * turbulence * 0.05;
+        n.vy += (Math.random() - 0.5) * turbulence * 0.05;
+        n.vz += (Math.random() - 0.5) * turbulence * 0.05;
+
+        // 阻力
+        n.vx *= 0.98;
+        n.vy *= 0.98;
+        n.vz *= 0.98;
+
+        // 更新位置
+        n.x += n.vx;
+        n.y += n.vy;
+        n.z += n.vz;
+
+        // 邊界彈回
+        if (Math.abs(n.x) > 450) n.vx *= -0.5;
+        if (Math.abs(n.y) > 450) n.vy *= -0.5;
+        if (Math.abs(n.z) > 450) n.vz *= -0.5;
+        n.x = Math.max(-450, Math.min(450, n.x));
+        n.y = Math.max(-450, Math.min(450, n.y));
+        n.z = Math.max(-450, Math.min(450, n.z));
+
+        // 更新 InstancedMesh
+        const matrix = new THREE.Matrix4();
+        matrix.setPosition(n.x, n.y, n.z);
+        matrix.scale(new THREE.Vector3(n.scale, n.scale, n.scale));
+        neuronMesh.setMatrixAt(i, matrix);
+
+        // 根據激活次數改變顏色（簡單版）
+        if (n.activationCount > 0) {
+          const intensity = Math.min(n.activationCount * 0.1, 1);
+          neuronMaterial.color.setHSL(0.7 - intensity * 0.2, 0.8, 0.5 + intensity * 0.3);
+        }
+      }
+      neuronMesh.instanceMatrix.needsUpdate = true;
+
+      // 更新連結線（模擬風中飄動）
+      const posArray = connectionGeometry.attributes.position.array;
+      for (let i = 0; i < connections.length; i++) {
+        const conn = connections[i];
+        const n1 = neurons[conn.from];
+        const n2 = neurons[conn.to];
+
+        // 波浪效果
+        const waveOffset = Math.sin(time * 2 + i * 0.1) * windPower * 5;
+        const noiseOffset = (Math.random() - 0.5) * turbulence * 10;
+
+        // 起點
+        posArray[conn.geometryIndex * 3] = n1.x + waveOffset;
+        posArray[conn.geometryIndex * 3 + 1] = n1.y + noiseOffset;
+        posArray[conn.geometryIndex * 3 + 2] = n1.z;
+
+        // 終點
+        posArray[conn.geometryIndex * 3 + 3] = n2.x - waveOffset;
+        posArray[conn.geometryIndex * 3 + 4] = n2.y - noiseOffset;
+        posArray[conn.geometryIndex * 3 + 5] = n2.z;
+      }
+      connectionGeometry.attributes.position.needsUpdate = true;
+
+      // 更新訊號脈衝
+      for (let i = signals.length - 1; i >= 0; i--) {
+        const sig = signals[i];
+        sig.progress += sig.speed;
+
+        if (sig.progress >= 1) {
+          // 到達終點，觸發下一個神經元（50% 機率）
+          if (Math.random() > 0.5) {
+            triggerSignal(sig.to);
+          }
+          signals.splice(i, 1);
+        } else {
+          // 更新連結顏色（高亮）
+          const colorArray = connectionGeometry.attributes.color.array;
+          const baseIndex = sig.connectionIndex * 6; // 每條線 2 頂點 * 3 顏色分量
+          const intensity = Math.sin(sig.progress * Math.PI) * 0.7 + 0.3;
+          for (let c = 0; c < 6; c++) {
+            colorArray[baseIndex + c] = 0.3 + intensity * 0.7;
+          }
+        }
+      }
+      if (signals.length > 0) {
+        connectionGeometry.attributes.color.needsUpdate = true;
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    // ========== 視窗調整 ==========
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    animate();
+  </script>
+</body>
+</html>
