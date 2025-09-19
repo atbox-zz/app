@@ -47,6 +47,54 @@
 
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
     camera.position.set(0, 0, 500);
+    // ========== 加入四邊邊界線條 ==========
+    function createBoundaryFrame() {
+  // 定義立方體角落（我們只取 4 條垂直邊）
+  const size = 800; // 與神經元活動範圍一致（-400 ~ +400）
+  const half = size / 2;
+
+  const points = [];
+
+  // 左前邊 (x=-half, z=-half)
+  points.push(new THREE.Vector3(-half, -half, -half));
+  points.push(new THREE.Vector3(-half,  half, -half));
+
+  // 右前邊 (x=+half, z=-half)
+  points.push(new THREE.Vector3( half, -half, -half));
+  points.push(new THREE.Vector3( half,  half, -half));
+
+  // 左後邊 (x=-half, z=+half)
+  points.push(new THREE.Vector3(-half, -half,  half));
+  points.push(new THREE.Vector3(-half,  half,  half));
+
+  // 右後邊 (x=+half, z=+half)
+  points.push(new THREE.Vector3( half, -half,  half));
+  points.push(new THREE.Vector3( half,  half,  half));
+
+  // 建立幾何體
+  const boundaryGeometry = new THREE.BufferGeometry().setFromPoints(points);
+
+  // 發光材質 —— 青藍霓虹色
+  const boundaryMaterial = new THREE.LineBasicMaterial({
+    color: 0x00ffff,        // 青色
+    transparent: true,
+    opacity: 0.8,
+    linewidth: 2,
+    // 開啟發光（需要後處理，簡化版先用高亮度）
+  });
+
+  const boundaryLines = new THREE.LineSegments(boundaryGeometry, boundaryMaterial);
+  boundaryLines.renderOrder = 999; // 確保在最上層渲染
+
+  // 可選：讓邊框不被 OrbitControls 影響（始終面向相機）
+  // boundaryLines.frustumCulled = false;
+  // 或使用 THREE.LineSegments + 自動旋轉（進階）
+
+  scene.add(boundaryLines);
+
+  return boundaryLines;
+}
+    const boundaryFrame = createBoundaryFrame();
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);

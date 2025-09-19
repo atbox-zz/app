@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D兆億級宇宙神經網絡</title>
+    <title>3維兆億級宇宙神經網絡</title>
     <style>
         body {
             margin: 0;
@@ -25,17 +25,25 @@
             top: 20px;
             left: 20px;
             z-index: 1000;
-            background: linear-gradient(135deg, rgba(0, 20, 40, 0.9), rgba(0, 10, 30, 0.8));
-            padding: 25px;
-            border-radius: 15px;
+            background: linear-gradient(135deg, rgba(0, 20, 40, 0.7), rgba(0, 10, 30, 0.6));
+            padding: 15px;
+            border-radius: 10px;
             color: #00ffff;
-            backdrop-filter: blur(15px);
-            border: 2px solid rgba(0, 255, 255, 0.3);
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
-            font-size: 11px;
-            max-width: 300px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+            font-size: 10px;
+            max-width: 220px;
+            max-height: 80vh;
+            overflow-y: auto;
+            transition: all 0.3s ease;
         }
-
+        
+        #hud:hover {
+            background: linear-gradient(135deg, rgba(0, 20, 40, 0.9), rgba(0, 10, 30, 0.8));
+            backdrop-filter: blur(15px);
+        }
+        
         .hud-toggle {
             position: absolute;
             top: 20px;
@@ -67,18 +75,18 @@
         }
         
         .hud-title {
-            font-size: 16px;
+            font-size: 12px;
             font-weight: bold;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             text-align: center;
             color: #ff6600;
-            text-shadow: 0 0 10px #ff6600;
+            text-shadow: 0 0 5px #ff6600;
         }
         
         .control-section {
-            margin-bottom: 20px;
-            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
-            padding-bottom: 15px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+            padding-bottom: 8px;
         }
         
         .control-section:last-child {
@@ -89,87 +97,143 @@
         .section-title {
             color: #ffff00;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            font-size: 9px;
         }
         
         .control-group {
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
         
         label {
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 3px;
             color: #aaccff;
             text-transform: capitalize;
+            font-size: 9px;
         }
         
         input[type="range"] {
             width: 100%;
-            height: 6px;
+            height: 4px;
             background: linear-gradient(90deg, #001122, #003366);
-            border-radius: 3px;
+            border-radius: 2px;
             outline: none;
             -webkit-appearance: none;
-            border: 1px solid rgba(0, 255, 255, 0.3);
+            border: 1px solid rgba(0, 255, 255, 0.2);
         }
         
         input[type="range"]::-webkit-slider-thumb {
             appearance: none;
-            width: 20px;
-            height: 20px;
+            width: 12px;
+            height: 12px;
             background: radial-gradient(circle, #00ffff, #0088ff);
             border-radius: 50%;
             cursor: pointer;
-            border: 2px solid #ffffff;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+            border: 1px solid #ffffff;
+            box-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
         }
         
         .value-display {
             float: right;
             color: #00ff88;
             font-weight: bold;
-            text-shadow: 0 0 5px #00ff88;
+            text-shadow: 0 0 3px #00ff88;
+            font-size: 8px;
         }
         
         button {
             background: linear-gradient(45deg, #ff3366, #ff6600, #ffaa00);
             border: none;
             color: white;
-            padding: 12px 18px;
-            border-radius: 8px;
+            padding: 6px 10px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 11px;
-            margin: 5px;
+            font-size: 8px;
+            margin: 2px;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             transition: all 0.3s ease;
-            box-shadow: 0 0 20px rgba(255, 102, 0, 0.4);
+            box-shadow: 0 0 10px rgba(255, 102, 0, 0.3);
         }
         
         button:hover {
             background: linear-gradient(45deg, #ffaa00, #ff6600, #ff3366);
             transform: scale(1.05);
-            box-shadow: 0 0 25px rgba(255, 102, 0, 0.6);
+            box-shadow: 0 0 15px rgba(255, 102, 0, 0.6);
         }
         
-        #cosmic-stats {
+        .mode-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .mode-btn {
+            width: 100%;
+            padding: 8px 12px;
+            font-size: 9px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            text-transform: none;
+            letter-spacing: 0px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .mode-btn.meditation {
+            background: linear-gradient(45deg, #2E8B57, #20B2AA, #48D1CC);
+            box-shadow: 0 0 10px rgba(46, 139, 87, 0.4);
+        }
+        
+        .mode-btn.meditation:hover {
+            background: linear-gradient(45deg, #48D1CC, #20B2AA, #2E8B57);
+            box-shadow: 0 0 15px rgba(72, 209, 204, 0.6);
+            transform: scale(1.05);
+        }
+        
+        .mode-btn.explosion {
+            background: linear-gradient(45deg, #FF4500, #FF6347, #FFD700);
+            box-shadow: 0 0 10px rgba(255, 69, 0, 0.4);
+        }
+        
+        .mode-btn.explosion:hover {
+            background: linear-gradient(45deg, #FFD700, #FF6347, #FF4500);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+            transform: scale(1.05);
+        }
+        
+        .mode-btn.wisdom {
+            background: linear-gradient(45deg, #4B0082, #8A2BE2, #9370DB);
+            box-shadow: 0 0 10px rgba(75, 0, 130, 0.4);
+        }
+        
+        .mode-btn.wisdom:hover {
+            background: linear-gradient(45deg, #9370DB, #8A2BE2, #4B0082);
+            box-shadow: 0 0 15px rgba(147, 112, 219, 0.6);
+            transform: scale(1.05);
+        }
+        
+        .mode-btn.active {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+        
+        .mode-btn.active::after {
+            content: '';
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, rgba(20, 0, 40, 0.9), rgba(10, 0, 30, 0.8));
-            padding: 20px;
-            border-radius: 15px;
-            color: #ff00ff;
-            backdrop-filter: blur(15px);
-            border: 2px solid rgba(255, 0, 255, 0.3);
-            box-shadow: 0 0 30px rgba(255, 0, 255, 0.2);
-            font-size: 12px;
-            text-align: center;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
         }
         
+       
         .stat-item {
             margin: 8px 0;
             display: flex;
@@ -252,11 +316,6 @@
             box-shadow: 0 0 50px rgba(0, 255, 255, 0.3);
         }
         
-        @keyframes cosmicSpin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
         .progress-bar {
             width: 300px;
             height: 8px;
@@ -274,9 +333,32 @@
             animation: progressGlow 2s ease-in-out infinite alternate;
         }
         
+        @keyframes cosmicSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         @keyframes progressGlow {
             0% { box-shadow: 0 0 10px rgba(0, 255, 255, 0.3); }
             100% { box-shadow: 0 0 25px rgba(0, 255, 255, 0.8); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 10px rgba(0, 255, 255, 0.7); }
+            50% { transform: scale(1.2); box-shadow: 0 0 20px rgba(0, 255, 255, 1); }
+            100% { transform: scale(1); box-shadow: 0 0 10px rgba(0, 255, 255, 0.7); }
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
         }
     </style>
 </head>
@@ -290,9 +372,20 @@
             </div>
             <div id="loading-text">初始化3D空間</div>
         </div>
-        <button class="hud-toggle" onclick="toggleHUD()">⚙</button>        
-        <div id="hud" style="display: none;">
+        
+        <button class="hud-toggle" onclick="toggleHUD()">⚙</button>
+        
+        <div id="hud" class="collapsed" style="display: none;">
             <div class="hud-title">🧠 COSMIC NEURAL COMMAND</div>
+            
+            <div class="control-section">
+                <div class="section-title">🎨 風格模式</div>
+                <div class="mode-buttons">
+                    <button class="mode-btn meditation" onclick="setMeditationMode()">🧘 冥想模式</button>
+                    <button class="mode-btn explosion" onclick="setExplosionMode()">💥 宇宙爆炸</button>
+                    <button class="mode-btn wisdom" onclick="setWisdomMode()">🧠 神經思維</button>
+                </div>
+            </div>
             
             <div class="control-section">
                 <div class="section-title">🌌 宇宙尺度</div>
@@ -337,14 +430,14 @@
             </div>
             
             <div class="control-section">
-                <button onclick="triggerCosmicPulse()">🌟 宇宙脈衝</button>
-                <button onclick="spatialShift()">🌀 空間變換</button>
-                <button onclick="resetUniverse()">♻️ 重置宇宙</button>
+                <button class="mode-button" onclick="triggerCosmicPulse()">🌟 宇宙脈衝</button>
+                <button class="mode-button" onclick="spatialShift()">🌀 空間變換</button>
+                <button class="mode-button" onclick="resetUniverse()">♻️ 重置宇宙</button>
             </div>
         </div>
         
-        <div id="cosmic-stats" style="display: none;">
-            <div style="color: #ff6600; font-weight: bold; margin-bottom: 15px;">🌌 COSMIC METRICS</div>
+        <div id="dimension-indicator" style="display: none;">
+              <div class="dimension-title">3D 座標系統</div>
             <div class="stat-item">
                 <span class="stat-label">神經元:</span>
                 <span class="stat-value" id="neuronCount">0</span>
@@ -365,10 +458,7 @@
                 <span class="stat-label">FPS:</span>
                 <span class="stat-value" id="fps">0</span>
             </div>
-        </div>
-        
-        <div id="dimension-indicator" style="display: none;">
-            <div class="dimension-title">3D 座標系統</div>
+          
             <div class="dimension-coords">
                 <div>X: <span id="coord-x">0.00</span></div>
                 <div>Y: <span id="coord-y">0.00</span></div>
@@ -394,15 +484,15 @@
                 
                 // 宇宙級參數
                 this.cosmicParams = {
-                    neuronLayers: 12,          // 深度神經網絡層數
-                    neuronsPerLayer: 8000,     // 每層神經元數量
-                    totalNeurons: 0,           // 總神經元數（將計算）
-                    networkDensity: 1.8,       // 網絡密度
-                    spatialDepth: 1.5,         // 3D空間深度
-                    pulseSpeed: 2.2,           // 神經脈衝速度
-                    connectionActivity: 1.6,   // 連接活躍度
-                    rotationSpeed: 1.0,        // 3D旋轉速度
-                    spatialDistortion: 0.8     // 空間扭曲程度
+                    neuronLayers: 12,
+                    neuronsPerLayer: 8000,
+                    totalNeurons: 0,
+                    networkDensity: 1.8,
+                    spatialDepth: 1.5,
+                    pulseSpeed: 2.2,
+                    connectionActivity: 1.6,
+                    rotationSpeed: 1.0,
+                    spatialDistortion: 0.8
                 };
                 
                 // 3維空間數據結構
@@ -413,6 +503,45 @@
                 // 3D空間變換矩陣
                 this.spatialMatrix = new THREE.Matrix4();
                 this.rotationAngles = { x: 0, y: 0, z: 0 };
+                
+                // 風格模式預設組合
+                this.modePresets = {
+                    meditation: {
+                        networkDensity: 0.8,
+                        spatialDepth: 0.3,
+                        pulseSpeed: 0.5,
+                        connectionActivity: 0.4,
+                        rotationSpeed: 0.2,
+                        spatialDistortion: 0.1,
+                        lightIntensity: 0.3,
+                        colors: 'cool',
+                        description: '平靜冥想 - 緩慢流動的神經網絡如深海般寧靜'
+                    },
+                    explosion: {
+                        networkDensity: 4.5,
+                        spatialDepth: 2.8,
+                        pulseSpeed: 4.5,
+                        connectionActivity: 2.8,
+                        rotationSpeed: 4.2,
+                        spatialDistortion: 2.5,
+                        lightIntensity: 1.5,
+                        colors: 'hot',
+                        description: '宇宙爆炸 - 狂野動態的神經元如超新星爆發'
+                    },
+                    wisdom: {
+                        networkDensity: 2.2,
+                        spatialDepth: 1.6,
+                        pulseSpeed: 1.8,
+                        connectionActivity: 1.9,
+                        rotationSpeed: 1.0,
+                        spatialDistortion: 0.6,
+                        lightIntensity: 0.8,
+                        colors: 'wisdom',
+                        description: '神經思維 - 智慧的脈動展現深層思考的美感'
+                    }
+                };
+                
+                this.currentMode = null;
                 
                 // 性能優化參數
                 this.frameCount = 0;
@@ -463,8 +592,18 @@
                 setTimeout(() => {
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('hud').style.display = 'block';
-                    document.getElementById('cosmic-stats').style.display = 'block';
                     document.getElementById('dimension-indicator').style.display = 'block';
+                    
+                    // 顯示摺疊提示
+                    setTimeout(() => {
+                        const hudToggle = document.querySelector('.hud-toggle');
+                        if (hudToggle) {
+                            hudToggle.style.animation = 'pulse 2s infinite';
+                            setTimeout(() => {
+                                hudToggle.style.animation = 'none';
+                            }, 6000);
+                        }
+                    }, 1000);
                 }, 5000);
             }
             
@@ -475,13 +614,8 @@
                 this.renderer.shadowMap.enabled = true;
                 this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
                 
-                // 添加後處理效果
-                this.renderer.gammaInput = true;
-                this.renderer.gammaOutput = true;
-                
                 document.getElementById('universe-container').appendChild(this.renderer.domElement);
                 
-                // 設置相機初始位置
                 this.camera.position.set(0, 50, 150);
                 this.camera.lookAt(0, 0, 0);
             }
@@ -489,18 +623,13 @@
             async createCosmicUniverse() {
                 console.log("🌌 開始創建宇宙級神經網絡...");
                 
-                // 計算總神經元數量
                 this.cosmicParams.totalNeurons = this.cosmicParams.neuronLayers * this.cosmicParams.neuronsPerLayer;
                 
-                // 創建深度神經網絡層
                 for (let layerIndex = 0; layerIndex < this.cosmicParams.neuronLayers; layerIndex++) {
                     await this.createNeuralLayer(layerIndex);
                 }
                 
-                // 創建層間連接
                 await this.createInterLayerConnections();
-                
-                // 創建宇宙級粒子系統
                 this.createCosmicParticles();
                 
                 console.log(`✨ 宇宙創建完成！總計 ${this.cosmicParams.totalNeurons} 個神經元`);
@@ -518,8 +647,6 @@
                 
                 // 創建神經元幾何體
                 const neuronGeometry = new THREE.SphereGeometry(0.08, 12, 8);
-                
-                // 根據層級創建不同顏色的材質
                 const hue = (layerIndex / this.cosmicParams.neuronLayers) * 360;
                 const neuronMaterial = new THREE.MeshLambertMaterial({
                     color: new THREE.Color().setHSL(hue / 360, 0.8, 0.6),
@@ -528,20 +655,17 @@
                     emissive: new THREE.Color().setHSL(hue / 360, 0.5, 0.1)
                 });
                 
-                // 使用實例化網格優化性能
                 layer.mesh = new THREE.InstancedMesh(
                     neuronGeometry, 
                     neuronMaterial, 
                     this.cosmicParams.neuronsPerLayer
                 );
                 
-                // 生成3D神經元位置
                 const dummy = new THREE.Object3D();
                 for (let i = 0; i < this.cosmicParams.neuronsPerLayer; i++) {
                     const neuron = this.generate3DNeuronPosition(layerIndex, i);
                     layer.neurons.push(neuron);
                     
-                    // 設置3D位置
                     dummy.position.copy(neuron.position);
                     dummy.scale.setScalar(Math.random() * 0.5 + 0.8);
                     dummy.updateMatrix();
@@ -552,12 +676,10 @@
                 this.scene.add(layer.mesh);
                 this.neuralLayers.push(layer);
                 
-                // 模擬異步加載
                 await new Promise(resolve => setTimeout(resolve, 100));
             }
             
             generate3DNeuronPosition(layerIndex, neuronIndex) {
-                // 3D球形分布中的神經元位置
                 const layerRadius = 30 + layerIndex * 8;
                 const phi = Math.random() * Math.PI * 2;
                 const theta = Math.random() * Math.PI;
@@ -583,9 +705,6 @@
             }
             
             async createInterLayerConnections() {
-                const connectionGeometries = [];
-                const connectionMaterials = [];
-                
                 for (let layerIndex = 0; layerIndex < this.cosmicParams.neuronLayers - 1; layerIndex++) {
                     const currentLayer = this.neuralLayers[layerIndex];
                     const nextLayer = this.neuralLayers[layerIndex + 1];
@@ -625,7 +744,7 @@
                 const connections = [];
                 const maxConnectionsPerNeuron = Math.floor(this.cosmicParams.networkDensity * 8);
                 
-                for (let i = 0; i < currentLayer.neurons.length; i += 4) { // 採樣優化
+                for (let i = 0; i < currentLayer.neurons.length; i += 4) {
                     const currentNeuron = currentLayer.neurons[i];
                     const connectionsToMake = Math.min(
                         maxConnectionsPerNeuron,
@@ -664,7 +783,6 @@
             }
             
             createCosmicParticles() {
-                // 背景星系粒子
                 const particleCount = 50000;
                 const particlesGeometry = new THREE.BufferGeometry();
                 const positions = [];
@@ -698,17 +816,14 @@
             }
             
             setupLighting() {
-                // 多層次光照系統
                 const ambientLight = new THREE.AmbientLight(0x001122, 0.4);
                 this.scene.add(ambientLight);
                 
-                // 主要方向光
                 const directionalLight = new THREE.DirectionalLight(0x0088ff, 1.2);
                 directionalLight.position.set(50, 100, 50);
                 directionalLight.castShadow = true;
                 this.scene.add(directionalLight);
                 
-                // 彩色點光源
                 const colors = [0xff3366, 0x33ff66, 0x3366ff, 0xffaa33];
                 for (let i = 0; i < 4; i++) {
                     const pointLight = new THREE.PointLight(colors[i], 0.8, 200);
@@ -723,42 +838,36 @@
             }
             
             setupControls() {
-                // 網絡密度控制
                 const networkDensitySlider = document.getElementById('networkDensity');
                 networkDensitySlider.addEventListener('input', (e) => {
                     this.cosmicParams.networkDensity = parseFloat(e.target.value);
                     document.getElementById('networkDensityValue').textContent = this.cosmicParams.networkDensity.toFixed(1);
                 });
                 
-                // 空間深度控制
                 const spatialDepthSlider = document.getElementById('spatialDepth');
                 spatialDepthSlider.addEventListener('input', (e) => {
                     this.cosmicParams.spatialDepth = parseFloat(e.target.value);
                     document.getElementById('spatialDepthValue').textContent = this.cosmicParams.spatialDepth.toFixed(1);
                 });
                 
-                // 神經脈衝速度控制
                 const pulseSpeedSlider = document.getElementById('pulseSpeed');
                 pulseSpeedSlider.addEventListener('input', (e) => {
                     this.cosmicParams.pulseSpeed = parseFloat(e.target.value);
                     document.getElementById('pulseSpeedValue').textContent = this.cosmicParams.pulseSpeed.toFixed(1);
                 });
                 
-                // 連接活躍度控制
                 const connectionActivitySlider = document.getElementById('connectionActivity');
                 connectionActivitySlider.addEventListener('input', (e) => {
                     this.cosmicParams.connectionActivity = parseFloat(e.target.value);
                     document.getElementById('connectionActivityValue').textContent = this.cosmicParams.connectionActivity.toFixed(1);
                 });
                 
-                // 3D旋轉速度控制
                 const rotationSpeedSlider = document.getElementById('rotationSpeed');
                 rotationSpeedSlider.addEventListener('input', (e) => {
                     this.cosmicParams.rotationSpeed = parseFloat(e.target.value);
                     document.getElementById('rotationSpeedValue').textContent = this.cosmicParams.rotationSpeed.toFixed(1);
                 });
                 
-                // 空間扭曲控制
                 const spatialDistortionSlider = document.getElementById('spatialDistortion');
                 spatialDistortionSlider.addEventListener('input', (e) => {
                     this.cosmicParams.spatialDistortion = parseFloat(e.target.value);
@@ -767,13 +876,11 @@
             }
             
             setupInteractions() {
-                // 鼠標追蹤
                 const cursor = document.getElementById('neural-cursor');
                 document.addEventListener('mousemove', (e) => {
                     cursor.style.left = (e.clientX - 15) + 'px';
                     cursor.style.top = (e.clientY - 15) + 'px';
                     
-                    // 更新3D坐標顯示
                     const normalizedX = (e.clientX / window.innerWidth - 0.5) * 2;
                     const normalizedY = -(e.clientY / window.innerHeight - 0.5) * 2;
                     const time = this.clock.getElapsedTime();
@@ -783,7 +890,6 @@
                     document.getElementById('coord-z').textContent = Math.sin(time * 0.5).toFixed(2);
                 });
                 
-                // 點擊觸發神經脈衝
                 this.renderer.domElement.addEventListener('click', (e) => {
                     const mouse = new THREE.Vector2();
                     mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -792,7 +898,6 @@
                     this.triggerNeuralPulseAt(mouse);
                 });
                 
-                // 響應式調整
                 window.addEventListener('resize', () => {
                     this.camera.aspect = window.innerWidth / window.innerHeight;
                     this.camera.updateProjectionMatrix();
@@ -800,50 +905,131 @@
                 });
             }
             
-            updateCosmicConnections() {
-                for (let connGroup of this.cosmicConnections) {
-                    const positions = connGroup.geometry.attributes.position.array;
-                    let posIndex = 0;
+            setMode(modeName) {
+                if (!this.modePresets[modeName]) return;
+                
+                const preset = this.modePresets[modeName];
+                this.currentMode = modeName;
+                
+                this.cosmicParams.networkDensity = preset.networkDensity;
+                this.cosmicParams.spatialDepth = preset.spatialDepth;
+                this.cosmicParams.pulseSpeed = preset.pulseSpeed;
+                this.cosmicParams.connectionActivity = preset.connectionActivity;
+                this.cosmicParams.rotationSpeed = preset.rotationSpeed;
+                this.cosmicParams.spatialDistortion = preset.spatialDistortion;
+                
+                this.updateSliders();
+                this.updateLighting(preset.lightIntensity);
+                this.updateColors(preset.colors);
+                this.updateModeButtons(modeName);
+                this.showModeDescription(preset.description);
+                
+                console.log(`🎨 切換到 ${modeName} 模式: ${preset.description}`);
+            }
+            
+            updateSliders() {
+                document.getElementById('networkDensity').value = this.cosmicParams.networkDensity;
+                document.getElementById('networkDensityValue').textContent = this.cosmicParams.networkDensity.toFixed(1);
+                
+                document.getElementById('spatialDepth').value = this.cosmicParams.spatialDepth;
+                document.getElementById('spatialDepthValue').textContent = this.cosmicParams.spatialDepth.toFixed(1);
+                
+                document.getElementById('pulseSpeed').value = this.cosmicParams.pulseSpeed;
+                document.getElementById('pulseSpeedValue').textContent = this.cosmicParams.pulseSpeed.toFixed(1);
+                
+                document.getElementById('connectionActivity').value = this.cosmicParams.connectionActivity;
+                document.getElementById('connectionActivityValue').textContent = this.cosmicParams.connectionActivity.toFixed(1);
+                
+                document.getElementById('rotationSpeed').value = this.cosmicParams.rotationSpeed;
+                document.getElementById('rotationSpeedValue').textContent = this.cosmicParams.rotationSpeed.toFixed(1);
+                
+                document.getElementById('spatialDistortion').value = this.cosmicParams.spatialDistortion;
+                document.getElementById('spatialDistortionValue').textContent = this.cosmicParams.spatialDistortion.toFixed(1);
+            }
+            
+            updateLighting(intensity) {
+                this.scene.traverse((object) => {
+                    if (object.isLight && object.type === 'AmbientLight') {
+                        object.intensity = 0.4 * intensity;
+                    } else if (object.isLight && object.type === 'DirectionalLight') {
+                        object.intensity = 1.2 * intensity;
+                    } else if (object.isLight && object.type === 'PointLight') {
+                        object.intensity = 0.8 * intensity;
+                    }
+                });
+            }
+            
+            updateColors(colorScheme) {
+                for (let layerIndex = 0; layerIndex < this.neuralLayers.length; layerIndex++) {
+                    const layer = this.neuralLayers[layerIndex];
+                    let hue, saturation, lightness;
                     
-                    for (let connection of connGroup.connections) {
-                        const startNeuron = this.neuralLayers[connection.start.layer].neurons[connection.start.neuron];
-                        const endNeuron = this.neuralLayers[connection.end.layer].neurons[connection.end.neuron];
-                        
-                        // 創建彎曲的連接線
-                        const startPos = startNeuron.position.clone();
-                        const endPos = endNeuron.position.clone();
-                        
-                        // 添加中間控制點創造彎曲效果
-                        const midPoint = new THREE.Vector3().addVectors(startPos, endPos).multiplyScalar(0.5);
-                        const time = this.clock.getElapsedTime();
-                        const curvature = Math.sin(time * 2 + connection.start.neuron * 0.1) * this.cosmicParams.spatialDistortion * 5;
-                        
-                        const perpendicular = new THREE.Vector3().subVectors(endPos, startPos).normalize();
-                        const curvatureVector = new THREE.Vector3(-perpendicular.y, perpendicular.x, 0).multiplyScalar(curvature);
-                        midPoint.add(curvatureVector);
-                        
-                        positions[posIndex++] = startPos.x;
-                        positions[posIndex++] = startPos.y;
-                        positions[posIndex++] = startPos.z;
-                        positions[posIndex++] = midPoint.x;
-                        positions[posIndex++] = midPoint.y;
-                        positions[posIndex++] = midPoint.z;
-                        
-                        // 第二段
-                        positions[posIndex++] = midPoint.x;
-                        positions[posIndex++] = midPoint.y;
-                        positions[posIndex++] = midPoint.z;
-                        positions[posIndex++] = endPos.x;
-                        positions[posIndex++] = endPos.y;
-                        positions[posIndex++] = endPos.z;
+                    switch(colorScheme) {
+                        case 'cool':
+                            hue = 180 + (layerIndex / this.cosmicParams.neuronLayers) * 60;
+                            saturation = 0.6;
+                            lightness = 0.4;
+                            break;
+                        case 'hot':
+                            hue = (layerIndex / this.cosmicParams.neuronLayers) * 60;
+                            saturation = 0.9;
+                            lightness = 0.7;
+                            break;
+                        case 'wisdom':
+                            hue = 240 + (layerIndex / this.cosmicParams.neuronLayers) * 120;
+                            saturation = 0.8;
+                            lightness = 0.5;
+                            break;
+                        default:
+                            hue = (layerIndex / this.cosmicParams.neuronLayers) * 360;
+                            saturation = 0.8;
+                            lightness = 0.6;
                     }
                     
-                    connGroup.geometry.attributes.position.needsUpdate = true;
+                    layer.mesh.material.color.setHSL(hue / 360, saturation, lightness);
+                    layer.mesh.material.emissive.setHSL(hue / 360, saturation * 0.5, lightness * 0.2);
                 }
             }
-
+            
+            updateModeButtons(activeMode) {
+                const buttons = document.querySelectorAll('.mode-btn');
+                buttons.forEach(btn => btn.classList.remove('active'));
+                
+                const activeButton = document.querySelector(`.mode-btn.${activeMode}`);
+                if (activeButton) {
+                    activeButton.classList.add('active');
+                }
+            }
+            
+            showModeDescription(description) {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 40, 0.9));
+                    color: #00ffff;
+                    padding: 20px 30px;
+                    border-radius: 15px;
+                    border: 2px solid rgba(0, 255, 255, 0.5);
+                    box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+                    font-size: 14px;
+                    text-align: center;
+                    z-index: 10000;
+                    backdrop-filter: blur(10px);
+                    animation: fadeInOut 3s ease-in-out;
+                `;
+                notification.textContent = description;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }
+            
             triggerNeuralPulseAt(mousePos) {
-                // 創建神經脈衝波
                 const raycaster = new THREE.Raycaster();
                 raycaster.setFromCamera(mousePos, this.camera);
                 
@@ -860,8 +1046,6 @@
                 };
                 
                 this.neuralPulses.push(pulse);
-                
-                // 視覺反饋
                 this.createPulseVisualization(pulseOrigin);
             }
             
@@ -878,7 +1062,6 @@
                 pulseMesh.position.copy(position);
                 this.scene.add(pulseMesh);
                 
-                // 動畫擴散效果
                 const startTime = Date.now();
                 const animate = () => {
                     const elapsed = Date.now() - startTime;
@@ -903,7 +1086,6 @@
             }
             
             updateNeuralPulses(deltaTime) {
-                // 更新神經脈衝
                 for (let i = this.neuralPulses.length - 1; i >= 0; i--) {
                     const pulse = this.neuralPulses[i];
                     pulse.time += deltaTime;
@@ -914,7 +1096,6 @@
                         continue;
                     }
                     
-                    // 影響範圍內的神經元
                     this.applyPulseToNeurons(pulse);
                 }
             }
@@ -928,7 +1109,6 @@
                             neuron.activation = Math.min(1, neuron.activation + pulse.intensity * 0.1);
                             neuron.pulseTime = pulse.time;
                             
-                            // 3D位移效果
                             const direction = new THREE.Vector3().subVectors(neuron.position, pulse.origin);
                             direction.normalize().multiplyScalar(pulse.intensity * 0.5);
                             neuron.velocity.add(direction);
@@ -940,12 +1120,10 @@
             updateNeuralDynamics(deltaTime) {
                 const time = this.clock.getElapsedTime();
                 
-                // 更新3D旋轉
                 this.rotationAngles.x += this.cosmicParams.rotationSpeed * deltaTime * 0.1;
                 this.rotationAngles.y += this.cosmicParams.rotationSpeed * deltaTime * 0.07;
                 this.rotationAngles.z += this.cosmicParams.rotationSpeed * deltaTime * 0.13;
                 
-                // 更新神經元狀態
                 for (let layerIndex = 0; layerIndex < this.neuralLayers.length; layerIndex++) {
                     const layer = this.neuralLayers[layerIndex];
                     const dummy = new THREE.Object3D();
@@ -953,14 +1131,12 @@
                     for (let i = 0; i < layer.neurons.length; i++) {
                         const neuron = layer.neurons[i];
                         
-                        // 3D空間中的複雜運動
                         const spatialForce = new THREE.Vector3(
                             Math.sin(time * this.cosmicParams.pulseSpeed + neuron.phase) * this.cosmicParams.spatialDepth * 0.3,
                             Math.cos(time * this.cosmicParams.pulseSpeed * 1.3 + neuron.phase * 0.8) * this.cosmicParams.spatialDepth * 0.2,
                             Math.sin(time * this.cosmicParams.pulseSpeed * 0.7 + neuron.phase * 1.2) * this.cosmicParams.spatialDepth * 0.25
                         );
                         
-                        // 空間扭曲效果
                         const distortionForce = new THREE.Vector3(
                             Math.sin(neuron.originalPosition.y * 0.01 + time) * this.cosmicParams.spatialDistortion * 0.5,
                             Math.cos(neuron.originalPosition.x * 0.01 + time * 1.2) * this.cosmicParams.spatialDistortion * 0.4,
@@ -970,29 +1146,22 @@
                         neuron.velocity.add(spatialForce);
                         neuron.velocity.add(distortionForce);
                         
-                        // 彈性回復力
                         const restoreForce = new THREE.Vector3().subVectors(neuron.originalPosition, neuron.position);
                         restoreForce.multiplyScalar(0.05);
                         neuron.velocity.add(restoreForce);
                         
-                        // 阻尼效果
                         neuron.velocity.multiplyScalar(0.98);
                         
-                        // 更新位置
                         const velocityScaled = neuron.velocity.clone().multiplyScalar(deltaTime);
                         neuron.position.add(velocityScaled);
                         
-                        // 神經元激活衰減
                         neuron.activation *= 0.995;
                         
-                        // 更新實例矩陣
                         dummy.position.copy(neuron.position);
                         
-                        // 根據激活度調整大小和旋轉
                         const scale = 0.8 + neuron.activation * 0.4;
                         dummy.scale.setScalar(scale);
                         
-                        // 添加旋轉效果
                         dummy.rotation.set(
                             time * 0.5 + neuron.phase,
                             time * 0.3 + neuron.phase * 0.8,
@@ -1005,19 +1174,38 @@
                     
                     layer.mesh.instanceMatrix.needsUpdate = true;
                     
-                    // 更新材質顏色基於層激活度
                     const avgActivation = layer.neurons.reduce((sum, n) => sum + n.activation, 0) / layer.neurons.length;
                     const emissiveIntensity = avgActivation * 0.3;
                     layer.mesh.material.emissive.setScalar(emissiveIntensity);
                 }
                 
-                // 每隔幾幀更新連接線
                 if (this.frameCount % this.updateFrequency === 0) {
                     this.updateCosmicConnections();
                     this.updateConnectionActivity();
                 }
             }
+            
+            updateCosmicConnections() {
+                for (let connGroup of this.cosmicConnections) {
+                    const positions = connGroup.geometry.attributes.position.array;
+                    let posIndex = 0;
+                    
+                    for (let connection of connGroup.connections) {
+                        const startNeuron = this.neuralLayers[connection.start.layer].neurons[connection.start.neuron];
+                        const endNeuron = this.neuralLayers[connection.end.layer].neurons[connection.end.neuron];
                         
+                        positions[posIndex++] = startNeuron.position.x;
+                        positions[posIndex++] = startNeuron.position.y;
+                        positions[posIndex++] = startNeuron.position.z;
+                        positions[posIndex++] = endNeuron.position.x;
+                        positions[posIndex++] = endNeuron.position.y;
+                        positions[posIndex++] = endNeuron.position.z;
+                    }
+                    
+                    connGroup.geometry.attributes.position.needsUpdate = true;
+                }
+            }
+            
             updateConnectionActivity() {
                 for (let connGroup of this.cosmicConnections) {
                     const colors = connGroup.geometry.attributes.color.array;
@@ -1027,33 +1215,18 @@
                         const startNeuron = this.neuralLayers[connection.start.layer].neurons[connection.start.neuron];
                         const endNeuron = this.neuralLayers[connection.end.layer].neurons[connection.end.neuron];
                         
-                        // 基於神經元激活度的連接強度
                         const activity = (startNeuron.activation + endNeuron.activation) * 0.5;
                         const intensity = activity * this.cosmicParams.connectionActivity;
                         
-                        // 更新連接顏色
                         const baseColor = new THREE.Color().setHSL(
                             (connection.start.layer + connection.end.layer) / (this.cosmicParams.neuronLayers * 2),
                             0.8,
                             0.3 + intensity * 0.4
                         );
                         
-                        // 起點顏色
                         colors[colorIndex++] = baseColor.r;
                         colors[colorIndex++] = baseColor.g;
                         colors[colorIndex++] = baseColor.b;
-                        
-                        // 中點顏色（更亮）
-                        colors[colorIndex++] = baseColor.r * (1 + intensity);
-                        colors[colorIndex++] = baseColor.g * (1 + intensity);
-                        colors[colorIndex++] = baseColor.b * (1 + intensity);
-                        
-                        // 中點到終點
-                        colors[colorIndex++] = baseColor.r * (1 + intensity);
-                        colors[colorIndex++] = baseColor.g * (1 + intensity);
-                        colors[colorIndex++] = baseColor.b * (1 + intensity);
-                        
-                        // 終點顏色
                         colors[colorIndex++] = baseColor.r * (0.5 + intensity * 0.5);
                         colors[colorIndex++] = baseColor.g * (0.5 + intensity * 0.5);
                         colors[colorIndex++] = baseColor.b * (0.5 + intensity * 0.5);
@@ -1064,7 +1237,6 @@
             }
             
             updateStats() {
-                // 更新統計信息
                 document.getElementById('neuronCount').textContent = 
                     (this.cosmicParams.totalNeurons / 1000000).toFixed(1) + 'M';
                 
@@ -1077,7 +1249,6 @@
                 
                 document.getElementById('layerCount').textContent = this.cosmicParams.neuronLayers;
                 
-                // 計算網絡活躍度
                 let totalActivation = 0;
                 let totalNeurons = 0;
                 for (let layer of this.neuralLayers) {
@@ -1097,23 +1268,17 @@
                     const deltaTime = this.clock.getDelta();
                     this.frameCount++;
                     
-                    // 更新神經動力學
                     this.updateNeuralDynamics(deltaTime);
-                    
-                    // 更新神經脈衝
                     this.updateNeuralPulses(deltaTime);
                     
-                    // 宇宙級相機運動
                     const time = this.clock.getElapsedTime();
                     this.camera.position.x = Math.sin(time * 0.05) * 200;
                     this.camera.position.y = Math.cos(time * 0.03) * 100 + 50;
                     this.camera.position.z = Math.cos(time * 0.05) * 200 + 100;
                     this.camera.lookAt(0, 0, 0);
                     
-                    // 渲染場景
                     this.renderer.render(this.scene, this.camera);
                     
-                    // 更新統計（每秒一次）
                     if (time - this.lastFPSUpdate > 1) {
                         document.getElementById('fps').textContent = Math.round(1 / deltaTime);
                         this.updateStats();
@@ -1127,10 +1292,25 @@
         
         // 全域控制函數
         let cosmicUniverse;
+        function setMeditationMode() {
+            if (cosmicUniverse) {
+                cosmicUniverse.setMode('meditation');
+            }
+        }
+        function setExplosionMode() {
+            if (cosmicUniverse) {
+                cosmicUniverse.setMode('explosion');
+            }
+        }
+        
+        function setWisdomMode() {
+            if (cosmicUniverse) {
+                cosmicUniverse.setMode('wisdom');
+            }
+        }
         
         function triggerCosmicPulse() {
             if (cosmicUniverse) {
-                // 創建多個同心脈衝波
                 for (let i = 0; i < 5; i++) {
                     setTimeout(() => {
                         const angle = (i / 5) * Math.PI * 2;
@@ -1147,7 +1327,6 @@
         
         function spatialShift() {
             if (cosmicUniverse) {
-                // 隨機改變3D空間參數
                 cosmicUniverse.cosmicParams.spatialDistortion = Math.random() * 3;
                 cosmicUniverse.cosmicParams.rotationSpeed = Math.random() * 5;
                 
@@ -1159,7 +1338,6 @@
                 document.getElementById('rotationSpeedValue').textContent = 
                     cosmicUniverse.cosmicParams.rotationSpeed.toFixed(1);
                 
-                // 視覺反饋
                 document.body.style.filter = 'hue-rotate(' + (Math.random() * 360) + 'deg)';
                 setTimeout(() => {
                     document.body.style.filter = 'none';
@@ -1169,7 +1347,6 @@
         
         function resetUniverse() {
             if (cosmicUniverse) {
-                // 重置所有神經元到原始位置
                 for (let layer of cosmicUniverse.neuralLayers) {
                     for (let neuron of layer.neurons) {
                         neuron.position.copy(neuron.originalPosition);
@@ -1178,10 +1355,8 @@
                     }
                 }
                 
-                // 重置3D變換參數
                 cosmicUniverse.rotationAngles = { x: 0, y: 0, z: 0 };
                 
-                // 重置控制項
                 cosmicUniverse.cosmicParams.spatialDistortion = 0.8;
                 cosmicUniverse.cosmicParams.rotationSpeed = 1.0;
                 
@@ -1196,10 +1371,11 @@
             const hud = document.getElementById('hud');
             hud.classList.toggle('collapsed');
         }
+        
         // 初始化宇宙
         window.addEventListener('load', () => {
             cosmicUniverse = new CosmicNeuralUniverse();
         });
     </script>
 </body>
-</html>
+</html>                
