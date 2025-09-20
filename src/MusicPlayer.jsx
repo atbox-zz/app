@@ -166,8 +166,8 @@ const MusicPlayer = () => {
         { text: "Neuron", filename: "./Neuron.html", isEnglish: false, isGame: true },
         { text: "CosmicNeural", filename: "./CosmicNeural.html", isEnglish: false, isGame: true },
 
-        { text: "INNV", filename: "./INNV.html", isEnglish: false, isGame: true },
-        { text: "Neural音樂", filename: "./Neural音樂.html", isEnglish: false, isGame: true },
+        { text: "INNV", filename: "./INNV_flash.html", isEnglish: false, isGame: true },
+        { text: "Neural音樂", filename: "./Neuralmusic.html", isEnglish: false, isGame: true },
         { text: "", filename: "", isEnglish: false, isGame: true },
         { text: "", filename: "", isEnglish: false, isGame: true },
       ]
