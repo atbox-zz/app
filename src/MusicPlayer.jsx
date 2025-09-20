@@ -138,14 +138,14 @@ const MusicPlayer = () => {
         { text: "不可能的任務", filename: "https://atbox-zz.github.io/app/不可能的任務.mp3", isEnglish: false },
         { text: "你不要過來啊!", filename: "https://atbox-zz.github.io/app/你不要過來啊.mp3", isEnglish: false },
         { text: "五姑媽", filename: "https://atbox-zz.github.io/app/五姑媽.mp3", isEnglish: false },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
       ]
     },
     {
@@ -162,14 +162,14 @@ const MusicPlayer = () => {
         { text: "🤖AI示波器", filename: "./scope.html", isEnglish: false, isGame: true },
 
         { text: "🦋洛倫茲吸引子", filename: "./Lorenz_system_p.html", isEnglish: false, isGame: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "平面運動模擬器", filename: "./2DsimCanva.html", isEnglish: false, isGame: true },
+        { text: "Neuron", filename: "./Neuron.html", isEnglish: false, isGame: true },
+        { text: "CosmicNeural", filename: "./CosmicNeural.html", isEnglish: false, isGame: true },
 
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "INNV", filename: "./INNV.html", isEnglish: false, isGame: true },
+        { text: "Neural音樂", filename: "./Neural音樂.html", isEnglish: false, isGame: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
       ]
     },
     {
@@ -193,7 +193,7 @@ const MusicPlayer = () => {
         { text: "查八字", filename: "8w0b.html", isEnglish: false, isGame: true },
         { text: "大運流年", filename: "8w2.html", isEnglish: false, isGame: true },
         { text: "拉霸機", filename: "slotmachine.html", isEnglish: false, isGame: true },
-        { text: "", filename: "", isEnglish: false, isEmpty: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
       ]
     }
   ];
