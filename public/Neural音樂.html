@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Neural Network Visualizer — With Background Music</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #000;
+      font-family: 'Arial', sans-serif;
+      color: white;
+      touch-action: none; /* 重要：禁用瀏覽器預設縮放/滾動 */
+    }
+
+    #container {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+
+    .info-box {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 5px;
+      max-width: 200px;
+      font-size: 14px;
+      pointer-events: none; /* 避免阻擋點擊事件 */
+    }
+
+    .theme-panel {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 5px;
+      pointer-events: auto;
+    }
+
+    .theme-btn {
+      width: 30px;
+      height: 30px;
+      margin: 5px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      border: none;
+    }
+
+    .theme-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .slider-container {
+      margin-top: 10px;
+    }
+
+    .slider {
+      width: 100px;
+    }
+
+    .controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    button {
+      padding: 8px 16px;
+      background-color: #444;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button:hover {
+      background-color: #666;
+    }
+
+    #audio-tip {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.8);
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      z-index: 999;
+      pointer-events: auto;
+    }
+
+    @media (max-width: 768px) {
+      .info-box {
+        font-size: 12px;
+        padding: 8px;
+      }
+      .theme-btn {
+        width: 25px;
+        height: 25px;
+        margin: 3px;
+      }
+      .slider {
+        width: 80px;
+      }
+      button {
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+
+  <div class="info-box">
+    <h3>Neural Network Visualizer</h3>
+    <p>點擊節點觸發脈衝 • 拖曳旋轉視角</p>
+  </div>
+
+  <div class="theme-panel">
+    <div class="theme-buttons">
+      <button class="theme-btn" style="background: #a052f0;" data-theme="purple">P</button>
+      <button class="theme-btn" style="background: #ff4500;" data-theme="red">R</button>
+      <button class="theme-btn" style="background: #4169e1;" data-theme="blue">B</button>
+      <button class="theme-btn" style="background: #ffff00;" data-theme="yellow">Y</button>
+    </div>
+    <div class="slider-container">
+      <label>Density: <span id="density-value">100%</span></label>
+      <input type="range" class="slider" id="density-slider" min="10" max="100" value="100" />
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="formation">Formation</button>
+    <button id="pause">Pause音樂</button>
+    <button id="reset-cam">Reset Cam</button>
+  </div>
+
+  <!--div id="audio-tip">
+    <h3>點擊啟用音效與背景音樂</h3>
+    <button onclick="initAudio(); startBackgroundMusic(); document.getElementById('audio-tip').remove();">啟用音效</button>
+  </div-->
+
+  <!-- 背景音樂 -->
+  <audio id="bg-music" src="innv.mp3" loop></audio>
+
+  <script>
+    // ============= 全域變數 =============
+    const container = document.getElementById('container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x000000);
+    container.appendChild(renderer.domElement);
+
+    // 背景音樂
+    const bgMusic = document.getElementById('bg-music');
+    bgMusic.volume = 0.3; // 背景音樂音量
+
+    // 設定相機
+    camera.position.z = 10;
+
+    // 變數
+    const nodes = [];
+    const connections = [];
+    const pulseEffects = [];
+    const colors = {
+      purple: { node: 0xa052f0, link: 0x8b00ff },
+      red: { node: 0xff4500, link: 0xff0000 },
+      blue: { node: 0x4169e1, link: 0x0000ff },
+      yellow: { node: 0xffff00, link: 0xffd700 }
+    };
+
+    let currentTheme = 'purple';
+    let density = 100;
+    let animationPaused = false;
+    let audioContext = null;
+    let gainNode = null;
+
+    // 觸控/滑鼠控制
+    let isDragging = false;
+    let previousX = 0, previousY = 0;
+    let autoRotate = true;
+
+    // ============= 音效初始化 =============
+    function initAudio() {
+      if (!audioContext) {
+        try {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          gainNode = audioContext.createGain();
+          gainNode.gain.value = 0.3;
+          gainNode.connect(audioContext.destination);
+        } catch (e) {
+          console.warn("AudioContext 建立失敗:", e);
+        }
+      }
+    }
+
+    function playPulseSound() {
+      if (!audioContext) return;
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.2);
+
+      gain.gain.setValueAtTime(0.5, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+
+      oscillator.connect(gain);
+      gain.connect(gainNode);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.2);
+    }
+
+    // ============= 背景音樂控制 =============
+    function startBackgroundMusic() {
+      if (bgMusic) {
+        bgMusic.play().catch(e => {
+          console.warn("背景音樂播放失敗，可能需要用戶互動:", e);
+        });
+      }
+    }
+
+    function stopBackgroundMusic() {
+      if (bgMusic) {
+        bgMusic.pause();
+      }
+    }
+
+    // ============= 建立節點 =============
+    function createNodes(count) {
+      const radius = 5;
+      for (let i = 0; i < count; i++) {
+        const phi = Math.random() * Math.PI * 2;
+        const theta = Math.acos(Math.random() * 2 - 1);
+        const x = radius * Math.sin(theta) * Math.cos(phi);
+        const y = radius * Math.sin(theta) * Math.sin(phi);
+        const z = radius * Math.cos(theta);
+
+        const node = new THREE.Mesh(
+          new THREE.SphereGeometry(0.1 + Math.random() * 0.1, 8, 8),
+          new THREE.MeshBasicMaterial({
+            color: colors[currentTheme].node,
+            transparent: true,
+            opacity: 0.8
+          })
+        );
+        node.position.set(x, y, z);
+        node.userData.pulse = 0;
+        scene.add(node);
+        nodes.push(node);
+      }
+    }
+
+    // ============= 建立連線 =============
+    function createConnections() {
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          if (Math.random() > 0.7) {
+            const material = new THREE.LineBasicMaterial({
+              color: colors[currentTheme].link,
+              transparent: true,
+              opacity: 0.2
+            });
+
+            const geometry = new THREE.BufferGeometry().setFromPoints([
+              nodes[i].position,
+              nodes[j].position
+            ]);
+
+            const line = new THREE.Line(geometry, material);
+            scene.add(line);
+            connections.push({
+              line,
+              from: nodes[i],
+              to: nodes[j],
+              pulseTime: 0
+            });
+          }
+        }
+      }
+    }
+
+    // ============= 星空背景 =============
+    function createStars() {
+      const geometry = new THREE.BufferGeometry();
+      const count = 1000;
+      const positions = new Float32Array(count * 3);
+
+      for (let i = 0; i < count * 3; i += 3) {
+        positions[i] = (Math.random() - 0.5) * 20;
+        positions[i + 1] = (Math.random() - 0.5) * 20;
+        positions[i + 2] = (Math.random() - 0.5) * 20;
+      }
+
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const material = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 0.05,
+        transparent: true,
+        opacity: 0.7
+      });
+
+      const stars = new THREE.Points(geometry, material);
+      scene.add(stars);
+    }
+
+    // ============= 觸發脈衝 =============
+    function triggerPulse(node) {
+      node.userData.pulse = 1;
+      pulseEffects.push({
+        node,
+        time: 0,
+        intensity: 1
+      });
+      playPulseSound();
+
+      // 觸發連線脈衝
+      connections.forEach(conn => {
+        if (conn.from === node || conn.to === node) {
+          conn.pulseTime = 0;
+        }
+      });
+    }
+
+    // ============= 動畫循環 =============
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (!animationPaused) {
+        // 更新節點脈衝
+        for (let i = pulseEffects.length - 1; i >= 0; i--) {
+          const effect = pulseEffects[i];
+          effect.time += 0.05;
+          effect.intensity = Math.max(0, 1 - effect.time);
+          effect.node.material.opacity = effect.intensity;
+          if (effect.intensity <= 0) {
+            pulseEffects.splice(i, 1);
+          }
+        }
+
+        // 更新連線脈衝
+        connections.forEach(conn => {
+          if (conn.pulseTime > 0) {
+            conn.pulseTime += 0.02;
+            const t = Math.min(1, conn.pulseTime);
+            conn.line.material.opacity = t * 0.5;
+            if (t >= 1) conn.pulseTime = 0;
+          }
+        });
+
+        // 自動旋轉
+        if (autoRotate && !isDragging) {
+          camera.position.x = 10 * Math.sin(Date.now() * 0.0005);
+          camera.position.z = 10 * Math.cos(Date.now() * 0.0005);
+          camera.lookAt(0, 0, 0);
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    // ============= 通用觸控/滑鼠處理 =============
+    function handleStart(x, y) {
+      isDragging = true;
+      previousX = x;
+      previousY = y;
+      autoRotate = false;
+    }
+
+    function handleMove(x, y) {
+      if (isDragging) {
+        const deltaX = x - previousX;
+        const deltaY = y - previousY;
+        camera.position.x -= deltaX * 0.01;
+        camera.position.y += deltaY * 0.01;
+        previousX = x;
+        previousY = y;
+      }
+    }
+
+    function handleEnd() {
+      isDragging = false;
+    }
+
+    function handleClick(x, y) {
+      const mouse = new THREE.Vector2(
+        (x / window.innerWidth) * 2 - 1,
+        -(y / window.innerHeight) * 2 + 1
+      );
+
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouse, camera);
+
+      const intersects = raycaster.intersectObjects(nodes);
+      if (intersects.length > 0) {
+        triggerPulse(intersects[0].object);
+      }
+    }
+
+    // ============= 事件綁定 =============
+    // 桌機滑鼠
+    container.addEventListener('mousedown', (e) => {
+      handleStart(e.clientX, e.clientY);
+    });
+
+    container.addEventListener('mousemove', (e) => {
+      handleMove(e.clientX, e.clientY);
+    });
+
+    container.addEventListener('mouseup', () => {
+      handleEnd();
+    });
+
+    container.addEventListener('click', (e) => {
+      handleClick(e.clientX, e.clientY);
+    });
+
+    // 手機觸控
+    container.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        handleStart(touch.clientX, touch.clientY);
+        e.preventDefault(); // 阻止瀏覽器預設行為
+      }
+    }, { passive: false });
+
+    container.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        handleMove(touch.clientX, touch.clientY);
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    container.addEventListener('touchend', (e) => {
+      handleEnd();
+    });
+
+    container.addEventListener('touchcancel', (e) => {
+      handleEnd();
+    });
+
+    // 點擊觸發（手機單點）
+    container.addEventListener('touchend', (e) => {
+      if (e.changedTouches.length === 1) {
+        const touch = e.changedTouches[0];
+        handleClick(touch.clientX, touch.clientY);
+      }
+    });
+
+    // ============= 控制面板 =============
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentTheme = btn.dataset.theme;
+        updateTheme();
+      });
+    });
+
+    document.getElementById('density-slider').addEventListener('input', (e) => {
+      density = parseInt(e.target.value);
+      document.getElementById('density-value').textContent = `${density}%`;
+    });
+
+    document.getElementById('formation').addEventListener('click', () => {
+      // 清除舊物件
+      while(scene.children.length > 0){
+        scene.remove(scene.children[0]);
+      }
+      nodes.length = 0;
+      connections.length = 0;
+      pulseEffects.length = 0;
+
+      // 重建
+      createStars();
+      createNodes(density);
+      createConnections();
+    });
+
+    document.getElementById('pause').addEventListener('click', () => {
+      animationPaused = !animationPaused;
+      document.getElementById('pause').textContent = animationPaused ? 'Resume' : 'Pause音樂';
+      
+      // 暫停時也暫停背景音樂
+      if (animationPaused) {
+        stopBackgroundMusic();
+      } else {
+        startBackgroundMusic();
+      }
+    });
+
+    document.getElementById('reset-cam').addEventListener('click', () => {
+      camera.position.set(0, 0, 10);
+      camera.lookAt(0, 0, 0);
+      autoRotate = true;
+    });
+
+    function updateTheme() {
+      nodes.forEach(node => {
+        node.material.color.set(colors[currentTheme].node);
+      });
+      connections.forEach(conn => {
+        conn.line.material.color.set(colors[currentTheme].link);
+      });
+    }
+
+    // ============= 初始化 =============
+    createStars();
+    createNodes(density);
+    createConnections();
+    animate();
+
+    // 視窗大小調整
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
