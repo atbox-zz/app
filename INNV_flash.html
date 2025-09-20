@@ -7,7 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-
     <style>
         * {
             margin: 0;
@@ -28,7 +27,6 @@
             left: 0;
             z-index: 1;
         }
-
         .ui-panel {
             position: absolute;
             backdrop-filter: blur(10px);
@@ -42,7 +40,6 @@
             color: #eee;
             font-family: 'Inter', sans-serif;
         }
-
         #instructions-container {
             top: 20px;
             left: 20px;
@@ -50,13 +47,11 @@
             line-height: 1.5;
             max-width: 280px;
         }
-
         #instruction-title {
             font-weight: 600;
             margin-bottom: 6px;
             font-size: 15px;
         }
-
         #theme-selector {
             top: 20px;
             right: 20px;
@@ -65,19 +60,16 @@
             gap: 12px;
             max-width: 150px;
         }
-
         #theme-selector-title {
             font-weight: 600;
             font-size: 15px;
             margin-bottom: 2px;
         }
-
         .theme-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
         }
-
         .theme-button {
             width: 36px;
             height: 36px;
@@ -88,36 +80,30 @@
             outline: none;
             overflow: hidden;
         }
-
         .theme-button:hover, .theme-button:focus {
             transform: scale(1.05);
             border-color: rgba(255, 255, 255, .7);
         }
-
         .theme-button.active {
             transform: scale(1.05);
             border-color: rgba(255, 255, 255, .9);
             box-shadow: 0 0 10px rgba(255, 200, 150, .6);
         }
-
         #theme-1 { background: linear-gradient(45deg, #4F46E5, #7C3AED, #C026D3, #DB2777); }
         #theme-2 { background: linear-gradient(45deg, #F59E0B, #F97316, #DC2626, #7F1D1D); }
         #theme-3 { background: linear-gradient(45deg, #EC4899, #8B5CF6, #6366F1, #3B82F6); }
         #theme-4 { background: linear-gradient(45deg, #10B981, #A3E635, #FACC15, #FB923C); }
-
         #density-controls {
             margin-top: 8px;
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
-
         .density-label {
             font-size: 13px;
             display: flex;
             justify-content: space-between;
         }
-
         .density-slider {
             width: 100%;
             appearance: none;
@@ -127,7 +113,6 @@
             outline: none;
             cursor: pointer;
         }
-
         .density-slider::-webkit-slider-thumb {
             appearance: none;
             width: 14px;
@@ -146,10 +131,8 @@
             border: none;
             transition: transform .1s, background .1s;
         }
-
         .density-slider::-webkit-slider-thumb:hover { transform: scale(1.1); background: rgba(255, 140, 50, 1); }
         .density-slider::-moz-range-thumb:hover { transform: scale(1.1); background: rgba(255, 140, 50, 1); }
-
         #control-buttons {
             position: absolute;
             bottom: 20px;
@@ -163,7 +146,6 @@
             border-radius: 10px;
              border: 1px solid rgba(255, 120, 50, .2);
         }
-
         .control-button {
             background: rgba(255, 120, 50, .2);
             color: #eee;
@@ -179,7 +161,6 @@
             text-align: center;
             font-family: 'Inter', sans-serif;
         }
-
         .control-button:hover, .control-button:focus {
             background: rgba(255, 120, 50, .4);
             outline: none;
@@ -187,6 +168,26 @@
         .control-button:active {
             background: rgba(255, 120, 50, .6);
             transform: scale(0.95);
+        }
+
+        /* 新增音樂控制按鈕樣式 */
+        #music-control-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10;
+            background: rgba(0, 0, 0, .6);
+            border: 1px solid rgba(255, 120, 50, .2);
+            padding: 8px 15px;
+            border-radius: 10px;
+            color: #eee;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        #music-control-btn:hover {
+            background: rgba(255, 120, 50, .4);
         }
 
         @media (max-width: 640px) {
@@ -200,7 +201,6 @@
             #instruction-title {
                 font-size: 14px;
             }
-
             #theme-selector {
                 top: auto;
                 bottom: 20px;
@@ -218,8 +218,6 @@
                 height: 30px;
             }
             .density-label { font-size: 12px; }
-
-
             #control-buttons {
                 bottom: 10px;
                 gap: 10px;
@@ -229,6 +227,11 @@
                 padding: 6px 10px;
                 font-size: 12px;
                 min-width: 65px;
+            }
+            /* 在小螢幕上將音樂按鈕移動到控制列下方 */
+            #music-control-btn {
+                bottom: 70px;
+                right: 10px;
             }
         }
          @media (max-width: 400px) {
@@ -253,35 +256,57 @@
              #control-buttons {
                 width: calc(100% - 20px);
                 justify-content: space-around;
+                bottom: 10px;
+            }
+            #music-control-btn {
+                bottom: 60px;
+                right: 10px;
+                left: 10px;
+                width: calc(100% - 20px);
+                text-align: center;
             }
         }
-
     </style>
-
+</head>
+<body>
     <div id="instructions-container" class="ui-panel">
-        <div id="instruction-title">Interactive Neural Network</div>
-        <div>Click or tap to create energy pulses through the network. Drag to rotate.</div>
-        </div>
+        <div id="instruction-title">互動式神經網絡</div>
+        <div>點擊或觸控以在網路中創造能量脈衝。拖曳以旋轉視角。</div>
+    </div>
 
     <div id="theme-selector" class="ui-panel">
-        <div id="theme-selector-title">Visual Theme</div>
+        <div id="theme-selector-title">視覺主題</div>
         <div class="theme-grid">
-            <button class="theme-button" id="theme-1" data-theme="0" aria-label="Theme 1"></button>
-            <button class="theme-button" id="theme-2" data-theme="1" aria-label="Theme 2"></button>
-            <button class="theme-button" id="theme-3" data-theme="2" aria-label="Theme 3"></button>
-            <button class="theme-button" id="theme-4" data-theme="3" aria-label="Theme 4"></button>
+            <button class="theme-button" id="theme-1" data-theme="0" aria-label="紫色主題"></button>
+            <button class="theme-button" id="theme-2" data-theme="1" aria-label="橙紅色主題"></button>
+            <button class="theme-button" id="theme-3" data-theme="2" aria-label="粉藍色主題"></button>
+            <button class="theme-button" id="theme-4" data-theme="3" aria-label="綠黃色主題"></button>
         </div>
         <div id="density-controls">
-            <div class="density-label"><span>Density</span><span id="density-value">100%</span></div>
-            <input type="range" min="20" max="100" value="100" class="density-slider" id="density-slider" aria-label="Network Density">
+            <div class="density-label"><span>密度</span><span id="density-value">100%</span></div>
+            <input type="range" min="20" max="100" value="100" class="density-slider" id="density-slider" aria-label="網路密度">
         </div>
     </div>
 
     <div id="control-buttons">
-        <button id="change-formation-btn" class="control-button">Formation</button>
-        <button id="pause-play-btn" class="control-button">Pause</button>
-        <button id="reset-camera-btn" class="control-button">Reset Cam</button>
+        <button id="change-formation-btn" class="control-button">切換結構</button>
+        <button id="pause-play-btn" class="control-button">暫停</button>
+        <button id="reset-camera-btn" class="control-button">重置視角</button>
     </div>
+
+    <!-- 新增音效元素 -->
+    <button id="music-control-btn" class="control-button">播放音樂</button>
+    <audio id="background-music" loop>
+        <!-- 這裡使用一個免費的科幻風格音樂作為示例 -->
+        <!--source src="https://cdn.pixabay.com/download/audio/2022/01/18/audio_3a4635f388.mp3?filename=ambient-electronic-music-122745.mp3" type="audio/mpeg"-->
+        <source src="innv.mp3" type="audio/mpeg">
+        您的瀏覽器不支援音訊元素。
+    </audio>
+
+    <audio id="click-sound" preload="auto">
+        <source src="mx15150.mp3" type="audio/mpeg">
+        您的瀏覽器不支援音訊元素。
+    </audio>
 
     <canvas id="neural-network-canvas"></canvas>
 
@@ -302,6 +327,28 @@
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
         import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
         import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+        // ========================
+        // 音效相關變數與函數
+        // ========================
+        const clickSound = document.getElementById('click-sound');
+        let audioContextStarted = false;
+
+        // 嘗試播放音效的函數，處理瀏覽器政策
+        function playClickSound() {
+            if (clickSound) {
+                clickSound.currentTime = 0; // 重置播放位置
+                clickSound.play().catch(e => console.warn("音效播放失敗:", e));
+            }
+        }
+
+        // 在第一次使用者互動時初始化音訊上下文
+        function initAudioContext() {
+            if (audioContextStarted) return;
+            audioContextStarted = true;
+            playClickSound(); // 播放一次以解鎖
+            console.log("音訊上下文已初始化");
+        }
 
         const config = {
             paused: false,
@@ -324,13 +371,13 @@
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1200);
         camera.position.set(0, 5, 22);
 
-        const canvasElement = document.getElementById('neural-network-canvas'); // Get canvas element
+        const canvasElement = document.getElementById('neural-network-canvas');
         const renderer = new THREE.WebGLRenderer({ canvas: canvasElement, antialias: true, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setClearColor(0x000000);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
-        
+
         function createStarfield() {
             const count = 5000, pos = [];
             for (let i = 0; i < count; i++) {
@@ -355,6 +402,7 @@
             });
             return new THREE.Points(geo, mat);
         }
+
         const starField = createStarfield();
         scene.add(starField);
 
@@ -424,81 +472,63 @@
             attribute float nodeSize;attribute float nodeType;attribute vec3 nodeColor;attribute vec3 connectionIndices;attribute float distanceFromRoot;
             uniform float uTime;uniform vec3 uPulsePositions[3];uniform float uPulseTimes[3];uniform float uPulseSpeed;uniform float uBaseNodeSize;
             varying vec3 vColor;varying float vNodeType;varying vec3 vPosition;varying float vPulseIntensity;varying float vDistanceFromRoot;
-
             float getPulseIntensity(vec3 worldPos, vec3 pulsePos, float pulseTime) {
                 if (pulseTime < 0.0) return 0.0;
                 float timeSinceClick = uTime - pulseTime;
                 if (timeSinceClick < 0.0 || timeSinceClick > 3.0) return 0.0;
-
                 float pulseRadius = timeSinceClick * uPulseSpeed;
                 float distToClick = distance(worldPos, pulsePos);
                 float pulseThickness = 2.0;
                 float waveProximity = abs(distToClick - pulseRadius);
-
                 return smoothstep(pulseThickness, 0.0, waveProximity) * smoothstep(3.0, 0.0, timeSinceClick);
             }
-
             void main() {
                 vNodeType = nodeType;
                 vColor = nodeColor;
                 vDistanceFromRoot = distanceFromRoot;
-
                 vec3 worldPos = (modelMatrix * vec4(position, 1.0)).xyz;
                 vPosition = worldPos;
-
                 float totalPulseIntensity = 0.0;
                 for (int i = 0; i < 3; i++) {
                     totalPulseIntensity += getPulseIntensity(worldPos, uPulsePositions[i], uPulseTimes[i]);
                 }
                 vPulseIntensity = min(totalPulseIntensity, 1.0);
-
                 float timeScale = 0.5 + 0.5 * sin(uTime * 0.8 + distanceFromRoot * 0.2);
                 float baseSize = nodeSize * (0.8 + 0.2 * timeScale);
                 float pulseSize = baseSize * (1.0 + vPulseIntensity * 2.0);
-
                 vec3 modifiedPosition = position;
                 if (nodeType > 0.5) {
                     float noise = fbm(position * 0.1, uTime * 0.1);
                     modifiedPosition += normal * noise * 0.2;
                 }
-
                 vec4 mvPosition = modelViewMatrix * vec4(modifiedPosition, 1.0);
                 gl_PointSize = pulseSize * uBaseNodeSize * (800.0 / -mvPosition.z);
                 gl_Position = projectionMatrix * mvPosition;
             }`,
-
             fragmentShader: `
             uniform float uTime;uniform vec3 uPulseColors[3];uniform int uActivePalette;
             varying vec3 vColor;varying float vNodeType;varying vec3 vPosition;varying float vPulseIntensity;varying float vDistanceFromRoot;
-
             void main() {
                 vec2 center = 2.0 * gl_PointCoord - 1.0;
                 float dist = length(center);
                 if (dist > 1.0) discard;
-
                 float glowStrength = 1.0 - smoothstep(0.0, 1.0, dist);
                 glowStrength = pow(glowStrength, 1.4);
-
                 vec3 baseColor = vColor * (0.8 + 0.2 * sin(uTime * 0.5 + vDistanceFromRoot * 0.3));
                 vec3 finalColor = baseColor;
-
                 if (vPulseIntensity > 0.0) {
                     vec3 pulseColor = mix(vec3(1.0), uPulseColors[0], 0.3);
                     finalColor = mix(baseColor, pulseColor, vPulseIntensity);
                     finalColor *= (1.0 + vPulseIntensity * 0.7);
                 }
-
                 float alpha = glowStrength * (0.9 - 0.5 * dist);
-
                 float camDistance = length(vPosition - cameraPosition);
                 float distanceFade = smoothstep(80.0, 10.0, camDistance);
-
                 if (vNodeType > 0.5) {
                     alpha *= 0.85;
                 } else {
                     finalColor *= 1.2;
                 }
-
                 gl_FragColor = vec4(finalColor, alpha * distanceFade);
             }`
         };
@@ -508,7 +538,6 @@
             attribute vec3 startPoint;attribute vec3 endPoint;attribute float connectionStrength;attribute float pathIndex;attribute vec3 connectionColor;
             uniform float uTime;uniform vec3 uPulsePositions[3];uniform float uPulseTimes[3];uniform float uPulseSpeed;
             varying vec3 vColor;varying float vConnectionStrength;varying float vPulseIntensity;varying float vPathPosition;
-
             float getPulseIntensity(vec3 worldPos, vec3 pulsePos, float pulseTime) {
                 if (pulseTime < 0.0) return 0.0;
                 float timeSinceClick = uTime - pulseTime;
@@ -519,62 +548,46 @@
                 float waveProximity = abs(distToClick - pulseRadius);
                 return smoothstep(pulseThickness, 0.0, waveProximity) * smoothstep(3.0, 0.0, timeSinceClick);
             }
-
             void main() {
                 float t = position.x;
                 vPathPosition = t;
-
                 vec3 midPoint = mix(startPoint, endPoint, 0.5);
                 float pathOffset = sin(t * 3.14159) * 0.1;
                 vec3 perpendicular = normalize(cross(normalize(endPoint - startPoint), vec3(0.0, 1.0, 0.0)));
                 if (length(perpendicular) < 0.1) perpendicular = vec3(1.0, 0.0, 0.0);
                 midPoint += perpendicular * pathOffset;
-
                 vec3 p0 = mix(startPoint, midPoint, t);
                 vec3 p1 = mix(midPoint, endPoint, t);
                 vec3 finalPos = mix(p0, p1, t);
-
                 float noiseTime = uTime * 0.2;
                 float noise = fbm(vec3(pathIndex * 0.1, t * 0.5, noiseTime), noiseTime);
                 finalPos += perpendicular * noise * 0.1;
-
                 vec3 worldPos = (modelMatrix * vec4(finalPos, 1.0)).xyz;
-
                 float totalPulseIntensity = 0.0;
                 for (int i = 0; i < 3; i++) {
                     totalPulseIntensity += getPulseIntensity(worldPos, uPulsePositions[i], uPulseTimes[i]);
                 }
                 vPulseIntensity = min(totalPulseIntensity, 1.0);
-
                 vColor = connectionColor;
                 vConnectionStrength = connectionStrength;
-
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(finalPos, 1.0);
             }`,
-
             fragmentShader: `
             uniform float uTime;uniform vec3 uPulseColors[3];
             varying vec3 vColor;varying float vConnectionStrength;varying float vPulseIntensity;varying float vPathPosition;
-
             void main() {
                 vec3 baseColor = vColor * (0.7 + 0.3 * sin(uTime * 0.5 + vPathPosition * 10.0));
-
                 float flowPattern = sin(vPathPosition * 20.0 - uTime * 3.0) * 0.5 + 0.5;
                 float flowIntensity = 0.3 * flowPattern * vConnectionStrength;
-
                 vec3 finalColor = baseColor;
-
                 if (vPulseIntensity > 0.0) {
                     vec3 pulseColor = mix(vec3(1.0), uPulseColors[0], 0.3);
                     finalColor = mix(baseColor, pulseColor, vPulseIntensity);
                     flowIntensity += vPulseIntensity * 0.5;
                 }
-
                 finalColor *= (0.6 + flowIntensity + vConnectionStrength * 0.4);
-
                 float alpha = 0.8 * vConnectionStrength + 0.2 * flowPattern;
                 alpha = mix(alpha, min(1.0, alpha * 2.0), vPulseIntensity);
-
                 gl_FragColor = vec4(finalColor, alpha);
             }`
         };
@@ -588,14 +601,12 @@
                 this.size = type === 0 ? THREE.MathUtils.randFloat(0.7, 1.2) : THREE.MathUtils.randFloat(0.4, 0.9);
                 this.distanceFromRoot = 0;
             }
-
             addConnection(node, strength = 1.0) {
                 if (!this.isConnectedTo(node)) {
                     this.connections.push({ node, strength });
                     node.connections.push({ node: this, strength });
                 }
             }
-
             isConnectedTo(node) {
                 return this.connections.some(conn => conn.node === node);
             }
@@ -609,7 +620,6 @@
                 rootNode = new Node(new THREE.Vector3(0, 0, 0), 0, 0); rootNode.size = 1.5; nodes.push(rootNode);
                 const layers = 5, primaryAxes = 6, nodesPerAxis = 8, axisLength = 20;
                 const axisEndpoints = [];
-
                 for (let a = 0; a < primaryAxes; a++) {
                     const phi = Math.acos(-1 + (2 * a) / primaryAxes);
                     const theta = Math.PI * (1 + Math.sqrt(5)) * a;
@@ -618,7 +628,6 @@
                         Math.sin(phi) * Math.sin(theta),
                         Math.cos(phi)
                     );
-
                     let prevNode = rootNode;
                     for (let i = 1; i <= nodesPerAxis; i++) {
                         const t = i / nodesPerAxis;
@@ -633,7 +642,6 @@
                         if (i === nodesPerAxis) axisEndpoints.push(newNode);
                     }
                 }
-
                 const ringDistances = [5, 10, 15];
                 const ringNodes = [];
                 for (const ringDist of ringDistances) {
@@ -656,7 +664,6 @@
                         ringLayer.push(newNode);
                     }
                     ringNodes.push(ringLayer);
-
                     for (let i = 0; i < ringLayer.length; i++) {
                         const node = ringLayer[i];
                         const nextNode = ringLayer[(i + 1) % ringLayer.length];
@@ -667,7 +674,6 @@
                         }
                     }
                 }
-
                 for (const ring of ringNodes) {
                     for (const node of ring) {
                         let closestAxisNode = null; let minDist = Infinity;
@@ -683,7 +689,6 @@
                         }
                     }
                 }
-
                 for (let r = 0; r < ringNodes.length - 1; r++) {
                     const innerRing = ringNodes[r];
                     const outerRing = ringNodes[r + 1];
@@ -696,7 +701,6 @@
                         }
                     }
                 }
-
                  for (let i = 0; i < axisEndpoints.length; i++) {
                     const startNode = axisEndpoints[i];
                     const endNode = axisEndpoints[(i + 2) % axisEndpoints.length];
@@ -725,16 +729,13 @@
                 const dimensions = 4;
                 const nodesPerDimension = Math.floor(40 * densityFactor);
                 const maxRadius = 20;
-
                 const dimensionVectors = [
                     new THREE.Vector3(1, 1, 1).normalize(),
                     new THREE.Vector3(-1, 1, -1).normalize(),
                     new THREE.Vector3(1, -1, -1).normalize(),
                     new THREE.Vector3(-1, -1, 1).normalize()
                 ];
-
                 const dimensionNodes = [];
-
                 for (let d = 0; d < dimensions; d++) {
                     const dimNodes = [];
                     const dimVec = dimensionVectors[d];
@@ -749,7 +750,6 @@
                             dimVec.clone().multiplyScalar(0.6 + Math.random() * 0.4),
                             randomVec.clone().multiplyScalar(0.3)
                         ).normalize();
-
                         const pos = biasedVec.clone().multiplyScalar(distance);
                         const isLeaf = Math.random() < 0.4 || distance > maxRadius * 0.8;
                         const level = Math.floor(distance / (maxRadius / 4)) + 1;
@@ -762,11 +762,9 @@
                     }
                     dimensionNodes.push(dimNodes);
                 }
-
                 for (let d = 0; d < dimensions; d++) {
                     const dimNodes = dimensionNodes[d];
                     dimNodes.sort((a, b) => a.distanceFromRoot - b.distanceFromRoot);
-
                     const layers = 4;
                     const nodesPerLayer = Math.ceil(dimNodes.length / layers);
                     for (let layer = 0; layer < layers; layer++) {
@@ -792,7 +790,6 @@
                         }
                     }
                 }
-
                  for (let d1 = 0; d1 < dimensions; d1++) {
                     for (let d2 = d1 + 1; d2 < dimensions; d2++) {
                         const connectionsCount = Math.floor(5 * densityFactor);
@@ -815,7 +812,6 @@
                         }
                     }
                 }
-
                 const jumpConnections = Math.floor(10 * densityFactor);
                 for (let i = 0; i < jumpConnections; i++) {
                     const startDim = Math.floor(Math.random() * dimensions);
@@ -851,28 +847,23 @@
                 const maxRadius = 16;
                 const nodesPerSpiral = Math.floor(30 * densityFactor);
                 const spiralNodes = [];
-
                 for (let s = 0; s < numSpirals; s++) {
                     const spiralPhase = (s / numSpirals) * Math.PI * 2;
                     const spiralArray = [];
                     for (let i = 0; i < nodesPerSpiral; i++) {
                         const t = i / (nodesPerSpiral - 1);
-
                         const heightCurve = 1 - Math.pow(2 * t - 1, 2);
                         const height = (t - 0.5) * totalHeight;
                         const radiusCurve = Math.sin(t * Math.PI);
                         const radius = maxRadius * radiusCurve;
-
                         const revolutions = 2.5;
                         const angle = spiralPhase + t * Math.PI * 2 * revolutions;
-
                         const pos = new THREE.Vector3(radius * Math.cos(angle), height, radius * Math.sin(angle));
                         pos.add(new THREE.Vector3(
                             THREE.MathUtils.randFloatSpread(1.5),
                             THREE.MathUtils.randFloatSpread(1.5),
                             THREE.MathUtils.randFloatSpread(1.5)
                         ));
-
                         const level = Math.floor(t * 5) + 1;
                         const isLeaf = Math.random() < 0.3 || i > nodesPerSpiral - 3;
                         const newNode = new Node(pos, level, isLeaf ? 1 : 0);
@@ -884,14 +875,12 @@
                     }
                     spiralNodes.push(spiralArray);
                 }
-
                 for (const spiral of spiralNodes) {
                     rootNode.addConnection(spiral[0], 1.0);
                     for (let i = 0; i < spiral.length - 1; i++) {
                         spiral[i].addConnection(spiral[i + 1], 0.9);
                     }
                 }
-
                 for (let s = 0; s < numSpirals; s++) {
                     const currentSpiral = spiralNodes[s];
                     const nextSpiral = spiralNodes[(s + 1) % numSpirals];
@@ -903,7 +892,6 @@
                         currentSpiral[idx1].addConnection(nextSpiral[idx2], 0.7);
                     }
                 }
-
                 for (let s = 0; s < numSpirals; s++) {
                     const currentSpiral = spiralNodes[s];
                     const jumpSpiral = spiralNodes[(s + 2) % numSpirals];
@@ -915,7 +903,6 @@
                         const idx2 = Math.floor(t2 * (jumpSpiral.length - 1));
                         const start = currentSpiral[idx1];
                         const end = jumpSpiral[idx2];
-
                         const midPoint = new THREE.Vector3().lerpVectors(start.position, end.position, 0.5).multiplyScalar(0.7);
                         const bridgeNode = new Node(midPoint, Math.max(start.level, end.level), 0);
                         bridgeNode.distanceFromRoot = rootNode.position.distanceTo(midPoint);
@@ -924,7 +911,6 @@
                         bridgeNode.addConnection(end, 0.6);
                     }
                 }
-
                 const ringLevels = 5;
                 for (let r = 0; r < ringLevels; r++) {
                     const height = (r / (ringLevels - 1) - 0.5) * totalHeight * 0.7;
@@ -936,7 +922,6 @@
                         }
                     }
                 }
-
                 const radialConnections = Math.floor(10 * densityFactor);
                 const candidates = nodes.filter(n => n !== rootNode && n.position.length() > 5)
                                         .sort(() => Math.random() - 0.5)
@@ -967,7 +952,6 @@
                 const numClusters = 6;
                 const maxDist = 18;
                 const clusterNodes = [];
-
                 for (let c = 0; c < numClusters; c++) {
                     const phi = Math.acos(2 * Math.random() - 1);
                     const theta = 2 * Math.PI * Math.random();
@@ -984,7 +968,6 @@
                     clusterNodes.push(clusterNode);
                     rootNode.addConnection(clusterNode, 0.9);
                 }
-
                 for (let i = 0; i < clusterNodes.length; i++) {
                     for (let j = i + 1; j < clusterNodes.length; j++) {
                         const dist = clusterNodes[i].position.distanceTo(clusterNodes[j].position);
@@ -995,7 +978,6 @@
                         }
                     }
                 }
-
                 for (const cluster of clusterNodes) {
                     const clusterSize = Math.floor(20 * densityFactor);
                     const cloudRadius = 7 + Math.random() * 3;
@@ -1007,7 +989,6 @@
                             THREE.MathUtils.randFloatSpread(2)
                         ).normalize();
                         const pos = new THREE.Vector3().copy(cluster.position).add(dir.multiplyScalar(radius));
-
                         const distanceFromCluster = radius;
                         const distanceFromRoot = rootNode.position.distanceTo(pos);
                         const level = 2 + Math.floor(distanceFromCluster / 3);
@@ -1016,10 +997,8 @@
                         newNode.distanceFromRoot = distanceFromRoot;
                         newNode.clusterRef = cluster;
                         nodes.push(newNode);
-
                         const strength = 0.7 * (1 - distanceFromCluster / cloudRadius);
                         cluster.addConnection(newNode, strength);
-
                         const nearbyNodes = nodes.filter(n =>
                             n !== newNode && n !== cluster && n.clusterRef === cluster &&
                             n.position.distanceTo(pos) < cloudRadius * 0.4
@@ -1033,13 +1012,11 @@
                         }
                     }
                 }
-
                  const interClusterCount = Math.floor(15 * densityFactor);
                 for (let i = 0; i < interClusterCount; i++) {
                     const cluster1 = clusterNodes[Math.floor(Math.random() * clusterNodes.length)];
                     let cluster2;
                     do { cluster2 = clusterNodes[Math.floor(Math.random() * clusterNodes.length)]; } while (cluster2 === cluster1);
-
                     const bridgePos = new THREE.Vector3().lerpVectors(cluster1.position, cluster2.position, 0.3 + Math.random() * 0.4);
                     bridgePos.add(new THREE.Vector3(
                         THREE.MathUtils.randFloatSpread(5),
@@ -1049,17 +1026,14 @@
                     const bridgeNode = new Node(bridgePos, 2, 0);
                     bridgeNode.distanceFromRoot = rootNode.position.distanceTo(bridgePos);
                     nodes.push(bridgeNode);
-
                     cluster1.addConnection(bridgeNode, 0.5);
                     cluster2.addConnection(bridgeNode, 0.5);
-
                     const nearbyNodes = nodes.filter(n => n !== bridgeNode && n !== cluster1 && n !== cluster2 && n.position.distanceTo(bridgePos) < 8);
                     if (nearbyNodes.length > 0) {
                         const target = nearbyNodes[Math.floor(Math.random() * nearbyNodes.length)];
                         bridgeNode.addConnection(target, 0.4);
                     }
                 }
-
                  const longRangeCount = Math.floor(10 * densityFactor);
                 const outerNodes = nodes.filter(n => n.distanceFromRoot > maxDist * 0.6)
                                         .sort(() => Math.random() - 0.5)
@@ -1103,7 +1077,6 @@
                     const hash = (index * 31 + Math.floor(densityFactor * 100)) % 100;
                     return hash < (densityFactor * 100);
                 });
-
                 nodes.forEach(node => {
                     node.connections = node.connections.filter(conn => nodes.includes(conn.node));
                 });
@@ -1131,6 +1104,7 @@
             }
 
             neuralNetwork = generateNeuralNetwork(formationIndex, densityFactor);
+
             if (!neuralNetwork || neuralNetwork.nodes.length === 0) {
                 console.error("Network generation failed or resulted in zero nodes.");
                 return;
@@ -1262,7 +1236,6 @@
             for (let i = 0; i < nodeColorsAttr.count; i++) {
                 const node = neuralNetwork.nodes[i];
                 if (!node) continue;
-
                 const colorIndex = Math.min(node.level, palette.length - 1);
                 const baseColor = palette[colorIndex % palette.length].clone();
                 baseColor.offsetHSL(
@@ -1276,6 +1249,7 @@
 
             const connectionColors = [];
             const processedConnections = new Set();
+
             neuralNetwork.nodes.forEach((node, nodeIndex) => {
                  node.connections.forEach(connection => {
                     const connectedNode = connection.node;
@@ -1299,6 +1273,7 @@
                     }
                  });
             });
+
             connectionsMesh.geometry.setAttribute('connectionColor', new THREE.Float32BufferAttribute(connectionColors, 3));
             connectionsMesh.geometry.attributes.connectionColor.needsUpdate = true;
 
@@ -1318,16 +1293,13 @@
             pointer.y = -(clientY / window.innerHeight) * 2 + 1;
 
             raycaster.setFromCamera(pointer, camera);
-
             interactionPlane.normal.copy(camera.position).normalize();
             interactionPlane.constant = -interactionPlane.normal.dot(camera.position) + camera.position.length() * 0.5;
 
             if (raycaster.ray.intersectPlane(interactionPlane, interactionPoint)) {
                 const time = clock.getElapsedTime();
-
                 if (nodesMesh && connectionsMesh) {
                     lastPulseIndex = (lastPulseIndex + 1) % 3;
-
                     nodesMesh.material.uniforms.uPulsePositions.value[lastPulseIndex].copy(interactionPoint);
                     nodesMesh.material.uniforms.uPulseTimes.value[lastPulseIndex] = time;
                     connectionsMesh.material.uniforms.uPulsePositions.value[lastPulseIndex].copy(interactionPoint);
@@ -1341,13 +1313,36 @@
             }
         }
 
+        // ========================
+        // 修改點擊與觸控事件，加入音效播放
+        // ========================
         renderer.domElement.addEventListener('click', (e) => {
+            // 點擊控制面板或按鈕不觸發脈衝和音效
             if (e.target.closest('.ui-panel, #control-buttons')) return;
+
+            // 初始化音訊上下文 (如果尚未初始化)
+            initAudioContext();
+
+            // 播放音效
+            playClickSound();
+
+            // 觸發脈衝效果 (如果未暫停)
             if (!config.paused) triggerPulse(e.clientX, e.clientY);
         });
+
         renderer.domElement.addEventListener('touchstart', (e) => {
+            // 點擊控制面板或按鈕不觸發脈衝和音效
             if (e.target.closest('.ui-panel, #control-buttons')) return;
+
             e.preventDefault();
+
+            // 初始化音訊上下文 (如果尚未初始化)
+            initAudioContext();
+
+            // 播放音效
+            playClickSound();
+
+            // 觸發脈衝效果 (如果未暫停)
             if (e.touches.length > 0 && !config.paused) {
                 triggerPulse(e.touches[0].clientX, e.touches[0].clientY);
             }
@@ -1367,12 +1362,12 @@
         const densitySlider = document.getElementById('density-slider');
         const densityValue = document.getElementById('density-value');
         let densityTimeout;
+
         densitySlider.addEventListener('input', (e) => {
             e.stopPropagation();
             const val = parseInt(densitySlider.value, 10);
             config.densityFactor = val / 100;
             densityValue.textContent = `${val}%`;
-
             clearTimeout(densityTimeout);
             densityTimeout = setTimeout(() => {
                 createNetworkVisualization(config.currentFormation, config.densityFactor);
@@ -1394,7 +1389,7 @@
         pausePlayBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             config.paused = !config.paused;
-            pausePlayBtn.textContent = config.paused ? 'Play' : 'Pause';
+            pausePlayBtn.textContent = config.paused ? '播放' : '暫停';
             controls.autoRotate = !config.paused;
         });
 
@@ -1405,11 +1400,39 @@
              setTimeout(() => { controls.autoRotate = true; }, 1500);
         });
 
+        // ========================
+        // 新增音樂控制功能
+        // ========================
+        const musicControlBtn = document.getElementById('music-control-btn');
+        const backgroundMusic = document.getElementById('background-music');
+
+        musicControlBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (backgroundMusic.paused) {
+                backgroundMusic.play().catch(error => {
+                    console.warn("無法自動播放音樂，請在使用者互動後再試一次。", error);
+                    alert("請點擊畫面以啟用音樂播放。");
+                });
+                musicControlBtn.textContent = "暫停音樂";
+            } else {
+                backgroundMusic.pause();
+                musicControlBtn.textContent = "播放音樂";
+            }
+        });
+
+        // 如果瀏覽器不允許自動播放，則在使用者第一次點擊畫布時嘗試播放
+        renderer.domElement.addEventListener('click', () => {
+            if (backgroundMusic.paused) {
+                backgroundMusic.play().catch(error => {
+                    console.warn("無法播放音樂:", error);
+                });
+            }
+        }, { once: true });
+
         const clock = new THREE.Clock();
 
         function animate() {
             requestAnimationFrame(animate);
-
             const t = clock.getElapsedTime();
 
             if (!config.paused) {
@@ -1424,7 +1447,6 @@
             }
 
             starField.rotation.y += 0.0003;
-
             controls.update();
             composer.render();
         }
