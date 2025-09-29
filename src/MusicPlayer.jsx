@@ -120,35 +120,6 @@ const MusicPlayer = () => {
   const audioPages = [
     {
       buttons: [
-        { text: "小明劍魔 回答我!", filename: "https://atbox-zz.github.io/app/answerme.mp3", isEnglish: false },
-        { text: "LOOK\nIN\nMY EYES", filename: "https://atbox-zz.github.io/app/Lookmyeyes.mp3", isEnglish: true },
-        { text: "TELL\nME\nWHY?", filename: "./Tellmewhy.mp3", isEnglish: true },
-        { text: "啊能能!", filename: "./啊能能.mp3", isEnglish: false },
-      ]
-    },
-    {
-
-      buttons: [
-        { text: "你老師咧", filename: "https://atbox-zz.github.io/app/你老師咧.mp3", isEnglish: false },
-        { text: "參加喪禮會想死", filename: "https://atbox-zz.github.io/app/參加喪禮會想死.mp3", isEnglish: false },
-        { text: "吃賽啦", filename: "https://atbox-zz.github.io/app/吃屎啦.mp3", isEnglish: false },
-        { text: "哭北哦", filename: "https://atbox-zz.github.io/app/哭北.mp3", isEnglish: false },
-        { text: "我信你個鬼", filename: "https://atbox-zz.github.io/app/我信你個鬼.mp3", isEnglish: false },
-        { text: "不可能的任務", filename: "https://atbox-zz.github.io/app/不可能的任務.mp3", isEnglish: false },
-        { text: "你不要過來啊!", filename: "https://atbox-zz.github.io/app/你不要過來啊.mp3", isEnglish: false },
-        { text: "五姑媽", filename: "https://atbox-zz.github.io/app/五姑媽.mp3", isEnglish: false },
-        { text: "", filename: "", isEnglish: false, isGame: true },
-        { text: "", filename: "", isEnglish: false, isGame: true },
-        { text: "", filename: "", isEnglish: false, isGame: true },
-        { text: "", filename: "", isEnglish: false, isGame: true },
-        { text: "", filename: "", isEnglish: false, isGame: true },
-        { text: "", filename: "", isEnglish: false, isGame: true },
-        { text: "", filename: "", isEnglish: false, isGame: true },
-        { text: "", filename: "", isEnglish: false, isGame: true },
-      ]
-    },
-    {
-      buttons: [
         { text: "64方圓圖", filename: "./g.html", isEnglish: false, isGame: true },
         { text: "六十四卦速見表", filename: "./guaorder.html", isEnglish: false, isGame: true },
         { text: "DS OR單形法", filename: "./simplex.html", isEnglish: false, isGame: true },
@@ -191,6 +162,35 @@ const MusicPlayer = () => {
         { text: "井字棋", filename: "./xx.html", isEnglish: false, isGame: true },
         { text: "", filename: "", isEnglish: false, isGame: true },
         { text: "", filename: "", isEnglish: false, isGame: true },
+      ]
+
+    },
+    {
+      buttons: [
+        { text: "你老師咧", filename: "https://atbox-zz.github.io/app/你老師咧.mp3", isEnglish: false },
+        { text: "參加喪禮會想死", filename: "https://atbox-zz.github.io/app/參加喪禮會想死.mp3", isEnglish: false },
+        { text: "吃賽啦", filename: "https://atbox-zz.github.io/app/吃屎啦.mp3", isEnglish: false },
+        { text: "哭北哦", filename: "https://atbox-zz.github.io/app/哭北.mp3", isEnglish: false },
+        { text: "我信你個鬼", filename: "https://atbox-zz.github.io/app/我信你個鬼.mp3", isEnglish: false },
+        { text: "不可能的任務", filename: "https://atbox-zz.github.io/app/不可能的任務.mp3", isEnglish: false },
+        { text: "你不要過來啊!", filename: "https://atbox-zz.github.io/app/你不要過來啊.mp3", isEnglish: false },
+        { text: "五姑媽", filename: "https://atbox-zz.github.io/app/五姑媽.mp3", isEnglish: false },
+        { text: "", filename: "", isEnglish: false, isGame: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
+      ]
+    },
+    {
+      buttons: [
+        { text: "小明劍魔 回答我!", filename: "https://atbox-zz.github.io/app/answerme.mp3", isEnglish: false },
+        { text: "LOOK\nIN\nMY EYES", filename: "https://atbox-zz.github.io/app/Lookmyeyes.mp3", isEnglish: true },
+        { text: "TELL\nME\nWHY?", filename: "./Tellmewhy.mp3", isEnglish: true },
+        { text: "啊能能!", filename: "./啊能能.mp3", isEnglish: false },
       ]
     }
   ];
@@ -319,16 +319,16 @@ const MusicPlayer = () => {
   };
 
   const pageColors = [
-    ['#e6f3ff', '#cce7ff', '#e6ffe6', '#ccffcc'], // 小明劍魔區 (2x2)
     ['#fff0e6', '#ffe0cc', '#f0e6ff', '#e0ccff', '#ffe6f0', '#ffccdd', '#e6fffa', '#ccfff7', '#f0f8ff', '#e6f3ff', '#fff8dc', '#f5f5dc', '#ffefd5', '#ffd4aa', '#e6f7ff', '#cceeff'], // 童話故事 (4x4)
     ['#ffe6f0', '#ffccdd', '#e6fffa', '#ccfff7', '#fff0e6', '#ffe0cc', '#f0e6ff', '#e0ccff', '#f0f8ff', '#e6f3ff', '#fff8dc', '#f5f5dc', '#ffefd5', '#ffd4aa', '#e6f7ff', '#cceeff'], // 搞笑語音 (4x4)
     ['#f0f8ff', '#e6f3ff', '#fff8dc', '#f5f5dc', '#ffefd5', '#ffd4aa', '#e6f7ff', '#cceeff', '#ffe6f0', '#ffccdd', '#e6fffa', '#ccfff7', '#fff0e6', '#ffe0cc', '#f0e6ff', '#e0ccff'], // 遊戲專區 (4x4)
+    ['#e6f3ff', '#cce7ff', '#e6ffe6', '#ccffcc'], // 小明劍魔區 (2x2)
   ];
 
   // 根據當前頁面和按鈕數量決定佈局
   const getGridLayout = (currentPageIndex) => {
 // 移除未使用的變數
-    if (currentPageIndex === 0) {
+    if (currentPageIndex === 3) {
       // 小明劍魔區保持2x2佈局
       return {
         gridTemplateColumns: '1fr 1fr',
@@ -343,9 +343,9 @@ const MusicPlayer = () => {
         gridTemplateColumns: 'repeat(4, 1fr)',
         gridTemplateRows: 'repeat(8, 1fr)',
         gap: '2vw',
-        width: '100vw',
+        width: '80vw',
         padding: '3vw',
-        maxHeight: '100vh',
+        maxHeight: '90vh',
         overflowY: 'auto',
       };
     }
@@ -358,7 +358,7 @@ const MusicPlayer = () => {
     
     let baseStyle = { ...buttonStyle };
     
-    if (currentPageIndex === 0) {
+    if (currentPageIndex === 3) {
       // 小明劍魔區保持原尺寸
       baseStyle = {
         ...buttonStyle,
