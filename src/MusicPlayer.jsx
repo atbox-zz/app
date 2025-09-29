@@ -119,16 +119,15 @@ const MusicPlayer = () => {
   // 音頻數據配置
   const audioPages = [
     {
-      title: "小明劍魔",
       buttons: [
-        { text: "回答我!", filename: "https://atbox-zz.github.io/app/answerme.mp3", isEnglish: false },
+        { text: "小明劍魔 回答我!", filename: "https://atbox-zz.github.io/app/answerme.mp3", isEnglish: false },
         { text: "LOOK\nIN\nMY EYES", filename: "https://atbox-zz.github.io/app/Lookmyeyes.mp3", isEnglish: true },
         { text: "TELL\nME\nWHY?", filename: "./Tellmewhy.mp3", isEnglish: true },
         { text: "啊能能!", filename: "./啊能能.mp3", isEnglish: false },
       ]
     },
     {
-      title: "童話故事搞笑語音",
+
       buttons: [
         { text: "你老師咧", filename: "https://atbox-zz.github.io/app/你老師咧.mp3", isEnglish: false },
         { text: "參加喪禮會想死", filename: "https://atbox-zz.github.io/app/參加喪禮會想死.mp3", isEnglish: false },
@@ -149,7 +148,6 @@ const MusicPlayer = () => {
       ]
     },
     {
-      title: "研究課題",
       buttons: [
         { text: "64方圓圖", filename: "./g.html", isEnglish: false, isGame: true },
         { text: "六十四卦速見表", filename: "./guaorder.html", isEnglish: false, isGame: true },
@@ -166,33 +164,32 @@ const MusicPlayer = () => {
         { text: "Neuron", filename: "./Neuron.html", isEnglish: false, isGame: true },
         { text: "CosmicNeural", filename: "./CosmicNeural.html", isEnglish: false, isGame: true },
 
-        { text: "INNV", filename: "./INNV_flash.html", isEnglish: false, isGame: true },
+        { text: "INNV閃網", filename: "./INNV_flash.html", isEnglish: false, isGame: true },
         { text: "Neural音樂", filename: "./Neuralmusic.html", isEnglish: false, isGame: true },
-        { text: "", filename: "", isEnglish: false, isGame: true },
-        { text: "", filename: "", isEnglish: false, isGame: true },
-      ]
-    },
-    {
-      title: "遊戲專區",
-      buttons: [
         { text: "🐍", filename: "./snake1.html", isEnglish: false, isGame: true },
         { text: "🎮魔術方塊", filename: "./cude6c.html", isEnglish: true, isGame: true },
-        { text: "🎲金錢卦", filename: "./gua1a.html", isEnglish: true, isGame: true },
-        { text: "井字棋", filename: "./xx.html", isEnglish: false, isGame: true },
 
+        { text: "🎲金錢卦", filename: "./gua1a.html", isEnglish: true, isGame: true },
         { text: "🌱生命系統", filename: "game of liveinlive中文2.html", isEnglish: false, isGame: true },
         { text: "🔺64D", filename: "./vertices64d1.html", isEnglish: false, isGame: true },
         { text: "🔺64D2", filename: "./vis_mobile.html", isEnglish: false, isGame: true },
+ 
         { text: "🎯3d", filename: "./vertices3d.html", isEnglish: false, isGame: true },
-
         { text: "👁vis4d", filename: "./vis4d.html", isEnglish: false, isGame: true },
         { text: "👁vis4d0", filename: "./vis4d0.html", isEnglish: false, isGame: true },
         { text: "👁vis4d1a", filename: "./vis4d1a.html", isEnglish: false, isGame: true },
-        { text: "✨vis6e", filename: "vis6e.html", isEnglish: false, isGame: true },
 
+        { text: "✨vis6e", filename: "vis6e.html", isEnglish: false, isGame: true },
         { text: "查八字", filename: "8w0b.html", isEnglish: false, isGame: true },
         { text: "大運流年", filename: "8w2.html", isEnglish: false, isGame: true },
+
+      ]
+    },
+    {
+      buttons: [
         { text: "拉霸機", filename: "slotmachine.html", isEnglish: false, isGame: true },
+        { text: "井字棋", filename: "./xx.html", isEnglish: false, isGame: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
         { text: "", filename: "", isEnglish: false, isGame: true },
       ]
     }
@@ -344,11 +341,11 @@ const MusicPlayer = () => {
       // 其他區都使用4x4佈局
       return {
         gridTemplateColumns: 'repeat(4, 1fr)',
-        gridTemplateRows: 'repeat(4, 1fr)',
+        gridTemplateRows: 'repeat(8, 1fr)',
         gap: '2vw',
-        width: '90vw',
+        width: '100vw',
         padding: '3vw',
-        maxHeight: '70vh',
+        maxHeight: '100vh',
         overflowY: 'auto',
       };
     }
@@ -412,12 +409,12 @@ const MusicPlayer = () => {
       {/* 標題 */}
       <div style={{
         color: '#fff',
-        fontSize: '4.5vw',
+        fontSize: '2.5vw',
         fontWeight: 'bold',
-        marginBottom: '2vh',
-        textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)',
+        marginBottom: '0vh',
+        textShadow: '1px 1px 2px rgba(0, 0, 0, 0.5)',
         textAlign: 'center',
-        paddingTop: '2vh',
+        paddingTop: '0vh',
       }}>
         {audioPages[currentPage].title}
       </div>
@@ -425,8 +422,8 @@ const MusicPlayer = () => {
       {/* 頁面指示器 */}
       <div style={{
         display: 'flex',
-        gap: '6vw',
-        marginBottom: '3vh',
+        gap: '3vw',
+        marginBottom: '1vh',
       }}>
         {audioPages.map((_, index) => (
           <div
@@ -495,7 +492,7 @@ const MusicPlayer = () => {
             left: '2vw',
             top: '50%',
             transform: 'translateY(-50%)',
-            fontSize: '7vw',
+            fontSize: '4vw',
             color: 'rgba(255, 255, 255, 0.8)',
             cursor: 'pointer',
             userSelect: 'none',
@@ -522,7 +519,7 @@ const MusicPlayer = () => {
             right: '2vw',
             top: '50%',
             transform: 'translateY(-50%)',
-            fontSize: '7vw',
+            fontSize: '4vw',
             color: 'rgba(255, 255, 255, 0.8)',
             cursor: 'pointer',
             userSelect: 'none',

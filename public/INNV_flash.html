@@ -294,8 +294,10 @@
         <button id="reset-camera-btn" class="control-button">重置視角</button>
     </div>
 
-    <!-- 新增音效元素 -->
+    <!-- 新增音樂控制按鈕 -->
     <button id="music-control-btn" class="control-button">播放音樂</button>
+
+    <!-- 新增音訊元素 -->
     <audio id="background-music" loop>
         <!-- 這裡使用一個免費的科幻風格音樂作為示例 -->
         <!--source src="https://cdn.pixabay.com/download/audio/2022/01/18/audio_3a4635f388.mp3?filename=ambient-electronic-music-122745.mp3" type="audio/mpeg"-->
@@ -1318,7 +1320,7 @@
         // ========================
         renderer.domElement.addEventListener('click', (e) => {
             // 點擊控制面板或按鈕不觸發脈衝和音效
-            if (e.target.closest('.ui-panel, #control-buttons')) return;
+            if (e.target.closest('.ui-panel, #control-buttons, #music-control-btn')) return;
 
             // 初始化音訊上下文 (如果尚未初始化)
             initAudioContext();
@@ -1331,9 +1333,7 @@
         });
 
         renderer.domElement.addEventListener('touchstart', (e) => {
-            // 點擊控制面板或按鈕不觸發脈衝和音效
-            if (e.target.closest('.ui-panel, #control-buttons')) return;
-
+            if (e.target.closest('.ui-panel, #control-buttons, #music-control-btn')) return;
             e.preventDefault();
 
             // 初始化音訊上下文 (如果尚未初始化)
