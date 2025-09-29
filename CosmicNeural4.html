@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3維兆億級宇宙神經網絡</title>
+    <title>3D兆億級宇宙神經網絡</title>
     <style>
         body {
             margin: 0;
@@ -316,6 +316,11 @@
             box-shadow: 0 0 50px rgba(0, 255, 255, 0.3);
         }
         
+        @keyframes cosmicSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         .progress-bar {
             width: 300px;
             height: 8px;
@@ -484,15 +489,15 @@
                 
                 // 宇宙級參數
                 this.cosmicParams = {
-                    neuronLayers: 12,
-                    neuronsPerLayer: 8000,
-                    totalNeurons: 0,
-                    networkDensity: 1.8,
-                    spatialDepth: 1.5,
-                    pulseSpeed: 2.2,
-                    connectionActivity: 1.6,
-                    rotationSpeed: 1.0,
-                    spatialDistortion: 0.8
+                    neuronLayers: 12,          // 深度神經網絡層數
+                    neuronsPerLayer: 8000,     // 每層神經元數量
+                    totalNeurons: 0,           // 總神經元數（將計算）
+                    networkDensity: 1.8,       // 網絡密度
+                    spatialDepth: 1.5,         // 3D空間深度
+                    pulseSpeed: 2.2,           // 神經脈衝速度
+                    connectionActivity: 1.6,   // 連接活躍度
+                    rotationSpeed: 1.0,        // 3D旋轉速度
+                    spatialDistortion: 0.8     // 空間扭曲程度
                 };
                 
                 // 3維空間數據結構
@@ -564,10 +569,10 @@
             
             showLoading() {
                 const loadingSteps = [
-                    "初始化3D空間...",
+                    "初始化維度空間...",
                     "創建神經元集群...",
                     "建立層間連接...",
-                    "計算3D變換矩陣...",
+                    "計算4D投影矩陣...",
                     "啟動宇宙引擎...",
                     "準備就緒！"
                 ];
@@ -614,8 +619,13 @@
                 this.renderer.shadowMap.enabled = true;
                 this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
                 
+                // 添加後處理效果
+                this.renderer.gammaInput = true;
+                this.renderer.gammaOutput = true;
+                
                 document.getElementById('universe-container').appendChild(this.renderer.domElement);
                 
+                // 設置相機初始位置
                 this.camera.position.set(0, 50, 150);
                 this.camera.lookAt(0, 0, 0);
             }
@@ -623,13 +633,18 @@
             async createCosmicUniverse() {
                 console.log("🌌 開始創建宇宙級神經網絡...");
                 
+                // 計算總神經元數量
                 this.cosmicParams.totalNeurons = this.cosmicParams.neuronLayers * this.cosmicParams.neuronsPerLayer;
                 
+                // 創建深度神經網絡層
                 for (let layerIndex = 0; layerIndex < this.cosmicParams.neuronLayers; layerIndex++) {
                     await this.createNeuralLayer(layerIndex);
                 }
                 
+                // 創建層間連接
                 await this.createInterLayerConnections();
+                
+                // 創建宇宙級粒子系統
                 this.createCosmicParticles();
                 
                 console.log(`✨ 宇宙創建完成！總計 ${this.cosmicParams.totalNeurons} 個神經元`);
@@ -642,11 +657,13 @@
                     geometry: null,
                     material: null,
                     mesh: null,
-                    zPosition: (layerIndex / this.cosmicParams.neuronLayers - 0.5) * 200 // 3D層間距離
+                    fourthDimW: (layerIndex / this.cosmicParams.neuronLayers - 0.5) * 20 // 4D分布
                 };
                 
                 // 創建神經元幾何體
                 const neuronGeometry = new THREE.SphereGeometry(0.08, 12, 8);
+                
+                // 根據層級創建不同顏色的材質
                 const hue = (layerIndex / this.cosmicParams.neuronLayers) * 360;
                 const neuronMaterial = new THREE.MeshLambertMaterial({
                     color: new THREE.Color().setHSL(hue / 360, 0.8, 0.6),
@@ -655,12 +672,14 @@
                     emissive: new THREE.Color().setHSL(hue / 360, 0.5, 0.1)
                 });
                 
+                // 使用實例化網格優化性能
                 layer.mesh = new THREE.InstancedMesh(
                     neuronGeometry, 
                     neuronMaterial, 
                     this.cosmicParams.neuronsPerLayer
                 );
                 
+                // 生成4D神經元位置
                 const dummy = new THREE.Object3D();
                 for (let i = 0; i < this.cosmicParams.neuronsPerLayer; i++) {
                     const neuron = this.generate3DNeuronPosition(layerIndex, i);
@@ -676,6 +695,7 @@
                 this.scene.add(layer.mesh);
                 this.neuralLayers.push(layer);
                 
+                // 模擬異步加載
                 await new Promise(resolve => setTimeout(resolve, 100));
             }
             
@@ -783,6 +803,7 @@
             }
             
             createCosmicParticles() {
+                // 背景星系粒子
                 const particleCount = 50000;
                 const particlesGeometry = new THREE.BufferGeometry();
                 const positions = [];
@@ -816,14 +837,17 @@
             }
             
             setupLighting() {
+                // 多層次光照系統
                 const ambientLight = new THREE.AmbientLight(0x001122, 0.4);
                 this.scene.add(ambientLight);
                 
+                // 主要方向光
                 const directionalLight = new THREE.DirectionalLight(0x0088ff, 1.2);
                 directionalLight.position.set(50, 100, 50);
                 directionalLight.castShadow = true;
                 this.scene.add(directionalLight);
                 
+                // 彩色點光源
                 const colors = [0xff3366, 0x33ff66, 0x3366ff, 0xffaa33];
                 for (let i = 0; i < 4; i++) {
                     const pointLight = new THREE.PointLight(colors[i], 0.8, 200);
@@ -838,6 +862,7 @@
             }
             
             setupControls() {
+                // 網絡密度控制
                 const networkDensitySlider = document.getElementById('networkDensity');
                 networkDensitySlider.addEventListener('input', (e) => {
                     this.cosmicParams.networkDensity = parseFloat(e.target.value);
@@ -850,12 +875,14 @@
                     document.getElementById('spatialDepthValue').textContent = this.cosmicParams.spatialDepth.toFixed(1);
                 });
                 
+                // 神經脈衝速度控制
                 const pulseSpeedSlider = document.getElementById('pulseSpeed');
                 pulseSpeedSlider.addEventListener('input', (e) => {
                     this.cosmicParams.pulseSpeed = parseFloat(e.target.value);
                     document.getElementById('pulseSpeedValue').textContent = this.cosmicParams.pulseSpeed.toFixed(1);
                 });
                 
+                // 連接活躍度控制
                 const connectionActivitySlider = document.getElementById('connectionActivity');
                 connectionActivitySlider.addEventListener('input', (e) => {
                     this.cosmicParams.connectionActivity = parseFloat(e.target.value);
@@ -876,11 +903,13 @@
             }
             
             setupInteractions() {
+                // 鼠標追蹤
                 const cursor = document.getElementById('neural-cursor');
                 document.addEventListener('mousemove', (e) => {
                     cursor.style.left = (e.clientX - 15) + 'px';
                     cursor.style.top = (e.clientY - 15) + 'px';
                     
+
                     const normalizedX = (e.clientX / window.innerWidth - 0.5) * 2;
                     const normalizedY = -(e.clientY / window.innerHeight - 0.5) * 2;
                     const time = this.clock.getElapsedTime();
@@ -890,6 +919,7 @@
                     document.getElementById('coord-z').textContent = Math.sin(time * 0.5).toFixed(2);
                 });
                 
+                // 點擊觸發神經脈衝
                 this.renderer.domElement.addEventListener('click', (e) => {
                     const mouse = new THREE.Vector2();
                     mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -898,6 +928,7 @@
                     this.triggerNeuralPulseAt(mouse);
                 });
                 
+                // 響應式調整
                 window.addEventListener('resize', () => {
                     this.camera.aspect = window.innerWidth / window.innerHeight;
                     this.camera.updateProjectionMatrix();
