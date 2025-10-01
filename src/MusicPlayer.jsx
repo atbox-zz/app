@@ -124,32 +124,24 @@ const MusicPlayer = () => {
         { text: "六十四卦速見表", filename: "./guaorder.html", isEnglish: false, isGame: true },
         { text: "DS OR單形法", filename: "./simplex.html", isEnglish: false, isGame: true },
         { text: "Grok OR單形法", filename: "./simplex1.html", isEnglish: false, isGame: true },
-
         { text: "公車路線", filename: "./indexv12.html", isEnglish: false, isGame: true },
         { text: "64卦狀態機", filename: "./yy.html", isEnglish: false, isGame: true },
         { text: "八宮卦方立體", filename: "./zz.html", isEnglish: false, isGame: true },
         { text: "🤖AI示波器", filename: "./scope.html", isEnglish: false, isGame: true },
-
         { text: "🦋洛倫茲吸引子", filename: "./Lorenz_system_p.html", isEnglish: false, isGame: true },
         { text: "平面運動模擬器", filename: "./2DsimCanva.html", isEnglish: false, isGame: true },
         { text: "Neuron", filename: "./Neuron.html", isEnglish: false, isGame: true },
         { text: "CosmicNeural", filename: "./CosmicNeural.html", isEnglish: false, isGame: true },
-
         { text: "INNV閃網", filename: "./INNV_flash.html", isEnglish: false, isGame: true },
         { text: "Neural音樂", filename: "./Neuralmusic.html", isEnglish: false, isGame: true },
-        { text: "🐍", filename: "./snake1.html", isEnglish: false, isGame: true },
-        { text: "🎮魔術方塊", filename: "./cude6c.html", isEnglish: true, isGame: true },
-
         { text: "🎲金錢卦", filename: "./gua1a.html", isEnglish: true, isGame: true },
         { text: "🌱生命系統", filename: "game of liveinlive中文2.html", isEnglish: false, isGame: true },
         { text: "🔺64D", filename: "./vertices64d1.html", isEnglish: false, isGame: true },
         { text: "🔺64D2", filename: "./vis_mobile.html", isEnglish: false, isGame: true },
- 
         { text: "🎯3d", filename: "./vertices3d.html", isEnglish: false, isGame: true },
         { text: "👁vis4d", filename: "./vis4d.html", isEnglish: false, isGame: true },
         { text: "👁vis4d0", filename: "./vis4d0.html", isEnglish: false, isGame: true },
         { text: "👁vis4d1a", filename: "./vis4d1a.html", isEnglish: false, isGame: true },
-
         { text: "✨vis6e", filename: "vis6e.html", isEnglish: false, isGame: true },
         { text: "查八字", filename: "8w0b.html", isEnglish: false, isGame: true },
         { text: "大運流年", filename: "8w2.html", isEnglish: false, isGame: true },
@@ -160,6 +152,9 @@ const MusicPlayer = () => {
       buttons: [
         { text: "拉霸機", filename: "slotmachine.html", isEnglish: false, isGame: true },
         { text: "井字棋", filename: "./xx.html", isEnglish: false, isGame: true },
+        { text: "🐍", filename: "./snake1.html", isEnglish: false, isGame: true },
+        { text: "🎮魔術方塊", filename: "./cude6c.html", isEnglish: true, isGame: true },
+
         { text: "", filename: "", isEnglish: false, isGame: true },
         { text: "", filename: "", isEnglish: false, isGame: true },
       ]
