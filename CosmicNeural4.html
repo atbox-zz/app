@@ -165,7 +165,15 @@
             transform: scale(1.05);
             box-shadow: 0 0 15px rgba(255, 102, 0, 0.6);
         }
-        
+
+        .btn-music {
+            background: linear-gradient(45deg, #006666, #00cccc);
+            color: white;
+        }
+
+        .btn-music.active {
+            background: linear-gradient(45deg, #cc0000, #ff3333);
+        }        
         .mode-buttons {
             display: flex;
             flex-direction: column;
@@ -438,10 +446,11 @@
                 <button class="mode-button" onclick="triggerCosmicPulse()">🌟 宇宙脈衝</button>
                 <button class="mode-button" onclick="spatialShift()">🌀 空間變換</button>
                 <button class="mode-button" onclick="resetUniverse()">♻️ 重置宇宙</button>
+                <button id="btn-music" onclick="toggleCosmicMusic()">🔈 開啟宇宙音景</button>            
             </div>
         </div>
         
-        <div id="dimension-indicator" style="display: none;">
+        <!--div id="dimension-indicator" style="display: none;">
               <div class="dimension-title">3D 座標系統</div>
             <div class="stat-item">
                 <span class="stat-label">神經元:</span>
@@ -469,7 +478,14 @@
                 <div>Y: <span id="coord-y">0.00</span></div>
                 <div>Z: <span id="coord-z">0.00</span></div>
             </div>
-        </div>
+        </div-->
+
+        <!-- 新增音訊元素 -->
+        <audio id="cosmic-audio" reload="auto" loop style="display:none;">
+            <!-- 這裡使用一個免費的科幻風格音樂作為示例 -->
+            <!--source src="https://cdn.pixabay.com/download/audio/2022/01/18/audio_3a4635f388.mp3?filename=ambient-electronic-music-122745.mp3" type="audio/mpeg"-->
+            <source src="Zirbeldrusen_Aktiveerung.mp3" type="audio/mpeg">
+        </audio>
         
         <div id="neural-cursor"></div>
     </div>
@@ -490,7 +506,7 @@
                 // 宇宙級參數
                 this.cosmicParams = {
                     neuronLayers: 12,          // 深度神經網絡層數
-                    neuronsPerLayer: 8000,     // 每層神經元數量
+                    neuronsPerLayer: 200,     // 每層神經元數量8000
                     totalNeurons: 0,           // 總神經元數（將計算）
                     networkDensity: 1.8,       // 網絡密度
                     spatialDepth: 1.5,         // 3D空間深度
@@ -586,7 +602,7 @@
                         loadingText.textContent = loadingSteps[currentStep];
                         progressBar.style.width = ((currentStep + 1) / loadingSteps.length * 100) + '%';
                         currentStep++;
-                        setTimeout(updateProgress, 800);
+                        setTimeout(updateProgress, 200);
                     }
                 };
                 
@@ -609,7 +625,7 @@
                             }, 6000);
                         }
                     }, 1000);
-                }, 5000);
+                }, 0);
             }
             
             async setupRenderer() {
@@ -631,7 +647,7 @@
             }
             
             async createCosmicUniverse() {
-                console.log("🌌 開始創建宇宙級神經網絡...");
+                console.log("🌌 開始創建宇宙神經網絡...");
                 
                 // 計算總神經元數量
                 this.cosmicParams.totalNeurons = this.cosmicParams.neuronLayers * this.cosmicParams.neuronsPerLayer;
@@ -1246,9 +1262,11 @@
                         const startNeuron = this.neuralLayers[connection.start.layer].neurons[connection.start.neuron];
                         const endNeuron = this.neuralLayers[connection.end.layer].neurons[connection.end.neuron];
                         
+                        // 基於神經元激活度的連接強度
                         const activity = (startNeuron.activation + endNeuron.activation) * 0.5;
                         const intensity = activity * this.cosmicParams.connectionActivity;
                         
+                        // 更新連接顏色
                         const baseColor = new THREE.Color().setHSL(
                             (connection.start.layer + connection.end.layer) / (this.cosmicParams.neuronLayers * 2),
                             0.8,
@@ -1268,6 +1286,7 @@
             }
             
             updateStats() {
+                // 更新統計信息
                 document.getElementById('neuronCount').textContent = 
                     (this.cosmicParams.totalNeurons / 1000000).toFixed(1) + 'M';
                 
@@ -1280,6 +1299,7 @@
                 
                 document.getElementById('layerCount').textContent = this.cosmicParams.neuronLayers;
                 
+                // 計算網絡活躍度
                 let totalActivation = 0;
                 let totalNeurons = 0;
                 for (let layer of this.neuralLayers) {
@@ -1299,17 +1319,23 @@
                     const deltaTime = this.clock.getDelta();
                     this.frameCount++;
                     
+                    // 更新神經動力學
                     this.updateNeuralDynamics(deltaTime);
+                    
+                    // 更新神經脈衝
                     this.updateNeuralPulses(deltaTime);
                     
+                    // 宇宙級相機運動
                     const time = this.clock.getElapsedTime();
                     this.camera.position.x = Math.sin(time * 0.05) * 200;
                     this.camera.position.y = Math.cos(time * 0.03) * 100 + 50;
                     this.camera.position.z = Math.cos(time * 0.05) * 200 + 100;
                     this.camera.lookAt(0, 0, 0);
                     
+                    // 渲染場景
                     this.renderer.render(this.scene, this.camera);
                     
+                    // 更新統計（每秒一次）
                     if (time - this.lastFPSUpdate > 1) {
                         document.getElementById('fps').textContent = Math.round(1 / deltaTime);
                         this.updateStats();
@@ -1342,6 +1368,7 @@
         
         function triggerCosmicPulse() {
             if (cosmicUniverse) {
+                // 創建多個同心脈衝波
                 for (let i = 0; i < 5; i++) {
                     setTimeout(() => {
                         const angle = (i / 5) * Math.PI * 2;
@@ -1369,6 +1396,7 @@
                 document.getElementById('rotationSpeedValue').textContent = 
                     cosmicUniverse.cosmicParams.rotationSpeed.toFixed(1);
                 
+                // 視覺反饋
                 document.body.style.filter = 'hue-rotate(' + (Math.random() * 360) + 'deg)';
                 setTimeout(() => {
                     document.body.style.filter = 'none';
@@ -1378,6 +1406,7 @@
         
         function resetUniverse() {
             if (cosmicUniverse) {
+                // 重置所有神經元到原始位置
                 for (let layer of cosmicUniverse.neuralLayers) {
                     for (let neuron of layer.neurons) {
                         neuron.position.copy(neuron.originalPosition);
@@ -1397,15 +1426,54 @@
                 document.getElementById('rotationSpeedValue').textContent = '1.0';
             }
         }
+
+        let cosmicAudio = null;
+        let isAudioEnabled = false;
+
+        function initCosmicAudio() {
+            if (!cosmicAudio) {
+                cosmicAudio = document.getElementById('cosmic-audio');
+                cosmicAudio.active;
+            }
+        }
+
+        function toggleCosmicMusic() {
+            initCosmicAudio();
+            if (cosmicAudio.paused) {
+                // 首次播放需用戶互動
+                cosmicAudio.play()
+                    .then(() => {
+                        isAudioEnabled = true;
+                        updateMusicButton(true);
+                    })
+                    .catch(e => {
+                        console.warn("Audio play blocked:", e);
+                        alert("請先點擊畫面任意處，再啟用背景音樂。");
+                    });
+            } else {
+                cosmicAudio.pause();
+                isAudioEnabled = false;
+                updateMusicButton(false);
+            }
+        }
+
+        function updateMusicButton(isPlaying) {
+            const btn = document.querySelector('#btn-music');
+            if (btn) {
+                btn.textContent = isPlaying ? '🔇 關閉音樂' : '🔈 開啟音景';
+                btn.classList.toggle('active', isPlaying);
+            }
+        }
         
         function toggleHUD() {
             const hud = document.getElementById('hud');
             hud.classList.toggle('collapsed');
         }
-        
+
         // 初始化宇宙
         window.addEventListener('load', () => {
             cosmicUniverse = new CosmicNeuralUniverse();
+
         });
     </script>
 </body>

@@ -1453,8 +1453,8 @@
 
         function init() {
             createNetworkVisualization(config.currentFormation, config.densityFactor);
-             document.querySelectorAll('.theme-button').forEach(b => b.classList.remove('active'));
-             document.querySelector(`.theme-button[data-theme="${config.activePaletteIndex}"]`).classList.add('active');
+            document.querySelectorAll('.theme-button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.theme-button[data-theme="${config.activePaletteIndex}"]`).classList.add('active');
             updateTheme(config.activePaletteIndex);
             animate();
         }
@@ -1464,7 +1464,7 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
             composer.setSize(window.innerWidth, window.innerHeight);
-             bloomPass.resolution.set(window.innerWidth, window.innerHeight);
+            bloomPass.resolution.set(window.innerWidth, window.innerHeight);
         }
 
         window.addEventListener('resize', onWindowResize);

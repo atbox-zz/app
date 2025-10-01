@@ -384,7 +384,7 @@
             </div>
         </div-->
         
-        <div id="dimension-indicator" style="display: none;">
+        <!--div id="dimension-indicator" style="display: none;">
             <div class="dimension-title">4D 座標系統</div>
             <div class="dimension-coords">
                 <div>X: <span id="coord-x">0.00</span></div>
@@ -392,7 +392,7 @@
                 <div>Z: <span id="coord-z">0.00</span></div>
                 <div>W: <span id="coord-w">0.00</span></div>
             </div>
-        </div>
+        </div-->
 
         <!-- 新增音訊元素 -->
         <audio id="cosmic-audio" reload="auto" loop style="display:none;">
@@ -463,6 +463,7 @@
                 await this.setupInteractions();
                 this.hideLoading();
                 this.startCosmicAnimation();
+                this.toggleCosmicMusic();
             }
             
             showLoading() {
@@ -503,7 +504,7 @@
                         hudToggle.style.animation = 'pulse 2s infinite';
                         setTimeout(() => {
                             hudToggle.style.animation = 'none';
-                        }, 8000);
+                        }, 6000);
                     }, 1000);                    
                 }, 0);
             }
