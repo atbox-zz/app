@@ -442,6 +442,12 @@
             <source src="breath-meditation-music.mp3" type="audio/mpeg">
         </audio>
 
+        <!-- 新增音樂控制按鈕 --------------------------------------------------------->
+        <button id="music-control-btn" class="control-button">播放音樂</button>
+        <audio id="background-music" loop>
+            <source src="Zirbeldrusen_Aktiveerung.mp3" type="audio/mpeg">
+        </audio>
+
         <div id="neural-cursor"></div>
 
     </div>
@@ -1304,6 +1310,26 @@
             const hud = document.getElementById('hud');
             hud.classList.toggle('collapsed');
         }
+        // ========================
+        // 新增音樂控制功能
+        // ========================
+        const musicControlBtn = document.getElementById('music-control-btn');
+        const backgroundMusic = document.getElementById('background-music');
+
+        musicControlBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (backgroundMusic.paused) {
+                backgroundMusic.play().catch(error => {
+                    console.warn("無法自動播放音樂，請在使用者互動後再試一次。", error);
+                    alert("請點擊畫面以啟用音樂播放。");
+                });
+                musicControlBtn.textContent = "暫停音樂";
+            } else {
+                backgroundMusic.pause();
+                musicControlBtn.textContent = "播放音樂";
+            }
+        });
+
         
         // 初始化宇宙
         window.addEventListener('load', () => {
