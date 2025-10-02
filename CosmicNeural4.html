@@ -936,15 +936,7 @@
                 document.addEventListener('mousemove', (e) => {
                     cursor.style.left = (e.clientX - 15) + 'px';
                     cursor.style.top = (e.clientY - 15) + 'px';
-                    
-
-                    const normalizedX = (e.clientX / window.innerWidth - 0.5) * 2;
-                    const normalizedY = -(e.clientY / window.innerHeight - 0.5) * 2;
-                    const time = this.clock.getElapsedTime();
-                    
-                    document.getElementById('coord-x').textContent = normalizedX.toFixed(2);
-                    document.getElementById('coord-y').textContent = normalizedY.toFixed(2);
-                    document.getElementById('coord-z').textContent = Math.sin(time * 0.5).toFixed(2);
+                                        
                 });
                 
                 // 點擊觸發神經脈衝
