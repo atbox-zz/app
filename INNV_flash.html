@@ -53,12 +53,7 @@
             font-size: 15px;
         }
         #theme-selector {
-            top: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            max-width: 150px;
+            display:none  /* 新增此行以隱藏主題選擇器 */
         }
         #theme-selector-title {
             font-weight: 600;
@@ -93,11 +88,9 @@
         #theme-2 { background: linear-gradient(45deg, #F59E0B, #F97316, #DC2626, #7F1D1D); }
         #theme-3 { background: linear-gradient(45deg, #EC4899, #8B5CF6, #6366F1, #3B82F6); }
         #theme-4 { background: linear-gradient(45deg, #10B981, #A3E635, #FACC15, #FB923C); }
+        /* 隱藏密度控制 */
         #density-controls {
-            margin-top: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+            display: none; /* 新增此行以隱藏密度控制 */
         }
         .density-label {
             font-size: 13px;
@@ -201,14 +194,9 @@
             #instruction-title {
                 font-size: 14px;
             }
-            #theme-selector {
-                top: auto;
-                bottom: 20px;
-                right: 10px;
-                left: auto;
-                transform: none;
-                max-width: 120px;
-                padding: 10px;
+            /* 針對更小螢幕的主題選擇器響應式樣式也設定為隱藏 */
+             #theme-selector {
+                display: none;
             }
              #theme-selector-title {
                 font-size: 14px;
@@ -235,14 +223,9 @@
             }
         }
          @media (max-width: 400px) {
+            /* 針對更小螢幕的主題選擇器響應式樣式也設定為隱藏 */
              #theme-selector {
-                flex-direction: column;
-                align-items: center;
-                max-width: none;
-                width: calc(100% - 20px);
-                left: 10px;
-                right: 10px;
-                bottom: 75px;
+                display: none;
             }
              .theme-grid {
                 grid-template-columns: repeat(4, 1fr);
@@ -294,9 +277,8 @@
         <button id="reset-camera-btn" class="control-button">重置視角</button>
     </div>
 
-    <!-- 新增音樂控制按鈕 -->
+    <!-- 新增音樂控制按鈕 --------------------------------------------------------->
     <button id="music-control-btn" class="control-button">播放音樂</button>
-
     <!-- 新增音訊元素 -->
     <audio id="background-music" loop>
         <!-- 這裡使用一個免費的科幻風格音樂作為示例 -->
@@ -304,14 +286,13 @@
         <source src="innv.mp3" type="audio/mpeg">
         您的瀏覽器不支援音訊元素。
     </audio>
-
     <audio id="click-sound" preload="auto">
         <source src="mx15150.mp3" type="audio/mpeg">
         您的瀏覽器不支援音訊元素。
     </audio>
+    <!---------------------------------------------------------------------------------->
 
     <canvas id="neural-network-canvas"></canvas>
-
     <script type="importmap">
     {
       "imports": {
@@ -1380,9 +1361,16 @@
 
         changeFormationBtn.addEventListener('click', (e) => {
             e.stopPropagation();
+            // 同時循環切換網絡結構和主題
             config.currentFormation = (config.currentFormation + 1) % config.numFormations;
+            config.activePaletteIndex = (config.activePaletteIndex + 1) % colorPalettes.length;
             createNetworkVisualization(config.currentFormation, config.densityFactor);
-             controls.autoRotate = false;
+            updateTheme(config.activePaletteIndex); // 更新主題
+            // 更新 UI 上的活動主題按鈕
+            document.querySelectorAll('.theme-button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.theme-button[data-theme="${config.activePaletteIndex}"]`).classList.add('active');
+
+            controls.autoRotate = false;
              setTimeout(() => { controls.autoRotate = true; }, 2000);
         });
 
