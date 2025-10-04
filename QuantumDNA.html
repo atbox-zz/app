@@ -89,21 +89,21 @@
 <body>
   <div id="container"></div>
 
-  <div id="start-btn">🎵 點擊開始史詩之旅 🎵</div>
+  <!--div id="start-btn">🎵 點擊開始史詩之旅 🎵</div-->
 
   <div class="title" id="title">2<sup>0</sup> = 1</div>
 
-  <div class="footer">
+  <!--div class="footer">
     無限多方向DNA螺旋網絡 · 亂中有序 · 對數爆炸成長
-  </div>
+  </div-->
 
-  <div class="stats" id="stats">
+  <!--div class="stats" id="stats">
     <div style="margin-bottom:8px;font-size:16px;font-weight:bold;">等級 0 / 64</div>
     <div style="margin-bottom:5px;">理論粒子: 1</div>
     <div style="margin-bottom:5px;">顯示粒子: 1</div>
     <div style="margin-bottom:8px;font-size:16px;color:#ff0;font-weight:bold;">螺旋數量: 1</div>
     <div style="font-size:12px;opacity:0.8;font-style:italic;">混沌初開...</div>
-  </div>
+  </div-->
 
   <div class="credit">
     Music: "Epic Cinematic Trailer" by Lexin Music (CC BY 4.0)
@@ -116,7 +116,7 @@
   <script>
     // DOM references
     const container = document.getElementById('container');
-    const startBtn = document.getElementById('start-btn');
+    //const startBtn = document.getElementById('start-btn');
     const titleEl = document.getElementById('title');
     const statsEl = document.getElementById('stats');
 
@@ -283,21 +283,21 @@
         player.on('load', () => {
           player.start(0);
           audioStarted = true;
-          startBtn.style.display = 'none';
+          //startBtn.style.display = 'none';
         });
 
         player.on('error', (err) => {
           console.error('Audio load error:', err);
           audioStarted = true;
-          startBtn.style.display = 'none';
+          //startBtn.style.display = 'none';
         });
       } catch (err) {
         console.error('Tone start error:', err);
-        startBtn.style.display = 'none';
+        //startBtn.style.display = 'none';
       }
     };
 
-    startBtn.addEventListener('click', initAudio);
+    //startBtn.addEventListener('click', initAudio);
 
     // Animation loop
     let currentLevel = 0;
