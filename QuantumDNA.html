@@ -84,6 +84,134 @@
       font-size: 10px;
       z-index: 10;
     }
+    #control-buttons {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 10;
+            background: rgba(0, 0, 0, .6);
+            padding: 10px 15px;
+            border-radius: 10px;
+             border: 1px solid rgba(255, 120, 50, .2);
+        }
+        .control-button {
+            background: rgba(255, 120, 50, .2);
+            color: #eee;
+            border: 1px solid rgba(255, 150, 50, .3);
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.1s;
+            white-space: nowrap;
+            min-width: 80px;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+        }
+        .control-button:hover, .control-button:focus {
+            background: rgba(255, 120, 50, .4);
+            outline: none;
+        }
+        .control-button:active {
+            background: rgba(255, 120, 50, .6);
+            transform: scale(0.95);
+        }
+
+        /* 新增音樂控制按鈕樣式 */
+        #music-control-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10;
+            background: rgba(0, 0, 0, .6);
+            border: 1px solid rgba(255, 120, 50, .2);
+            padding: 8px 15px;
+            border-radius: 10px;
+            color: #eee;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        #music-control-btn:hover {
+            background: rgba(255, 120, 50, .4);
+        }
+
+        @media (max-width: 640px) {
+            #instructions-container {
+                max-width: calc(100% - 40px);
+                font-size: 13px;
+                padding: 10px 15px;
+                top: 10px;
+                left: 10px;
+            }
+            #instruction-title {
+                font-size: 14px;
+            }
+            /* 針對更小螢幕的主題選擇器響應式樣式也設定為隱藏 */
+             #theme-selector {
+                display: none;
+            }
+             #theme-selector-title {
+                font-size: 14px;
+            }
+            .theme-button {
+                width: 30px;
+                height: 30px;
+            }
+            .density-label { font-size: 12px; }
+            #control-buttons {
+                bottom: 10px;
+                gap: 10px;
+                padding: 8px 10px;
+            }
+            .control-button {
+                padding: 6px 10px;
+                font-size: 12px;
+                min-width: 65px;
+            }
+            /* 在小螢幕上將音樂按鈕移動到控制列下方 */
+            #music-control-btn {
+                bottom: 0px;
+                right: 0px;
+            }
+        }
+         @media (max-width: 400px) {
+            /* 針對更小螢幕的主題選擇器響應式樣式也設定為隱藏 */
+             #theme-selector {
+                display: none;
+            }
+             .theme-grid {
+                grid-template-columns: repeat(4, 1fr);
+                width: 100%;
+                justify-items: center;
+            }
+             #density-controls {
+                width: 80%;
+                margin-top: 15px;
+            }
+             #control-buttons {
+                width: calc(100% - 20px);
+                justify-content: space-around;
+                bottom: 10px;
+            }
+            #music-control-btn {
+                bottom: 60px;
+                right: 10px;
+                left: 10px;
+                width: calc(100% - 20px);
+                text-align: center;
+            }
+        }
+    /* 在小螢幕上將音樂按鈕移動到控制列下方 */
+    #music-control-btn {
+      bottom: 70px;
+      right: 10px;
+    }
   </style>
 </head>
 <body>
@@ -104,8 +232,13 @@
     <div style="margin-bottom:8px;font-size:16px;color:#ff0;font-weight:bold;">螺旋數量: 1</div>
     <div style="font-size:12px;opacity:0.8;font-style:italic;">混沌初開...</div>
   </div-->
+  <!-- 新增音樂控制按鈕 --------------------------------------------------------->
+    <button id="music-control-btn" class="control-button">播放音樂</button>
+      <audio id="background-music" loop>
+            <source src="epic-cinematic-trailer.mp3" type="audio/mpeg">
+      </audio>
 
-  <div class="credit">
+      <div class="credit">
     Music: "Epic Cinematic Trailer" by Lexin Music (CC BY 4.0)
   </div>
 
@@ -424,7 +557,25 @@
     };
 
     animate();
+    // ========================
+    // 新增音樂控制功能
+    // ========================
+    const musicControlBtn = document.getElementById('music-control-btn');
+    const backgroundMusic = document.getElementById('background-music');
 
+    musicControlBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (backgroundMusic.paused) {
+          backgroundMusic.play().catch(error => {
+              console.warn("無法自動播放音樂，請在使用者互動後再試一次。", error);
+              alert("請點擊畫面以啟用音樂播放。");
+          });
+          musicControlBtn.textContent = "暫停音樂";
+      } else {
+          backgroundMusic.pause();
+          musicControlBtn.textContent = "播放音樂";
+      }
+    });
     // Handle resize
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
