@@ -141,11 +141,11 @@ const MusicPlayer = () => {
         { text: "🎯3d", filename: "./vertices3d.html", isEnglish: false, isGame: true },
         { text: "👁vis4d", filename: "./vis4d.html", isEnglish: false, isGame: true },
         { text: "👁vis4d0", filename: "./vis4d0.html", isEnglish: false, isGame: true },
-        { text: "👁vis4d1a", filename: "./vis4d1a.html", isEnglish: false, isGame: true },
+        { text: "👁超立方體", filename: "./tesseract.html", isEnglish: false, isGame: true },
         { text: "✨vis6e", filename: "vis6e.html", isEnglish: false, isGame: true },
         { text: "查八字", filename: "8w0b.html", isEnglish: false, isGame: true },
         { text: "大運流年", filename: "8w2.html", isEnglish: false, isGame: true },
-
+        { text: "QuantumDNA", filename: "QuantumDNA.html", isEnglish: false, isGame: true },
       ]
     },
     {
@@ -154,7 +154,6 @@ const MusicPlayer = () => {
         { text: "井字棋", filename: "./xx.html", isEnglish: false, isGame: true },
         { text: "🐍", filename: "./snake1.html", isEnglish: false, isGame: true },
         { text: "🎮魔術方塊", filename: "./cude6c.html", isEnglish: true, isGame: true },
-
         { text: "", filename: "", isEnglish: false, isGame: true },
         { text: "", filename: "", isEnglish: false, isGame: true },
       ]
