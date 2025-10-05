@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4D超立方體可視化</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #e6e6e6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        header {
+            text-align: center;
+            margin: 20px 0 30px;
+            max-width: 800px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #4cc9f0, #4361ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            max-width: 1200px;
+        }
+        
+        .canvas-container {
+            position: relative;
+            width: 600px;
+            height: 600px;
+            background: rgba(10, 15, 30, 0.7);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            border: 1px solid rgba(76, 201, 240, 0.3);
+        }
+        
+        canvas {
+            display: block;
+            background: rgba(5, 10, 20, 0.8);
+        }
+        
+        .info-panel {
+            background: rgba(10, 15, 30, 0.7);
+            border-radius: 15px;
+            padding: 25px;
+            width: 350px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(76, 201, 240, 0.3);
+        }
+        
+        .info-panel h2 {
+            color: #4cc9f0;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+        
+        .info-content {
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+        
+        .info-content p {
+            margin-bottom: 15px;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .control-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        label {
+            font-weight: 500;
+        }
+        
+        input[type="range"] {
+            width: 200px;
+            height: 8px;
+            background: rgba(76, 201, 240, 0.2);
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4361ee;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(67, 97, 238, 0.7);
+        }
+        
+        .rotation-info {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(76, 201, 240, 0.3);
+        }
+        
+        .rotation-item {
+            text-align: center;
+        }
+        
+        .rotation-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #4cc9f0;
+        }
+        
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .canvas-container {
+                width: 95%;
+                max-width: 600px;
+            }
+            
+            .info-panel {
+                width: 95%;
+                max-width: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>4D超立方體可視化</h1>
+        <p class="subtitle">探索四維空間中的幾何結構 - 超立方體（Tesseract）</p>
+    </header>
+    
+    <div class="container">
+        <div class="canvas-container">
+            <canvas id="hypercubeCanvas" width="600" height="600"></canvas>
+        </div>
+        
+        <div class="info-panel">
+            <h2>關於超立方體</h2>
+            <div class="info-content">
+                <p>超立方體（Tesseract）是四維空間中的立方體，由8個立方體胞組成。它是立方體在四維空間中的類比。</p>
+                <p>這個可視化通過將4D對象投影到3D空間，再投影到2D螢幕來展示超立方體的結構。</p>
+                <p>超立方體有16個頂點、32條邊、24個正方形面和8個立方體胞。</p>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label for="rotationXY">XY平面旋轉:</label>
+                    <input type="range" id="rotationXY" min="0" max="6.28" step="0.01" value="0.01">
+                </div>
+                <div class="control-group">
+                    <label for="rotationZW">ZW平面旋轉:</label>
+                    <input type="range" id="rotationZW" min="0" max="6.28" step="0.01" value="0.02">
+                </div>
+                <div class="control-group">
+                    <label for="rotationXZ">XZ平面旋轉:</label>
+                    <input type="range" id="rotationXZ" min="0" max="6.28" step="0.01" value="0.015">
+                </div>
+                <div class="control-group">
+                    <label for="perspective">透視強度:</label>
+                    <input type="range" id="perspective" min="1" max="10" step="0.1" value="4">
+                </div>
+            </div>
+            
+            <div class="rotation-info">
+                <div class="rotation-item">
+                    <div>XY旋轉</div>
+                    <div class="rotation-value" id="xyValue">0.01</div>
+                </div>
+                <div class="rotation-item">
+                    <div>ZW旋轉</div>
+                    <div class="rotation-value" id="zwValue">0.02</div>
+                </div>
+                <div class="rotation-item">
+                    <div>XZ旋轉</div>
+                    <div class="rotation-value" id="xzValue">0.015</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>4D超立方體可視化 | 使用HTML5 Canvas和JavaScript實現</p>
+    </footer>
+
+    <script>
+        // 獲取Canvas元素和上下文
+        const canvas = document.getElementById('hypercubeCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 獲取控制元素
+        const rotationXYSlider = document.getElementById('rotationXY');
+        const rotationZWSlider = document.getElementById('rotationZW');
+        const rotationXZSlider = document.getElementById('rotationXZ');
+        const perspectiveSlider = document.getElementById('perspective');
+        const xyValue = document.getElementById('xyValue');
+        const zwValue = document.getElementById('zwValue');
+        const xzValue = document.getElementById('xzValue');
+        
+        // 初始化旋轉角度
+        let angleXY = parseFloat(rotationXYSlider.value);
+        let angleZW = parseFloat(rotationZWSlider.value);
+        let angleXZ = parseFloat(rotationXZSlider.value);
+        let perspective = parseFloat(perspectiveSlider.value);
+        
+        // 更新顯示值
+        xyValue.textContent = angleXY.toFixed(2);
+        zwValue.textContent = angleZW.toFixed(2);
+        xzValue.textContent = angleXZ.toFixed(2);
+        
+        // 監聽滑塊變化
+        rotationXYSlider.addEventListener('input', () => {
+            angleXY = parseFloat(rotationXYSlider.value);
+            xyValue.textContent = angleXY.toFixed(2);
+        });
+        
+        rotationZWSlider.addEventListener('input', () => {
+            angleZW = parseFloat(rotationZWSlider.value);
+            zwValue.textContent = angleZW.toFixed(2);
+        });
+        
+        rotationXZSlider.addEventListener('input', () => {
+            angleXZ = parseFloat(rotationXZSlider.value);
+            xzValue.textContent = angleXZ.toFixed(2);
+        });
+        
+        perspectiveSlider.addEventListener('input', () => {
+            perspective = parseFloat(perspectiveSlider.value);
+        });
+        
+        // 定義4D超立方體的16個頂點
+        // 每個頂點座標為 (±1, ±1, ±1, ±1)
+        const vertices4D = [];
+        for (let x = -1; x <= 1; x += 2) {
+            for (let y = -1; y <= 1; y += 2) {
+                for (let z = -1; z <= 1; z += 2) {
+                    for (let w = -1; w <= 1; w += 2) {
+                        vertices4D.push([x, y, z, w]);
+                    }
+                }
+            }
+        }
+        
+        // 定義邊（連接相鄰頂點）
+        const edges = [];
+        for (let i = 0; i < vertices4D.length; i++) {
+            for (let j = i + 1; j < vertices4D.length; j++) {
+                // 計算兩個頂點之間不同的座標數量
+                let diffCount = 0;
+                for (let k = 0; k < 4; k++) {
+                    if (vertices4D[i][k] !== vertices4D[j][k]) {
+                        diffCount++;
+                    }
+                }
+                // 如果只有一個座標不同，則它們之間有一條邊
+                if (diffCount === 1) {
+                    edges.push([i, j]);
+                }
+            }
+        }
+        
+        // 4D到3D的旋轉矩陣
+        function rotate4D(point, angleXY, angleZW, angleXZ) {
+            let [x, y, z, w] = point;
+            
+            // XY平面旋轉
+            const x1 = x * Math.cos(angleXY) - y * Math.sin(angleXY);
+            const y1 = x * Math.sin(angleXY) + y * Math.cos(angleXY);
+            
+            // ZW平面旋轉
+            const z1 = z * Math.cos(angleZW) - w * Math.sin(angleZW);
+            const w1 = z * Math.sin(angleZW) + w * Math.cos(angleZW);
+            
+            // XZ平面旋轉（使用旋轉後的x1和z1）
+            const x2 = x1 * Math.cos(angleXZ) - z1 * Math.sin(angleXZ);
+            const z2 = x1 * Math.sin(angleXZ) + z1 * Math.cos(angleXZ);
+            
+            return [x2, y1, z2, w1];
+        }
+        
+        // 4D到2D的投影（通過3D中間步驟）
+        function project4Dto2D(point4D, perspective) {
+            const [x, y, z, w] = point4D;
+            
+            // 首先投影到3D（忽略w座標，但使用它進行透視）
+            const distance = 4; // 距離觀察點的距離
+            const factor = perspective / (distance - w);
+            
+            const x3D = x * factor;
+            const y3D = y * factor;
+            const z3D = z * factor;
+            
+            // 然後投影到2D（忽略z座標，但使用它進行透視）
+            const factor2 = 2 / (distance - z3D);
+            const x2D = x3D * factor2;
+            const y2D = y3D * factor2;
+            
+            // 縮放並置中到畫布
+            const scale = 150;
+            return [
+                x2D * scale + canvas.width / 2,
+                y2D * scale + canvas.height / 2
+            ];
+        }
+        
+        // 繪製函數
+        function draw() {
+            // 清空畫布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 存儲投影後的2D點
+            const projectedPoints = [];
+            
+            // 處理每個頂點
+            for (const vertex of vertices4D) {
+                // 應用4D旋轉
+                const rotated = rotate4D(vertex, angleXY, angleZW, angleXZ);
+                
+                // 投影到2D
+                const projected = project4Dto2D(rotated, perspective);
+                projectedPoints.push(projected);
+            }
+            
+            // 繪製邊
+            ctx.strokeStyle = '#4cc9f0';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            
+            for (const [i, j] of edges) {
+                const [x1, y1] = projectedPoints[i];
+                const [x2, y2] = projectedPoints[j];
+                
+                // 計算邊的深度（用於z排序）
+                const z1 = vertices4D[i][2];
+                const z2 = vertices4D[j][2];
+                const avgZ = (z1 + z2) / 2;
+                
+                // 根據深度調整透明度
+                const alpha = Math.min(1, 0.3 + (avgZ + 1) * 0.35);
+                ctx.strokeStyle = `rgba(76, 201, 240, ${alpha})`;
+                
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+            }
+            ctx.stroke();
+            
+            // 繪製頂點
+            for (let i = 0; i < projectedPoints.length; i++) {
+                const [x, y] = projectedPoints[i];
+                const size = 6;
+                
+                // 根據w座標調整頂點顏色和大小
+                const w = vertices4D[i][3];
+                const hue = 200 + w * 60; // w從-1到1，hue從140到260
+                const alpha = 0.8;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(${hue}, 80%, 60%, ${alpha})`;
+                ctx.fill();
+                
+                // 添加白色描邊
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+            
+            // 請求下一幀
+            requestAnimationFrame(draw);
+        }
+        
+        // 開始動畫
+        draw();
+        
+        // 添加自動旋轉（如果滑塊沒有被拖動）
+        let autoRotate = true;
+        let lastInteraction = Date.now();
+        
+        // 監聽滑塊交互
+        [rotationXYSlider, rotationZWSlider, rotationXZSlider, perspectiveSlider].forEach(slider => {
+            slider.addEventListener('mousedown', () => {
+                lastInteraction = Date.now();
+                autoRotate = false;
+            });
+            
+            slider.addEventListener('mouseup', () => {
+                setTimeout(() => {
+                    if (Date.now() - lastInteraction > 3000) {
+                        autoRotate = true;
+                    }
+                }, 3000);
+            });
+        });
+        
+        // 自動旋轉邏輯
+        function autoRotation() {
+            if (autoRotate) {
+                angleXY += 0.01;
+                angleZW += 0.015;
+                angleXZ += 0.008;
+                
+                // 更新滑塊值但不觸發事件
+                rotationXYSlider.value = angleXY;
+                rotationZWSlider.value = angleZW;
+                rotationXZSlider.value = angleXZ;
+                
+                // 更新顯示值
+                xyValue.textContent = angleXY.toFixed(2);
+                zwValue.textContent = angleZW.toFixed(2);
+                xzValue.textContent = angleXZ.toFixed(2);
+            }
+            
+            requestAnimationFrame(autoRotation);
+        }
+        
+        // 啟動自動旋轉
+        autoRotation();
+    </script>
+</body>
+</html>
