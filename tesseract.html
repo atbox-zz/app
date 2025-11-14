@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4D超立方體可視化</title>
+    <title>4D超立方體</title>
     <style>
         * {
             margin: 0;
@@ -170,11 +170,78 @@
                 max-width: 600px;
             }
         }
+        
+        @media (max-width: 640px) {
+            #instructions-container {
+                max-width: calc(100% - 40px);
+                font-size: 13px;
+                padding: 10px 15px;
+                top: 10px;
+                left: 10px;
+            }
+            #instruction-title {
+                font-size: 14px;
+            }
+            /* 針對更小螢幕的主題選擇器響應式樣式也設定為隱藏 */
+             #theme-selector {
+                display: none;
+            }
+             #theme-selector-title {
+                font-size: 14px;
+            }
+            .theme-button {
+                width: 30px;
+                height: 30px;
+            }
+            .density-label { font-size: 12px; }
+            #control-buttons {
+                bottom: 10px;
+                gap: 10px;
+                padding: 8px 10px;
+            }
+            .control-button {
+                padding: 6px 10px;
+                font-size: 12px;
+                min-width: 65px;
+            }
+            /* 在小螢幕上將音樂按鈕移動到控制列下方 */
+            #music-control-btn {
+                bottom: 70px;
+                right: 10px;
+            }
+        }
+         @media (max-width: 400px) {
+            /* 針對更小螢幕的主題選擇器響應式樣式也設定為隱藏 */
+             #theme-selector {
+                display: none;
+            }
+             .theme-grid {
+                grid-template-columns: repeat(4, 1fr);
+                width: 100%;
+                justify-items: center;
+            }
+             #density-controls {
+                width: 80%;
+                margin-top: 15px;
+            }
+             #control-buttons {
+                width: calc(100% - 20px);
+                justify-content: space-around;
+                bottom: 10px;
+            }
+            #music-control-btn {
+                bottom: 60px;
+                right: 10px;
+                left: 10px;
+                width: calc(100% - 20px);
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>
     <header>
-        <h1>4D超立方體可視化</h1>
+        <h1>4D超立方體</h1>
         <p class="subtitle">探索四維空間中的幾何結構 - 超立方體（Tesseract）</p>
     </header>
     
