@@ -3,209 +3,260 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>六十四卦 · 二進制反向順序</title>
+  <title>六十四卦排序</title>
   <style>
     body {
       font-family: "Microsoft JhengHei", "PingFang TC", "sans-serif";
-      background-color: #f9f5eb;
-      padding: 16px;
+      background-color: #fdfaf4;
+      padding: 12px;
       margin: 0;
       line-height: 1.3;
     }
-    h1 {
-      font-size: 12px;
-      font-weight: bold;
+    h2 {
+      font-size: 13px;
       text-align: center;
-      color: #5a4a42;
-      margin: 8px 0 16px 0;
+      color: #110600;
+      margin: 10px 0 6px 0;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      gap: 12px;
+    }
+    .table-wrapper {
+      flex: 1;
+      min-width: 260px;
+      max-width: 280px;
     }
     table {
       width: 100%;
-      max-width: 800px;
-      margin: 0 auto;
       border-collapse: collapse;
       background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 5px rgba(0,0,0,0.1);
       table-layout: fixed;
+      font-size: 11px;
     }
     th, td {
-      border: 1px solid #d5c9b9;
+      border: 1px solid #e0d6c9;
       text-align: center;
-      padding: 4px;
-      font-size: 12px;
+      padding: 3px;
       vertical-align: middle;
     }
     th {
-      background-color: #e8dfca;
-      color: #5a4a42;
+      background-color: #f0e9dd;
+      color: #0e0d0cfd;
       font-weight: normal;
+      font-size: 11px;
     }
     .hexagram-symbol {
-      font-size: 18px;
-      line-height: 0.8; /* 最小間隔 */
-      margin-bottom: 2px;
-      font-family: "Segoe UI Symbol", "Arial Unicode MS", "Microsoft JhengHei", sans-serif;
+      line-height: 0.9;
+      margin-bottom: 1px;
+      font-family: "Segoe UI Symbol", "Arial Unicode MS", sans-serif;
+      font-size: 16px;
     }
     .hexagram-name {
       font-weight: bold;
       display: block;
     }
     .hexagram-number {
-      font-size: 10px;
-      color: #777;
+      font-size: 9px;
+      color: #0c0c0c;
     }
-    @media (max-width: 768px) {
-    .hexagram-grid {
-        grid-template-columns: repeat(8, 1fr);
-        grid-template-rows: repeat(8, 1fr);
-        gap: 4px;
-    }
-    .hexagram-card {
-        padding: 4px;
-    }
-    .hexagram-name {
-        font-size: 2.8vw;  /* 隨螢幕寬度縮放 */
-    }
-    .line {
-        height: 3px; /* 線條也縮小 */
-    }
-}
   </style>
 </head>
 <body>
-  <h1>六十四卦 · 二進制反向順序 · 乾為天</h1>
-  
-  <table id="hexagramTable"></table>
+  <h2 style="font-size:12px; text-align:center;">六十四卦 · 排序對照</h2>
+  <div class="container">
+    <div class="table-wrapper">
+      <h2>1. 二進制反向<br>（乾→坤）</h2>
+      <table id="tableReverseBinary"></table>
+    </div>
+    <div class="table-wrapper">
+      <h2>2. 二進制順向<br>（坤→乾）</h2>
+      <table id="tableForwardBinary"></table>
+    </div>
+    <div class="table-wrapper">
+      <h2>3. 傳統卦序<br>（1 → 64）</h2>
+      <table id="tableTraditional"></table>
+    </div>
+  </div>
 
   <script>
-    // 八卦爻象定義（陽爻 ⚊，陰爻 ⚋）
-    const trigramLines = {
-      "乾(天)": ["⚊", "⚊", "⚊"],
-      "兌(澤)": ["⚋", "⚊", "⚊"],
-      "離(火)": ["⚊", "⚋", "⚊"],
-      "震(雷)": ["⚋", "⚋", "⚊"],
-      "巽(風)": ["⚊", "⚊", "⚋"],
-      "坎(水)": ["⚋", "⚊", "⚋"],
-      "艮(山)": ["⚊", "⚋", "⚋"],
-      "坤(地)": ["⚋", "⚋", "⚋"]
+    // ===== 八卦配色 =====
+    const trigramColor = {
+      "乾(天)": "#FFD700", // 金
+      "兌(澤)": "#87CEFA", // 天藍
+      "離(火)": "#FF4500", // 紅橙
+      "震(雷)": "#32CD32", // 青綠
+      "巽(風)": "#98FB98", // 嫩綠
+      "坎(水)": "#1E90FF", // 深藍
+      "艮(山)": "#8B4513", // 褐
+      "坤(地)": "#D2B48C"  // 土黃
     };
 
-    // 建立六爻卦 Unicode 符號（上卦在上，下卦在下）
-    function buildHexagramSymbol(upper, lower) {
-      const upperLines = trigramLines[upper];
-      const lowerLines = trigramLines[lower];
-      return upperLines.concat(lowerLines).join('<br>');
+    // ===== 八卦爻線定義（true=陽爻, false=陰爻）=====
+    const trigramYao = {
+      "乾(天)": [true, true, true],
+      "兌(澤)": [false, true, true],
+      "離(火)": [true, false, true],
+      "震(雷)": [false, false, true],
+      "巽(風)": [true, true, false],
+      "坎(水)": [false, true, false],
+      "艮(山)": [true, false, false],
+      "坤(地)": [false, false, false]
+    };
+
+    // 生成帶顏色的六爻 HTML（上卦在上，下卦在下）
+    function buildColoredSymbol(upperTrigram, lowerTrigram) {
+      const upperYao = trigramYao[upperTrigram];
+      const lowerYao = trigramYao[lowerTrigram];
+      const upperColor = trigramColor[upperTrigram];
+      const lowerColor = trigramColor[lowerTrigram];
+
+      const lines = [];
+      // 上卦三爻（從上到下：上爻 → 中爻 → 初爻）
+      upperYao.forEach(y => {
+        const yaoChar = y ? '⚊' : '⚋';
+        lines.push(`<span style="color:${upperColor}">${yaoChar}</span>`);
+      });
+      // 下卦三爻
+      lowerYao.forEach(y => {
+        const yaoChar = y ? '⚊' : '⚋';
+        lines.push(`<span style="color:${lowerColor}">${yaoChar}</span>`);
+      });
+
+      return lines.join('<br>');
     }
 
-    // 按「下卦=乾→坤、上卦=乾→坤」的反向二進制順序排列的完整卦表
-    // 此順序對應二進制值從 63 → 0
-    const hexagrams = [
+    // ===== 傳統卦序數據 =====
+    const traditionalHexagrams = [
       { name: "乾為天", upper: "乾(天)", lower: "乾(天)", number: 1 },
-      { name: "澤天夬", upper: "兌(澤)", lower: "乾(天)", number: 43 },
-      { name: "火天大有", upper: "離(火)", lower: "乾(天)", number: 14 },
-      { name: "雷天大壯", upper: "震(雷)", lower: "乾(天)", number: 34 },
-      { name: "風天小畜", upper: "巽(風)", lower: "乾(天)", number: 9 },
-      { name: "水天需", upper: "坎(水)", lower: "乾(天)", number: 5 },
-      { name: "山天大畜", upper: "艮(山)", lower: "乾(天)", number: 26 },
-      { name: "地天泰", upper: "坤(地)", lower: "乾(天)", number: 11 },
-
-      { name: "天澤履", upper: "乾(天)", lower: "兌(澤)", number: 10 },
-      { name: "兌為澤", upper: "兌(澤)", lower: "兌(澤)", number: 58 },
-      { name: "火澤睽", upper: "離(火)", lower: "兌(澤)", number: 38 },
-      { name: "雷澤歸妹", upper: "震(雷)", lower: "兌(澤)", number: 54 },
-      { name: "風澤中孚", upper: "巽(風)", lower: "兌(澤)", number: 61 },
-      { name: "水澤節", upper: "坎(水)", lower: "兌(澤)", number: 60 },
-      { name: "山澤損", upper: "艮(山)", lower: "兌(澤)", number: 41 },
-      { name: "地澤臨", upper: "坤(地)", lower: "兌(澤)", number: 19 },
-
-      { name: "天火同人", upper: "乾(天)", lower: "離(火)", number: 13 },
-      { name: "澤火革", upper: "兌(澤)", lower: "離(火)", number: 49 },
-      { name: "離為火", upper: "離(火)", lower: "離(火)", number: 30 },
-      { name: "雷火豐", upper: "震(雷)", lower: "離(火)", number: 55 },
-      { name: "風火家人", upper: "巽(風)", lower: "離(火)", number: 37 },
-      { name: "水火既濟", upper: "坎(水)", lower: "離(火)", number: 63 },
-      { name: "山火賁", upper: "艮(山)", lower: "離(火)", number: 22 },
-      { name: "地火明夷", upper: "坤(地)", lower: "離(火)", number: 36 },
-
-      { name: "天雷無妄", upper: "乾(天)", lower: "震(雷)", number: 25 },
-      { name: "澤雷隨", upper: "兌(澤)", lower: "震(雷)", number: 17 },
-      { name: "火雷噬嗑", upper: "離(火)", lower: "震(雷)", number: 21 },
-      { name: "震為雷", upper: "震(雷)", lower: "震(雷)", number: 51 },
-      { name: "風雷益", upper: "巽(風)", lower: "震(雷)", number: 42 },
+      { name: "坤為地", upper: "坤(地)", lower: "坤(地)", number: 2 },
       { name: "水雷屯", upper: "坎(水)", lower: "震(雷)", number: 3 },
-      { name: "山雷頤", upper: "艮(山)", lower: "震(雷)", number: 27 },
-      { name: "地雷復", upper: "坤(地)", lower: "震(雷)", number: 24 },
-
-      { name: "天風姤", upper: "乾(天)", lower: "巽(風)", number: 44 },
-      { name: "澤風大過", upper: "兌(澤)", lower: "巽(風)", number: 28 },
-      { name: "火風鼎", upper: "離(火)", lower: "巽(風)", number: 50 },
-      { name: "雷風恒", upper: "震(雷)", lower: "巽(風)", number: 32 },
-      { name: "巽為風", upper: "巽(風)", lower: "巽(風)", number: 57 },
-      { name: "水風井", upper: "坎(水)", lower: "巽(風)", number: 48 },
-      { name: "山風蠱", upper: "艮(山)", lower: "巽(風)", number: 18 },
-      { name: "地風升", upper: "坤(地)", lower: "巽(風)", number: 46 },
-
-      { name: "天水訟", upper: "乾(天)", lower: "坎(水)", number: 6 },
-      { name: "澤水困", upper: "兌(澤)", lower: "坎(水)", number: 47 },
-      { name: "火水未濟", upper: "離(火)", lower: "坎(水)", number: 64 },
-      { name: "雷水解", upper: "震(雷)", lower: "坎(水)", number: 40 },
-      { name: "風水渙", upper: "巽(風)", lower: "坎(水)", number: 59 },
-      { name: "坎為水", upper: "坎(水)", lower: "坎(水)", number: 29 },
       { name: "山水蒙", upper: "艮(山)", lower: "坎(水)", number: 4 },
+      { name: "水天需", upper: "坎(水)", lower: "乾(天)", number: 5 },
+      { name: "天水訟", upper: "乾(天)", lower: "坎(水)", number: 6 },
       { name: "地水師", upper: "坤(地)", lower: "坎(水)", number: 7 },
-
-      { name: "天山遯", upper: "乾(天)", lower: "艮(山)", number: 33 },
-      { name: "澤山咸", upper: "兌(澤)", lower: "艮(山)", number: 31 },
-      { name: "火山旅", upper: "離(火)", lower: "艮(山)", number: 56 },
-      { name: "雷山小過", upper: "震(雷)", lower: "艮(山)", number: 62 },
-      { name: "風山漸", upper: "巽(風)", lower: "艮(山)", number: 53 },
-      { name: "水山蹇", upper: "坎(水)", lower: "艮(山)", number: 39 },
-      { name: "艮為山", upper: "艮(山)", lower: "艮(山)", number: 52 },
-      { name: "地山謙", upper: "坤(地)", lower: "艮(山)", number: 15 },
-
-      { name: "天地否", upper: "乾(天)", lower: "坤(地)", number: 12 },
-      { name: "澤地萃", upper: "兌(澤)", lower: "坤(地)", number: 45 },
-      { name: "火地晉", upper: "離(火)", lower: "坤(地)", number: 35 },
-      { name: "雷地豫", upper: "震(雷)", lower: "坤(地)", number: 16 },
-      { name: "風地觀", upper: "巽(風)", lower: "坤(地)", number: 20 },
       { name: "水地比", upper: "坎(水)", lower: "坤(地)", number: 8 },
+      { name: "風天小畜", upper: "巽(風)", lower: "乾(天)", number: 9 },
+      { name: "天澤履", upper: "乾(天)", lower: "兌(澤)", number: 10 },
+      { name: "地天泰", upper: "坤(地)", lower: "乾(天)", number: 11 },
+      { name: "天地否", upper: "乾(天)", lower: "坤(地)", number: 12 },
+      { name: "天火同人", upper: "乾(天)", lower: "離(火)", number: 13 },
+      { name: "火天大有", upper: "離(火)", lower: "乾(天)", number: 14 },
+      { name: "地山謙", upper: "坤(地)", lower: "艮(山)", number: 15 },
+      { name: "雷地豫", upper: "震(雷)", lower: "坤(地)", number: 16 },
+      { name: "澤雷隨", upper: "兌(澤)", lower: "震(雷)", number: 17 },
+      { name: "山風蠱", upper: "艮(山)", lower: "巽(風)", number: 18 },
+      { name: "地澤臨", upper: "坤(地)", lower: "兌(澤)", number: 19 },
+      { name: "風地觀", upper: "巽(風)", lower: "坤(地)", number: 20 },
+      { name: "火雷噬嗑", upper: "離(火)", lower: "震(雷)", number: 21 },
+      { name: "山火賁", upper: "艮(山)", lower: "離(火)", number: 22 },
       { name: "山地剝", upper: "艮(山)", lower: "坤(地)", number: 23 },
-      { name: "坤為地", upper: "坤(地)", lower: "坤(地)", number: 2 }
+      { name: "地雷復", upper: "坤(地)", lower: "震(雷)", number: 24 },
+      { name: "天雷無妄", upper: "乾(天)", lower: "震(雷)", number: 25 },
+      { name: "山天大畜", upper: "艮(山)", lower: "乾(天)", number: 26 },
+      { name: "山雷頤", upper: "艮(山)", lower: "震(雷)", number: 27 },
+      { name: "澤風大過", upper: "兌(澤)", lower: "巽(風)", number: 28 },
+      { name: "坎為水", upper: "坎(水)", lower: "坎(水)", number: 29 },
+      { name: "離為火", upper: "離(火)", lower: "離(火)", number: 30 },
+      { name: "澤山咸", upper: "兌(澤)", lower: "艮(山)", number: 31 },
+      { name: "雷風恒", upper: "震(雷)", lower: "巽(風)", number: 32 },
+      { name: "天山遯", upper: "乾(天)", lower: "艮(山)", number: 33 },
+      { name: "雷天大壯", upper: "震(雷)", lower: "乾(天)", number: 34 },
+      { name: "火地晉", upper: "離(火)", lower: "坤(地)", number: 35 },
+      { name: "地火明夷", upper: "坤(地)", lower: "離(火)", number: 36 },
+      { name: "風火家人", upper: "巽(風)", lower: "離(火)", number: 37 },
+      { name: "火澤睽", upper: "離(火)", lower: "兌(澤)", number: 38 },
+      { name: "水山蹇", upper: "坎(水)", lower: "艮(山)", number: 39 },
+      { name: "雷水解", upper: "震(雷)", lower: "坎(水)", number: 40 },
+      { name: "山澤損", upper: "艮(山)", lower: "兌(澤)", number: 41 },
+      { name: "風雷益", upper: "巽(風)", lower: "震(雷)", number: 42 },
+      { name: "澤天夬", upper: "兌(澤)", lower: "乾(天)", number: 43 },
+      { name: "天風姤", upper: "乾(天)", lower: "巽(風)", number: 44 },
+      { name: "澤地萃", upper: "兌(澤)", lower: "坤(地)", number: 45 },
+      { name: "地風升", upper: "坤(地)", lower: "巽(風)", number: 46 },
+      { name: "澤水困", upper: "兌(澤)", lower: "坎(水)", number: 47 },
+      { name: "水風井", upper: "坎(水)", lower: "巽(風)", number: 48 },
+      { name: "澤火革", upper: "兌(澤)", lower: "離(火)", number: 49 },
+      { name: "火風鼎", upper: "離(火)", lower: "巽(風)", number: 50 },
+      { name: "震為雷", upper: "震(雷)", lower: "震(雷)", number: 51 },
+      { name: "艮為山", upper: "艮(山)", lower: "艮(山)", number: 52 },
+      { name: "風山漸", upper: "巽(風)", lower: "艮(山)", number: 53 },
+      { name: "雷澤歸妹", upper: "震(雷)", lower: "兌(澤)", number: 54 },
+      { name: "雷火豐", upper: "震(雷)", lower: "離(火)", number: 55 },
+      { name: "火山旅", upper: "離(火)", lower: "艮(山)", number: 56 },
+      { name: "巽為風", upper: "巽(風)", lower: "巽(風)", number: 57 },
+      { name: "兌為澤", upper: "兌(澤)", lower: "兌(澤)", number: 58 },
+      { name: "風水渙", upper: "巽(風)", lower: "坎(水)", number: 59 },
+      { name: "水澤節", upper: "坎(水)", lower: "兌(澤)", number: 60 },
+      { name: "風澤中孚", upper: "巽(風)", lower: "兌(澤)", number: 61 },
+      { name: "雷山小過", upper: "震(雷)", lower: "艮(山)", number: 62 },
+      { name: "水火既濟", upper: "坎(水)", lower: "離(火)", number: 63 },
+      { name: "火水未濟", upper: "離(火)", lower: "坎(水)", number: 64 }
     ];
 
-    // 表頭順序：上卦（乾 → 坤）
-    const upperTrigrams = ["乾(天)", "兌(澤)", "離(火)", "震(雷)", "巽(風)", "坎(水)", "艮(山)", "坤(地)"];
-    const lowerTrigrams = upperTrigrams; // 行（下卦）也是 乾 → 坤
-
-    const table = document.getElementById('hexagramTable');
-    let html = '<thead><tr><th>下卦\\上卦</th>';
-
-    // 表頭列（上卦，僅顯示單字）
-    upperTrigrams.forEach(tri => {
-      html += `<th>${tri.charAt(0)}${tri.charAt(1)}${tri.charAt(2)}${tri.charAt(3)}</th>`;
+    // 建立快速查找表
+    const lookupMap = {};
+    traditionalHexagrams.forEach(h => {
+      lookupMap[`${h.lower},${h.upper}`] = h;
     });
-    html += '</tr></thead><tbody>';
 
-    // 填充表格內容
-    for (let i = 0; i < 8; i++) {
-      const lower = lowerTrigrams[i];
-      html += `<tr><td>${lower.charAt(0)}${lower.charAt(1)}${lower.charAt(2)}${lower.charAt(3)}</td>`;
-      for (let j = 0; j < 8; j++) {
-        const hex = hexagrams[i * 8 + j];
-        const symbol = buildHexagramSymbol(hex.upper, hex.lower);
-        html += `
-          <td>
-            <div class="hexagram-symbol">${symbol}</div>
-            <span class="hexagram-name">${hex.name}</span>
-            <span class="hexagram-number">(${hex.number})</span>
-          </td>
-        `;
-      }
-      html += '</tr>';
+    // ===== 表格順序定義 =====
+    const reverseTrigrams = ["乾(天)", "兌(澤)", "離(火)", "震(雷)", "巽(風)", "坎(水)", "艮(山)", "坤(地)"];
+    const forwardTrigrams = ["坤(地)", "艮(山)", "坎(水)", "巽(風)", "震(雷)", "離(火)", "兌(澤)", "乾(天)"];
+
+    // 渲染函數
+    function renderTable(tableEl, lowerList, upperList) {
+      let html = '<thead><tr><th></th>'; //<thead><tr><th>下\\上</th>';
+      upperList.forEach(u => html += `<th>${u.charAt(0)}${u.charAt(2)}</th>`);
+      html += '</tr></thead><tbody>';
+
+      lowerList.forEach(lower => {
+        html += `<tr><td>${lower.charAt(0)}${lower.charAt(2)}</td>`;
+        upperList.forEach(upper => {
+          const hg = lookupMap[`${lower},${upper}`];
+          if (hg) {
+            const symbol = buildColoredSymbol(hg.upper, hg.lower);
+            html += `<td>
+              <div class="hexagram-symbol">${symbol}</div>
+              <span class="hexagram-name">${hg.name}</span>
+              <span class="hexagram-number">(${hg.number})</span>
+            </td>`;
+          } else {
+            html += '<td>?</td>';
+          }
+        });
+        html += '</tr>';
+      });
+      html += '</tbody>';
+      tableEl.innerHTML = html;
     }
 
-    html += '</tbody>';
-    table.innerHTML = html;
+    function renderTraditionalTable(tableEl) {
+      let html = '<thead><tr><th colspan="9">傳統卦序 1–64</th></tr></thead><tbody>';
+      for (let i = 0; i < 8; i++) {
+        html += '<tr>';
+        for (let j = 0; j < 8; j++) {
+          const hg = traditionalHexagrams[i * 8 + j];
+          const symbol = buildColoredSymbol(hg.upper, hg.lower);
+          html += `<td>
+            <div class="hexagram-symbol">${symbol}</div>
+            <span class="hexagram-name">${hg.name}</span>
+            <span class="hexagram-number">(${hg.number})</span>
+          </td>`;
+        }
+        html += '</tr>';
+      }
+      html += '</tbody>';
+      tableEl.innerHTML = html;
+    }
+
+    // ===== 渲染三個表格 =====
+    renderTable(document.getElementById('tableReverseBinary'), reverseTrigrams, reverseTrigrams);
+    renderTable(document.getElementById('tableForwardBinary'), forwardTrigrams, forwardTrigrams);
+    renderTraditionalTable(document.getElementById('tableTraditional'));
   </script>
 </body>
 </html>
