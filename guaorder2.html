@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>六十四卦排序</title>
+  <title>六十四卦 · 三排序彩色爻線</title>
   <style>
     body {
       font-family: "Microsoft JhengHei", "PingFang TC", "sans-serif";
@@ -69,44 +69,34 @@
   </style>
 </head>
 <body>
-  <h2 style="font-size:12px; text-align:center;">六十四卦 · 排序對照</h2>
+  <h2 style="font-size:12px; text-align:center;">六十四卦 · 三種排序對照（彩色爻線）</h2>
   <div class="container">
     <div class="table-wrapper">
-      <h2>1. 二進制反向<br>（乾→坤）行在下卦列在上卦</h2>
+      <h2>1. 二進制反向<br>（乾→坤）</h2>
       <table id="tableReverseBinary"></table>
     </div>
     <div class="table-wrapper">
-      <h2>2. 二進制順向<br>（坤→乾）行在下卦列在上卦</h2>
+      <h2>2. 二進制順向<br>（坤→乾）</h2>
       <table id="tableForwardBinary"></table>
     </div>
     <div class="table-wrapper">
-      <h2>3. 二進制反向<br>（乾→坤）行在上卦列在下卦</h2>
-      <table id="tableReverseBinary1"></table>
-    </div>
-    <div class="table-wrapper">
-      <h2>4. 二進制反向<br>（乾→坤）行在上卦列在下卦</h2>
-      <table id="tableForwardBinary1"></table>
-    </div>
-    <div class="table-wrapper">
-      <h2>5. 傳統卦序<br>（1 → 64）</h2>
+      <h2>3. 傳統卦序<br>（1 → 64）</h2>
       <table id="tableTraditional"></table>
     </div>
   </div>
 
   <script>
-    // ===== 八卦配色 =====
     const trigramColor = {
-      "乾(天)": "#FFD700", // 金
-      "兌(澤)": "#87CEFA", // 天藍
-      "離(火)": "#FF4500", // 紅橙
-      "震(雷)": "#32CD32", // 青綠
-      "巽(風)": "#98FB98", // 嫩綠
-      "坎(水)": "#1E90FF", // 深藍
-      "艮(山)": "#8B4513", // 褐
-      "坤(地)": "#D2B48C"  // 土黃
+      "乾(天)": "#FFD700",
+      "兌(澤)": "#87CEFA",
+      "離(火)": "#FF4500",
+      "震(雷)": "#32CD32",
+      "巽(風)": "#98FB98",
+      "坎(水)": "#1E90FF",
+      "艮(山)": "#8B4513",
+      "坤(地)": "#D2B48C"
     };
 
-    // ===== 八卦爻線定義（true=陽爻, false=陰爻）=====
     const trigramYao = {
       "乾(天)": [true, true, true],
       "兌(澤)": [false, true, true],
@@ -118,30 +108,19 @@
       "坤(地)": [false, false, false]
     };
 
-    // 生成帶顏色的六爻 HTML（上卦在上，下卦在下）
-    function buildColoredSymbol(upperTrigram, lowerTrigram) {
-      const upperYao = trigramYao[upperTrigram];
-      const lowerYao = trigramYao[lowerTrigram];
-      const upperColor = trigramColor[upperTrigram];
-      const lowerColor = trigramColor[lowerTrigram];
-
-      const lines = [];
-      // 上卦三爻（從上到下：上爻 → 中爻 → 初爻）
-      upperYao.forEach(y => {
-        const yaoChar = y ? '⚊' : '⚋';
-        lines.push(`<b><span style="color:${upperColor}">${yaoChar}</span></b>`);
-      });
-      // 下卦三爻
-      lowerYao.forEach(y => {
-        const yaoChar = y ? '⚊' : '⚋';
-        lines.push(`<b><span style="color:${lowerColor}">${yaoChar}</span></b>`);
-      });
-
+    function buildColoredSymbol(upper, lower) {
+      const uYao = trigramYao[upper];
+      const lYao = trigramYao[lower];
+      const uColor = trigramColor[upper];
+      const lColor = trigramColor[lower];
+      const lines = [
+        ...uYao.map(y => `<span style="color:${uColor}">${y ? '⚊' : '⚋'}</span>`),
+        ...lYao.map(y => `<span style="color:${lColor}">${y ? '⚊' : '⚋'}</span>`)
+      ];
       return lines.join('<br>');
     }
 
-    // ===== 傳統卦序數據 =====
-    const traditionalHexagrams = [
+    const hexagrams = [
       { name: "乾為天", upper: "乾(天)", lower: "乾(天)", number: 1 },
       { name: "坤為地", upper: "坤(地)", lower: "坤(地)", number: 2 },
       { name: "水雷屯", upper: "坎(水)", lower: "震(雷)", number: 3 },
@@ -208,96 +187,45 @@
       { name: "火水未濟", upper: "離(火)", lower: "坎(水)", number: 64 }
     ];
 
-    // 建立快速查找表
-    const lookupMap = {};
-    traditionalHexagrams.forEach(h => {
-      lookupMap[`${h.lower},${h.upper}`] = h;
-    });
+    const lookup = {};
+    hexagrams.forEach(h => lookup[`${h.lower},${h.upper}`] = h);
 
-    // ===== 表格順序定義 =====
-    const reverseTrigrams = ["乾(天)", "兌(澤)", "離(火)", "震(雷)", "巽(風)", "坎(水)", "艮(山)", "坤(地)"];
-    const forwardTrigrams = ["坤(地)", "艮(山)", "坎(水)", "巽(風)", "震(雷)", "離(火)", "兌(澤)", "乾(天)"];
+    const rev = ["乾(天)", "兌(澤)", "離(火)", "震(雷)", "巽(風)", "坎(水)", "艮(山)", "坤(地)"];
+    const fwd = ["坤(地)", "艮(山)", "坎(水)", "巽(風)", "震(雷)", "離(火)", "兌(澤)", "乾(天)"];
 
-    // 渲染函數
-    function renderTable(tableEl, lowerList, upperList) {
-      let html = '<thead><tr><th></th>'; //<thead><tr><th>下\\上</th>';
-      upperList.forEach(u => html += `<th>${u.charAt(0)}${u.charAt(2)}</th>`);
+    function render(tbl, lowers, uppers) {
+      let html = '<thead><tr><th></th>';
+      uppers.forEach(u => html += `<th>${u.charAt(0)}</th>`);
       html += '</tr></thead><tbody>';
-
-      lowerList.forEach(lower => {
-        html += `<tr><td>${lower.charAt(0)}${lower.charAt(2)}</td>`;
-        upperList.forEach(upper => {
-          const hg = lookupMap[`${lower},${upper}`];
-        //const hg = lookupMap[`${upper},${lower}`];
-          if (hg) {
-            const symbol = buildColoredSymbol(hg.upper, hg.lower);
-            html += `<td>
-              <div class="hexagram-symbol">${symbol}</div>
-              <span class="hexagram-name">${hg.name}</span>
-              <span class="hexagram-number">(${hg.number})</span>
-            </td>`;
-          } else {
-            html += '<td>?</td>';
-          }
+      lowers.forEach(l => {
+        html += `<tr><td>${l.charAt(0)}</td>`;
+        uppers.forEach(u => {
+          const h = lookup[`${l},${u}`];
+          if (h) {
+            html += `<td><div class="hexagram-symbol">${buildColoredSymbol(h.upper, h.lower)}</div><span class="hexagram-name">${h.name}</span><span class="hexagram-number">(${h.number})</span></td>`;
+          } else html += '<td>?</td>';
         });
         html += '</tr>';
       });
-      html += '</tbody>';
-      tableEl.innerHTML = html;
-    }
-    // 渲染函數
-    function renderTable1(tableEl, lowerList, upperList) {
-      let html = '<thead><tr><th></th>'; //<thead><tr><th>下\\上</th>';
-      upperList.forEach(u => html += `<th>${u.charAt(0)}${u.charAt(2)}</th>`);
-      html += '</tr></thead><tbody>';
-
-      lowerList.forEach(lower => {
-        html += `<tr><td>${lower.charAt(0)}${lower.charAt(2)}</td>`;
-        upperList.forEach(upper => {
-        //const hg = lookupMap[`${lower},${upper}`];
-          const hg = lookupMap[`${upper},${lower}`];
-          if (hg) {
-            const symbol = buildColoredSymbol(hg.upper, hg.lower);
-            html += `<td>
-              <div class="hexagram-symbol">${symbol}</div>
-              <span class="hexagram-name">${hg.name}</span>
-              <span class="hexagram-number">(${hg.number})</span>
-            </td>`;
-          } else {
-            html += '<td>?</td>';
-          }
-        });
-        html += '</tr>';
-      });
-      html += '</tbody>';
-      tableEl.innerHTML = html;
+      tbl.innerHTML = html;
     }
 
-    function renderTraditionalTable(tableEl) {
-      let html = '<thead><tr><th colspan="9">傳統卦序 1–64</th></tr></thead><tbody>';
+    function renderTrad(tbl) {
+      let html = '<thead><tr><th colspan="9">傳統卦序</th></tr></thead><tbody>';
       for (let i = 0; i < 8; i++) {
         html += '<tr>';
         for (let j = 0; j < 8; j++) {
-          const hg = traditionalHexagrams[i * 8 + j];
-          const symbol = buildColoredSymbol(hg.upper, hg.lower);
-          html += `<td>
-            <div class="hexagram-symbol">${symbol}</div>
-            <span class="hexagram-name">${hg.name}</span>
-            <span class="hexagram-number">(${hg.number})</span>
-          </td>`;
+          const h = hexagrams[i*8 + j];
+          html += `<td><div class="hexagram-symbol">${buildColoredSymbol(h.upper, h.lower)}</div><span class="hexagram-name">${h.name}</span><span class="hexagram-number">(${h.number})</span></td>`;
         }
         html += '</tr>';
       }
-      html += '</tbody>';
-      tableEl.innerHTML = html;
+      tbl.innerHTML = html;
     }
 
-    // ===== 渲染三個表格 =====
-    renderTable(document.getElementById('tableReverseBinary'), reverseTrigrams, reverseTrigrams);
-    renderTable(document.getElementById('tableForwardBinary'), forwardTrigrams, forwardTrigrams);
-    renderTable1(document.getElementById('tableReverseBinary1'), reverseTrigrams, reverseTrigrams);
-    renderTable1(document.getElementById('tableForwardBinary1'), forwardTrigrams, forwardTrigrams);
-    renderTraditionalTable(document.getElementById('tableTraditional'));
+    render(document.getElementById('tableReverseBinary'), rev, rev);
+    render(document.getElementById('tableForwardBinary'), fwd, fwd);
+    renderTrad(document.getElementById('tableTraditional'));
   </script>
 </body>
 </html>
