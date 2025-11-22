@@ -3,19 +3,24 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>六十四卦 × 胺基酸密碼子 × 干支五行 — 增強版互動計算器</title>
+  <title>京房八宮卦 × DNA密碼子 × 干支五行 — 互動計算器</title>
   <style>
     body{font-family: system-ui, -apple-system, "微軟正黑體", "Noto Sans TC", Arial; margin:12px; background:#f7f7fb; color:#111}
     h1{font-size:18px;margin:6px 0;color:#1e40af}
     .layout{display:flex;gap:12px;flex-wrap:wrap}
     .panel{background:white;padding:10px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.06);flex:1;min-width:300px}
-    .grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+    .palace-section{margin-bottom:16px}
+    .palace-title{font-weight:700;font-size:14px;color:#dc2626;margin-bottom:6px;padding:6px;background:linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);border-radius:6px;text-align:center}
+    .palace-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:8px}
     .node{background:linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);border-radius:8px;padding:6px;text-align:center;cursor:pointer;border:1px solid rgba(12,34,99,0.06);transition:all 0.2s ease}
     .node:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(12,34,99,0.12);background:linear-gradient(135deg, #dfe8ff 0%, #c7d2fe 100%)}
     .node.active{background:linear-gradient(135deg, #c7d2fe 0%, #a5b4fc 100%);border:2px solid #6366f1;transform:translateY(-2px)}
+    .node.bengua{border:2px solid #dc2626;background:linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)}
+    .node.bengua:hover{background:linear-gradient(135deg, #fde68a 0%, #fcd34d 100%)}
     .hexagram-name{font-size:10px;font-weight:600;color:#1e40af;margin-bottom:2px;line-height:1.2}
     .codon-info{font-size:11px;color:#374151;margin:1px 0}
     .binary{font-size:9px;color:#6b7280;font-family:monospace}
+    .gua-type{font-size:9px;color:#dc2626;font-weight:600}
     label{display:block;margin-top:6px;font-size:13px;font-weight:500}
     input[type=range]{width:100%;accent-color:#6366f1}
     .kv{display:flex;justify-content:space-between;font-size:13px;margin:4px 0}
@@ -33,21 +38,34 @@
     .fortune.平{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
     .fortune.小凶{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
     .fortune.大凶{background:#fecaca;color:#7f1d1d;border:1px solid #f87171}
+    .wuxing-chart{display:flex;gap:4px;margin:8px 0;height:24px;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb}
+    .wuxing-bar{display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,0.3);transition:all 0.3s ease}
+    .wuxing-bar:hover{transform:scaleY(1.2);z-index:10}
+    .wuxing-legend{display:flex;gap:8px;margin:4px 0;font-size:11px;flex-wrap:wrap}
+    .wuxing-item{display:flex;align-items:center;gap:3px}
+    .wuxing-color{width:12px;height:12px;border-radius:2px;border:1px solid rgba(0,0,0,0.1)}
     hr{border:none;height:1px;background:#e5e7eb;margin:10px 0}
+    .scroll-container{max-height:70vh;overflow-y:auto;padding-right:6px}
+    .scroll-container::-webkit-scrollbar{width:8px}
+    .scroll-container::-webkit-scrollbar-track{background:#f1f5f9;border-radius:4px}
+    .scroll-container::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
+    .scroll-container::-webkit-scrollbar-thumb:hover{background:#94a3b8}
   </style>
 </head>
 <body>
-  <h1>六十四卦 × 胺基酸密碼子 × 干支五行 — 增強版互動計算器</h1>
+  <h1>京房八宮卦序 × DNA密碼子 × 干支五行 — 互動計算器</h1>
   <div class="layout">
-    <div class="panel" style="flex:0 1 580px">
-      <div class="small">說明：點選一個六十四卦節點，每卦對應一個RNA密碼子。系統會結合「今日干支 → 五行向量」與所選密碼子的數值，通過遞迴公式計算運勢分數。卦序採用文王六十四卦序。</div>
+    <div class="panel" style="flex:0 1 600px">
+      <div class="small">說明：採用京房八宮卦序排列（乾、震、坎、艮、坤、巽、離、兌），每宮8卦。紅框為本宮卦，其餘依序為一世→五世→遊魂→歸魂。點選任一卦象查看其對應DNA密碼子與運勢分析。</div>
       <hr />
-      <div class="grid" id="grid"></div>
+      <div class="scroll-container" id="palaceContainer"></div>
     </div>
 
-    <div class="panel" style="flex:0 1 400px">
+    <div class="panel" style="flex:0 1 420px">
       <div id="info">
         <div class="kv"><strong>選中卦象：</strong><span id="selName">—</span></div>
+        <div class="kv"><strong>所屬宮位：</strong><span id="selPalace">—</span></div>
+        <div class="kv"><strong>卦序類型：</strong><span id="selType">—</span></div>
         <div class="kv"><strong>二進位碼：</strong><span id="selBinary">—</span></div>
         <div class="kv"><strong>對應密碼子：</strong><span id="selCodon">—</span></div>
         <div class="kv"><strong>胺基酸：</strong><span id="selAA">—</span></div>
@@ -56,7 +74,10 @@
         <hr />
         <div class="kv"><strong>今日公曆：</strong><span id="todayDate">—</span></div>
         <div class="kv"><strong>今日干支：</strong><span id="ganzhi">—</span></div>
-        <div class="kv"><strong>五行向量（天干）：</strong><span id="vwx">—</span></div>
+        <div class="kv"><strong>天干五行：</strong><span id="stemWu">—</span></div>
+        <div class="kv"><strong>地支五行：</strong><span id="branchWu">—</span></div>
+        <div class="kv"><strong>綜合五行向量 V_t：</strong><span id="vwx">—</span></div>
+        <div id="wuxingChart" style="margin: 8px 0;"></div>
       </div>
 
       <hr />
@@ -98,56 +119,124 @@
   </div>
 
 <script>
-// 64卦名（文王卦序）
-const guaNames = [
-  "乾為天", "澤天夬", "火天大有", "雷天大壯", "風天小畜", "水天需", "山天大畜", "地天泰",
-  "天澤履", "兌為澤", "火澤睽", "雷澤歸妹", "風澤中孚", "水澤節", "山澤損", "地澤臨",
-  "天火同人", "澤火革", "離為火", "雷火豐", "風火家人", "水火既濟", "山火賁", "地火明夷",
-  "天雷無妄", "澤雷隨", "火雷噬嗑", "震為雷", "風雷益", "水雷屯", "山雷頤", "地雷復",
-  "天風姤", "澤風大過", "火風鼎", "雷風恆", "巽為風", "水風井", "山風蠱", "地風升",
-  "天水訟", "澤水困", "火水未濟", "雷水解", "風水渙", "坎為水", "山水蒙", "地水師",
-  "天山遯", "澤山咸", "火山旅", "雷山小過", "風山漸", "水山蹇", "艮為山", "地山謙",
-  "天地否", "澤地萃", "火地晉", "雷地豫", "風地觀", "水地比", "山地剝", "坤為地"
-];
-
-// 二進位代碼（文王卦序）
-const kingwenBits = [
-  "111111","111110","111101","111100","111011","111010","111001","111000",
-  "110111","110110","110101","110100","110011","110010","110001","110000",
-  "101111","101110","101101","101100","101011","101010","101001","101000",
-  "100111","100110","100101","100100","100011","100010","100001","100000",
-  "011111","011110","011101","011100","011011","011010","011001","011000",
-  "010111","010110","010101","010100","010011","010010","010001","010000",
-  "001111","001110","001101","001100","001011","001010","001001","001000",
-  "000111","000110","000101","000100","000011","000010","000001","000000"
-];
-
-// 64 個 RNA 密碼子
-const codonList = [
-  'UUU','UUC','UUA','UUG','UCU','UCC','UCA','UCG',
-  'UAU','UAC','UAA','UAG','UGU','UGC','UGA','UGG',
-  'CUU','CUC','CUA','CUG','CCU','CCC','CCA','CCG',
-  'CAU','CAC','CAA','CAG','CGU','CGC','CGA','CGG',
-  'AUU','AUC','AUA','AUG','ACU','ACC','ACA','ACG',
-  'AAU','AAC','AAA','AAG','AGU','AGC','AGA','AGG',
-  'GUU','GUC','GUA','GUG','GCU','GCC','GCA','GCG',
-  'GAU','GAC','GAA','GAG','GGU','GGC','GGA','GGG'
-];
-
-// 胺基酸對應表
-const codonToAA = {
-  UUU:'Phe',UUC:'Phe',UUA:'Leu',UUG:'Leu',UCU:'Ser',UCC:'Ser',UCA:'Ser',UCG:'Ser',
-  UAU:'Tyr',UAC:'Tyr',UAA:'Stop',UAG:'Stop',UGU:'Cys',UGC:'Cys',UGA:'Stop',UGG:'Trp',
-  CUU:'Leu',CUC:'Leu',CUA:'Leu',CUG:'Leu',CCU:'Pro',CCC:'Pro',CCA:'Pro',CCG:'Pro',
-  CAU:'His',CAC:'His',CAA:'Gln',CAG:'Gln',CGU:'Arg',CGC:'Arg',CGA:'Arg',CGG:'Arg',
-  AUU:'Ile',AUC:'Ile',AUA:'Ile',AUG:'Met',ACU:'Thr',ACC:'Thr',ACA:'Thr',ACG:'Thr',
-  AAU:'Asn',AAC:'Asn',AAA:'Lys',AAG:'Lys',AGU:'Ser',AGC:'Ser',AGA:'Arg',AGG:'Arg',
-  GUU:'Val',GUC:'Val',GUA:'Val',GUG:'Val',GCU:'Ala',GCC:'Ala',GCA:'Ala',GCG:'Ala',
-  GAU:'Asp',GAC:'Asp',GAA:'Glu',GAG:'Glu',GGU:'Gly',GGC:'Gly',GGA:'Gly',GGG:'Gly'
+// 京房八宮卦序（每宮8卦）
+const jingfangPalaces = {
+  '乾宮': [
+    {name:'乾為天', bits:'111111', type:'本宮卦'},
+    {name:'天風姤', bits:'111110', type:'一世'},
+    {name:'天山遯', bits:'111100', type:'二世'},
+    {name:'天地否', bits:'111000', type:'三世'},
+    {name:'風地觀', bits:'110000', type:'四世'},
+    {name:'山地剝', bits:'100000', type:'五世'},
+    {name:'火地晉', bits:'101000', type:'遊魂'},
+    {name:'火天大有', bits:'101111', type:'歸魂'}
+  ],
+  '震宮': [
+    {name:'震為雷', bits:'001001', type:'本宮卦'},
+    {name:'雷地豫', bits:'001000', type:'一世'},
+    {name:'雷水解', bits:'001010', type:'二世'},
+    {name:'雷風恆', bits:'001110', type:'三世'},
+    {name:'地風升', bits:'000110', type:'四世'},
+    {name:'水風井', bits:'010110', type:'五世'},
+    {name:'澤風大過', bits:'011110', type:'遊魂'},
+    {name:'澤雷隨', bits:'011001', type:'歸魂'}
+  ],
+  '坎宮': [
+    {name:'坎為水', bits:'010010', type:'本宮卦'},
+    {name:'水澤節', bits:'010011', type:'一世'},
+    {name:'水雷屯', bits:'010001', type:'二世'},
+    {name:'水火既濟', bits:'010101', type:'三世'},
+    {name:'澤火革', bits:'011101', type:'四世'},
+    {name:'雷火豐', bits:'001101', type:'五世'},
+    {name:'地火明夷', bits:'000101', type:'遊魂'},
+    {name:'地水師', bits:'000010', type:'歸魂'}
+  ],
+  '艮宮': [
+    {name:'艮為山', bits:'100100', type:'本宮卦'},
+    {name:'山火賁', bits:'100101', type:'一世'},
+    {name:'山天大畜', bits:'100111', type:'二世'},
+    {name:'山澤損', bits:'100011', type:'三世'},
+    {name:'火澤睽', bits:'101011', type:'四世'},
+    {name:'天澤夬', bits:'111011', type:'五世'},
+    {name:'風澤中孚', bits:'110011', type:'遊魂'},
+    {name:'風山漸', bits:'110100', type:'歸魂'}
+  ],
+  '坤宮': [
+    {name:'坤為地', bits:'000000', type:'本宮卦'},
+    {name:'地雷復', bits:'000001', type:'一世'},
+    {name:'地澤臨', bits:'000011', type:'二世'},
+    {name:'地天泰', bits:'000111', type:'三世'},
+    {name:'雷天大壯', bits:'001111', type:'四世'},
+    {name:'澤天夬', bits:'011111', type:'五世'},
+    {name:'水天需', bits:'010111', type:'遊魂'},
+    {name:'水地比', bits:'010000', type:'歸魂'}
+  ],
+  '巽宮': [
+    {name:'巽為風', bits:'011011', type:'本宮卦'},
+    {name:'風天小畜', bits:'011111', type:'一世'},
+    {name:'風火家人', bits:'011101', type:'二世'},
+    {name:'風雷益', bits:'011001', type:'三世'},
+    {name:'天雷無妄', bits:'111001', type:'四世'},
+    {name:'火雷噬嗑', bits:'101001', type:'五世'},
+    {name:'山雷頤', bits:'100001', type:'遊魂'},
+    {name:'山風蠱', bits:'100110', type:'歸魂'}
+  ],
+  '離宮': [
+    {name:'離為火', bits:'101101', type:'本宮卦'},
+    {name:'火山旅', bits:'101100', type:'一世'},
+    {name:'火風鼎', bits:'101110', type:'二世'},
+    {name:'火水未濟', bits:'101010', type:'三世'},
+    {name:'山水蒙', bits:'100010', type:'四世'},
+    {name:'風水渙', bits:'110010', type:'五世'},
+    {name:'天水訟', bits:'111010', type:'遊魂'},
+    {name:'天火同人', bits:'111101', type:'歸魂'}
+  ],
+  '兌宮': [
+    {name:'兌為澤', bits:'011011', type:'本宮卦'},
+    {name:'澤水困', bits:'011010', type:'一世'},
+    {name:'澤地萃', bits:'011000', type:'二世'},
+    {name:'澤山咸', bits:'011100', type:'三世'},
+    {name:'水山蹇', bits:'010100', type:'四世'},
+    {name:'地山謙', bits:'000100', type:'五世'},
+    {name:'雷山小過', bits:'001100', type:'遊魂'},
+    {name:'雷澤歸妹', bits:'001011', type:'歸魂'}
+  ]
 };
 
-// 密碼子數值計算
-const baseVal = {U:1,C:2,A:3,G:4};
+// 64 個 DNA 密碼子（按京房八宮順序對應）
+const codonList = [
+  // 乾宮 8 卦
+  'TTT','TTC','TTA','TTG','TCT','TCC','TCA','TCG',
+  // 震宮 8 卦
+  'TAT','TAC','TAA','TAG','TGT','TGC','TGA','TGG',
+  // 坎宮 8 卦
+  'CTT','CTC','CTA','CTG','CCT','CCC','CCA','CCG',
+  // 艮宮 8 卦
+  'CAT','CAC','CAA','CAG','CGT','CGC','CGA','CGG',
+  // 坤宮 8 卦
+  'ATT','ATC','ATA','ATG','ACT','ACC','ACA','ACG',
+  // 巽宮 8 卦
+  'AAT','AAC','AAA','AAG','AGT','AGC','AGA','AGG',
+  // 離宮 8 卦
+  'GTT','GTC','GTA','GTG','GCT','GCC','GCA','GCG',
+  // 兌宮 8 卦
+  'GAT','GAC','GAA','GAG','GGT','GGC','GGA','GGG'
+];
+
+// 胺基酸對應表（DNA版本：T,C,A,G）
+const codonToAA = {
+  TTT:'Phe',TTC:'Phe',TTA:'Leu',TTG:'Leu',TCT:'Ser',TCC:'Ser',TCA:'Ser',TCG:'Ser',
+  TAT:'Tyr',TAC:'Tyr',TAA:'Stop',TAG:'Stop',TGT:'Cys',TGC:'Cys',TGA:'Stop',TGG:'Trp',
+  CTT:'Leu',CTC:'Leu',CTA:'Leu',CTG:'Leu',CCT:'Pro',CCC:'Pro',CCA:'Pro',CCG:'Pro',
+  CAT:'His',CAC:'His',CAA:'Gln',CAG:'Gln',CGT:'Arg',CGC:'Arg',CGA:'Arg',CGG:'Arg',
+  ATT:'Ile',ATC:'Ile',ATA:'Ile',ATG:'Met',ACT:'Thr',ACC:'Thr',ACA:'Thr',ACG:'Thr',
+  AAT:'Asn',AAC:'Asn',AAA:'Lys',AAG:'Lys',AGT:'Ser',AGC:'Ser',AGA:'Arg',AGG:'Arg',
+  GTT:'Val',GTC:'Val',GTA:'Val',GTG:'Val',GCT:'Ala',GCC:'Ala',GCA:'Ala',GCG:'Ala',
+  GAT:'Asp',GAC:'Asp',GAA:'Glu',GAG:'Glu',GGT:'Gly',GGC:'Gly',GGA:'Gly',GGG:'Gly'
+};
+
+// 密碼子數值計算（DNA：T=1, C=2, A=3, G=4）
+const baseVal = {T:1,C:2,A:3,G:4};
 function codonValue(codon){
   return codon.split('').reduce((s,ch)=>s + (baseVal[ch]||0),0);
 }
@@ -157,7 +246,14 @@ function scaleTo100(v){ return v * (100/12); }
 const stems = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
 const branches = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
 const stemToWu = { '甲':'木','乙':'木','丙':'火','丁':'火','戊':'土','己':'土','庚':'金','辛':'金','壬':'水','癸':'水' };
+const branchToWu = { 
+  '子':'水','丑':'土','寅':'木','卯':'木','辰':'土','巳':'火',
+  '午':'火','未':'土','申':'金','酉':'金','戌':'土','亥':'水' 
+};
 const wuIndex = { '木':0,'火':1,'土':2,'金':3,'水':4 };
+const wuNames = ['木','火','土','金','水'];
+const wuColors = ['#22c55e','#ef4444','#f59e0b','#64748b','#3b82f6'];
+const wuxingColors = wuColors;
 
 function stemToVector(stem){ 
   const v = [0,0,0,0,0]; 
@@ -165,12 +261,22 @@ function stemToVector(stem){
   return v; 
 }
 
+function branchToVector(branch){ 
+  const v = [0,0,0,0,0]; 
+  v[wuIndex[branchToWu[branch]]] = 1; 
+  return v; 
+}
+
+function combineVectors(stemVec, branchVec, stemWeight = 0.6, branchWeight = 0.4) {
+  return stemVec.map((s, i) => s * stemWeight + branchVec[i] * branchWeight);
+}
+
 // 計算干支日期
 function daysBetween(a,b){
   const _MS = 24*3600*1000;
   return Math.floor((Date.UTC(b.getFullYear(),b.getMonth(),b.getDate()) - Date.UTC(a.getFullYear(),a.getMonth(),a.getDate()))/_MS);
 }
-const refDate = new Date(Date.UTC(1984,1,2)); // 1984-02-02 甲子日
+const refDate = new Date(Date.UTC(1984,1,2));
 
 function getGanZhiForDate(d){
   const days = daysBetween(refDate, d);
@@ -180,11 +286,10 @@ function getGanZhiForDate(d){
   return {stem, branch, idx};
 }
 
-// 初始化 M 矩陣（生扶與剋制）
+// 初始化 M 矩陣
 let Msheng = [];
 let Mke = [];
 for(let i=0;i<6;i++){
-  // 更精緻的權重分配
   const baseSheng = Array(5).fill(0).map((_,j)=>{
     const phase = (i*0.7 + j*1.3) % (2*Math.PI);
     return (Math.sin(phase) + 1.2) / 2.2 * 0.15 + 0.05;
@@ -199,7 +304,7 @@ for(let i=0;i<6;i++){
 }
 
 // δ 權重系統
-let delta = [1,2,4,8,16,32]; // 預設指數權重
+let delta = [1,2,4,8,16,32];
 function updateDelta(){
   const mode = document.getElementById('deltaMode').value;
   if(mode === 'equal'){
@@ -217,20 +322,49 @@ function normalizeDelta(){
   delta = delta.map(x=>x/s); 
 }
 
-// 建立網格介面
-const grid = document.getElementById('grid');
-codonList.forEach((c, idx)=>{
-  const el = document.createElement('div');
-  el.className = 'node';
-  el.dataset.codon = c;
-  el.dataset.idx = idx;
-  el.innerHTML = `
-    <div class="hexagram-name">${guaNames[idx]}</div>
-    <div class="codon-info">${c} → ${codonToAA[c]||''}</div>
-    <div class="binary">${kingwenBits[idx]}</div>
-  `;
-  el.addEventListener('click', ()=>selectNode(el));
-  grid.appendChild(el);
+// 建立八宮網格介面
+const container = document.getElementById('palaceContainer');
+const palaceNames = Object.keys(jingfangPalaces);
+let globalIndex = 0;
+
+palaceNames.forEach(palaceName => {
+  const section = document.createElement('div');
+  section.className = 'palace-section';
+  
+  const title = document.createElement('div');
+  title.className = 'palace-title';
+  title.textContent = palaceName;
+  section.appendChild(title);
+  
+  const grid = document.createElement('div');
+  grid.className = 'palace-grid';
+  
+  jingfangPalaces[palaceName].forEach((gua, localIdx) => {
+    const codon = codonList[globalIndex];
+    const el = document.createElement('div');
+    el.className = 'node';
+    if(gua.type === '本宮卦') el.classList.add('bengua');
+    
+    el.dataset.codon = codon;
+    el.dataset.idx = globalIndex;
+    el.dataset.palace = palaceName;
+    el.dataset.type = gua.type;
+    el.dataset.name = gua.name;
+    el.dataset.bits = gua.bits;
+    
+    el.innerHTML = `
+      <div class="hexagram-name">${gua.name}</div>
+      <div class="gua-type">${gua.type}</div>
+      <div class="codon-info">${codon} → ${codonToAA[codon]||''}</div>
+      <div class="binary">${gua.bits}</div>
+    `;
+    el.addEventListener('click', ()=>selectNode(el));
+    grid.appendChild(el);
+    globalIndex++;
+  });
+  
+  section.appendChild(grid);
+  container.appendChild(section);
 });
 
 let currentEl = null;
@@ -239,27 +373,61 @@ function selectNode(el){
   currentEl = el; 
   el.classList.add('active');
   
-  const idx = parseInt(el.dataset.idx);
   const c = el.dataset.codon; 
   const aa = codonToAA[c]||''; 
   const val = codonValue(c); 
   const scaled = Math.round(scaleTo100(val)*100)/100;
   
-  document.getElementById('selName').innerText = guaNames[idx];
-  document.getElementById('selBinary').innerText = kingwenBits[idx];
+  document.getElementById('selName').innerText = el.dataset.name;
+  document.getElementById('selPalace').innerText = el.dataset.palace;
+  document.getElementById('selType').innerText = el.dataset.type;
+  document.getElementById('selBinary').innerText = el.dataset.bits;
   document.getElementById('selCodon').innerText = c; 
   document.getElementById('selAA').innerText = aa; 
   document.getElementById('selVal').innerText = val;
   document.getElementById('stVal').innerText = scaled;
 }
 
-// 顯示今日信息
+// 顯示今日信息與五行圖表
 function showToday(){ 
   const d = new Date(); 
   document.getElementById('todayDate').innerText = d.toLocaleDateString('zh-TW'); 
   const gz = getGanZhiForDate(d); 
   document.getElementById('ganzhi').innerText = gz.stem + gz.branch + ` (第${gz.idx+1}日)`; 
-  document.getElementById('vwx').innerText = JSON.stringify(stemToVector(gz.stem)); 
+  
+  const stemWu = stemToWu[gz.stem];
+  const branchWu = branchToWu[gz.branch];
+  document.getElementById('stemWu').innerText = `${gz.stem} → ${stemWu}`;
+  document.getElementById('branchWu').innerText = `${gz.branch} → ${branchWu}`;
+  
+  const stemVec = stemToVector(gz.stem);
+  const branchVec = branchToVector(gz.branch);
+  const combinedVec = combineVectors(stemVec, branchVec);
+  
+  document.getElementById('vwx').innerText = `[${combinedVec.map(x=>x.toFixed(2)).join(', ')}]`;
+  
+  drawWuxingChart(combinedVec);
+}
+
+function drawWuxingChart(wuxingVec) {
+  const chartEl = document.getElementById('wuxingChart');
+  const maxVal = Math.max(...wuxingVec);
+  const minWidth = 20;
+  
+  let chartHTML = '<div class="wuxing-chart">';
+  wuxingVec.forEach((val, i) => {
+    const percentage = maxVal > 0 ? Math.max((val / maxVal * 80), minWidth) : minWidth;
+    chartHTML += `<div class="wuxing-bar" style="flex:${percentage}; background:${wuxingColors[i]}" title="${wuNames[i]}: ${val.toFixed(3)}">${wuNames[i]}</div>`;
+  });
+  chartHTML += '</div>';
+  
+  chartHTML += '<div class="wuxing-legend">';
+  wuNames.forEach((name, i) => {
+    chartHTML += `<div class="wuxing-item"><div class="wuxing-color" style="background:${wuxingColors[i]}"></div><span>${name}</span></div>`;
+  });
+  chartHTML += '</div>';
+  
+  chartEl.innerHTML = chartHTML;
 }
 showToday();
 
@@ -292,7 +460,6 @@ function compute(){
     return; 
   }
   
-  const idx = parseInt(currentEl.dataset.idx);
   const codon = currentEl.dataset.codon; 
   const val = codonValue(codon); 
   const St = scaleTo100(val);
@@ -300,7 +467,9 @@ function compute(){
   // 獲取今日干支五行
   const d = new Date(); 
   const gz = getGanZhiForDate(d); 
-  const V5 = stemToVector(gz.stem);
+  const stemVec = stemToVector(gz.stem);
+  const branchVec = branchToVector(gz.branch);
+  const V5 = combineVectors(stemVec, branchVec);
   
   // 參數
   const alpha = parseFloat(alphaEl.value); 
@@ -309,9 +478,12 @@ function compute(){
   let sumSheng = 0; 
   let sumKe = 0; 
   let trace = [];
-  trace.push(`=== ${guaNames[idx]} (${kingwenBits[idx]}) 運勢分析 ===`);
+  trace.push(`=== ${currentEl.dataset.name} (${currentEl.dataset.bits}) 運勢分析 ===`);
+  trace.push(`所屬宮位: ${currentEl.dataset.palace} | 類型: ${currentEl.dataset.type}`);
   trace.push(`密碼子: ${codon} → ${codonToAA[codon]} (數值=${val}, 縮放=${St.toFixed(3)})`);
-  trace.push(`今日干支: ${gz.stem}${gz.branch} → 五行向量 ${JSON.stringify(V5)}`);
+  trace.push(`今日干支: ${gz.stem}${gz.branch}`);
+  trace.push(`天干${gz.stem} → ${stemToWu[gz.stem]} | 地支${gz.branch} → ${branchToWu[gz.branch]}`);
+  trace.push(`綜合五行向量 V_t: [${V5.map(x=>x.toFixed(3)).join(', ')}]`);
   trace.push(`參數: α=${alpha}, β=${beta}`);
   trace.push('');
   trace.push('各維度計算:');
@@ -406,7 +578,7 @@ document.getElementById('exportBtn').addEventListener('click', ()=>{
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); 
   a.href = url; 
-  a.download = `iching-params-${Date.now()}.json`; 
+  a.download = `jingfang-params-${Date.now()}.json`; 
   a.click(); 
   URL.revokeObjectURL(url);
 });

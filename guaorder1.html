@@ -96,26 +96,26 @@
   <script>
     // ===== 八卦配色 =====
     const trigramColor = {
-      "乾(天)": "#FFD700", // 金
-      "兌(澤)": "#87CEFA", // 天藍
-      "離(火)": "#FF4500", // 紅橙
-      "震(雷)": "#32CD32", // 青綠
-      "巽(風)": "#98FB98", // 嫩綠
-      "坎(水)": "#1E90FF", // 深藍
-      "艮(山)": "#8B4513", // 褐
-      "坤(地)": "#D2B48C"  // 土黃
+      "乾(天)": "#FFD700", // 7 金
+      "兌(澤)": "#87CEFA", // 6 天藍
+      "離(火)": "#FF4500", // 5 紅橙
+      "震(雷)": "#32CD32", // 4 青綠
+      "巽(風)": "#98FB98", // 3 嫩綠
+      "坎(水)": "#1E90FF", // 2 深藍
+      "艮(山)": "#8B4513", // 1 褐
+      "坤(地)": "#D2B48C"  // 0 土黃
     };
 
     // ===== 八卦爻線定義（true=陽爻, false=陰爻）=====
     const trigramYao = {
-      "乾(天)": [true, true, true],
-      "兌(澤)": [false, true, true],
-      "離(火)": [true, false, true],
-      "震(雷)": [false, false, true],
-      "巽(風)": [true, true, false],
-      "坎(水)": [false, true, false],
-      "艮(山)": [true, false, false],
-      "坤(地)": [false, false, false]
+      "乾(天)": [true, true, true],   //111
+      "兌(澤)": [false, true, true],  //011
+      "離(火)": [true, false, true],  //101
+      "震(雷)": [false, false, true], //001
+      "巽(風)": [true, true, false],  //110
+      "坎(水)": [false, true, false], //010
+      "艮(山)": [true, false, false], //100
+      "坤(地)": [false, false, false] //000
     };
 
     // 生成帶顏色的六爻 HTML（上卦在上，下卦在下）
@@ -215,8 +215,10 @@
     });
 
     // ===== 表格順序定義 =====
-    const reverseTrigrams = ["乾(天)", "兌(澤)", "離(火)", "震(雷)", "巽(風)", "坎(水)", "艮(山)", "坤(地)"];
+    const reverseTrigrams = ["乾(天)", "兌(澤)", "離(火)", "震(雷)", "巽(風)", "坎(水)", "艮(山)", "坤(地)"];//87654321
     const forwardTrigrams = ["坤(地)", "艮(山)", "坎(水)", "巽(風)", "震(雷)", "離(火)", "兌(澤)", "乾(天)"];
+    const reverseTrigramsA =["乾(天)", "巽(風)", "離(火)", "艮(山)", "兌(澤)", "坎(水)", "震(雷)", "坤(地)"];
+    const forwardTrigramsA =["坤(地)", "震(雷)", "坎(水)", "兌(澤)", "艮(山)", "離(火)", "巽(風)", "乾(天)"];
 
     // 渲染函數
     function renderTable(tableEl, lowerList, upperList) {
@@ -295,8 +297,8 @@
     // ===== 渲染三個表格 =====
     renderTable(document.getElementById('tableReverseBinary'), reverseTrigrams, reverseTrigrams);
     renderTable(document.getElementById('tableForwardBinary'), forwardTrigrams, forwardTrigrams);
-    renderTable1(document.getElementById('tableReverseBinary1'), reverseTrigrams, reverseTrigrams);
-    renderTable1(document.getElementById('tableForwardBinary1'), forwardTrigrams, forwardTrigrams);
+    renderTable1(document.getElementById('tableReverseBinary1'), reverseTrigramsA, reverseTrigramsA);
+    renderTable1(document.getElementById('tableForwardBinary1'), forwardTrigramsA, forwardTrigramsA);
     renderTraditionalTable(document.getElementById('tableTraditional'));
   </script>
 </body>
