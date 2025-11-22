@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026-2027 台灣政局與選舉戰略總體推演報告</title>
+<style>
+    :root {
+        --kmt-dark: #003366;
+        --kmt-light: #4d88ff;
+        --dpp-dark: #1b9431;
+        --dpp-light: #66cc79;
+        --tpp-main: #28c7c7;
+        --bg-color: #f0f2f5;
+        --text-main: #333;
+        --text-sec: #666;
+        --card-bg: #ffffff;
+        --border-color: #e1e4e8;
+    }
+
+    body {
+        font-family: "Microsoft JhengHei", "PingFang TC", "Helvetica Neue", sans-serif;
+        line-height: 1.7;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        margin: 0;
+        padding: 0;
+    }
+
+    header {
+        background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d); /* 象徵藍綠白混戰 */
+        color: white;
+        padding: 40px 20px;
+        text-align: center;
+    }
+
+    header h1 { margin: 0; font-size: 2.5em; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    header p { opacity: 0.9; font-size: 1.1em; margin-top: 10px; }
+
+    .container {
+        max-width: 1000px;
+        margin: -30px auto 40px;
+        padding: 0 15px;
+    }
+
+    /* Navigation */
+    .nav-toc {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+    }
+    .nav-toc a {
+        text-decoration: none;
+        color: #555;
+        font-weight: bold;
+        padding: 8px 15px;
+        border-radius: 20px;
+        background: #eee;
+        transition: all 0.3s;
+        font-size: 0.9em;
+    }
+    .nav-toc a:hover {
+        background: var(--kmt-dark);
+        color: white;
+    }
+
+    /* Section Styling */
+    section {
+        background: var(--card-bg);
+        padding: 30px;
+        margin-bottom: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border-top: 5px solid transparent;
+    }
+    
+    section.kmt-section { border-top-color: var(--kmt-dark); }
+    section.dpp-section { border-top-color: var(--dpp-dark); }
+    section.tpp-section { border-top-color: var(--tpp-main); }
+    section.battle-section { border-top-color: #d9534f; }
+
+    h2 {
+        font-size: 1.8em;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+        margin-top: 0;
+    }
+    h3 { margin-top: 25px; color: #444; display: flex; align-items: center; }
+    h3::before {
+        content: '';
+        display: inline-block;
+        width: 8px;
+        height: 24px;
+        background: #666;
+        margin-right: 10px;
+        border-radius: 2px;
+    }
+    .kmt-section h3::before { background: var(--kmt-dark); }
+    .dpp-section h3::before { background: var(--dpp-dark); }
+    
+    /* Tables */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.95em;
+    }
+    th, td {
+        padding: 12px 15px;
+        border-bottom: 1px solid var(--border-color);
+        text-align: left;
+    }
+    th { background-color: #f8f9fa; font-weight: bold; color: #444; }
+    tr:hover { background-color: #f1f1f1; }
+
+    /* Cards & Badges */
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    .card {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        padding: 20px;
+        border-radius: 8px;
+    }
+    .card-title { font-weight: bold; font-size: 1.1em; margin-bottom: 10px; display: block; }
+    
+    .badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 0.8em;
+        color: white;
+        font-weight: bold;
+    }
+    .bg-blue { background-color: var(--kmt-light); }
+    .bg-green { background-color: var(--dpp-light); }
+    .bg-white { background-color: #aaa; color: white; }
+    .bg-red { background-color: #d9534f; }
+
+    /* Probability Bar */
+    .prob-bar-container {
+        background: #e9ecef;
+        height: 10px;
+        border-radius: 5px;
+        margin-top: 5px;
+        overflow: hidden;
+    }
+    .prob-bar { height: 100%; }
+    .bar-blue { background: var(--kmt-light); }
+    .bar-green { background: var(--dpp-light); }
+    .bar-white { background: var(--tpp-main); }
+
+    /* Scenario Box */
+    .scenario-box {
+        background: #fcf8e3;
+        border-left: 5px solid #f0ad4e;
+        padding: 15px;
+        margin: 15px 0;
+    }
+
+    .footer-meta {
+        text-align: center;
+        padding: 20px;
+        color: #888;
+        font-size: 0.85em;
+        border-top: 1px solid #ddd;
+        margin-top: 40px;
+    }
+    
+    @media (max-width: 768px) {
+        .container { padding: 0 10px; }
+        header h1 { font-size: 1.8em; }
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>2026-2027 台灣政局戰略推演全報告</h1>
+    <p>國民黨路線之爭 ｜ 2026 縣市長版圖 ｜ 民進黨破局策略 ｜ 新北關鍵戰役</p>
+</header>
+
+<div class="container">
+
+    <nav class="nav-toc">
+        <a href="#section-kmt">國民黨路線與黨魁戰</a>
+        <a href="#section-map">2026 全台勝敗地圖</a>
+        <a href="#section-dpp">民進黨競爭策略</a>
+        <a href="#section-newtaipei">新北市決戰模擬</a>
+    </nav>
+
+    <section id="section-kmt" class="kmt-section">
+        <h2>1. 國民黨的十字路口：2027 黨主席之戰</h2>
+        <p>這場博弈代表了「戰鬥藍意識形態」與「執政派中道務實」的對決，結果將取決於 2026 選戰成績單。</p>
+        
+        <div class="grid-container">
+            <div class="card" style="border-left: 5px solid var(--kmt-dark);">
+                <span class="card-title">蔣萬安 (溫和派/儲君)</span>
+                <ul>
+                    <li><strong>戰略：</strong> 靠 2026 台北市長高票連任，形成「眾星拱月」之勢接班。</li>
+                    <li><strong>優勢：</strong> 都會選票吸引力、美方信任、中道形象。</li>
+                    <li><strong>風險：</strong> 若 2026 全黨敗選，將被指責「軟弱無力」。</li>
+                    <li><strong>預測勝率：</strong> <span style="color:var(--kmt-light); font-weight:bold;">30-40% (穩定接班)</span></li>
+                </ul>
+            </div>
+            <div class="card" style="border-left: 5px solid #d9534f;">
+                <span class="card-title">鄭麗文 (鷹派/深藍)</span>
+                <ul>
+                    <li><strong>戰略：</strong> 若 2026 敗選，發動路線檢討，集結黃復興與深藍奪權。</li>
+                    <li><strong>優勢：</strong> 國會戰鬥力強、黨內深藍基礎穩固、話語權高。</li>
+                    <li><strong>風險：</strong> 美方疑慮高、中間選民排斥感強。</li>
+                    <li><strong>預測勝率：</strong> <span style="color:#d9534f; font-weight:bold;">45-55% (若選情動盪)</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <h3>關鍵外部因素：中美博弈</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>因素</th>
+                    <th>對蔣萬安影響</th>
+                    <th>對鄭麗文影響</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>美國因素 (AIT)</strong></td>
+                    <td><span class="badge bg-green">高度友善</span><br>符合美方維持現狀利益。</td>
+                    <td><span class="badge bg-red">充滿疑慮</span><br>疑美論述恐遭華府邊緣化。</td>
+                </tr>
+                <tr>
+                    <td><strong>中國因素 (北京)</strong></td>
+                    <td><span class="badge bg-white" style="color:#333; background:#ddd;">保持距離</span><br>北京雖不滿但不反對。</td>
+                    <td><span class="badge bg-blue">潛在支持</span><br>可能成為「死亡之吻」。</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section id="section-map" class="battle-section">
+        <h2>2. 2026 九合一：逐縣市勝敗機率地圖</h2>
+        <p>2026 縣市長選舉是 2028 總統大選的前哨戰。以下是基於目前政治板塊的推演：</p>
+
+        <h3>重點戰區分析</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>區域</th>
+                    <th>勝率預測 (藍/綠/白)</th>
+                    <th>關鍵變數 & 戰術建議</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>新北市</strong><br><span class="badge bg-red">生死戰</span></td>
+                    <td>
+                        <div style="display:flex; justify-content:space-between; font-size:0.8em;">
+                            <span>綠 45%</span> <span>藍 40%</span> <span>白 15%</span>
+                        </div>
+                        <div class="prob-bar-container">
+                            <div class="prob-bar bar-green" style="width: 45%; float:left;"></div>
+                            <div class="prob-bar bar-blue" style="width: 40%; float:left;"></div>
+                            <div class="prob-bar bar-white" style="width: 15%; float:left;"></div>
+                        </div>
+                    </td>
+                    <td><strong>變數：</strong>黃國昌是否參選到底。<br><strong>戰術：</strong>藍營需操作棄保；綠營需誘發三腳督。</td>
+                </tr>
+                <tr>
+                    <td><strong>台北市</strong><br><span class="badge bg-blue">藍營優勢</span></td>
+                    <td>
+                        <div style="display:flex; justify-content:space-between; font-size:0.8em;">
+                            <span>藍 55%</span> <span>綠 35%</span> <span>白 10%</span>
+                        </div>
+                        <div class="prob-bar-container">
+                            <div class="prob-bar bar-blue" style="width: 55%; float:left;"></div>
+                            <div class="prob-bar bar-green" style="width: 35%; float:left;"></div>
+                        </div>
+                    </td>
+                    <td><strong>變數：</strong>蔣萬安施政滿意度。<br><strong>戰術：</strong>強化年輕人政策與社群經營。</td>
+                </tr>
+                <tr>
+                    <td><strong>新竹市</strong><br><span class="badge bg-white" style="background:#aaa;">白營危機</span></td>
+                    <td>
+                        <div style="display:flex; justify-content:space-between; font-size:0.8em;">
+                            <span>綠 45%</span> <span>藍 30%</span> <span>白 25%</span>
+                        </div>
+                        <div class="prob-bar-container">
+                            <div class="prob-bar bar-green" style="width: 45%; float:left;"></div>
+                            <div class="prob-bar bar-blue" style="width: 30%; float:left;"></div>
+                            <div class="prob-bar bar-white" style="width: 25%; float:left;"></div>
+                        </div>
+                    </td>
+                    <td><strong>變數：</strong>高虹安官司與民眾黨存續。<br><strong>戰術：</strong>綠營極有機會趁藍白混亂收復。</td>
+                </tr>
+                <tr>
+                    <td><strong>台南/高雄</strong><br><span class="badge bg-green">綠營鐵票</span></td>
+                    <td>
+                        <div style="display:flex; justify-content:space-between; font-size:0.8em;">
+                            <span>綠 >60%</span>
+                        </div>
+                        <div class="prob-bar-container">
+                            <div class="prob-bar bar-green" style="width: 100%; float:left;"></div>
+                        </div>
+                    </td>
+                    <td><strong>變數：</strong>綠營黨內初選是否分裂。<br><strong>戰術：</strong>藍營採「少輸為贏」策略，帶動議員席次。</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section id="section-dpp" class="dpp-section">
+        <h2>3. 民進黨的競爭策略：破解「藍白合」</h2>
+        <p>面對藍白國會多數與地方包圍，民進黨的核心戰略是：<strong>「讓藍白合看起來像是一場分贓鬧劇」。<br>最好的劇本： 藍白在立法院吵鬧導致民調雙雙下滑，且 2026 年因為談不攏而全面分裂，民進黨漁翁得利。
+
+<br>最壞的劇本： 藍白成功在立法院展現高效能監督，揭發民進黨弊案，且 2026 成功協調出單一候選人（例如新北藍白共推一人），這將是民進黨政權倒台的開始。</strong></p>
+
+        <div class="grid-container">
+            <div class="card">
+                <span class="card-title">1. 戰略核心：分化「藍白」矛盾 (切香腸戰術)</span>
+                <p>藍白合作並非鐵板一塊，其結合點在於「討厭民進黨」，但核心利益（2028 總統大選誰正誰副）與支持者結構（老人 vs. 年輕人）存在巨大裂痕。
+策略動作： 「打白、拉藍、邊緣化柯/黃」 或 「將白抹藍」。
+執行細節：
+將民眾黨「小藍化」： 民進黨深知民眾黨的年輕支持者（小草）多數討厭國民黨的黑金與老派形象。透過強攻黃國昌與傅崐萁的合作畫面，將民眾黨定調為「國民黨的附隨組織」，迫使淺白、中間選民因失望而回流或不投票。
+利用議題製造分裂： 在立法院故意拋出「不當黨產」、「轉型正義」或「年金改革」等價值型議題。這些議題國民黨必須反對，但民眾黨若跟著反對會失去「新政治」光環，若支持則破壞藍白互信。</p>
+            </div>
+            <div class="card">
+                <span class="card-title">2.治理對比：凸顯「行政建設」vs.「國會亂象」</span>
+                <p>利用行政權獨大優勢，將藍白國會監督抹黑為「惡意癱瘓國家」。繞過藍營縣市長，直接將中央資源對接地方派系。擁有中央執政權是民進黨最大的護城河。
+策略動作： 「建設牌」對決「口水牌」。
+執行細節：
+預算受阻的受害者敘事： 當藍白聯手凍結或退回總預算時，民進黨會將其轉化為「藍白卡長照」、「藍白卡育兒津貼」、「藍白卡地方建設」。透過直接訴諸選民的切身利益（福利金發不下來），將國會的監督權抹黑為「惡意癱瘓國家」。
+繞過中央，直接對接地方派系： 賴清德政府可透過行政資源分配，直接與國民黨的地方諸侯（如盧秀燕、張善政）進行利益交換或合作，弱化中央黨部（朱立倫/藍白黨團）的指揮權</p>
+            </div>
+            <div class="card">
+                <span class="card-title">3. 2026 誘敵深入固守基本盤與「抗中保台」2.0</span>
+                <p>在藍白合流下，民進黨難以在單一席次（如縣市長）取得過半選票，因此首要目標是確保 40% 的死忠基本盤 絕對動員，並將對手的天花板壓低。
+策略動作： 強化「紅色滲透」恐懼，連結藍白與中國因素。
+執行細節：
+定性藍白合為「中共代理人」： 強調馬英九訪中、傅崐萁訪中與藍白修法之間的連動關係。將「國會擴權法案」操作為「弱化台灣國防」、「洩漏國家機密」的國安危機，藉此召喚「青鳥」（年輕抗議群眾）與中間選民的亡國感。
+憲政訴訟戰： 利用大法官釋憲與憲法法庭，作為對抗立法院多數的最後防線，將法律戰轉化為政治動員的能量。在關鍵選區（新北、新竹）暗助民眾黨參選，促成「三腳督」。只要民眾黨分走 10-15% 反綠選票，民進黨靠 40% 基本盤即可勝出。</p>
+            </div>
+            <div class="card">
+                <span class="card-title">4.2026 選戰佈局：區域各個擊破</span>
+                <p>針對 2026 九合一選舉，民進黨深知藍白若在縣市長層級成功「單一候選人整合」，綠營將極度危險。
+策略動作： 誘敵深入，促成三腳督。
+執行細節：
+暗助民眾黨參選： 在部分藍營優勢區（如新竹、桃園、新北），民進黨或許樂見民眾黨派出強棒（如黃國昌、黃珊珊）參選到底。只要民眾黨分走 10-15% 的反綠選票，民進黨就有機會靠 40% 的基本盤勝出（如 2024 總統大選模式）。
+刺客戰術： 在艱困選區派出高知名度、非典型的年輕戰將（類似以前的林智堅、現在的吳崢或網紅型政治人物），主打空戰，擾亂藍白的地方樁腳佈局。           
+            </div>
+            <div class="card">
+                <span class="card-title">5. 社群與青年戰場的收復（Threads 戰法）</span>
+                <p>2024 大選民進黨流失大量年輕票給柯文哲，目前正試圖收復。
+策略動作： 搶佔 Threads (脆) 與短影音話語權。
+執行細節：
+去中心化宣傳： 不再僅靠官方粉專，而是鼓勵立委、黨工、KOL 在 Threads 上進行「同溫層加密通話」與「情感動員」。
+形塑「反智」標籤： 在社群上將藍白的言論剪輯為「反科學」、「情緒化」、「咆哮（黃國昌）」的迷因（Meme），讓年輕人覺得支持藍白是「丟臉」的事。           
+            </div>
+
+        </div>
+    </section>
+
+    <section id="section-newtaipei" style="background: #fff; border-top: 5px solid #6610f2;">
+        <h2>4. 決戰新北：蘇巧慧 vs. 李四川 vs. 黃國昌</h2>
+        <p>這是 2026 的天王山之戰，也是 2028 總統大選的前哨。誰贏新北，誰就掌握台灣未來。</p>
+
+        <h3>模擬民調數據 (選前 6 個月情境)</h3>
+        <div style="background:#f8f9fa; padding:20px; border-radius:8px; margin-bottom:20px;">
+            <div style="display:flex; align-items:center; margin-bottom:10px;">
+                <div style="width:100px; font-weight:bold;">蘇巧慧 (綠)</div>
+                <div style="flex-grow:1; background:#e9ecef; height:20px; border-radius:10px; margin:0 10px;">
+                    <div style="width:38.5%; background:var(--dpp-dark); height:100%; border-radius:10px; text-align:right; color:white; font-size:12px; padding-right:5px; line-height:20px;">38.5%</div>
+                </div>
+                <div style="width:80px; text-align:right;">🔺 上升</div>
+            </div>
+            <div style="display:flex; align-items:center; margin-bottom:10px;">
+                <div style="width:100px; font-weight:bold;">李四川 (藍)</div>
+                <div style="flex-grow:1; background:#e9ecef; height:20px; border-radius:10px; margin:0 10px;">
+                    <div style="width:33.2%; background:var(--kmt-light); height:100%; border-radius:10px; text-align:right; color:white; font-size:12px; padding-right:5px; line-height:20px;">33.2%</div>
+                </div>
+                <div style="width:80px; text-align:right;">➖ 持平</div>
+            </div>
+            <div style="display:flex; align-items:center;">
+                <div style="width:100px; font-weight:bold;">黃國昌 (白)</div>
+                <div style="flex-grow:1; background:#e9ecef; height:20px; border-radius:10px; margin:0 10px;">
+                    <div style="width:16.8%; background:var(--tpp-main); height:100%; border-radius:10px; text-align:right; color:white; font-size:12px; padding-right:5px; line-height:20px;">16.8%</div>
+                </div>
+                <div style="width:80px; text-align:right;">🔻 下滑</div>
+            </div>
+        </div>
+
+        <h3>三種結局劇本</h3>
+        <div class="scenario-box">
+            <strong>🔴 劇本 A：棄保失敗（黃國昌守住 15%+）→ 🟢 蘇巧慧勝選</strong>
+            <p>藍營分裂，李四川即便拿走長輩票仍輸。國民黨丟失最大諸侯，朱立倫下台，賴清德連任之路大開。</p>
+        </div>
+        <div class="scenario-box" style="background:#e3f2fd; border-left-color:var(--kmt-light);">
+            <strong>🔵 劇本 B：棄保成功（黃國昌崩盤至 <10%）→ 🔵 李四川險勝</strong>
+            <p>選前爆發危機激發藍營歸隊，李四川險勝。民眾黨在新北被連根拔起，李四川成為過渡型市長。</p>
+        </div>
+        <div class="scenario-box" style="background:#f5f5f5; border-left-color:#666;">
+            <strong>🤝 劇本 C：藍白密約（新竹換新北）→ 🔵 李四川大勝</strong>
+            <p>難度最高。國民黨禮讓新竹換取黃國昌不選新北。回歸藍綠對決，國民黨基本盤優勢勝出。</p>
+        </div>
+
+        <h3>陣營攻防重點</h3>
+        <ul>
+            <li><strong>蘇巧慧策略：</strong> 坐山觀虎鬥，「捧殺」黃國昌，暗中拉抬其聲量以分裂藍營。</li>
+            <li><strong>李四川策略：</strong> 無視黃國昌，將層級拉高至「中華民國保衛戰」，死綁蔣萬安與盧秀燕站台。</li>
+            <li><strong>黃國昌策略：</strong> 焦土作戰，無差別攻擊藍綠行政缺失，目標是衝高議員席次與個人聲量。</li>
+        </ul>
+    </section>
+
+    <div class="footer-meta">
+        <p>生成時間：2025-11-22 12:33 CST | 地點：桃園市, 台灣</p>
+        <p>本報告為基於現有政治情勢的 AI 模擬推演，僅供內部參考。</p>
+    </div>
+
+</div>
+
+</body>
+</html>
