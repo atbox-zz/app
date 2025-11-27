@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 中華民國115年專屬月曆產生器</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.6.12/lunar.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft JhengHei', '微軟正黑體', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .content {
+            display: flex;
+            min-height: 600px;
+        }
+        .sidebar {
+            width: 350px;
+            background: #f8f9fa;
+            padding: 30px;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+        .main {
+            flex: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+        input[type="text"],
+        input[type="number"],
+        input[type="file"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin-top: 5px;
+        }
+        .slider-value {
+            color: #667eea;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 8px;
+        }
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: normal;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .checkbox-group label {
+            margin: 0;
+            font-weight: normal;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        #preview {
+            max-width: 100%;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .info {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+        .download-btn {
+            margin-top: 20px;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 2026 中華民國115年專屬月曆產生器</h1>
+            <p>上傳圖片，調整參數，生成你的專屬年曆！</p>
+        </div>
+        <div class="content">
+            <div class="sidebar">
+                <div class="section">
+                    <h3>1. 圖片上傳</h3>
+                    <input type="file" id="imageUpload" accept="image/*">
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label>圖片位置</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="imgPosition" value="top" checked> 上方</label>
+                            <label><input type="radio" name="imgPosition" value="background"> 底稿</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>2. 標題設定</h3>
+                    <input type="text" id="customTitle" value="中華民國115年 歲次丙午" placeholder="輸入標題">
+                </div>
+
+                <div class="section">
+                    <h3>3. 版面設定</h3>
+                    <div class="form-group">
+                        <label>寬度 (像素)</label>
+                        <input type="number" id="canvasWidth" value="2480" step="100">
+                    </div>
+                    <div class="form-group">
+                        <label>高度 (像素)</label>
+                        <input type="number" id="canvasHeight" value="3508" step="100">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>4. 排版微調</h3>
+                    <div class="form-group">
+                        <label>圖片佔比 <span class="slider-value" id="imgRatioValue">45%</span></label>
+                        <input type="range" id="imgRatio" min="30" max="70" value="45">
+                    </div>
+                    <div class="form-group">
+                        <label>左右邊界 <span class="slider-value" id="marginXValue">100</span></label>
+                        <input type="range" id="marginX" min="50" max="300" value="100">
+                    </div>
+                    <div class="form-group">
+                        <label>下方邊界 <span class="slider-value" id="marginYValue">100</span></label>
+                        <input type="range" id="marginY" min="50" max="300" value="100">
+                    </div>
+                    <div class="form-group">
+                        <label>月份左右間距 <span class="slider-value" id="gapXValue">40</span></label>
+                        <input type="range" id="gapX" min="0" max="200" value="40">
+                    </div>
+                    <div class="form-group">
+                        <label>月份上下間距 <span class="slider-value" id="gapYValue">0</span></label>
+                        <input type="range" id="gapY" min="0" max="200" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>標題與日期間距 <span class="slider-value" id="titleDateGapValue">50</span></label>
+                        <input type="range" id="titleDateGap" min="10" max="100" value="50">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>5. 月份樣式</h3>
+                    <div class="form-group">
+                        <label>月份顯示</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="monthStyle" value="number" checked> 數字</label>
+                            <label><input type="radio" name="monthStyle" value="english"> 英文</label>
+                        </div>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showBorder">
+                        <label for="showBorder">顯示月份框線</label>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>6. 字體大小</h3>
+                    <div class="form-group">
+                        <label>標題大小</label>
+                        <input type="number" id="titleSize" value="80" step="5">
+                    </div>
+                    <div class="form-group">
+                        <label>月份標題大小</label>
+                        <input type="number" id="monthSize" value="50" step="5">
+                    </div>
+                    <div class="form-group">
+                        <label>日期數字大小</label>
+                        <input type="number" id="dateSize" value="40" step="5">
+                    </div>
+                    <div class="form-group">
+                        <label>農曆/節日大小</label>
+                        <input type="number" id="lunarSize" value="24" step="2">
+                    </div>
+                </div>
+
+                <button onclick="generateCalendar()">生成月曆</button>
+            </div>
+
+            <div class="main">
+                <div id="output" class="info">
+                    <p>👈 請在左側設定參數後點擊「生成月曆」按鈕</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 假日資料
+        const HOLIDAYS_2026 = {
+            '1-1': '元旦', '2-16': '除夕', '2-17': '初一', '2-18': '初二',
+            '2-19': '初三', '2-20': '初四', '2-21': '初五', '2-27': '初十',
+            '2-28': '228', '4-3': '十六', '4-4': '兒童', '4-5': '清明',
+            '4-6': '十九', '5-1': '勞動', '6-19': '端午', '9-25': '中秋',
+            '10-9': '廿九', '10-10': '國慶', '10-25': '光復', '10-26': '十七',
+            '12-25': '行憲'
+        };
+
+        // 節氣資料
+        const SOLAR_TERMS_2026 = {
+            '1-5': '小寒', '1-20': '大寒', '2-4': '立春', '2-18': '雨水',
+            '3-5': '驚蟄', '3-20': '春分', '4-4': '清明', '4-20': '穀雨',
+            '5-5': '立夏', '5-21': '小滿', '6-5': '芒種', '6-21': '夏至',
+            '7-7': '小暑', '7-22': '大暑', '8-7': '立秋', '8-23': '處暑',
+            '9-7': '白露', '9-23': '秋分', '10-8': '寒露', '10-23': '霜降',
+            '11-7': '立冬', '11-22': '小雪', '12-7': '大雪', '12-21': '冬至'
+        };
+
+        const MONTH_NAMES_EN = ['', 'January', 'February', 'March', 'April', 'May', 'June',
+                                'July', 'August', 'September', 'October', 'November', 'December'];
+
+        // 滑桿數值更新
+        document.querySelectorAll('input[type="range"]').forEach(slider => {
+            const valueSpan = document.getElementById(slider.id + 'Value');
+            slider.addEventListener('input', () => {
+                const unit = slider.id === 'imgRatio' ? '%' : '';
+                valueSpan.textContent = slider.value + unit;
+            });
+        });
+
+        // 農曆轉換
+        function getLunarText(year, month, day) {
+            const key = `${month}-${day}`;
+            
+            // 優先顯示節氣
+            if (SOLAR_TERMS_2026[key]) return SOLAR_TERMS_2026[key];
+            
+            // 使用 lunar-javascript 轉換農曆
+            const lunar = Lunar.fromDate(new Date(year, month - 1, day));
+            const lunarDay = lunar.getDay();
+            const lunarMonth = lunar.getMonth();
+            
+            // 特殊節日
+            if (lunarMonth === 1 && lunarDay === 1) return '春節';
+            if (lunarMonth === 5 && lunarDay === 5) return '端午';
+            if (lunarMonth === 8 && lunarDay === 15) return '中秋';
+            
+            // 初一顯示月份
+            if (lunarDay === 1) {
+                const monthNames = ['', '正', '二', '三', '四', '五', '六', '七', '八', '九', '十', '冬', '臘'];
+                return monthNames[lunarMonth] + '月';
+            }
+            
+            // 顯示農曆日期
+            const dayNames = ['', '初一', '初二', '初三', '初四', '初五', '初六', '初七', '初八', '初九', '初十',
+                            '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十',
+                            '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十'];
+            return dayNames[lunarDay];
+        }
+
+        // 取得月份天數
+        function getDaysInMonth(year, month) {
+            return new Date(year, month, 0).getDate();
+        }
+
+        // 取得月份第一天是星期幾 (0=日)
+        function getFirstDayOfMonth(year, month) {
+            return new Date(year, month - 1, 1).getDay();
+        }
+
+        async function generateCalendar() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<div class="loading">🎨 正在繪製月曆...</div>';
+
+            // 取得參數
+            const width = parseInt(document.getElementById('canvasWidth').value);
+            const height = parseInt(document.getElementById('canvasHeight').value);
+            const imgRatio = parseInt(document.getElementById('imgRatio').value) / 100;
+            const marginX = parseInt(document.getElementById('marginX').value);
+            const marginY = parseInt(document.getElementById('marginY').value);
+            const gapX = parseInt(document.getElementById('gapX').value);
+            const gapY = parseInt(document.getElementById('gapY').value);
+            const titleDateGap = parseInt(document.getElementById('titleDateGap').value);
+            const titleSize = parseInt(document.getElementById('titleSize').value);
+            const monthSize = parseInt(document.getElementById('monthSize').value);
+            const dateSize = parseInt(document.getElementById('dateSize').value);
+            const lunarSize = parseInt(document.getElementById('lunarSize').value);
+            const customTitle = document.getElementById('customTitle').value;
+            const monthStyle = document.querySelector('input[name="monthStyle"]:checked').value;
+            const showBorder = document.getElementById('showBorder').checked;
+            const imgPosition = document.querySelector('input[name="imgPosition"]:checked').value;
+
+            // 建立畫布
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            
+            // 白色背景
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, width, height);
+
+            let targetImgH = 0;
+
+            // 處理圖片
+            const fileInput = document.getElementById('imageUpload');
+            if (fileInput.files.length > 0) {
+                const img = await loadImage(fileInput.files[0]);
+                
+                if (imgPosition === 'background') {
+                    // 底稿模式
+                    const ratio = Math.max(width / img.width, height / img.height);
+                    const newW = img.width * ratio;
+                    const newH = img.height * ratio;
+                    const x = (width - newW) / 2;
+                    const y = (height - newH) / 2;
+                    
+                    ctx.globalAlpha = 0.6;
+                    ctx.drawImage(img, x, y, newW, newH);
+                    ctx.globalAlpha = 1.0;
+                    targetImgH = 0;
+                } else {
+                    // 上方模式
+                    targetImgH = height * imgRatio;
+                    const ratio = width / img.width;
+                    const newH = img.height * ratio;
+                    
+                    if (newH > targetImgH) {
+                        ctx.drawImage(img, 0, 0, width, targetImgH);
+                    } else {
+                        ctx.drawImage(img, 0, 0, width, newH);
+                    }
+                }
+            }
+
+            // 繪製標題
+            ctx.fillStyle = 'black';
+            ctx.font = `${titleSize}px "Microsoft JhengHei", sans-serif`;
+            ctx.textAlign = 'center';
+            const titleY = targetImgH > 0 ? targetImgH + 50 : 50;
+            ctx.fillText(customTitle, width / 2, titleY);
+
+            // 月曆區域
+            const calStartY = titleY + titleSize + 50;
+            const calAreaH = height - calStartY - marginY;
+            const calAreaW = width - (2 * marginX);
+            const cols = 3, rows = 4;
+            const cellW = (calAreaW - (cols - 1) * gapX) / cols;
+            const cellH = (calAreaH - (rows - 1) * gapY) / rows;
+
+            // 繪製12個月
+            for (let m = 1; m <= 12; m++) {
+                const rowIdx = Math.floor((m - 1) / cols);
+                const colIdx = (m - 1) % cols;
+                const baseX = marginX + colIdx * (cellW + gapX);
+                const baseY = calStartY + rowIdx * (cellH + gapY);
+
+                // 框線
+                if (showBorder) {
+                    ctx.strokeStyle = 'gray';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(baseX - 10, baseY - 10, cellW + 20, cellH + 20);
+                }
+
+                // 月份標題
+                const monthTitle = monthStyle === 'english' ? MONTH_NAMES_EN[m] : `${m}月`;
+                ctx.font = `bold ${monthSize}px "Microsoft JhengHei", sans-serif`;
+                ctx.fillStyle = 'black';
+                ctx.textAlign = 'center';
+                ctx.fillText(monthTitle, baseX + cellW / 2, baseY + monthSize);
+
+                const headerY = baseY + monthSize + titleDateGap;
+
+                // 星期標題
+                const days = ['日', '一', '二', '三', '四', '五', '六'];
+                const dayW = cellW / 7;
+                ctx.font = `${lunarSize}px "Microsoft JhengHei", sans-serif`;
+                
+                days.forEach((d, i) => {
+                    ctx.fillStyle = (i === 0 || i === 6) ? 'red' : 'black';
+                    ctx.fillText(d, baseX + i * dayW + dayW / 2, headerY);
+                });
+
+                // 日期網格
+                const firstDay = getFirstDayOfMonth(2026, m);
+                const daysInMonth = getDaysInMonth(2026, m);
+                let currentY = headerY + 40;
+                const lineSpacing = (cellH - (headerY - baseY) - 20) / 6;
+
+                let day = 1;
+                for (let week = 0; week < 6 && day <= daysInMonth; week++) {
+                    for (let i = 0; i < 7; i++) {
+                        if (week === 0 && i < firstDay) continue;
+                        if (day > daysInMonth) break;
+
+                        const dx = baseX + i * dayW + dayW / 2;
+                        const key = `${m}-${day}`;
+                        const isWeekend = (i === 0 || i === 6);
+                        const isHoliday = HOLIDAYS_2026[key] !== undefined;
+                        const isSolarTerm = SOLAR_TERMS_2026[key] !== undefined;
+
+                        // 國曆日期
+                        ctx.font = `bold ${dateSize}px "Microsoft JhengHei", sans-serif`;
+                        ctx.fillStyle = (isWeekend || isHoliday) ? 'red' : 'black';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(day.toString(), dx, currentY);
+
+                        // 農曆/節日
+                        let lunarText = getLunarText(2026, m, day);
+                        if (HOLIDAYS_2026[key]) lunarText = HOLIDAYS_2026[key];
+
+                        ctx.font = `${lunarSize}px "Microsoft JhengHei", sans-serif`;
+                        if (isSolarTerm) {
+                            ctx.fillStyle = 'green';
+                        } else if (isWeekend || isHoliday) {
+                            ctx.fillStyle = 'red';
+                        } else {
+                            ctx.fillStyle = 'gray';
+                        }
+                        ctx.fillText(lunarText, dx, currentY + dateSize);
+
+                        day++;
+                    }
+                    currentY += lineSpacing;
+                }
+            }
+
+            // 顯示結果
+            const img = canvas.toDataURL('image/jpeg', 0.95);
+            output.innerHTML = `
+                <img id="preview" src="${img}" alt="月曆預覽">
+                <button class="download-btn" onclick="downloadCalendar()">📥 下載高解析度月曆</button>
+            `;
+            window.generatedImage = img;
+        }
+
+        function loadImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => resolve(img);
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function downloadCalendar() {
+            const link = document.createElement('a');
+            link.download = '2026_Custom_Calendar.jpg';
+            link.href = window.generatedImage;
+            link.click();
+        }
+    </script>
+</body>
+</html>
