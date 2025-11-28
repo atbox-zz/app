@@ -15,60 +15,63 @@
             font-family: 'Microsoft JhengHei', '微軟正黑體', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 10px;
         }
         .container {
             max-width: 1400px;
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
+            border-radius: 15px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
         }
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 30px;
+            padding: 20px 15px;
             text-align: center;
         }
         .header h1 {
-            font-size: 32px;
-            margin-bottom: 10px;
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+        .header p {
+            font-size: 14px;
         }
         .content {
             display: flex;
-            min-height: 600px;
+            flex-direction: column;
         }
         .sidebar {
-            width: 350px;
+            width: 100%;
             background: #f8f9fa;
-            padding: 30px;
-            overflow-y: auto;
-            max-height: calc(100vh - 200px);
+            padding: 20px 15px;
+            max-height: none;
         }
         .main {
-            flex: 1;
-            padding: 30px;
+            width: 100%;
+            padding: 20px 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
         .section {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         .section h3 {
             color: #667eea;
-            margin-bottom: 15px;
-            font-size: 18px;
+            margin-bottom: 12px;
+            font-size: 16px;
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: 500;
             color: #333;
+            font-size: 14px;
         }
         input[type="text"],
         input[type="number"],
@@ -98,12 +101,14 @@
             display: flex;
             gap: 15px;
             margin-top: 8px;
+            flex-wrap: wrap;
         }
         .radio-group label {
             display: flex;
             align-items: center;
             gap: 5px;
             font-weight: normal;
+            font-size: 14px;
         }
         .checkbox-group {
             display: flex;
@@ -114,6 +119,7 @@
         .checkbox-group label {
             margin: 0;
             font-weight: normal;
+            font-size: 14px;
         }
         button {
             width: 100%;
@@ -126,6 +132,7 @@
             font-weight: bold;
             cursor: pointer;
             transition: transform 0.2s;
+            margin-top: 10px;
         }
         button:hover {
             transform: translateY(-2px);
@@ -142,16 +149,56 @@
         .info {
             text-align: center;
             color: #666;
-            padding: 40px;
+            padding: 30px 15px;
+            font-size: 14px;
         }
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 30px 15px;
             color: #667eea;
+            font-size: 16px;
         }
         .download-btn {
-            margin-top: 20px;
+            margin-top: 15px;
             background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        /* 桌面版樣式 */
+        @media (min-width: 768px) {
+            body {
+                padding: 20px;
+            }
+            .header h1 {
+                font-size: 32px;
+                margin-bottom: 10px;
+            }
+            .header p {
+                font-size: 16px;
+            }
+            .content {
+                flex-direction: row;
+                min-height: 600px;
+            }
+            .sidebar {
+                width: 350px;
+                overflow-y: auto;
+                max-height: calc(100vh - 200px);
+                padding: 30px;
+            }
+            .main {
+                flex: 1;
+                padding: 30px;
+            }
+            .section h3 {
+                font-size: 18px;
+            }
+            label {
+                font-size: 15px;
+            }
+            .info {
+                padding: 40px;
+                font-size: 16px;
+            }
         }
     </style>
 </head>
@@ -169,15 +216,15 @@
                     <div class="form-group" style="margin-top: 15px;">
                         <label>圖片位置</label>
                         <div class="radio-group">
-                            <label><input type="radio" name="imgPosition" value="top" checked> 上方</label>
-                            <label><input type="radio" name="imgPosition" value="background"> 底稿</label>
+                            <label><input type="radio" name="imgPosition" value="top"> 上方</label>
+                            <label><input type="radio" name="imgPosition" value="background" checked> 底稿</label>
                         </div>
                     </div>
                 </div>
 
                 <div class="section">
                     <h3>2. 標題設定</h3>
-                    <input type="text" id="customTitle" value="中華民國115年 歲次丙午" placeholder="輸入標題">
+                    <input type="text" id="customTitle" value="2026 民國115年 歲次丙午 馬年" placeholder="輸入標題">
                 </div>
 
                 <div class="section">
@@ -199,6 +246,10 @@
                         <input type="range" id="imgRatio" min="30" max="70" value="45">
                     </div>
                     <div class="form-group">
+                        <label>標題上方間距 <span class="slider-value" id="titleTopMarginValue">70</span></label>
+                        <input type="range" id="titleTopMargin" min="20" max="200" value="70">
+                    </div>
+                    <div class="form-group">
                         <label>左右邊界 <span class="slider-value" id="marginXValue">100</span></label>
                         <input type="range" id="marginX" min="50" max="300" value="100">
                     </div>
@@ -215,8 +266,12 @@
                         <input type="range" id="gapY" min="0" max="200" value="0">
                     </div>
                     <div class="form-group">
-                        <label>標題與日期間距 <span class="slider-value" id="titleDateGapValue">50</span></label>
+                        <label>月份標題與星期間距 <span class="slider-value" id="titleDateGapValue">50</span></label>
                         <input type="range" id="titleDateGap" min="10" max="100" value="50">
+                    </div>
+                    <div class="form-group">
+                        <label>星期與日期間距 <span class="slider-value" id="weekDateGapValue">60</span></label>
+                        <input type="range" id="weekDateGap" min="20" max="100" value="60">
                     </div>
                 </div>
 
@@ -227,6 +282,7 @@
                         <div class="radio-group">
                             <label><input type="radio" name="monthStyle" value="number" checked> 數字</label>
                             <label><input type="radio" name="monthStyle" value="english"> 英文</label>
+                            <label><input type="radio" name="monthStyle" value="both"> 英文+數字</label>
                         </div>
                     </div>
                     <div class="checkbox-group">
@@ -239,7 +295,7 @@
                     <h3>6. 字體大小</h3>
                     <div class="form-group">
                         <label>標題大小</label>
-                        <input type="number" id="titleSize" value="80" step="5">
+                        <input type="number" id="titleSize" value="55" step="5">
                     </div>
                     <div class="form-group">
                         <label>月份標題大小</label>
@@ -347,11 +403,13 @@
             const width = parseInt(document.getElementById('canvasWidth').value);
             const height = parseInt(document.getElementById('canvasHeight').value);
             const imgRatio = parseInt(document.getElementById('imgRatio').value) / 100;
+            const titleTopMargin = parseInt(document.getElementById('titleTopMargin').value);
             const marginX = parseInt(document.getElementById('marginX').value);
             const marginY = parseInt(document.getElementById('marginY').value);
             const gapX = parseInt(document.getElementById('gapX').value);
             const gapY = parseInt(document.getElementById('gapY').value);
             const titleDateGap = parseInt(document.getElementById('titleDateGap').value);
+            const weekDateGap = parseInt(document.getElementById('weekDateGap').value);
             const titleSize = parseInt(document.getElementById('titleSize').value);
             const monthSize = parseInt(document.getElementById('monthSize').value);
             const dateSize = parseInt(document.getElementById('dateSize').value);
@@ -406,9 +464,9 @@
 
             // 繪製標題
             ctx.fillStyle = 'black';
-            ctx.font = `${titleSize}px "Microsoft JhengHei", sans-serif`;
+            ctx.font = `bold ${titleSize}px "Microsoft JhengHei", sans-serif`;
             ctx.textAlign = 'center';
-            const titleY = targetImgH > 0 ? targetImgH + 50 : 50;
+            const titleY = targetImgH > 0 ? targetImgH + titleTopMargin : titleTopMargin;
             ctx.fillText(customTitle, width / 2, titleY);
 
             // 月曆區域
@@ -434,7 +492,14 @@
                 }
 
                 // 月份標題
-                const monthTitle = monthStyle === 'english' ? MONTH_NAMES_EN[m] : `${m}月`;
+                let monthTitle;
+                if (monthStyle === 'english') {
+                    monthTitle = MONTH_NAMES_EN[m];
+                } else if (monthStyle === 'both') {
+                    monthTitle = `${MONTH_NAMES_EN[m]} ${m}月`;
+                } else {
+                    monthTitle = `${m}月`;
+                }
                 ctx.font = `bold ${monthSize}px "Microsoft JhengHei", sans-serif`;
                 ctx.fillStyle = 'black';
                 ctx.textAlign = 'center';
@@ -442,8 +507,8 @@
 
                 const headerY = baseY + monthSize + titleDateGap;
 
-                // 星期標題
-                const days = ['日', '一', '二', '三', '四', '五', '六'];
+                // 星期標題（中英文混合）
+                const days = ['Sun 日', 'Mon 一', 'Tue 二', 'Wed 三', 'Thu 四', 'Fri 五', 'Sat 六'];
                 const dayW = cellW / 7;
                 ctx.font = `${lunarSize}px "Microsoft JhengHei", sans-serif`;
                 
@@ -455,8 +520,8 @@
                 // 日期網格
                 const firstDay = getFirstDayOfMonth(2026, m);
                 const daysInMonth = getDaysInMonth(2026, m);
-                let currentY = headerY + 40;
-                const lineSpacing = (cellH - (headerY - baseY) - 20) / 6;
+                let currentY = headerY + weekDateGap;  // 使用可調整的星期與日期間距
+                const lineSpacing = (cellH - (headerY - baseY) - weekDateGap) / 6;
 
                 let day = 1;
                 for (let week = 0; week < 6 && day <= daysInMonth; week++) {
@@ -495,6 +560,12 @@
                     currentY += lineSpacing;
                 }
             }
+
+            // 在右下角繪製隱藏文字（生日訊息）
+            ctx.font = `${lunarSize - 6}px "Microsoft JhengHei", sans-serif`;
+            ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';  // 非常淡的灰色，幾乎看不見
+            ctx.textAlign = 'right';
+            ctx.fillText('Sep 9 農曆九月九設計製作', width - 30, height - 30);
 
             // 顯示結果
             const img = canvas.toDataURL('image/jpeg', 0.95);
