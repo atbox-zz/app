@@ -147,6 +147,7 @@ const MusicPlayer = () => {
         { text: "大運流年", filename: "8w2.html", isEnglish: false, isGame: true },
         { text: "QuantumDNA", filename: "QuantumDNA.html", isEnglish: false, isGame: true },
 		{ text: "勞保退休萬事通", filename: "retirement_calc.html", isEnglish: false, isGame: true },
+		{ text: "115年月曆DIY", filename: "2026_Calendar.html", isEnglish: false, isGame: true },
       ]
     },
     {
