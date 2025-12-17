@@ -148,6 +148,12 @@ const MusicPlayer = () => {
         { text: "QuantumDNA", filename: "QuantumDNA.html", isEnglish: false, isGame: true },
 		    { text: "勞保退休萬事通", filename: "retirement_calc.html", isEnglish: false, isGame: true },
 		    { text: "115年月曆DIY", filename: "2026_Calendar.html", isEnglish: false, isGame: true },
+        { text: "人臉辨識", filename: "face-api.html", isEnglish: false, isGame: true },
+        { text: "", filename: "", isEnglish: false, isGame: true },
+		    { text: "", filename: "", isEnglish: false, isGame: true },
+		    { text: "", filename: "", isEnglish: false, isGame: true },
+
+
       ]
     },
     {
@@ -184,7 +190,7 @@ const MusicPlayer = () => {
     {
       buttons: [
         { text: "小明劍魔 回答我!", filename: "https://atbox-zz.github.io/app/answerme.mp3", isEnglish: false },
-        { text: "LOOK\nIN\nMY EYES", filename: "https://atbox-zz.github.io/app/Lookmyeyes.mp3", isEnglish: true },
+        { text: "LOOK\nIN\nMY EYES", filename: "./Lookmyeyes.mp3", isEnglish: true },
         { text: "TELL\nME\nWHY?", filename: "./Tellmewhy.mp3", isEnglish: true },
         { text: "啊能能!", filename: "./啊能能.mp3", isEnglish: false },
       ]
