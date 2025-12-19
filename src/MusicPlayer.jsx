@@ -149,7 +149,7 @@ const MusicPlayer = () => {
 		    { text: "勞保退休萬事通", filename: "retirement_calc.html", isEnglish: false, isGame: true },
 		    { text: "115年月曆DIY", filename: "2026_Calendar.html", isEnglish: false, isGame: true },
         { text: "人臉辨識", filename: "face-api.html", isEnglish: false, isGame: true },
-        { text: "", filename: "", isEnglish: false, isGame: true },
+        { text: "生物行為 Boids算法", filename: "boids_audio.html", isEnglish: false, isGame: true },
 		    { text: "", filename: "", isEnglish: false, isGame: true },
 		    { text: "", filename: "", isEnglish: false, isGame: true },
 
