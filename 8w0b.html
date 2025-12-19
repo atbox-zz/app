@@ -37,7 +37,7 @@
         
         .date-info {
             background: linear-gradient(45deg, #e8e9e2);
-            color: rgb(14, 1, 1);
+            color: rgb(8, 8, 8);
             padding: 20px;
             border-radius: 15px;
             margin-bottom: 30px;
@@ -102,15 +102,15 @@
         
         .gan-zhi-vertical .gan,
         .gan-zhi-vertical .zhi {
-            font-size: 1.8em;
+            font-size: 2.5em;
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-            color: #e74c3c;
+            color: #d52c2c;
         }
         
         .shishen {
-            font-size: 0.65em;
-            color: #0e0279;
+            font-size: 0.8em;
+            color: #614c96;
             font-weight: bold;
             min-height: 25px;
             display: flex;
@@ -364,16 +364,18 @@
                 
                 // 顯示日期資訊
                 const dateInfo = document.getElementById('dateInfo');
-                dateInfo.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <div><strong>姓名：</strong>${name}</div>
-                        <div><strong>性別：</strong>${gender}</div>
-                    </div>
-                    <div><strong>公曆：</strong>${solar.getYear()}年${solar.getMonth()}月${solar.getDay()}日 ${hour}時</div>
-                    <div><strong>農曆：</strong>${lunar.getYearInChinese()}年${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}</div>
-                    <div><strong>星期：</strong>${solar.getWeekInChinese()}</div>
-                `;
                 
+                //    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                //        <div><strong>姓名：</strong>${name}</div>
+                //        <div><strong>性別：</strong>${gender}</div>
+                //    </div>
+                //    <div><strong>公曆：</strong>${solar.getYear()}年${solar.getMonth()}月${solar.getDay()}日 ${hour}時</div>
+                //    <div><strong>農曆：</strong>${lunar.getYearInChinese()}年${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}</div>
+                //    <div><strong>星期：</strong>${solar.getWeekInChinese()}</div>
+                //`;
+                dateInfo.innerHTML = `
+                <div><strong>農曆：</strong>${lunar.getYearInChinese()}年${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}<strong>星期：</strong>${solar.getWeekInChinese()}</div>
+                `;
                 // 顯示八字
                 const baziContainer = document.getElementById('baziContainer');
                 const pillars = [

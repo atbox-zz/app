@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>Boids Swarm Synthesis - 湧現音場模擬</title>
+    <style>
+        body { margin: 0; background: #0a0a0c; overflow: hidden; font-family: sans-serif; }
+        canvas { display: block; }
+        #ui {
+            position: absolute; top: 20px; left: 20px; color: #fff;
+            pointer-events: none; text-shadow: 1px 1px 2px #000;
+        }
+        .hint { font-size: 0.8em; color: #888; }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <h2>Boids 湧現音場</h2>
+        <p>點擊屏幕啟動音頻 (Web Audio API)</p>
+        <p class="hint">紅色：捕食者 | 藍色：鳥群 | 滑鼠：避障干擾</p>
+    </div>
+    <canvas id="canvas"></canvas>
+
+<script>
+/** --- 音頻系統音場設計 --- **/
+const AudioEngine = {
+    ctx: null,
+    filter: null,
+    masterGain: null,
+    osc: null,
+    
+    init() {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        this.masterGain = this.ctx.createGain();
+        this.filter = this.ctx.createBiquadFilter();
+        
+        // 設置低通濾波器，營造群體的「嗡鳴」感
+        this.filter.type = 'lowpass';
+        this.filter.frequency.value = 400;
+        this.filter.Q.value = 10;
+
+        this.masterGain.gain.setValueAtTime(0, this.ctx.currentTime);
+        this.masterGain.connect(this.filter);
+        this.filter.connect(this.ctx.destination);
+
+        // 主群體振盪器 (基礎頻率)
+        this.osc = this.ctx.createOscillator();
+        this.osc.type = 'sawtooth'; 
+        this.osc.frequency.value = 55; // 低音 A
+        this.osc.connect(this.masterGain);
+        this.osc.start();
+        
+        // 漸入
+        this.masterGain.gain.linearRampToValueAtTime(0.15, this.ctx.currentTime + 2);
+    },
+
+    // 根據群體狀態更新音場
+    updateSwarmSound(avgSpeed, mouseDist) {
+        if (!this.ctx) return;
+        
+        // 速度越高，濾波器開口越大，聲音越尖銳
+        let targetFreq = 200 + (avgSpeed * 200);
+        this.filter.frequency.setTargetAtTime(targetFreq, this.ctx.currentTime, 0.1);
+
+        // 根據滑鼠距離增加壓迫感
+        if (mouseDist < 200) {
+            let panic = (1 - mouseDist / 200);
+            this.osc.detune.setTargetAtTime(panic * 500, this.ctx.currentTime, 0.1);
+        } else {
+            this.osc.detune.setTargetAtTime(0, this.ctx.currentTime, 0.5);
+        }
+    },
+
+    // 捕獲時的打擊音
+    playPop() {
+        if (!this.ctx) return;
+        const o = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        o.type = 'triangle';
+        o.frequency.setValueAtTime(800 + Math.random() * 400, this.ctx.currentTime);
+        o.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.1);
+        g.gain.setValueAtTime(0.1, this.ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.1);
+        o.connect(g);
+        g.connect(this.ctx.destination);
+        o.start();
+        o.stop(this.ctx.currentTime + 0.1);
+    }
+};
+
+/** --- Boids 模擬邏輯 --- **/
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let boids = [];
+let mouse = { x: -1000, y: -1000 };
+
+window.onresize = () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+};
+window.onresize();
+
+window.onmousemove = (e) => { mouse.x = e.clientX; mouse.y = e.clientY; };
+window.onclick = () => { if (!AudioEngine.ctx) AudioEngine.init(); };
+
+class Boid {
+    constructor(isPredator = false) {
+        this.pos = { x: Math.random() * canvas.width, y: Math.random() * canvas.height };
+        this.vel = { x: (Math.random()-0.5)*4, y: (Math.random()-0.5)*4 };
+        this.acc = { x: 0, y: 0 };
+        this.isPredator = isPredator;
+        this.maxSpeed = isPredator ? 3.5 : 3;
+        this.maxForce = 0.08;
+    }
+
+    applyForce(force) {
+        this.acc.x += force.x;
+        this.acc.y += force.y;
+    }
+
+    flock(boids) {
+        let sep = {x:0, y:0}, ali = {x:0, y:0}, coh = {x:0, y:0};
+        let count = 0;
+        let perception = 60;
+
+        for (let other of boids) {
+            let d = Math.hypot(this.pos.x - other.pos.x, this.pos.y - other.pos.y);
+            if (other !== this && d < perception) {
+                if (!this.isPredator && other.isPredator) {
+                    // 逃離捕食者
+                    let flee = { x: this.pos.x - other.pos.x, y: this.pos.y - other.pos.y };
+                    this.applyForce(this.steerTo(flee, 6)); 
+                } else if (!this.isPredator) {
+                    // 常規三原則
+                    let diff = { x: this.pos.x - other.pos.x, y: this.pos.y - other.pos.y };
+                    diff.x /= d; diff.y /= d;
+                    sep.x += diff.x; sep.y += diff.y;
+                    ali.x += other.vel.x; ali.y += other.vel.y;
+                    coh.x += other.pos.x; coh.y += other.pos.y;
+                    count++;
+                }
+            }
+        }
+
+        if (count > 0) {
+            this.applyForce(this.steerTo(sep, 1.5));
+            this.applyForce(this.steerTo(ali, 1.0));
+            coh.x = coh.x/count - this.pos.x;
+            coh.y = coh.y/count - this.pos.y;
+            this.applyForce(this.steerTo(coh, 1.0));
+        }
+
+        // 避開滑鼠
+        let dMouse = Math.hypot(this.pos.x - mouse.x, this.pos.y - mouse.y);
+        if (dMouse < 100) {
+            let evade = { x: this.pos.x - mouse.x, y: this.pos.y - mouse.y };
+            this.applyForce(this.steerTo(evade, 5));
+        }
+
+        // 捕食者追蹤最近的鳥
+        if (this.isPredator) {
+            let closest = null, minDist = Infinity;
+            for(let b of boids) {
+                if(!b.isPredator) {
+                    let d = Math.hypot(this.pos.x - b.pos.x, this.pos.y - b.pos.y);
+                    if(d < minDist) { minDist = d; closest = b; }
+                }
+            }
+            if(closest) {
+                let chase = { x: closest.pos.x - this.pos.x, y: closest.pos.y - this.pos.y };
+                this.applyForce(this.steerTo(chase, 1));
+                if(minDist < 8) AudioEngine.playPop(); // 觸發捕獲音
+            }
+        }
+    }
+
+    steerTo(target, multiplier) {
+        let mag = Math.hypot(target.x, target.y);
+        if (mag === 0) return {x:0, y:0};
+        let steer = {
+            x: (target.x / mag) * this.maxSpeed - this.vel.x,
+            y: (target.y / mag) * this.maxSpeed - this.vel.y
+        };
+        let steerMag = Math.hypot(steer.x, steer.y);
+        if (steerMag > this.maxForce) {
+            steer.x = (steer.x / steerMag) * this.maxForce;
+            steer.y = (steer.y / steerMag) * this.maxForce;
+        }
+        return { x: steer.x * multiplier, y: steer.y * multiplier };
+    }
+
+    update() {
+        this.vel.x += this.acc.x;
+        this.vel.y += this.acc.y;
+        this.pos.x = (this.pos.x + this.vel.x + canvas.width) % canvas.width;
+        this.pos.y = (this.pos.y + this.vel.y + canvas.height) % canvas.height;
+        this.acc = { x: 0, y: 0 };
+    }
+
+    draw() {
+        ctx.fillStyle = this.isPredator ? "#ff4757" : "#54a0ff";
+        ctx.save();
+        ctx.translate(this.pos.x, this.pos.y);
+        ctx.rotate(Math.atan2(this.vel.y, this.vel.x));
+        ctx.beginPath();
+        ctx.moveTo(8, 0); ctx.lineTo(-4, -4); ctx.lineTo(-4, 4);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+// 初始化群體
+for(let i=0; i<100; i++) boids.push(new Boid(false));
+for(let i=0; i<2; i++) boids.push(new Boid(true));
+
+function loop() {
+    ctx.fillStyle = 'rgba(10, 10, 12, 0.2)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    let totalSpeed = 0;
+    let minMouseDist = Infinity;
+
+    boids.forEach(b => {
+        b.flock(boids);
+        b.update();
+        b.draw();
+        
+        totalSpeed += Math.hypot(b.vel.x, b.vel.y);
+        let dm = Math.hypot(b.pos.x - mouse.x, b.pos.y - mouse.y);
+        if (dm < minMouseDist) minMouseDist = dm;
+    });
+
+    // 每一幀更新合成音場
+    AudioEngine.updateSwarmSound(totalSpeed / boids.length, minMouseDist);
+    
+    requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
