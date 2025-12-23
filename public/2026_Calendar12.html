@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 雙月曆產生器 (6張照片)</title>
+    <title>2026 單月曆產生器 (12張照片)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.6.12/lunar.min.js"></script>
     <style>
         * {
@@ -66,8 +66,9 @@
         .form-group {
             margin-bottom: 12px;
         }
-        .image-upload-group {
+        .image-upload-grid {
             display: grid;
+            grid-template-columns: 1fr;
             gap: 10px;
             margin-top: 10px;
         }
@@ -159,12 +160,6 @@
         button:active {
             transform: translateY(0);
         }
-        #preview {
-            max-width: 100%;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
         .info {
             text-align: center;
             color: #666;
@@ -180,6 +175,21 @@
         .download-btn {
             margin-top: 15px;
             background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        .calendar-page {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        .calendar-page h3 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .calendar-page img {
+            max-width: 100%;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
 
         @media (min-width: 768px) {
@@ -198,7 +208,7 @@
                 min-height: 600px;
             }
             .sidebar {
-                width: 380px;
+                width: 400px;
                 overflow-y: auto;
                 max-height: calc(100vh - 200px);
                 padding: 30px;
@@ -217,43 +227,70 @@
                 padding: 40px;
                 font-size: 16px;
             }
+            .image-upload-grid {
+                grid-template-columns: 1fr 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📅 2026 雙月曆產生器</h1>
-            <p>上傳6張圖片，每張對應兩個月份！</p>
+            <h1>📅 2026 單月曆產生器</h1>
+            <p>上傳12張圖片，每個月一張專屬照片！</p>
         </div>
         <div class="content">
             <div class="sidebar">
                 <div class="section">
-                    <h3>1. 上傳6張圖片</h3>
-                    <div class="image-upload-group">
+                    <h3>1. 上傳12張圖片</h3>
+                    <div class="image-upload-grid">
                         <div class="image-upload-item">
-                            <label>📷 1-2月圖片</label>
+                            <label>📷 1月 January</label>
                             <input type="file" id="img1" accept="image/*">
                         </div>
                         <div class="image-upload-item">
-                            <label>📷 3-4月圖片</label>
+                            <label>📷 2月 February</label>
                             <input type="file" id="img2" accept="image/*">
                         </div>
                         <div class="image-upload-item">
-                            <label>📷 5-6月圖片</label>
+                            <label>📷 3月 March</label>
                             <input type="file" id="img3" accept="image/*">
                         </div>
                         <div class="image-upload-item">
-                            <label>📷 7-8月圖片</label>
+                            <label>📷 4月 April</label>
                             <input type="file" id="img4" accept="image/*">
                         </div>
                         <div class="image-upload-item">
-                            <label>📷 9-10月圖片</label>
+                            <label>📷 5月 May</label>
                             <input type="file" id="img5" accept="image/*">
                         </div>
                         <div class="image-upload-item">
-                            <label>📷 11-12月圖片</label>
+                            <label>📷 6月 June</label>
                             <input type="file" id="img6" accept="image/*">
+                        </div>
+                        <div class="image-upload-item">
+                            <label>📷 7月 July</label>
+                            <input type="file" id="img7" accept="image/*">
+                        </div>
+                        <div class="image-upload-item">
+                            <label>📷 8月 August</label>
+                            <input type="file" id="img8" accept="image/*">
+                        </div>
+                        <div class="image-upload-item">
+                            <label>📷 9月 September</label>
+                            <input type="file" id="img9" accept="image/*">
+                        </div>
+                        <div class="image-upload-item">
+                            <label>📷 10月 October</label>
+                            <input type="file" id="img10" accept="image/*">
+                        </div>
+                        <div class="image-upload-item">
+                            <label>📷 11月 November</label>
+                            <input type="file" id="img11" accept="image/*">
+                        </div>
+                        <div class="image-upload-item">
+                            <label>📷 12月 December</label>
+                            <input type="file" id="img12" accept="image/*">
                         </div>
                     </div>
                 </div>
@@ -261,6 +298,10 @@
                 <div class="section">
                     <h3>2. 標題設定</h3>
                     <input type="text" id="customTitle" value="2026 民國115年 歲次丙午 馬年" placeholder="輸入標題">
+                    <div class="checkbox-group" style="margin-top: 10px;">
+                        <input type="checkbox" id="showTitleOnAll" checked>
+                        <label for="showTitleOnAll">每頁都顯示標題</label>
+                    </div>
                 </div>
 
                 <div class="section">
@@ -278,32 +319,32 @@
                 <div class="section">
                     <h3>4. 排版微調</h3>
                     <div class="form-group">
-                        <label>圖片佔比 <span class="slider-value" id="imgRatioValue">55%</span></label>
-                        <input type="range" id="imgRatio" min="40" max="70" value="55">
+                        <label>圖片佔比 <span class="slider-value" id="imgRatioValue">60%</span></label>
+                        <input type="range" id="imgRatio" min="40" max="75" value="60">
                     </div>
                     <div class="form-group">
-                        <label>標題上方間距 <span class="slider-value" id="titleTopMarginValue">120</span></label>
-                        <input type="range" id="titleTopMargin" min="20" max="150" value="120">
+                        <label>標題上方間距 <span class="slider-value" id="titleTopMarginValue">100</span></label>
+                        <input type="range" id="titleTopMargin" min="20" max="150" value="100">
                     </div>
                     <div class="form-group">
-                        <label>月曆左右邊界 <span class="slider-value" id="calMarginXValue">100</span></label>
-                        <input type="range" id="calMarginX" min="50" max="300" value="100">
+                        <label>月曆左右邊界 <span class="slider-value" id="calMarginXValue">150</span></label>
+                        <input type="range" id="calMarginX" min="50" max="400" value="150">
                     </div>
                     <div class="form-group">
-                        <label>月曆下方邊界 <span class="slider-value" id="calMarginYValue">80</span></label>
-                        <input type="range" id="calMarginY" min="50" max="200" value="80">
+                        <label>月曆下方邊界 <span class="slider-value" id="calMarginYValue">95</span></label>
+                        <input type="range" id="calMarginY" min="50" max="200" value="95">
                     </div>
                     <div class="form-group">
-                        <label>兩月左右間距 <span class="slider-value" id="monthGapValue">60</span></label>
-                        <input type="range" id="monthGap" min="20" max="150" value="60">
+                        <label>月份標題與星期間距 <span class="slider-value" id="titleWeekGapValue">88</span></label>
+                        <input type="range" id="titleWeekGap" min="20" max="100" value="88">
                     </div>
                     <div class="form-group">
-                        <label>月份標題與星期間距 <span class="slider-value" id="titleWeekGapValue">80</span></label>
-                        <input type="range" id="titleWeekGap" min="10" max="80" value="80">
+                        <label>星期與日期間距 <span class="slider-value" id="weekDateGapValue">104</span></label>
+                        <input type="range" id="weekDateGap" min="30" max="120" value="104">
                     </div>
                     <div class="form-group">
-                        <label>星期與日期間距 <span class="slider-value" id="weekDateGapValue">80</span></label>
-                        <input type="range" id="weekDateGap" min="20" max="100" value="80">
+                        <label>日期與農曆間距 <span class="slider-value" id="dateLunarGapValue">2</span></label>
+                        <input type="range" id="dateLunarGap" min="0" max="30" value="2">
                     </div>
                 </div>
 
@@ -327,28 +368,28 @@
                     <h3>6. 字體大小</h3>
                     <div class="form-group">
                         <label>標題大小</label>
-                        <input type="number" id="titleSize" value="80" step="5">
+                        <input type="number" id="titleSize" value="70" step="1">
                     </div>
                     <div class="form-group">
                         <label>月份標題大小</label>
-                        <input type="number" id="monthSize" value="55" step="5">
+                        <input type="number" id="monthSize" value="80" step="1">
                     </div>
                     <div class="form-group">
                         <label>日期數字大小</label>
-                        <input type="number" id="dateSize" value="50" step="2">
+                        <input type="number" id="dateSize" value="70" step="1">
                     </div>
                     <div class="form-group">
                         <label>農曆/節日大小</label>
-                        <input type="number" id="lunarSize" value="30" step="2">
+                        <input type="number" id="lunarSize" value="36" step="1">
                     </div>
                 </div>
 
-                <button onclick="generateCalendar()">生成雙月曆</button>
+                <button onclick="generateCalendar()">生成12頁月曆</button>
             </div>
 
             <div class="main">
                 <div id="output" class="info">
-                    <p>👈 請上傳6張圖片並點擊「生成雙月曆」按鈕</p>
+                    <p>👈 請上傳12張圖片並點擊「生成12頁月曆」按鈕</p>
                 </div>
             </div>
         </div>
@@ -434,12 +475,12 @@
         }
 
         function drawMonthCalendar(ctx, month, baseX, baseY, cellW, cellH, params) {
-            const { monthSize, dateSize, lunarSize, monthStyle, showBorder, titleWeekGap, weekDateGap } = params;
+            const { monthSize, dateSize, lunarSize, monthStyle, showBorder, titleWeekGap, weekDateGap, dateLunarGap } = params;
 
             if (showBorder) {
                 ctx.strokeStyle = 'gray';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(baseX - 10, baseY - 10, cellW + 20, cellH + 20);
+                ctx.lineWidth = 3;
+                ctx.strokeRect(baseX - 15, baseY - 15, cellW + 30, cellH + 30);
             }
 
             let monthTitle;
@@ -500,7 +541,7 @@
                     } else {
                         ctx.fillStyle = 'gray';
                     }
-                    ctx.fillText(lunarText, dx, currentY + dateSize);
+                    ctx.fillText(lunarText, dx, currentY + dateSize + dateLunarGap);
 
                     day++;
                 }
@@ -510,16 +551,16 @@
 
         async function generateCalendar() {
             const output = document.getElementById('output');
-            output.innerHTML = '<div class="loading">🎨 正在繪製6頁雙月曆...</div>';
+            output.innerHTML = '<div class="loading">🎨 正在繪製12頁單月曆...</div>';
 
             try {
                 // 載入所有圖片
                 const images = [];
-                for (let i = 1; i <= 6; i++) {
+                for (let i = 1; i <= 12; i++) {
                     const fileInput = document.getElementById(`img${i}`);
                     if (fileInput.files.length === 0) {
-                        alert(`請上傳第 ${i} 張圖片 (${i*2-1}-${i*2}月)`);
-                        output.innerHTML = '<div class="info"><p>👈 請上傳所有6張圖片</p></div>';
+                        alert(`請上傳第 ${i} 張圖片 (${i}月 ${MONTH_NAMES_EN[i]})`);
+                        output.innerHTML = '<div class="info"><p>👈 請上傳所有12張圖片</p></div>';
                         return;
                     }
                     images.push(await loadImage(fileInput.files[0]));
@@ -532,9 +573,9 @@
                 const titleTopMargin = parseInt(document.getElementById('titleTopMargin').value);
                 const calMarginX = parseInt(document.getElementById('calMarginX').value);
                 const calMarginY = parseInt(document.getElementById('calMarginY').value);
-                const monthGap = parseInt(document.getElementById('monthGap').value);
                 const titleWeekGap = parseInt(document.getElementById('titleWeekGap').value);
                 const weekDateGap = parseInt(document.getElementById('weekDateGap').value);
+                const dateLunarGap = parseInt(document.getElementById('dateLunarGap').value);
                 const titleSize = parseInt(document.getElementById('titleSize').value);
                 const monthSize = parseInt(document.getElementById('monthSize').value);
                 const dateSize = parseInt(document.getElementById('dateSize').value);
@@ -542,11 +583,12 @@
                 const customTitle = document.getElementById('customTitle').value;
                 const monthStyle = document.querySelector('input[name="monthStyle"]:checked').value;
                 const showBorder = document.getElementById('showBorder').checked;
+                const showTitleOnAll = document.getElementById('showTitleOnAll').checked;
 
                 const pages = [];
 
-                // 生成6頁
-                for (let pageIdx = 0; pageIdx < 6; pageIdx++) {
+                // 生成12頁
+                for (let month = 1; month <= 12; month++) {
                     const canvas = document.createElement('canvas');
                     canvas.width = pageWidth;
                     canvas.height = pageHeight;
@@ -556,7 +598,7 @@
                     ctx.fillRect(0, 0, pageWidth, pageHeight);
 
                     // 繪製圖片
-                    const img = images[pageIdx];
+                    const img = images[month - 1];
                     const imgHeight = pageHeight * imgRatio;
                     const ratio = pageWidth / img.width;
                     const newH = img.height * ratio;
@@ -567,55 +609,49 @@
                         ctx.drawImage(img, 0, 0, pageWidth, newH);
                     }
 
-                    // 繪製標題（只在第一頁顯示）
-                    if (pageIdx === 0) {
+                    // 繪製標題（根據設定決定是否顯示）
+                    let calStartY;
+                    if (showTitleOnAll || month === 1) {
                         ctx.fillStyle = 'black';
                         ctx.font = `bold ${titleSize}px "Microsoft JhengHei", sans-serif`;
                         ctx.textAlign = 'center';
                         const titleY = imgHeight + titleTopMargin;
                         ctx.fillText(customTitle, pageWidth / 2, titleY);
+                        calStartY = titleY + titleSize + 30;
+                    } else {
+                        calStartY = imgHeight + titleTopMargin;
                     }
 
                     // 計算月曆區域
-                    const calStartY = imgHeight + (pageIdx === 0 ? titleTopMargin + titleSize + 30 : titleTopMargin);
                     const calAreaH = pageHeight - calStartY - calMarginY;
                     const calAreaW = pageWidth - (2 * calMarginX);
 
-                    // 兩個月份並排
-                    const cellW = (calAreaW - monthGap) / 2;
-                    const cellH = calAreaH;
+                    const params = { monthSize, dateSize, lunarSize, monthStyle, showBorder, titleWeekGap, weekDateGap, dateLunarGap };
 
-                    const month1 = pageIdx * 2 + 1;
-                    const month2 = pageIdx * 2 + 2;
+                    // 繪製月份
+                    drawMonthCalendar(ctx, month, calMarginX, calStartY, calAreaW, calAreaH, params);
 
-                    const params = { monthSize, dateSize, lunarSize, monthStyle, showBorder, titleWeekGap, weekDateGap };
-
-                    // 繪製左邊月份
-                    drawMonthCalendar(ctx, month1, calMarginX, calStartY, cellW, cellH, params);
-
-                    // 繪製右邊月份
-                    drawMonthCalendar(ctx, month2, calMarginX + cellW + monthGap, calStartY, cellW, cellH, params);
-
-                    // 隱藏文字（只在最後一頁）
-                    //if (pageIdx === 5) {
-                        ctx.font = `${lunarSize - 6}px "Microsoft JhengHei", sans-serif`;
-                        ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';// 非常淡的灰色，幾乎看不見
-                        ctx.textAlign = 'right';
-                        ctx.fillText('Sep 9 農曆九月九生日', pageWidth - 30, pageHeight - 30);
+                    // 隱藏文字（只在9月顯示）
+                    //if (month === 9) {
+                    ctx.font = `${lunarSize - 4}px "Microsoft JhengHei", sans-serif`;
+                    ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+                    ctx.textAlign = 'right';
+                    ctx.fillText('Sep 9 農曆九月九生日', pageWidth - 30, pageHeight - 30);
                     //}
 
                     pages.push(canvas.toDataURL('image/jpeg', 0.95));
                 }
 
                 // 顯示所有頁面
-                let html = '<div style="display: flex; flex-direction: column; gap: 20px; align-items: center;">';
+                let html = '<div style="display: flex; flex-direction: column; gap: 30px; align-items: center;">';
                 pages.forEach((img, idx) => {
-                    const months = `${idx*2+1}-${idx*2+2}月`;
+                    const monthNum = idx + 1;
+                    const monthName = MONTH_NAMES_EN[monthNum];
                     html += `
-                        <div style="width: 100%;">
-                            <h3 style="text-align: center; color: #667eea; margin-bottom: 10px;">第${idx+1}頁 (${months})</h3>
-                            <img src="${img}" style="max-width: 100%; border: 2px solid #e0e0e0; border-radius: 10px;">
-                            <button class="download-btn" onclick="downloadPage(${idx})">📥 下載第${idx+1}頁</button>
+                        <div class="calendar-page">
+                            <h3>${monthNum}月 ${monthName}</h3>
+                            <img src="${img}">
+                            <button class="download-btn" onclick="downloadPage(${idx})">📥 下載 ${monthNum}月</button>
                         </div>
                     `;
                 });
@@ -632,8 +668,9 @@
 
         function downloadPage(pageIdx) {
             const link = document.createElement('a');
-            const months = `${pageIdx*2+1}-${pageIdx*2+2}`;
-            link.download = `2026_Calendar_${months}月.jpg`;
+            const month = pageIdx + 1;
+            const monthName = MONTH_NAMES_EN[month];
+            link.download = `2026_Calendar_${month}月_${monthName}.jpg`;
             link.href = window.generatedPages[pageIdx];
             link.click();
         }
