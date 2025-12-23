@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>矽基生命探索中心 - 專案說明文件</title>
+    <style>
+        body {
+            font-family: 'Noto Sans TC', 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.7;
+            background-color: #f4f4f9;
+            color: #333;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+        h1, h2, h3 {
+            font-family: 'Orbitron', 'Helvetica Neue', Arial, sans-serif;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h1 { text-align: center; color: #2980b9; }
+        h2 { color: #3498db; margin-top: 40px; }
+        h3 { color: #16a085; margin-top: 30px; border-bottom: 1px solid #1abc9c; }
+        p { margin-bottom: 15px; }
+        strong { color: #e74c3c; }
+        code {
+            background-color: #ecf0f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #c0392b;
+        }
+        pre {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        ul, ol { padding-left: 20px; }
+        li { margin-bottom: 10px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9em;
+        }
+        th, td {
+            border: 1px solid #bdc3c7;
+            padding: 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: #34495e;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+        }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        blockquote {
+            border-left: 5px solid #3498db;
+            margin: 1.5em 0;
+            padding: 0.5em 20px;
+            background-color: #ecf0f1;
+        }
+        .section { margin-bottom: 40px; }
+    </style>
+</head>
+<body>
+
+    <h1>矽基生命探索中心：專案說明文件</h1>
+    <p><strong>專案概述：</strong> 本專案旨在通過科學假設與創意模擬，探索以矽為生命基礎的非碳基生命形式的可能性。我們建立了一系列互動式和靜態的模型，從分子化學式到完整的生態系統矩陣，系統性地描繪了一個可能存在的矽基世界。</p>
+
+    <div class="section">
+        <h2>一、核心科學假設</h2>
+        <p>我們的模擬基於以下幾個關於矽基生命的核心前提：</p>
+        <ul>
+            <li><strong>替代碳骨架：</strong> 矽作為碳的「同族元素」，同樣可以形成四個化學鍵，是構成生命鏈狀或環狀結構的理想候選。</li>
+            <li><strong>矽-氧鍵的挑戰與機遇：</strong> 矽與氧有極強的親和力，在富氧環境中會形成穩定的固態矽酸鹽（如沙子、石英），這對液態生命是致命的。因此，我們的模擬生命將存在於<strong>低氧或無氧</strong>的環境中。</li>
+            <li><strong>替代溶劑：</strong> 水會與許多矽化合物發生劇烈反應（水解）。因此，矽基生命需要非水溶劑，例如：
+                <ul>
+                    <li><strong>液態甲烷/乙烷</strong>（極低溫，如土衛六）</li>
+                    <li><strong>液態氨</strong>（中低溫）</li>
+                    <li><strong>超臨界流體</strong>（如超臨界二氧化碳）</li>
+                </ul>
+            </li>
+            <li><strong>穩定化策略：</strong> 為了彌補 Si-Si 鍵較弱的問題，矽基生命可能會引入其他元素（如鍺 Ge、錫 Sn）或使用矽氧烷鏈 作為穩定的骨架。</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>二、模組一：化學式生成器</h2>
+        <p><strong>功能：</strong> 這是一個概念性的生成器，根據使用者選擇的環境、分子類型和複雜度，生成「貌似合理」的矽基生命分子化學式，並賦予其假設性的功能。</p>
+        <p><strong>操作邏輯：</strong></p>
+        <ol>
+            <li><strong>選擇環境：</strong> 決定化學反應的基礎條件和分子的穩定性。
+                <ul>
+                    <li>極寒甲烷海洋 (T = -179°C)</li>
+                    <li>高壓超臨界 CO₂ 平原 (T = 35°C, P = 80atm)</li>
+                    <li>液態氨沼澤 (T = -78°C)</li>
+                </ul>
+            </li>
+            <li><strong>選擇分子類型：</strong> 定義分子在生命體中的角色。
+                <ul>
+                    <li>能量分子 (類似醣類)</li>
+                    <li>結構分子 (類似脂質/纖維)</li>
+                    <li>催化/資訊分子 (類似蛋白質/核酸)</li>
+                </ul>
+            </li>
+            <li><strong>選擇複雜度：</strong> 決定分子的大小和結構複雜性。</li>
+        </ol>
+        <p><strong>生成範例：</strong></p>
+        <blockquote>
+            <p><strong>環境設定：</strong> 高壓超臨界 CO₂ 平原</p>
+            <p><strong>分子類型：</strong> 結構分子</p>
+            <p><strong>複雜度：</strong> 複雜</p>
+            <p><strong>生成結果：</strong></p>
+            <ul>
+                <li><strong>學名：</strong> 全氟化聚矽氧烷-膽固醇</li>
+                <li><strong>化學式：</strong> <code>C₅₈H₁₁₆F₅₂Si₈O₈</code></li>
+                <li><strong>結構描述：</strong> 這是一個長鏈狀的聚矽氧烷分子，其主鏈由八個矽和氧原子交替連接而成 `(–Si–O–)₈`，提供了在超臨界CO₂中優異的柔韌性和穩定性。每個矽原子上都連接著兩個甲基(-CH₃)和一個全氟化烷基(-CF₂CF₃)。大量的氟(F)原子使得整個分子具有極強的疏水性和化學惰性，能有效保護內部結構。分子鏈的一端是一個類固醇環狀結構（類似地球生物的膽固醇），這個環狀結構由碳(C)和氫(H)構成，起到了「錨點」的作用，可以將多個這樣的長鏈分子交織在一起，形成穩定而富有彈性的二維膜結構。</li>
+                <li><strong>假設性功能：</strong> 在高壓超臨界CO₂環境中，這種分子是構成細胞膜的完美材料。它既能形成一個有效的屏障，將細胞內部與外部環境隔離，其柔韌的長鏈又能保證膜具有一定的流動性，允許特定分子的進出。</li>
+            </ul>
+        </blockquote>
+    </div>
+
+    <div class="section">
+        <h2>三、模組二：代謝過程模擬器</h2>
+        <p><strong>功能：</strong> 以一個具體的環境為例，深入模擬一套獨特的矽基生命代謝系統。我們以「高壓超臨界 CO₂ 平原」中的「矽晶菌」為例。</p>
+        <p><strong>核心挑戰：</strong> 如何高效獲取能量、實現「矽循環」以及處理固體廢物 SiO₂。</p>
+        <p><strong>「矽晶菌」的代謝途徑：地熱化學合成</strong></p>
+        <ol>
+            <li><strong>步驟一：能量獲取 (氧化反應)</strong>
+                <p>利用地熱噴口的還原性氣體作為燃料。</p>
+                <pre><code>「燃料」: 硫化氫 (H₂S) 和 氟甲烷 (CH₃F)
+「氧化劑」: 溶解在超臨界 CO₂ 中的少量氧氣 (O₂)
+化學反應式 (能量釋放):
+2 H₂S + CH₃F + 5 O₂ → 2 H₂SO₄ + CO₂ + 2 HF + **能量**</code></pre>
+                <p>這個過程釋放的大量化學能，會被一種類似 ATP 的分子——我們稱之為 <strong>「矽三磷酸」</strong> 所捕獲。</p>
+            </li>
+            <li><strong>步驟二：矽固定 (合成反應)</strong>
+                <p>有了能量，生命體需要從環境中捕捉「建材」。它們的主要建材是矽。</p>
+                <pre><code>「矽源」: 噴口釋放的氣態矽烷 (SiH₄)
+化學反應式 (耗能):
+n SiH₄ + **能量 (來自 SiTP)** → (SiH₂)n + 2n H₂</code></pre>
+                <p>在 SiTP 提供的能量驅動下，矽烷 脫去氫氣，形成高活性的 `(SiH₂)n` 基團。這就是矽基生命的「碳固定」過程。</p>
+            </li>
+            <li><strong>步驟三：生物合成 (建造自身)</strong>
+                <p>利用這些資源建造自己複雜的結構。</p>
+                <pre><code>簡化的聚合反應式:
+m (SiH₂) + p C + q F + r O + **催化劑 + 能量** → CₓHᵧF_zSiₘOᵣ (生物大分子)</code></pre>
+                <p>這是一個高度複雜的過程，需要特定的「矽基酶」（可能是帶有金屬中心的複雜矽化合物）來催化。</p>
+            </li>
+            <li><strong>步驟四：廢物處理 (最大的挑戰)</strong>
+                <p>代謝過程產生了大量的酸性廢物和固體廢物潛在風險。</p>
+                <ul>
+                    <li><strong>策略1：形成可溶性絡合物</strong>
+                        <pre><code>反應式: SiO₂ + 6 HF → H₂SiF₆ + 2 H₂O
+結果: 形成了**氟矽酸 (H₂SiF₆)**。這是一種在超臨界 CO₂ 中具有一定溶解性的強酸。細胞可以將這種液態廢物通過特殊的「廢物囊泡」排出體外。</code></pre>
+                    </li>
+                    <li><strong>策略2：礦化隔離</strong>
+                        <p>對於無法溶解的固體廢物，細胞會將其運送到細胞的特定區域，或直接排出體外，在周圍沉積下微小的石英或玻璃顆粒。</p>
+                    </li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <div class="section">
+        <h2>四、模組三：生命矩陣儀表板</h2>
+        <p><strong>功能：</strong> 為了系統性地展示矽基生命的多樣性，我們建立了一個 10x5 的矩陣，生成 50 種基於不同化學反應和伙伴元素的獨特生物體。</p>
+        <p><strong>矩陣結構：</strong></p>
+        <ul>
+            <li><strong>行 (1-10)：</strong> 代表與矽結合的<strong>核心伙伴元素</strong>。</li>
+            <li><strong>列 (A-E)：</strong> 代表生命體在生態系統中的<strong>功能角色或代謝策略</strong>。</li>
+        </ul>
+        <p><strong>矩陣數據 (50種生物體)</strong></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>矽+X / 功能</th>
+                    <th>A. 能量生產者</th>
+                    <th>B. 結構工程師</th>
+                    <th>C. 催化大師</th>
+                    <th>D. 廢物回收者</th>
+                    <th>E. 極端適應者</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><th>1. 矽+碳</th><td>碳矽甲烷合成者<br><code>CH₄ + SiH₄ → (CH₂-SiH₂)n + 2H₂</code></td><td>碳化矽甲殼獸<br><code>Si + C → SiC</code></td><td>矽碳有機催化體</td><td>矽酮分解者</td><td>碳矽半導體菌<br><code>SiC + 光/熱差 → 電流</code></td></tr>
+                <tr><th>2. 矽+硫</th><td>硫矽噴氣者<br><code>H₂S + 2O₂ → H₂SO₄ + 能量</code></td><td>硫化矽晶格蟲<br><code>Si + S → SiS₂</code></td><td>硫矽還原酶</td><td>硫酸矽中和者</td><td>硫矽儲能囊</td></tr>
+                <tr><th>3. 矽+氟</th><td>氟矽能量爆發體<br><code>SiH₄ + 4F₂ → SiF₄ + 4HF + 能量</code></td><td>氟矽玻璃殼</td><td>氟矽酸催化劑</td><td>氟矽絡合循環者<br><code>SiO₂ + 6HF → H₂SiF₆ + 2H₂O</code></td><td>氟化矽氣囊</td></tr>
+                <tr><th>4. 矽+氮</th><td>氮矽化能合成者<br><code>SiH₄ + 2N₂ → Si₃N₄ + 4H₂ + 能量</code></td><td>氮化矽骨架者<br><code>3Si + 2N₂ → Si₃N₄</code></td><td>氮矽氨合成酶</td><td>氨矽廢物處理者</td><td>氮矽超導體</td></tr>
+                <tr><th>5. 矽+鐵</th><td>鐵矽氧化者<br><code>Fe + SiO₂ → FeO + Si + 能量</code></td><td>鐵矽合金骨骼<br><code>Fe + Si → FeSi</code></td><td>鐵矽催化核心</td><td>鐵矽沉澱回收者</td><td>鐵矽磁場感應器</td></tr>
+                <tr><th>6. 矽+磷</th><td>磷矽能量轉換者<br><code>SiH₄ + H₃PO₄ → Si-O-P + 能量</code></td><td>磷灰石矽殼</td><td>磷矽酸催化劑</td><td>磷矽酸鹽分解者</td><td>磷矽光儲存體</td></tr>
+                <tr><th>7. 矽+硼</th><td>硼矽氫反應者<br><code>B₂H₆ + SiH₄ → B₂SiH₈ + H₂ + 能量</code></td><td>硼矽玻璃纖維</td><td>硼矽酸超強酸</td><td>硼矽膠體回收者</td><td>硼矽中子吸收體</td></tr>
+                <tr><th>8. 矽+鍺</th><td>鍺矽熱電偶<br><code>Si/Ge 接面 + 溫差 → 電流</code></td><td>鍺矽混合晶格</td><td>鍺矽催化中心</td><td>鍺矽分餾者</td><td>鍺矽紅外感知者</td></tr>
+                <tr><th>9. 矽+鎂</th><td>鎂矽還原者<br><code>Mg + SiO₂ → MgO + Si + 能量</code></td><td>鎂橄欖石骨骼<br><code>2Mg²⁺ + SiO₄⁴⁻ → Mg₂SiO₄</code></td><td>鎂矽葉綠素</td><td>鎂矽酸鹽沉澱者</td><td>鎂矽燃燒推進者</td></tr>
+                <tr><th>10. 矽+氯</th><td>氯矽燃燒者<br><code>SiH₄ + 2Cl₂ → SiCl₄ + 4H₂ + 能量</code></td><td>氯矽酸鹽結晶</td><td>氯矽水解催化劑</td><td>氯化氫中和者</td><td>氯矽化學防禦</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>五、模組四：演化軌跡</h2>
+        <p><strong>功能：</strong> 這是一個預留的空間，用於探索矽基生命從簡單分子到複雜生態系統的宏大演化歷程。它旨在將靜態的模組連接成一個動態的、有時間維度的敘事。</p>
+        <p><strong>未來計劃內容：</strong></p>
+        <ul>
+            <li><strong>前生物化學時代：</strong> 模擬矽基分子在原始環境中的偶然形成與聚合。</li>
+            <li><strong>單細胞生命起源：</strong> 探索第一個具有細胞膜和代謝功能的矽基細胞的誕生。</li>
+            <li><strong>多樣化大爆發：</strong> 可視化不同環境下，矽基生命如何演化出千奇百怪的形態（即矩陣中的生物體）。</li>
+            <li><strong>生態網絡：</strong> 繪製完整的矽基生態系統食物網和能量流動圖，展示不同物種間的競爭與共生。</li>
+            <li><strong>智慧文明的萌芽：</strong> 探討矽基生命發展出智慧、技術和社會結構的可能性。</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>六、技術架構</h2>
+        <p>本專案最初以單頁應用 的形式開發，將所有功能整合在一個 `index.html` 文件中。為了更好的可維護性和擴展性，後期重構為多頁面結構：</p>
+        <ul>
+            <li><strong>`index.html`:</strong> 首頁，作為導航中心，提供通往各個功能模組的連結。</li>
+            <li><strong>`page1-formula.html`:</strong> 化學式生成器。</li>
+            <li><strong>`page2-metabolism.html`:</strong> 代謝過程模擬器。</li>
+            <li><strong>`page3-matrix.html`:</strong> 生命矩陣儀表板。</li>
+            <li><strong>`page4-evolution.html`:</strong> 演化軌跡（預留）。</li>
+        </ul>
+        <p>這種模組化的架構使得每個功能都可以獨立開發和維護，未來添加新的模組（如 `page5-simulation.html`）也變得非常簡單。</p>
+    </div>
+
+    <div class="section">
+        <h2>七、結論</h2>
+        <p>「矽基生命探索中心」專案通過一系列結構化的模組，將一個抽象的科學幻想概念轉化為一個可探索、可視化的系統。它不僅展示了矽基生命的潛在多樣性，也提供了一套系統性的方法論，用於思考任何非碳基生命的化學基礎。從分子的化學式到生態系統的宏觀演化，本專案為科幻愛好者、學生和科學家提供了一個富有創意和啟發性的思考平台。</p>
+    </div>
+
+</body>
+</html>
