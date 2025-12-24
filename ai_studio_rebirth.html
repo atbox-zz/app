@@ -106,6 +106,20 @@
                 </div>
                 <div class="mt-4 text-xs text-green-400 font-mono bg-green-500/10 p-2 rounded text-center font-bold">中獎率 約 3%</div>
             </div>
+            
+            <!-- Wild Africa 卡片 (新增) -->
+            <div class="flex-none w-[85vw] max-w-[300px] bg-slate-800 rounded-2xl p-5 border border-orange-600/30 shadow-lg relative snap-center">
+                <div class="absolute top-0 right-0 bg-orange-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl z-10">Wild 野性區</div>
+                <div class="text-5xl mb-3">🇿🇦 🇪🇬 🇰🇪</div>
+                <h3 class="font-bold text-lg text-orange-100">非洲大陸</h3>
+                <p class="text-xs text-slate-400 mt-0.5 mb-3">南非、埃及、肯亞</p>
+                <div class="space-y-1.5">
+                    <div class="flex items-center text-xs text-slate-300"><span class="text-green-400 mr-2">✓</span> 大自然的壯闊與野性</div>
+                    <div class="flex items-center text-xs text-slate-300"><span class="text-green-400 mr-2">✓</span> 發展潛力巨大</div>
+                    <div class="flex items-center text-xs text-slate-400"><span class="text-red-400 mr-2">✗</span> 生存難度 Hardcore</div>
+                </div>
+                <div class="mt-4 text-xs text-orange-400 font-mono bg-orange-600/10 p-2 rounded text-center font-bold">中獎率 約 17%</div>
+            </div>
 
             <!-- N 卡片 -->
             <div class="flex-none w-[85vw] max-w-[300px] bg-slate-800 rounded-2xl p-5 border border-slate-600 shadow-lg relative snap-center">
@@ -379,6 +393,13 @@
             { id: 'rus', name: '俄羅斯', flag: '🇷🇺', tags: ['easy', 'introvert', 'survive', 'cold'], ticket: 144, rank: 'R', comment: "戰鬥民族歡迎你。這裡冬天很長，伏特加很烈。" },
             { id: 'vnm', name: '越南', flag: '🇻🇳', tags: ['hard', 'extrovert', 'tasty', 'hot'], ticket: 97, rank: 'R', comment: "機車海與河粉的國度，這裡的活力會讓你大吃一驚。" },
 
+            // --- 非洲擴充包 (Africa Expansion) ---
+            { id: 'zaf', name: '南非', flag: '🇿🇦', tags: ['hard', 'extrovert', 'hot', 'survive'], ticket: 60, rank: 'R', comment: "彩虹之國！這裡有企鵝也有獅子，風景絕美，但貧富差距有點大，出門請注意安全。" },
+            { id: 'egy', name: '埃及', flag: '🇪🇬', tags: ['hard', 'introvert', 'hot', 'survive'], ticket: 111, rank: 'N', comment: "金字塔與法老的故鄉。天氣很熱，觀光客很多，交通比你想像的還要瘋狂。" },
+            { id: 'ken', name: '肯亞', flag: '🇰🇪', tags: ['hard', 'extrovert', 'hot', 'survive'], ticket: 55, rank: 'N', comment: "Jambo! 想當馬拉松選手嗎？這裡是最佳出生點。出門就有機會看到動物大遷徙。" },
+            { id: 'mdg', name: '馬達加斯加', flag: '🇲🇬', tags: ['easy', 'introvert', 'hot', 'survive'], ticket: 30, rank: 'R', comment: "恭喜你到了動物天堂！這裡的物種 80% 是獨有的，包括那隻愛跳舞的狐猴。" },
+            { id: 'eth', name: '衣索比亞', flag: '🇪🇹', tags: ['hard', 'introvert', 'hot', 'survive'], ticket: 126, rank: 'N', comment: "人類的起源地！這裡有獨特的曆法（一年有13個月）和世界頂級的咖啡。" },
+
             // N
             { id: 'ind', name: '印度', flag: '🇮🇳', tags: ['hard', 'extrovert', 'tasty', 'hot'], ticket: 1400, rank: 'N', comment: "別擔心，這裡是世界的中心。練好瑜伽，準備擠火車！" },
             { id: 'chn', name: '中國', flag: '🇨🇳', tags: ['hard', 'extrovert', 'tasty', 'cold', 'hot'], ticket: 1410, rank: 'N', comment: "Hard 模式霸主。競爭激烈，但外送速度世界第一。" },
@@ -574,7 +595,10 @@
         if (t.includes('帥') || t.includes('美') || t.includes('顏值')) {
             return "顏值參數已鎖定。<br><br>系統警告：長得好看但在<b>印度</b>或<b>巴西</b>貧民窟出生，難度係數將提升至 Hell Mode。確定要繼續嗎？";
         }
-        
+        // 加在 generateAIResponse 函式裡面
+        if (t.includes('非洲') || t.includes('大自然') || t.includes('動物')) {
+            return "系統偵測到您嚮往大自然。<br><br>特別推薦：<b>馬達加斯加</b>。<br>優點：遠離世界紛爭，每天看狐猴跳舞。<br>缺點：網路可能不太好，但誰在乎呢？";
+        }
         // 預設幹話
         const defaultResponses = [
             "這個要求有點超出了地球 Online 的運算範圍，但我可以幫你安排去<b>澳洲</b>與袋鼠搏鬥。",
