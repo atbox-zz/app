@@ -122,8 +122,6 @@ const MusicPlayer = () => {
       buttons: [
         { text: "64方圓圖", filename: "./g.html", isEnglish: false, isGame: true },
         { text: "六十四卦速見表", filename: "./guaorder.html", isEnglish: false, isGame: true },
-        { text: "DS OR單形法", filename: "./simplex.html", isEnglish: false, isGame: true },
-        { text: "Grok OR單形法", filename: "./simplex1.html", isEnglish: false, isGame: true },
         { text: "公車路線", filename: "./indexv12.html", isEnglish: false, isGame: true },
         { text: "64卦狀態機", filename: "./yy.html", isEnglish: false, isGame: true },
         { text: "八宮卦方立體", filename: "./zz.html", isEnglish: false, isGame: true },
@@ -136,8 +134,6 @@ const MusicPlayer = () => {
         { text: "Neural音樂", filename: "./Neuralmusic.html", isEnglish: false, isGame: true },
         { text: "🎲金錢卦", filename: "./gua1a.html", isEnglish: true, isGame: true },
         { text: "🌱生命系統", filename: "game of liveinlive中文2.html", isEnglish: false, isGame: true },
-        { text: "🔺64D", filename: "./vertices64d1.html", isEnglish: false, isGame: true },
-        { text: "🔺64D2", filename: "./vis_mobile.html", isEnglish: false, isGame: true },
         { text: "🎯3d", filename: "./vertices3d.html", isEnglish: false, isGame: true },
         { text: "👁vis4d", filename: "./vis4d.html", isEnglish: false, isGame: true },
         { text: "👁vis4d0", filename: "./vis4d0.html", isEnglish: false, isGame: true },
@@ -164,6 +160,10 @@ const MusicPlayer = () => {
         { text: "井字棋", filename: "./xx.html", isEnglish: false, isGame: true },
         { text: "🐍", filename: "./snake1.html", isEnglish: false, isGame: true },
         { text: "🎮魔術方塊", filename: "./cude6c.html", isEnglish: true, isGame: true },
+        { text: "🔺64D", filename: "./vertices64d1.html", isEnglish: false, isGame: true },
+        { text: "🔺64D2", filename: "./vis_mobile.html", isEnglish: false, isGame: true },
+        { text: "DS OR單形法", filename: "./simplex.html", isEnglish: false, isGame: true },
+        { text: "Grok OR單形法", filename: "./simplex1.html", isEnglish: false, isGame: true },
         { text: "", filename: "", isEnglish: false, isGame: true },
         { text: "", filename: "", isEnglish: false, isGame: true },
       ]
