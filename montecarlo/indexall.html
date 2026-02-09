@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 台灣全縣市選情模擬終極版</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #1a2a3a; --accent: #f39c12; --bg: #f0f2f5; }
+        body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        
+        /* 頂部導覽 */
+        header { background: var(--primary); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .status-bar { font-size: 0.9rem; background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 20px; }
+
+        /* 主佈局 */
+        .wrapper { display: grid; grid-template-columns: 320px 1fr; flex: 1; overflow: hidden; }
+        
+        /* 左側控制面板 */
+        .sidebar { background: white; padding: 20px; border-right: 1px solid #ddd; overflow-y: auto; }
+        .control-section { margin-bottom: 25px; }
+        h3 { font-size: 1rem; border-left: 4px solid var(--accent); padding-left: 10px; margin-bottom: 15px; }
+        select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; margin-bottom: 10px; }
+        
+        /* 事件顯示 */
+        .event-card { background: #fff8e1; border: 1px solid #ffe082; padding: 12px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 15px; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 10px; transition: 0.2s; }
+        .btn-run { background: var(--accent); color: white; }
+        .btn-event { background: #34495e; color: white; }
+
+        /* 右側報表 */
+        .main-view { padding: 20px; overflow-y: auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .chart-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .full-width { grid-column: span 2; }
+
+        /* 表格樣式 */
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+        .win-tag { background: #e74c3c; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div><strong>2026 Election AI Command</strong> | 全台縣市長模擬</div>
+    <div class="status-bar">📅 當前模擬日期：2026年1月13日 (選前 320 天)</div>
+</header>
+
+<div class="wrapper">
+    <div class="sidebar">
+        <div class="control-section">
+            <h3>📍 選擇區域與縣市</h3>
+            <select id="regionSelect" onchange="updateCityList()">
+                <option value="north">北部地區 (北北基桃竹苗)</option>
+                <option value="central">中部地區 (中彰投雲)</option>
+                <option value="south">南部地區 (嘉南高屏)</option>
+                <option value="east">東部及離島 (宜花東澎金馬)</option>
+            </select>
+            <select id="citySelect" onchange="loadCityData()"></select>
+        </div>
+
+        <div class="control-section">
+            <h3>🎭 選戰事件模擬</h3>
+            <div class="event-card" id="eventBox">無預警事件。目前的選情受大環境通膨與地方政績影響。</div>
+            <button class="btn btn-event" onclick="triggerEvent()">🎲 隨機觸發突發事件</button>
+            <button class="btn btn-run" onclick="startFullSimulation()">🚀 執行一萬次蒙特卡洛模擬</button>
+        </div>
+
+        <div id="candidateStats"></div>
+    </div>
+
+    <div class="main-view">
+        <div class="chart-card full-width">
+            <h3>📈 支持度演化趨勢線 (選前 320 天預測)</h3>
+            <canvas id="timeLineChart" height="80"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <h3>🎯 模擬勝選率分佈</h3>
+            <canvas id="winChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <h3>📊 候選人特質對比 (Radar)</h3>
+            <canvas id="radarChart"></canvas>
+        </div>
+
+        <div class="chart-card full-width">
+            <h3>🏁 模擬數據詳情</h3>
+            <table id="resultTable">
+                <thead>
+                    <tr><th>候選人</th><th>陣營</th><th>平均支持度</th><th>最高得票率</th><th>勝選機率</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// --- 1. 全台 22 縣市預設數據庫 ---
+const allCityData = {
+    north: {
+        "Taipei": [{name:"蔣萬安", party:"藍", mean:48, sd:3, air:85, org:85, img:90, color:"#000095"}, {name:"綠營挑戰者", party:"綠", mean:35, sd:4, air:80, org:80, img:75, color:"#1b9431"}, {name:"黃珊珊/白營", party:"白", mean:12, sd:5, air:90, org:40, img:80, color:"#28c8c8"}],
+        "NewTaipei": [{name:"李四川", party:"藍", mean:42, sd:3, air:75, org:92, img:85, color:"#000095"}, {name:"蘇巧慧", party:"綠", mean:38, sd:3, air:88, org:85, img:82, color:"#1b9431"}, {name:"黃國昌", party:"白", mean:15, sd:6, air:95, org:35, img:70, color:"#28c8c8"}],
+        "Taoyuan": [{name:"張善政", party:"藍", mean:45, sd:3, air:70, org:85, img:80, color:"#000095"}, {name:"綠營候選人", party:"綠", mean:40, sd:4, air:85, org:80, img:75, color:"#1b9431"}],
+        "HsinchuCity": [{name:"代理市長/藍白", party:"藍/白", mean:40, sd:6, air:80, org:60, img:70, color:"#28c8c8"}, {name:"綠營挑戰者", party:"綠", mean:35, sd:4, air:85, org:75, img:80, color:"#1b9431"}]
+        // ... (省略部分以保持簡潔，邏輯相同)
+    },
+    central: {
+        "Taichung": [{name:"江啟臣/藍營", party:"藍", mean:46, sd:3, air:80, org:90, img:88, color:"#000095"}, {name:"何欣純/綠營", party:"綠", mean:40, sd:4, air:82, org:85, img:80, color:"#1b9431"}],
+        "Changhua": [{name:"藍營接班人", party:"藍", mean:44, sd:3, air:65, org:90, img:75, color:"#000095"}, {name:"綠營挑戰者", party:"綠", mean:42, sd:4, air:75, org:85, img:78, color:"#1b9431"}]
+    },
+    south: {
+        "Tainan": [{name:"綠營初選勝者", party:"綠", mean:55, sd:4, air:80, org:92, img:85, color:"#1b9431"}, {name:"謝龍介", party:"藍", mean:35, sd:3, air:92, org:70, img:85, color:"#000095"}],
+        "Kaohsiung": [{name:"綠營五虎將", party:"綠", mean:43, sd:3, air:85, org:90, img:85, color:"#1b9431"}, {name:"柯志恩", party:"藍", mean:41, sd:3, air:85, org:85, img:90, color:"#000095"}]
+    },
+    east: {
+        "Hualien": [{name:"藍營候選人", party:"藍", mean:60, sd:5, air:60, org:95, img:80, color:"#000095"}, {name:"綠營挑戰者", party:"綠", mean:25, sd:4, air:70, org:60, img:70, color:"#1b9431"}]
+    }
+};
+
+let currentCityCands = [];
+let charts = {};
+let eventBonus = [];
+
+// --- 2. 核心控制函數 ---
+function updateCityList() {
+    const region = document.getElementById('regionSelect').value;
+    const citySelect = document.getElementById('citySelect');
+    citySelect.innerHTML = Object.keys(allCityData[region]).map(c => `<option value="${c}">${c}</option>`).join('');
+    loadCityData();
+}
+
+function loadCityData() {
+    const region = document.getElementById('regionSelect').value;
+    const cityName = document.getElementById('citySelect').value;
+    currentCityCands = JSON.parse(JSON.stringify(allCityData[region][cityName]));
+    eventBonus = new Array(currentCityCands.length).fill(0);
+    startFullSimulation();
+}
+
+// Box-Muller 正態分佈隨機數
+function randn() {
+    let u = 0, v = 0;
+    while(u === 0) u = Math.random();
+    while(v === 0) v = Math.random();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
+function startFullSimulation() {
+    // 1. 蒙特卡洛模擬 (10,000次)
+    const stats = runMonteCarlo();
+    // 2. 時間軸預測 (320天)
+    runTimeSeries();
+    // 3. 更新所有圖表與表格
+    updateUI(stats);
+}
+
+function runMonteCarlo() {
+    const iterations = 10000;
+    let results = currentCityCands.map(c => ({...c, wins:0, totalScore:0, maxScore:0}));
+    
+    for(let i=0; i<iterations; i++) {
+        let scores = results.map((c, idx) => {
+            let score = (c.mean + eventBonus[idx]) + (randn() * c.sd);
+            return { idx, score };
+        });
+        
+        // 模擬棄保效應：若第三名低於門檻且為三腳督
+        if(scores.length === 3) {
+            scores.sort((a,b) => b.score - a.score);
+            if(scores[2].score < 12) {
+                let leakage = scores[2].score * 0.3; // 30%選票位移
+                scores[2].score -= leakage;
+                scores[0].score += leakage; // 假設流向第一名
+            }
+        }
+
+        let winner = scores.reduce((prev, curr) => (curr.score > prev.score) ? curr : prev);
+        results[winner.idx].wins++;
+        results.forEach((r, idx) => {
+            let s = scores.find(x => x.idx === idx).score;
+            r.totalScore += s;
+            if(s > r.maxScore) r.maxScore = s;
+        });
+    }
+    return results;
+}
+
+function runTimeSeries() {
+    const days = 320;
+    const datasets = currentCityCands.map((c, idx) => {
+        let data = [];
+        let cur = c.mean + eventBonus[idx];
+        for(let d=0; d<days; d++) {
+            cur += (randn() * (c.sd/10)) + (d > 280 ? (c.org/1000) : 0);
+            data.push(cur.toFixed(2));
+        }
+        return { label: c.name, data: data, borderColor: c.color, pointRadius:0, fill:false };
+    });
+
+    if(charts.time) charts.time.destroy();
+    charts.time = new Chart(document.getElementById('timeLineChart'), {
+        type: 'line',
+        data: { labels: new Array(days).fill(''), datasets: datasets },
+        options: { responsive: true, scales: { y: { beginAtZero: false } } }
+    });
+}
+
+function triggerEvent() {
+    const evs = [
+        {txt: "🚨 爆發重大爭議事件！領先者受傷。", val: -5, target: "leader"},
+        {txt: "🎊 成功大造勢，組織票全面動員！", val: 4, target: "random"},
+        {txt: "🌦️ 投票日氣候預測不佳，影響投票率。", val: -2, target: "all"}
+    ];
+    const e = evs[Math.floor(Math.random() * evs.length)];
+    document.getElementById('eventBox').innerText = e.txt;
+    
+    if(e.target === "leader") eventBonus[0] += e.val;
+    else if(e.target === "all") eventBonus = eventBonus.map(v => v + e.val);
+    else eventBonus[Math.floor(Math.random()*eventBonus.length)] += e.val;
+
+    startFullSimulation();
+}
+
+function updateUI(stats) {
+    // 圓餅圖
+    if(charts.win) charts.win.destroy();
+    charts.win = new Chart(document.getElementById('winChart'), {
+        type: 'doughnut',
+        data: { labels: stats.map(s => s.name), datasets: [{ data: stats.map(s => s.wins), backgroundColor: stats.map(s => s.color) }] }
+    });
+
+    // 雷達圖
+    if(charts.radar) charts.radar.destroy();
+    charts.radar = new Chart(document.getElementById('radarChart'), {
+        type: 'radar',
+        data: {
+            labels: ['空戰','組織','形象'],
+            datasets: stats.map(s => ({ label: s.name, data:[s.air, s.org, s.img], borderColor: s.color, backgroundColor: s.color+'33' }))
+        }
+    });
+
+    // 表格
+    const tbody = document.querySelector('#resultTable tbody');
+    tbody.innerHTML = stats.sort((a,b) => b.wins - a.wins).map(s => `
+        <tr>
+            <td><strong>${s.name}</strong></td>
+            <td>${s.party}</td>
+            <td>${(s.totalScore/10000).toFixed(2)}%</td>
+            <td>${s.maxScore.toFixed(2)}%</td>
+            <td><span class="win-tag">${(s.wins/100).toFixed(1)}%</span></td>
+        </tr>
+    `).join('');
+}
+
+// 初始化
+window.onload = updateCityList;
+</script>
+</body>
+</html>

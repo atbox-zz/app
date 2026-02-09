@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hydraulic Neural Network Deep Learning Demo</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+      }
+
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: linear-gradient(180deg, #2d4a7c 0%, #1a3055 50%, #0f1e3a 100%);
+        color: #e9f0ff;
+      }
+
+      #app {
+        position: relative;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      canvas {
+        display: block;
+      }
+
+      .panel {
+        position: absolute;
+        top: 1.5rem;
+        left: 1.5rem;
+        max-width: 200px;
+        padding: 1rem;
+        background: rgba(10, 20, 40, 0.92);
+        border: 1px solid rgba(79, 132, 255, 0.5);
+        border-radius: 12px;
+        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(12px);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="panel">
+        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem;">初始值:</label>
+        <input type="number" id="initialValue" value="1000" style="width: 100%; padding: 0.5rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(79, 132, 255, 0.5); border-radius: 8px; color: #e9f0ff; font-size: 1rem;">
+      </div>
+    </div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+      const app = document.getElementById("app");
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x1a3055);
+      scene.fog = new THREE.Fog(0x1a3055, 20, 40);
+
+      const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+      camera.position.set(6, 5, 11);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.15;
+      app.appendChild(renderer.domElement);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.maxPolarAngle = Math.PI * 0.55;
+      controls.minDistance = 6;
+      controls.maxDistance = 18;
+
+      const ambient = new THREE.AmbientLight(0x8ab4ff, 0.8);
+      scene.add(ambient);
+
+      const keyLight = new THREE.PointLight(0x7af0ff, 2.0, 30);
+      keyLight.position.set(4, 6, 6);
+      scene.add(keyLight);
+
+      const fillLight = new THREE.PointLight(0xffb3ff, 1.6, 30);
+      fillLight.position.set(-4, -2, 6);
+      scene.add(fillLight);
+
+      const baseMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0x1ad4d4,
+        roughness: 0.45,
+        metalness: 0.2,
+        transmission: 0.1,
+        clearcoat: 0.6,
+      });
+
+      const nodePalette = [0x6cf0ff, 0x84ffb1, 0xff8cff];
+
+      const layers = [
+        { x: -4, count: 10 },
+        { x: -1, count: 2000 },
+        { x: 2, count: 2000 },
+        { x: 5, count: 2 },
+      ];
+
+      const nodes = [];
+      layers.forEach((layer, layerIndex) => {
+        const nodeGeometry = new THREE.SphereGeometry(0.15, 16, 16); // 較小的球體以容納更多節點
+        for (let i = 0; i < layer.count; i += 1) {
+          const node = new THREE.Mesh(
+            nodeGeometry,
+            new THREE.MeshStandardMaterial({
+              color: nodePalette[Math.min(layerIndex, nodePalette.length - 1)],
+              emissive: nodePalette[Math.min(layerIndex, nodePalette.length - 1)],
+              emissiveIntensity: 0.4,
+              metalness: 0.2,
+              roughness: 0.25,
+            })
+          );
+          // 對於大量節點，使用網格排列
+          const yOffset = (layer.count - 1) * 0.03 * 0.5;
+          const zSpread = Math.sqrt(layer.count) * 0.5;
+          node.position.set(
+            layer.x, 
+            i * 0.03 - yOffset, 
+            ((i % Math.ceil(Math.sqrt(layer.count))) - Math.ceil(Math.sqrt(layer.count)) / 2) * 0.5
+          );
+          node.userData = { layerIndex, baseY: node.position.y };
+          scene.add(node);
+          nodes.push(node);
+        }
+      });
+
+      const pipeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x2dd9d9,
+        emissive: 0x1ac4c4,
+        emissiveIntensity: 0.35,
+        metalness: 0.5,
+        roughness: 0.35,
+      });
+
+      const pipes = [];
+      const connections = [];
+
+      for (let i = 0; i < layers.length - 1; i += 1) {
+        const layerNodes = nodes.filter((node) => node.userData.layerIndex === i);
+        const nextLayerNodes = nodes.filter((node) => node.userData.layerIndex === i + 1);
+        
+        // 對於大型層，只連接採樣的節點以提高性能
+        const sampleRate = layerNodes.length > 100 ? 50 : 1;
+        
+        layerNodes.forEach((startNode, startIndex) => {
+          if (startIndex % sampleRate !== 0) return; // 跳過大部分節點
+          
+          nextLayerNodes.forEach((endNode, endIndex) => {
+            if (endIndex % sampleRate !== 0) return; // 跳過大部分節點
+            if ((startIndex + endIndex) % 3 !== 0) {
+              return;
+            }
+            const curve = new THREE.CatmullRomCurve3([
+              startNode.position.clone(),
+              startNode.position.clone().lerp(endNode.position, 0.5).add(new THREE.Vector3(0, 0.4, 0)),
+              endNode.position.clone(),
+            ]);
+
+            const tubeGeometry = new THREE.TubeGeometry(curve, 20, 0.05, 8, false);
+            const tube = new THREE.Mesh(tubeGeometry, pipeMaterial.clone());
+            tube.userData = { curve, intensity: Math.random() * 0.5 + 0.5 };
+            scene.add(tube);
+            pipes.push(tube);
+
+            connections.push({ curve, phase: Math.random() * Math.PI * 2 });
+          });
+        });
+      }
+
+      const flowMaterial = new THREE.MeshBasicMaterial({
+        color: 0x8ef7ff,
+        transparent: true,
+        opacity: 0.9,
+      });
+
+      const flowParticles = [];
+      connections.forEach((connection, index) => {
+        const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 16), flowMaterial.clone());
+        sphere.material.color.setHSL(0.55 + index * 0.04, 0.8, 0.6);
+        scene.add(sphere);
+        flowParticles.push({ mesh: sphere, connection, speed: 0.2 + Math.random() * 0.25 });
+      });
+
+      const ground = new THREE.Mesh(new THREE.CircleGeometry(7, 64), baseMaterial);
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = -2.3;
+      scene.add(ground);
+
+      const clock = new THREE.Clock();
+      let initialValue = 1000;
+
+      document.getElementById('initialValue').addEventListener('input', (e) => {
+        initialValue = parseFloat(e.target.value) || 0;
+        clock.start(); // 重新啟動時鐘
+      });
+
+      function animate() {
+        const elapsed = clock.getElapsedTime();
+        const scaleFactor = initialValue / 1000;
+        
+        nodes.forEach((node) => {
+          const pulse = Math.sin(elapsed * 1.5 * scaleFactor + node.position.x) * 0.15;
+          node.position.y = node.userData.baseY + pulse;
+          node.material.emissiveIntensity = 0.4 + Math.abs(pulse) * 2.5;
+        });
+
+        pipes.forEach((pipe, index) => {
+          const heat = 0.4 + Math.sin(elapsed * 1.6 * scaleFactor + index) * 0.3;
+          pipe.material.emissiveIntensity = 0.2 + Math.abs(heat) * 0.6;
+          pipe.material.color.lerp(new THREE.Color(0x3de8e8), 0.02);
+        });
+
+        flowParticles.forEach((particle) => {
+          const { mesh, connection, speed } = particle;
+          const adjustedSpeed = speed * scaleFactor;
+          const t = (elapsed * adjustedSpeed + connection.phase) % 1;
+          const point = connection.curve.getPointAt(t);
+          mesh.position.copy(point);
+          mesh.scale.setScalar(0.8 + Math.sin(elapsed * 2 * scaleFactor + t * Math.PI * 2) * 0.3);
+        });
+
+        controls.update();
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+      }
+
+      function onResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      window.addEventListener("resize", onResize);
+      animate();
+    </script>
+  </body>
+</html>

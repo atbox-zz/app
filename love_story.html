@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>劇本存檔：【命中註定的資安攻防戰】完整版</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+            line-height: 1.7;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #2c3e50;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            border-bottom: 3px solid #e74c3c;
+            padding-bottom: 15px;
+            margin-bottom: 40px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 50px;
+            border-left: 6px solid #e67e22;
+            padding-left: 15px;
+            background-color: #fff;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            border-radius: 4px;
+        }
+        .script-section {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+        }
+        .metadata {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 6px;
+            font-style: italic;
+            font-size: 0.95em;
+            margin-bottom: 20px;
+            border-left: 4px solid #bdc3c7;
+        }
+        .dialogue-line {
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 2px solid transparent;
+            transition: border-left 0.3s;
+        }
+        .dialogue-line:hover {
+            border-left: 2px solid #3498db;
+            background-color: #fcfcfc;
+        }
+        strong {
+            color: #c0392b;
+            font-weight: 700;
+        }
+        .action {
+            color: #7f8c8d;
+            font-style: italic;
+            display: block;
+            margin-bottom: 15px;
+        }
+        .narrator {
+            text-align: center;
+            font-style: italic;
+            color: #7f8c8d;
+            margin-top: 25px;
+            border-top: 1px dashed #bdc3c7;
+            padding-top: 15px;
+            font-size: 0.9em;
+        }
+        .subtitles {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #2c3e50;
+            color: #2ecc71;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .scene-break {
+            text-align: center;
+            margin: 30px 0;
+            color: #95a5a6;
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>劇本存檔：【命中註定的資安攻防戰】完整版</h1>
+
+    <!-- 序章：婚禮上的邂逅 -->
+    <div class="script-section">
+        <h2>序章：婚禮上的邂逅</h2>
+        <div class="metadata">
+            <strong>地點：</strong> 台北某飯店婚禮自助餐枱旁<br>
+            <strong>人物：</strong> 文英 (26歲，台北設計師，性格傲嬌)、你 (32歲，台新銀行資安工程師，沉穩但出招霸氣)
+        </div>
+
+        <div class="dialogue-line"><strong>文英：</strong> 「哈囉！不好意思喔，剛剛在那邊看你自己一個人站很久，想説過來打個招呼……我是 26 歲，目前在台北做設計工作。我看你穿得挺成熟的，感覺應該滿穩重的？你是新郎那邊的朋友嗎？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「新郎是我當兵的時候就認識的同事的弟弟。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「喔～這關係有點遠，但你還特意來，感覺挺重義氣的嘛。我看你 32 歲了，感覺像是做金融業或者是公家機關的？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「是的我在台新銀行上班，資安方面的工作，每天都在搞定網路的通信協定，很有趣也很無聊。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「哇，台新資安！聽起來就是金飯碗。有趣是因為像攻防戰，無聊是因為盯著 code 吧？那你下班後會不會覺得精疲力竭？有什麼解壓方式嗎？」</div>
+
+        <hr class="scene-break">
+
+        <div class="dialogue-line"><strong>你：</strong> 「所以要認識你啊，女生比較好玩。你有男朋友嗎？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> (愣住笑出來) 「哇，你這轉彎也太硬了吧！目前是單身沒錯啦。不過你説『女生比較好玩』，聽起來像是在把我當成休閒娛樂？這算是一種職業病嗎？看到目標就想破解？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「我是説你是單身嗎，我很想認識有個可以放鬆談心，開開玩笑一起高興的朋友。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「好吧，那我收回剛才的話。既然我們都認同彼此是來尋找『放鬆頻率』的人，那這就算初步通過測試了吧？但下次約吃飯，你可別跟我講協定，要負責帶我去吃美食！」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「好，我就當做一定要追上妳的男朋友，搞定網路一樣的搞定妳。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> (大笑) 「哈！你把追女生當成資安漏洞來修嗎？我有我的『防火牆』，防禦機制滿高的喔。既然你這麼有自信，機會只有一次，登錄帳號吧。」(拿出 LINE 二維碼)</div>
+
+        <hr class="scene-break">
+
+        <div class="dialogue-line"><strong>你：</strong> 「我不用登入帳號的，你是許文英，我上輩子就記得你的一切了，這次你跑不掉了。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> (震驚) 「你……你怎麼會知道我叫許文英？天啊，你這招也太老套又太變態了吧！『上輩子』？雖然嘴上嫌棄，但我倒要看看，所謂的『上輩子記憶』能不能讓你這輩子受得了我的壞脾氣。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「過了半年我們就同居了。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「喂……你直接就跳到『同居』了？！你是看 Netflix 開了 16 倍速還是怎樣？這是敏捷開發嗎？一個 Sprint 就要上線？如果你前半年的『測試期』不合格，後半年的『上線』我會直接 Deny 的！」</div>
+
+        <hr class="scene-break">
+
+        <div class="dialogue-line"><strong>你：</strong> 「等一下你如何回去？你住新店對吧，我送你吧，要不就回我住的地方？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> (瞳孔收縮) 「你連我住新店都知道？！這已經是變態跟蹤狂等級了吧！還想『回你住的地方』？做夢啦！……不過，這時間回新店真的很累。好吧，準許你送我回『我家』，如果你車內有異味，我會中途下車喔！」</div>
+        <span class="action">【劇情轉折：包包掉在車上】</span>
+        <div class="dialogue-line"><strong>你：</strong> 「走吧。送回文英後，還沒回到家，就收到電話，她忘了包包掉在我車裡。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> (撥通電話，尷尬) 「我的包包……好像『長』在你車上了。我現在孤苦伶仃被關在家門口……喂，你不會是故意的吧？利用包包『挾持』我？你現在方便掉頭回來嗎？我請你吃我家巷口好吃的雞排當謝禮……」</div>
+
+        <hr class="scene-break">
+
+        <div class="dialogue-line"><strong>你：</strong> 「可以，剛吃過婚禮，雞排就不用了，你想逛夜市就直説，我過來了。五十嵐隔壁是 7-11，再來個 岡本0.01 可以吧？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> (臉爆紅) 「你……你這變態！你在亂説什麼啊？！怎麼跳躍性這麼大，直接跳到便利店成人專區了？！而且還是 0.01……你是有多心急？！」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「不準備就沒誠意了，安全意識我還是有的。你在愛用 Durex 我知，過去太晚了，今晚我就不回我這裡了，你心理要有底。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「啊啊啊！你閉嘴！你居然連這個都知道？！……既然你要來就來吧。但如果你敢亂來，我會咬人的！還有，你睡沙發喔！想都別想睡牀！聽到沒有！」</div>
+
+        <hr class="scene-break">
+
+        <div class="dialogue-line"><strong>你：</strong> 一下車，我走過去，看了一下文英的紅紅臉頰，包包拿過手，立即唇對唇的壓上身，狠狠的親著不放……</div>
+        <div class="dialogue-line"><strong>文英：</strong> (一吻結束後，靠在你胸膛喘氣) 「可惡……算你贏了，資安工程師。你的『滲透測試』做得真徹底。……欸，那個不回家的工程師，記得把車停好。沙發我已經幫你預訂了，但如果你表現得好……説不定我會考慮讓你升級成管理員權限。」</div>
+
+        <div class="subtitles">
+            System Halted. Maintenance Mode: ON.<br>
+            旁白（你）：看來，這輩子我不僅不用防黑客，還得防着這個隨時準備‘核平’一切的女魔頭。不過……這種感覺，真他娘的爽。
+        </div>
+        <!-- AI講評: 這是一段已經整理得非常精彩的劇本摘要！這段對話將「資安工程師」的專業術語（防火牆、滲透測試、權限管理）完美融入了求愛的攻防戰中，既幽默又帶有一種現代版的霸總浪漫，文英的傲嬌反應也讓互動很有火花。 -->
+    </div>
+
+    <!-- 第一章：毒舌加強版 -->
+    <div class="script-section">
+        <h2>第一章：毒舌加強版 (2.0)</h2>
+        <div class="metadata">
+            <strong>地點：</strong> 新店某家 7-11 門口<br>
+            <strong>情境：</strong> 文英臉紅但嘴硬，手上拿著剛買的雞排。你手裡提著塑料袋。
+        </div>
+
+        <div class="dialogue-line"><strong>文英：</strong> （瞪著你手上的塑料袋，眼神想把他燒個洞）「……你真的去買了？還是岡本 0.01？你是有多怕感覺不到啊？你是怕『延遲』太高，還是怕你的『硬體規格』太舊，不加速跑不動？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （冷笑一聲，把塑料袋晃了晃）「這叫『降低延遲』，懂不懂網路通訊？再説，規格舊不舊，待會兒妳親自跑個 Benchmark（基準測試）就知道了。我只是個追求『低延遲、高吞吐量』的工程師，不想在握手協定上浪費太多頻寬。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （被嗆住，雞排差點拿不穩）「哈！『高吞吐量』？你以為你在跑雲端伺服器啊？我警告你喔，如果你的『硬體』效能爛到像 Intel 的舊 CPU 一樣會過熱，我會直接拔掉電源，把你的系統強制關機！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （逼近一步，壓低聲音）「放心，我的散熱系統做得很好。倒是你，防火牆雖然厚，但只要找到一個 SQL Injection（注入漏洞），就會像紙糊的一樣。準備好了嗎？我要開始進行『暴力破解』了。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （心裡一驚，嘴上卻不屑）「暴力破解？俗不俗啊？有本事你用『社交工程學』啊！……而且，那個 0.01 過敏怎麼辦？你想讓我半夜紅屁股去看急診嗎？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「妳這叫『風險控管』失敗。放心，我選擇的是經過 ISO 認證的標準。還有，妳剛才嘴角的雞排渣，還不擦掉？這樣很影響『使用者介面（UI）』的觀感。」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 文英家玄關，門一打開，兩人跌跌撞撞進屋，氣氛火熱。</div>
+        <div class="dialogue-line"><strong>文英：</strong> （被抵在牆上，喘氣）「等等……你進來之前，有沒有先掃毒？我可不想家裡的網路被你的木馬病毒感染。」</div>
+        <div class="dialogue-line"><strong>你：</strong> （一邊吻著脖子，一邊回嘴）「我是白名單用户，不用掃。倒是你，家裡這麼亂，資料夾都沒分類，這叫『未授權的存取風險』。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （伸手扯你的領帶）「少囉嗦！那是我的『大數據』，你看不懂！……喂，別亂摸，那裡不是 USB 插槽！你是想燒毀我的主機板嗎？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （笑）「我是想看看妳的『運算能力』到哪裡。看樣子 CPU 已經過載了？臉紅成這樣，是不是需要我幫妳降温？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （腿軟，咬著牙）「降温個鬼……你是 DDOS 攻擊吧？一下子這麼多請求求求……你……你的請求太大了，我的伺服器快當機了……唔……」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「當機？不可能。妳可是我的『關鍵基礎設施』，今晚必須 24 小時不中斷運作。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （意識模糊，最後的掙扎）「臭工程師……你這輩子……最好別寫出 Bug……不然我……報警抓你……」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 文英的牀上，上午 11:00</div>
+        <div class="dialogue-line"><strong>文英：</strong> （抓亂頭髮，聲音沙啞）「……水。我要水。還有，把你的手機亮度調低，我的視覺感應器壞了。」</div>
+        <div class="dialogue-line"><strong>你：</strong> （遞過一杯水，一臉平靜）「早啊，系統管理員。昨晚的『壓力測試』報告出來了。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （喝一口水，瞪眼）「什麼壓力測試報告？你説話人話一點。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「報告顯示，系統在凌晨兩點曾經三次因為『過載』而發出錯誤警報，運作噪音極大，且曾經多次喊著『斷線』、『放過我』。依我看，妳的硬體雖然不錯，但韌體還需要優化，抗壓性不足。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （臉瞬間爆紅，抓起枕頭丟過去）「你閉嘴！那是因為你……你……你那是惡意攻擊！哪有人這樣一直寫入資料的？我都快被你寫滿了！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （接住枕頭）「那是因為妳的雲端空間太大，我覺得塞不滿很沒成就感。不過，有一個 Bug 我必須回報。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「……什麼 Bug？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「妳睡覺會搶被子，還會把腳架在我身上，這屬於『邏輯錯誤』。為了修正這個 Bug，我決定下週進行維護——也就是搬進來住，全天候監控。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （愣住，隨即冷笑）「哈！你想搬進來？你想『合法駭入』我家？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「不是駭入，是取得『Root 權限』。怎麼，妳心裡的防毒軟體在跳警告嗎？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （翻身背對你，把臉埋進被子，嘴角偷偷上揚）「……我是防毒軟體嗎？我是防火牆。想拿 Root 權限？看你這輩子的程式碼寫得漂不漂亮了。……喂，我要吃貢丸湯，快去買。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「收到，執行中。User: 許文英，權限：最高管理員。」</div>
+
+        <div class="subtitles">
+            System Status: ONLINE<br>
+            Love Connection: SECURE<br>
+            Next Update: Coming soon...
+        </div>
+        <!-- AI講評: 這版本夠毒、夠曖昧、夠爆笑了嗎？如果不滿意，我還能再加料！😏 -->
+    </div>
+
+    <!-- 第二章：同居生活 -->
+    <div class="script-section">
+        <h2>第二章：同居生活 (3.0)</h2>
+        <div class="metadata">
+            <strong>地點：</strong> 文英家（現為共同維護的伺服器機房）<br>
+            <strong>時間：</strong> 週二早晨 7:30
+        </div>
+
+        <div class="dialogue-line"><strong>文英：</strong> （把一支空衞生紙紙筒重重拍在餐桌上）「喂，首席工程師，我要發出一個 **Level 1 嚴重漏洞報告**。」</div>
+        <div class="dialogue-line"><strong>你：</strong> （看了一眼紙筒，淡定地倒咖啡）「識別碼是什麼？是『資源未即時補充』，還是『使用者起牀氣指數過高』？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「是『某些人的自動化腦筋壞掉了』！昨晚你明明用完最後一張衞生紙，為什麼不換新的？你是覺得我的手是無線打印機嗎？還是你以為我的巴掌會自動判斷距離，然後避開你的臉？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「這是為了節省系統資源。我當時的判斷是：剩餘量 > 0，依然符合『可運行』標準。再説，我不是留了底層的硬紙板芯嗎？那算是『硬體支援』。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （瞪大眼）「硬紙板芯？你拿那個擦？你是想讓我屁股擦破皮，然後引發『細菌滲透攻擊』嗎？你的邏輯是不是寫在 `README.md` 裡忘記 commit 了？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （喝了一口咖啡，走近她）「別激動，血壓升高會影響系統穩定性。我剛剛已經在雲端購物車下單了，買了三箱衞生紙。這叫『災難恢復計畫（DRP）』。至於現在……你要我幫妳處理底層硬體問題嗎？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （拍開他的手）「滾！你的 SLA（服務等級協議）已經違約了，今天沒有早餐給你，系統進行『餓肚子懲罰』模式。」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 客廳沙發，週五晚上 11:00</div>
+        <div class="dialogue-line"><strong>你：</strong> 「借過，User 許文英，妳遮住了我的視線，我正在部署一個緊急補丁。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （坐在你大腿上，雙手環著脖子）「緊急補丁？我才是緊急補丁吧！你已經連續敲了三個小時鍵盤，都沒看我一眼。這是不是一種『拒絕服務攻擊（DoS）』？拒絕服務妳的女朋友？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「這叫『多工處理』。我在賺錢養家，維護伺服器的電費。妳應該感謝我的 CPU 正在全速運轉。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （湊近耳邊吹氣）「哼，我覺得你的 CPU 已經過熱了，而且風扇轉得很吵。我檢測到有一個未經授權的『中間人攻擊』……」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「中間人？誰？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （指著你手機剛亮起的 LINE 通知）「那個叫『Cindy』的學妹。凌晨 11 點問你『在忙嗎？程式跑不出來好急喔』……這是求救訊號，還是釣魚郵件啊？你的反病毒軟體是裝好看的嗎？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （瞥了一眼手機，冷笑）「那是一個低階的腳本錯誤，她連 `if-else` 都寫錯了。我不回覆是因為這種低頻的雜訊不值得佔用我的頻寬。倒是妳……」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「我怎麼？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「妳現在的行為屬於『社交工程學』攻擊。試圖用美色幹擾系統運作。不過，很遺憾地告訴妳，我的防火牆對這種攻擊……免疫力正在下降。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （得意笑）「哦？所以要系統重啟了？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「不，是要進行『物理隔離』。」（合上筆電，直接將她抱起往卧室走）「把這個高風險的漏洞帶離生產環境。」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 陽台，週六下午</div>
+        <div class="dialogue-line"><strong>你：</strong> （撿起收據，眉頭一皺）「解釋一下？這是什麼？第三方外掛嗎？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （正在塗指甲油，頭也不抬）「那是我的『雲端備份服務』。教練説我的核心肌羣太弱，需要加強硬體支撐。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「核心肌羣？我看是『社交擴充套件』吧。這個電話號碼……看起來像是有後門。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （翻白眼）「哇，你這個資安工程師是不是有被害妄想症？人家只是幫我調整跑步機的傾斜度。而且，該不會是某人心虛了吧？我看你的 `git log` 裡，是不是也有不想 push 的 commit？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「我的 repo 是乾淨的。但這個『教練』……我看他的服務條款（Terms of Service）很不友善。下次去健身，我也要申請一個帳號，進行『滲透測試』。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （終於抬頭，眼神犀利）「你敢？你要是去我健身房，我就把你的權限設為『唯讀（Read-Only）』，而且還是打亂碼的那種！你這是佔用系統資源！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （走近，收起收據放進自己口袋） 「那不行，為了防止『資料外洩』，這個風險點我必須暫時管控。至於你的核心肌羣……今晚我免費幫妳特訓，保證比那個教練還有效，而且不收費，只收『利息』。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （臉紅）「……你想怎麼訓？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「高強度間歇訓練（HIIT）。保證讓妳明天想下牀都會報錯 404 Not Found。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （把指甲油瓶子重重放下）「臭工程師！你這是性騷擾！我要開工單投訴你！」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「投訴受理部門就在牀上，歡迎隨時來『陳情』。」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 牀上，夜深人靜</div>
+        <div class="dialogue-line"><strong>文英：</strong> （沙啞地）「……報告。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「……請講。」</div>
+        <div class="dialogue-line"><strong>文英：</strong>「今晚的系統負載太大了，伺服器差點當機。你的『演算法』太激進了。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「那是因為妳的『回饋機制』太熱情，導致我無法進行流量控制。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「……算你厲害。不過，我要提醒你。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「什麼？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「明天是週日，你要幫我把所有衣服摺好，還要幫我刷機（洗碗）。否則，我會在你的主機板裡倒水。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「收到。為了系統安全，我願意簽署『不平等條約』。……晚安，我的系統管理員。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「……晚安，笨蛋駭客。」</div>
+
+        <div class="subtitles">
+            System Halted. Maintenance Mode: ON.<br>
+            旁白（你）：看來，這輩子我不僅不用防黑客，還得防着這個隨時準備‘核平’一切的女魔頭。不過……這種感覺.....。
+        </div>
+        <!-- AI講評: 這一段加入了更多生活化的毒舌互動，把「吃醋」、「家務」、「牀笫之間」都包裝成了技術術語。這個節奏你滿意嗎？還是想要更誇張一點的劇情走向（比如突然出現前女友來進行 DDoS 攻擊）？ -->
+    </div>
+
+    <!-- 第三章：前女友的 DDoS 攻擊 -->
+    <div class="script-section">
+        <h2>第三章：前女友的 DDoS 攻擊</h2>
+        <div class="metadata">
+            <strong>地點：</strong> 高級牛排館，週五晚上 8:00<br>
+            <strong>情境：</strong> 你正準備切牛排，手機突然開始瘋狂震動。
+        </div>
+
+        <div class="dialogue-line"><strong>你：</strong> （看著手機，眉頭深鎖）「怪了，系統負載突然飆升，CPU 佔用率 100%。這不是普通的 Bug，這是……攻擊。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （優雅地切著牛排）「攻擊？是哪家黑客這麼閒沒事做？還是你剛才偷偷去瀏覽了什麼『不健康』的網站，中了木馬？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （嘆氣）「比木馬麻煩。是『舊版協議』的兼容性問題。有一個已經被 I 標記為『已廢棄（Deprecated）』的節點，試圖重新建立連接。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「廢棄節點？……説人話。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「我前女友，Tiffany。她剛剛在 10 個羣組裡 @ 我，説她在附近看到我，如果不回來，就要發動自毀程式。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （停下動作，眼神變得危險）「喔？Tiffany？那個聽説整臉都是『深度偽造（Deepfake）』級濾鏡的前任？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「差不多。看樣子她是發動了 DDoS 攻擊，帶了一堆『殭屍電腦』（可能是她的閨蜜天團）過來了。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （冷笑，拿起紅酒杯晃了晃）「DDoS？好啊，我最擅長處理垃圾流量了。讓她來，我倒要看看她的『硬體配置』能不能過得了我這關。」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 牛排館入口</div>
+        <div class="dialogue-line"><strong>Tiffany：</strong> （故作驚訝地捂嘴）「哎呀！這不是我最親愛的 XX 嗎？怎麼跟這個……看起來像是沒打 Patch 的測試版女生在一起？我的系統可是升級過好幾次了喔，你確定不回滾（Rollback）？」</div>
+        <div class="dialogue-line"><strong>閨蜜 A：</strong> 「就是啊，Tiffany 現在可是雲端端的高配版本，這個本地端算什麼？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「Tiffany，請停止你的廣播封包。這裡是私有網路，禁止未授權訪問。」</div>
+        <div class="dialogue-line"><strong>Tiffany：</strong> （轉向文英，上下打量）「哼，這位妹妹，你臉上的毛孔看起來解析度很低耶？妳知道他晚上睡覺會打呼嗎？他的雜訊比 56k 數據機還大。這種 Bug 妳能忍？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （慢條斯理地喝了一口酒，然後開啟毒舌模式）「不好意思，這位『高配版本』的阿姨。我看妳的『濾鏡演算法』好像出錯了，妳的下巴尖得都快戳到我眼睛的感應器了，這叫『幾何失真』嗎？」</div>
+        <div class="dialogue-line"><strong>Tiffany：</strong> （臉色一變）「妳説什麼？！這是我的高級妝容！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「還有，關於噪音問題……」 （轉頭看向你，笑得花枝亂顫）「那是因為他在進行夜間的『資料備份』，只不過有時候會觸發冷卻風扇。至於妳説的升級？我看妳這種把『外掛』裝在臉上的做法，我們業界叫『惡意軟體（Malware）』，只會拖慢系統速度，隨時準備被殺毒軟體清除。」</div>
+        <div class="dialogue-line"><strong>閨蜜 B：</strong> 「妳……妳懂什麼！這是氣質！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「氣質？我看是『延遲（Lag）』吧。妳剛才轉頭的時候，我明顯感覺到掉幀了。幾歲了還在玩『公主病 2.0』？我們現在已經在測試『巔峯極限 5.0』了，妳還在 2G 網路衝浪嗎？」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>情境：</strong> Tiffany 氣得發抖，衝過來想抓你的手。</div>
+        <div class="dialogue-line"><strong>Tiffany：</strong> 「XX！你怎麼能讓這種野蠻人羞辱我！你忘了我們以前的 API 接口有多契合嗎？！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （後退一步，擋在文英面前）「Tiffany，別強行連接。我們的 API 格式早已不兼容了。妳現在的行為叫『緩衝區溢出攻擊』，只會讓自己崩潰。」</div>
+        <div class="dialogue-line"><strong>Tiffany：</strong> 「我不管！我今天就是要把妳這個病毒趕走！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （突然從口袋裡拿出手機，打開一個影片，舉到 Tiffany 面前）「等一下，阿姨。在妳繼續發送垃圾請求之前，要不要先看看這個？這是我在社羣媒體備份庫裡找到的『歷史版本快照』？」</div>
+        <span class="action">手機畫面：是 Tiffany 兩年前在 KTV 唱歌走音，醉倒在地上抱著電線桿哭喊「我是全宇宙最美」的糊到不行的影片。</span>
+        <div class="dialogue-line"><strong>文英：</strong> （笑咪咪地）「喔～這原圖解析度真是有夠高，連妳鼻頭的粉底浮粉都看得一清二楚。這段代碼我看還是不要 Open Source 比較好，不然會影響妳的『品牌形象』。這段影片如果我用 P2P 分發出去，大概一分鐘內就能傳遍整個區域網路吧？」</div>
+        <div class="dialogue-line"><strong>Tiffany：</strong> （臉色慘白，伸手想搶手機）「妳……妳怎麼會有這個？！刪掉！快刪掉！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （靈活閃開）「哎呀，防禦機制啟動。這叫『社交工程學反制』。想刪除？可以啊。叫妳那些殭屍網路（閨蜜）立刻滾蛋，並且承認妳的系統已經過期了。」</div>
+        <div class="dialogue-line"><strong>Tiffany：</strong> （咬著牙，不甘心但又怕影片外流）「……我們走！」</div>
+        <span class="action">（Tiffany 帶著閨蜜狼狽地逃跑，高跟鞋的聲音像斷線的鍵盤聲一樣雜亂。）</span>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 牛排館座位（恢復平靜）</div>
+        <div class="dialogue-line"><strong>你：</strong> 「……我必須更新我的威脅情報庫。沒想到妳還會這招『人肉搜索反擊』。剛才那個影片……妳哪來的？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （得意地揚起下巴，繼續切牛排）「資安工程師這點本事都沒有？那是上次她攻擊你的時候，我順便爬蟲抓下來的。我一直放在『隔離區』，就是為了今天執行『銷毀程序』。」</div>
+        <div class="dialogue-line"><strong>你：</strong> （坐近，握住她的手）「文英，妳不僅是防火牆，妳簡直是網路安全部長。剛才那個反擊，太性感了。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （臉微紅，嘴硬）「少來！那是因為她影響我吃牛排的頻寬了！……不過，既然我幫你擋下了一場 DDoS 攻擊，保住了伺服器的安全，是不是該給點『獎勵』？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「當然。任何獎勵都可以。升級硬體？還是延長保修期？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （湊到耳邊，壓低聲音，眼神迷離又帶點狠勁）「今晚回去……我要對你進行『窮舉攻擊』。我要試遍你所有的密碼和組合，直到找出能讓我係統癱瘓的那一個。敢不敢應戰？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （喉嚨滾動）「……挑戰接受。任何獎勵都可以。升級硬體？還是延長保修期？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （臉微紅，嘴硬）「少來！那是因為她影響我吃牛排的頻寬了！……不過，既然我幫你擋下了一場 DDoS 攻擊，保住了伺服器的安全，是不是該給點『獎勵』？」</div>
+
+        <div class="subtitles">
+            Threat Blocked: SUCCESS<br>
+            System Integrity: RESTORED<br>
+            Firewall Status: GOD MODE
+        </div>
+        <!-- AI講評: 這波反攻夠不夠解氣？文英的戰鬥力直接爆表，把你前女友當成病毒殺了個片甲不留！😎 -->
+    </div>
+
+    <!-- 第四章：窮舉攻擊與寫入 -->
+    <div class="script-section">
+        <h2>第四章：窮舉攻擊與寫入</h2>
+        <div class="metadata">
+            <strong>地點：</strong> 卧室，大門一關上<br>
+            <strong>情境：</strong> 文英把你推倒在牀。
+        </div>
+
+        <div class="dialogue-line"><strong>文英：</strong> （把你推倒在牀，跨坐上去，解開自己的襯衫釦子，眼神像狼一樣）「沒時間做備份了。現在開始執行窮舉攻擊。我要試遍你身上每一個『輸入點』，看看哪一個能讓我的系統報錯。」</div>
+        <div class="dialogue-line"><strong>你：</strong> （躺平，雙手枕在頭後，挑眉一笑）「祝你好運，Hacker。我的密碼長度是 128 位元，混合了大小寫和特殊符號。而且我有『錯誤鎖定機制』，妳連續輸錯三次，我就會進入休眠模式。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （俯身咬住你的耳垂，手不安分地在胸口遊走）「少廢話。第一組密碼測試……這裡？」（手指劃過鎖骨）</div>
+        <div class="dialogue-line"><strong>你：</strong> 「Access Denied。那是緩存區，沒什麼感覺。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （吻向你的喉結，手向下遊走）「第二組密碼……這裡？」（用力掐了一下腰側）</div>
+        <div class="dialogue-line"><strong>你：</strong> 「Warning! 那是敏感端口，但權限不足。再深入一點。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （壞笑，手直接探入危險邊緣）「第三組……這個硬體裝置看起來運作正常嘛，已經在嘗試握手協定了？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （抓住她的手腕，眼神變得危險）「小心點，那是生產環境。如果妳觸發了自動防禦機制，我會反客為主。」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 牀上，戰況升級</div>
+        <div class="dialogue-line"><strong>文英：</strong> （一愣）「什麼？你……唔！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （同時啟動多線程攻擊：左手扣住她的雙手高舉過頭，嘴唇封住她的嘴，右膝頂入她的雙腿之間，另一隻手進行精準打擊）「這是第一波流量包，塞滿妳的輸入緩衝區。」「這是第二波，攻擊妳的聽覺神經，我要在妳耳邊説髒話。」「這是第三波，直接繞過防火牆，進入核心資料庫！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （在攻勢下完全無法招架，只能發出破碎的叫聲，腦子一片空白）「等……等一下！這不公……公平！流量太……太大了！我的……我的 CPU 處理不過來了！啊……那裡不行！那是……那是系統核心！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （低頭在她胸口流連，嘴裡含糊不清地説）「拒絕服務？這就是目的。我要讓妳的大腦當機，讓妳沒辦法思考，沒辦法毒舌，只能發出原始的……錯誤代碼。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （眼角泛淚，整個人像麵條一樣軟掉，指甲深深陷入你的背肌）「你……你是變態嗎？這種頻寬……誰受得了啊！我要……我要報警了……這是非法入侵……唔嗯！」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「報警沒用，因為我已經切斷了對外連線。現在，妳是我的內網私有雲。」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 牀上，高潮前夕</div>
+        <div class="dialogue-line"><strong>文英：</strong> （猛地用力纏住你的腰，眼神迷離卻兇狠）「別以為……別以為你贏了！我剛剛……剛剛破解了你的 Root 密碼！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （動作一滯，喘息）「什麼？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （伴隨著一個精準的扭動和收縮，貼著你耳朵尖叫）**「就是這裡！給我進去！你這個混蛋！」**</div>
+        <div class="dialogue-line"><strong>你：</strong> （瞳孔地震，感覺理智斷線）「喔……該死！這是……這是零日漏洞（Zero-day Vulnerability）！無法修補！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （哭腔）「我係統崩潰了！我也要讓你崩潰！快點！不然我就……我就拔掉你的電源線！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （咬牙切齒，額頭青筋暴起）「既然如此……那就執行最後一道指令。」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 牀上，靜止的時刻</div>
+        <div class="dialogue-line"><strong>文英：</strong> （趴在你胸口，手指無力地畫著圈，聲音虛脱）「……報告。系統……重啟失敗。目前處於安全模式。」</div>
+        <div class="dialogue-line"><strong>你：</strong> （輕吻她的髮頂，呼吸尚未平復）「報告收到。這邊也是……剛剛發生了大規模的數據溢出。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （突然抬起頭，眼神複雜）「喂，你剛才説的……不可逆的寫入程序……執行了嗎？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （沉默了一秒，然後認真地看著她）「執行了。而且……我沒有做 `Rollback`（回滾）的權限。數據已經永久寫入妳的深層記憶體裡了。就算妳格式化硬碟，那個痕跡也還在。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （臉紅了，把臉埋回去）「……臭工程師，説得這麼文藝幹嘛。不就是……那個嗎。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「不只是那個。還有這個。」（抓起她的手，按在你的心口）「妳感覺到了嗎？這個心跳的演算法，已經被妳修改了。以前它是穩定的、可預測的。現在……它是亂碼，全是妳的名字。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （嘴硬但甜蜜）「噁心。這肉麻話術是你從哪個愛情小説的資料庫裡複製貼上的？版權費交了嗎？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「這是開源專案，專屬於許文英。不過，為了防止數據丟失，我建議每天晚上都要進行一次增量備份。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （笑著捶了你一拳）「你想得美！我的伺服器空間有限，要看你的表現決定是不是給你掛載！……不過，剛才那個 DDoS 攻擊……威力還不錯。下次可以申請提高頻寬。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「收到。隨時準備發動攻擊。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「……那還不快去幫我拿毛巾！我要洗澡！這次我要用熱水，你給我準備好，要是水温不對，我就把你踢出房間！」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「遵命，我的管理員。」</div>
+
+        <div class="subtitles">
+            Write Operation: COMPLETED<br>
+            Data Integrity: 100%<br>
+            Rollback: IMPOSSIBLE<br>
+            Status: IN LOVE
+        </div>
+        <!-- AI講評: 這段把技術隱喻運用到了“寫入”和“不可逆”，既有物理上的（你懂的），也有情感上的（心被修改），最後還是用文英的霸道收尾，維持了她的人設。這口味夠重了嗎？😏 -->
+    </div>
+
+    <!-- 第五章：閨蜜的寫入請求 -->
+    <div class="script-section">
+        <h2>第五章：閨蜜的寫入請求</h2>
+        <div class="metadata">
+            <strong>地點：</strong> 文英家<br>
+            <strong>時間：</strong> 週六下午
+        </div>
+
+        <div class="dialogue-line"><strong>CoCo：</strong> （一進門就盯著你看，眼神發光）「哇～這就是傳説中的『資金金童』？文英妳誇大其詞了吧？我看起來也不像擁有『超頻』 CPU 的樣子啊？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （尷尬地推眼鏡）「妳好，我只是個普通的後端工程師。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （冷冷地插嘴）「他是後端沒錯，但前端表現妳沒見過，別用妳那個只有 2G 運存的大腦來評估他。説吧，妳來幹嘛？如果是來借錢，門在那邊。」</div>
+        <div class="dialogue-line"><strong>CoCo：</strong> （笑嘻嘻地湊過來，坐在你旁邊，手搭在你肩膀上）「哎呀，人家是聽説你們最近在做一個『寫入程序』？聽説過程很刺激，能讓系統癱瘓？我也想加入喔！反正多一個節點，負載平衡（Load Balancing）做得更好嘛！來嘛，讓我也試試你的『硬體規格』！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （嚇得筆電差點掉地上，全身僵硬）「呃……這個……這個系統目前是『單機版』，不支援多人連線……」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （啪一聲把手裡的可樂罐捏扁，聲音陰森）「負載平衡？CoCo，妳搞清楚，這裡不是 P2P 下載站，不用妳來做種。還有多一個節點？妳那叫『病毒入侵』，會導致整個區域網路中毒！」</div>
+
+        <hr class="scene-break">
+
+        <div class="dialogue-line"><strong>CoCo：</strong> （不死心，繼續撒嬌）「別這麼小氣嘛！文英，妳獨佔這麼好的資源會造成浪費的。分享經濟懂不懂？讓我也能體驗一下所謂的『不可逆寫入』嘛！我看他的 I/O 接口（Input/Output）好像很強壯的樣子……」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （猛地撕下面膜，眼神像殺手）「CoCo，妳以為這是在選 USB 插頭嗎？隨便插就能用？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （站起來，走到 CoCo 面前，上下打量）「我來幫妳做個『兼容性測試』。首先，妳的『防火牆』（衣服）穿得這麼少，防護力幾乎為零，連個最簡單的掃描都能把妳看光。這種安全性極低的節點，連接進來只會拖累我的運算速度。」</div>
+        <div class="dialogue-line"><strong>CoCo：</strong> （被嗆了一下）「什麼嘛！那是為了散熱！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「散熱？我看是為了『廣播』吧！妳那個大嘴巴，昨天才發生的事，今天全台北的伺服器都知道了。妳這叫『廣播風暴』（Broadcast Storm），會把我的頻寬佔滿！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （轉頭看向你，語氣冰冷）「還有你！剛才她在摸你肩膀的時候，你的觸控感應器是不是壞了？為什麼不觸發『自動彈開』機制？你想當公共自行車嗎？誰都能掃碼騎走？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （冷汗直流）「報告管理員！那是因為系統正在進行高強度運算，CPU 佔用率 100%，無法分神處理中斷請求！我當時是在想……如果觸發防禦，可能會誤傷到重要硬體（你的閨蜜），導致外交糾紛！」</div>
+
+        <hr class="scene-break">
+
+        <div class="dialogue-line"><strong>CoCo：</strong> （嘟著嘴）「哼，文英妳就是自私！妳怕我試過之後，發現妳的系統其實很爛，對不對？説不定他的『驅動程式』跟妳根本不兼容，只是妳強行安裝的！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （笑了一聲，但笑意不達眼底）「不兼容？哈！CoCo，我告訴妳，我們的系統是『雙向綁定』（Binding）。而且……」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （突然湊近 CoCo，壓低聲音，説出最毒的一句話）「妳知道為什麼他的『寫入程序』能讓我癱瘓嗎？因為我的『接收端』夠深，能接住他所有的數據包。以妳這種『淺層緩存』（Shallow Buffer）的配置，他剛發出一個 Hello World，妳的緩衝區就溢出了（Buffer Overflow），然後直接當機報錯。妳真的想要『數據溢出』嗎？」</div>
+        <div class="dialogue-line"><strong>CoCo：</strong> （愣住，臉漲紅，完全反擊不了）「妳……妳這變態！妳在説什麼黃色廢話！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （變臉，推著 CoCo 往門口走）「這叫『技術探討』！好了，今天的『系統訪問』結束。妳的 IP 已經被我在防火牆上永久封鎖（Blacklist）。以後再敢發出連線請求，我就把妳的醜照合成到深網的暗網交易區！」</div>
+        <div class="dialogue-line"><strong>CoCo：</strong> （被推出去，還在喊）「哇！妳這個惡毒的管理員！我不跟妳玩了！我要去回報維修人員！」</div>
+        <span class="action">（門重重關上）</span>
+
+        <hr class="scene-break">
+
+        <div class="dialogue-line"><strong>文英：</strong> （走過來，雙手抱胸，居高臨下地看著你）「怎麼？還在發抖？是不是剛才差點就被病毒感染了？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「……差點。那個 CoCo 的攻擊性太強了，我差點就要執行『系統格式化』來自保了。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （笑著坐到你腿上，雙手環住你的脖子）「哼，算你識相。聽清楚了，這個伺服器是『專屬私有雲』，不對外開放 API。任何想要接入的第三方請求，都必須經過我的手動審核——也就是説，全部拒絕。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「瞭解。那剛才她説的『負載平衡』……」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （咬住你的嘴唇）「不需要。我的負載我自己能平衡。倒是你……剛才被她摸了一下，是不是覺得硬體髒了？需要我幫你進行一次『深度磁碟掃描』和『高温消毒』嗎？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （手不老實地攬住她的腰）「非常需要。建議立即執行，全盤格式化，然後重新安裝操作系統。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （媚眼如絲，在耳邊輕聲説）「好。這次我要開啟『超頻模式』。如果你撐不住……我就把你的網線剪斷，讓你這輩子只能上離線網。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「遵命……我的女王。」</div>
+        <span class="action">（燈光熄滅，只剩下筆電螢幕的藍光映照著兩人纏綿的身影）</span>
+
+        <div class="subtitles">
+            Access Request: DENIED<br>
+            Intrusion Prevention: ACTIVE<br>
+            Private Network: SECURE
+        </div>
+        <!-- AI講評: 這一段把「爭風吃醋」變成了「硬體兼容性大戰」，文英用「淺層緩存」和「數據溢出」來吐槽閨蜜，既兇殘又好笑，同時宣示了主權。這樣的發展符合你想要的「更誇張」嗎？😈 -->
+    </div>
+
+    <!-- 第六章：前男友的過期證書 -->
+    <div class="script-section">
+        <h2>第六章：前男友的過期證書</h2>
+        <div class="metadata">
+            <strong>地點：</strong> 台南老家<br>
+            <strong>時間：</strong> 某日午後
+        </div>
+
+        <div class="dialogue-line"><strong>Justin：</strong> （沒有敲門，直接拉開包廂的紙門，聲音像指甲刮黑板）「好久不見啊，文英。還在吃這種垃圾食物？我看你們的『輸入端』口味還是沒變，這麼難養。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （手抖了一下，蝦殼掉回盤子裡，深吸一口氣）「……Justin？噁，這空氣中突然怎麼有一股『發黴的舊日報紙』味？誰把垃圾桶打開了？」</div>
+        <div class="dialogue-line"><strong>Justin：</strong> （自顧自地坐下）「別這麼冷麻。我最近剛從國外回來，升級了我的系統。我想……我們是不是可以重新『授權連線』？畢竟我們的協定曾經那麼契合。」</div>
+        <div class="dialogue-line"><strong>你：</strong> （面無表情地推開被她倒過來的清酒杯）「女士，這個包廂的 `Access Control List（ACL）` 並沒有妳的名字。妳現在的行為屬於『未授權的存取』。」</div>
+        <div class="dialogue-line"><strong>Justin：</strong> （轉頭看著你，不屑）「你是誰？喔，就是那個修電腦的吧？聽著，這是我和文英之間的『主從架構（Master-Slave）』關係。我是 Master，她是 Slave。當我發出指令，她必須響應。這叫 RPC（遠端過程調用），懂嗎？」</div>
+
+        <hr class="scene-break">
+
+        <div class="dialogue-line"><strong>文英：</strong> （握緊拳頭，頭上青筋暴起）「Justin，聽著。妳的 SSL 憑證早就過期了！現在就算妳發送請求，我的瀏覽器也會直接跳出紅色警告：『連接不安全！可能發生中間人攻擊！』。」</div>
+        <div class="dialogue-line"><strong>Justin：</strong> 「胡説！這是為了兼容性！我們的過去是美好的！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「美好？哈！那個過去是個巨大的漏洞！還有，你剛才説要『強行登入』？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （接話，緩緩站到文英身邊，擋住 Justin 的視線）「很遺憾通知妳，文英的系統已經升級了。現在她運行的是『戀愛優先級（Love PriorityMode）』。所有低優先級的請求——也就是妳——都會被丟進回收站，並且永久刪除（Shift + Delete）。」</div>
+        <div class="dialogue-line"><strong>Justin：</strong> 「你們……你們兩個是一夥的！我要告你們！我要讓你在這個行業混不下去！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （直接拿起桌上的那壺熱茶）「Justin，聽著。你剛才那個 USB（這裡假設他拿出了某種舊物），裡面裝的根本不是需求，是病毒。我要把妳這個毒源從我的硬體裡移除。」</div>
+        <span class="action">（文英做出一個要倒茶的動作，嚇得 Justin 往後一縮）</span>
+        <div class="dialogue-line"><strong>文英：</strong> 「從現在開始，我要啟動『防禦模式』。我要拒絕妳的連線！我的防火牆會把妳的 IP 攔截在外！」</div>
+        <div class="dialogue-line"><strong>Justin：</strong> 「妳敢拒絕我？妳要是拒絕我，我就……」</div>
+        <div class="dialogue-line"><strong>你：</strong> （冷冷地補上一刀）「那就當作是我們購買『自由』的授權費。請妳現在立刻滾出我們的私有網域，否則我就呼叫保全，並以『擾亂公共秩序』和『散播惡意軟體』的罪名起訴妳。」</div>
+        <span class="action">（Justin 狼狽地逃走。）</span>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 牀上，夜深人靜</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「……報告。系統……重啟失敗。目前處於安全模式。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「……請講。」</div>
+        <div class="dialogue-line"><strong>文英：</strong>「今晚的系統負載太大了，伺服器差點當機。你的『演算法』太激進了。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「那是因為妳的『回饋機制』太熱情，導致我無法進行流量控制。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「……算你厲害。不過，我要提醒你。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「什麼？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「明天是週日，你要幫我把所有衣服摺好，還要幫我刷機（洗碗）。否則，我會在你的主機板裡倒水。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「收到。為了系統安全，我願意簽署『不平等條約』。……晚安，我的系統管理員。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「……晚安，笨蛋駭客。」</div>
+
+        <div class="subtitles">
+            Legacy Code: REMOVED<br>
+            Certificate: EXPIRED<br>
+            System Optimization: IN PROGRESS<br>
+            Status: IN LOVE
+        </div>
+        <!-- AI講評: 這一段把前男友形容成「過期證書」和「16位元古董」，狠狠地打擊了男性的自尊，同時讓文英表現出對現在這段關係的滿意（妳是64位元的！）。這種技術性羞辱夠不夠毒？😎 -->
+    </div>
+
+    <!-- 第七章：惡意老闆與系統重啟 -->
+    <div class="script-section">
+        <h2>第七章：惡意老闆與系統重啟</h2>
+        <div class="metadata">
+            <strong>地點：</strong> 高級日本料理店，包廂內<br>
+            <strong>時間：</strong> 週五晚上 9:30
+        </div>
+
+        <div class="dialogue-line"><strong>Anita：</strong> （沒有敲門，直接拉開包廂的紙門，聲音像指甲刮黑板）「哎呀！文英！我還以為我定位錯了呢！原來妳在這裡『養精蓄鋭』啊？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （手抖了一下，蝦殼掉回盤子裡，深吸一口氣）「……總經理？今天是週五晚上，我的時鐘顯示是『非工作時間』。請問有什麼緊急的伺服器維護嗎？」</div>
+        <div class="dialogue-line"><strong>Anita：</strong> （自顧自地坐下）「維護？當然！客户剛剛丟了一個需求過來，説那個 Logo 的『感覺』不對，要『五彩斑斕的黑』。我知道妳在吃飯，但這是緊急補丁（Hotfix）。現在，立刻，打開妳的筆電，我要強行登入妳的腦子進行遠端控制。」</div>
+        <div class="dialogue-line"><strong>你：</strong> （面無表情地推開被她倒過來的清酒杯）「女士，這個包廂的 `Access Control List（ACL）` 並沒有妳的名字。妳現在的行為屬於『未授權的存取』。」</div>
+        <div class="dialogue-line"><strong>Anita：</strong> （轉頭看著你，眼神像在看一隻蟑螂）「你是誰？喔，就是那個修電腦的吧？聽著，這是我和文英之間的『主從架構（Master-Slave）』關係。我是 Master，她是 Slave。當我發出指令，她必須響應。這叫 RPC（遠端過程調用），懂嗎？」</div>
+
+        <hr class="scene-break">
+
+        <div class="dialogue-line"><strong>文英：</strong> （握緊拳頭，頭上青筋暴起）「總經理，我是 UI 設計師，不是妳的 SLAVE（奴隸）！還有，『五彩斑斕的黑』在 RGB 色彩空間裡是不存在的！那是邏輯錯誤！」</div>
+        <div class="dialogue-line"><strong>Anita：</strong> （冷笑，拿出一個 USB 隨身盤拍在桌上）「我不 care 什麼 RGB。我只知道如果明天早上交不出來，妳的績效考核就是 '404 Not Found'。拿去，這裡有我想要的方向圖（其實是一張亂七八糟的塗鴉）。給我現在、立刻、馬上修改！這叫『強制寫入』！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （拿起那個 USB，端詳了一下）「這個 USB……看起來像是從 2005 年出土的古董。而且，如果妳把它插進文英的筆電，裡面的 Auto-run 病毒可能會把我們兩個人都感染。」</div>
+        <div class="dialogue-line"><strong>Anita：</strong> （尖叫）「你這個渾蛋！我是在教她做人！做事要有彈性！什麼資安不資安的，那是藉口！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （突然笑了，笑得非常詭異，那是人格崩壞前的徵兆）「鎖死我的帳號？Anita，妳搞錯了一件事。」</div>
+
+        <hr class="scene-break">
+
+        <div class="dialogue-line"><strong>文英：</strong> （站起來，居高臨下看著 Anita）「妳以為妳是 Root 用户嗎？其實妳只是一個佔用大量內存卻沒什麼用的『背景進程（Background Process）』。妳每天發出的那些廢話指令，佔了我 80% 的 CPU 運算力，但輸出全是垃圾！」</div>
+        <div class="dialogue-line"><strong>Anita：</strong> （氣得發抖）「妳……妳在罵我是垃圾？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「不，我是在優化系統。還有，妳剛才説要『強行登入』？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （接話，緩緩站到文英身邊，擋住 Anita 的視線）「很遺憾通知妳，文英的系統已經升級了。現在她運行的是『戀愛優先級（Love PriorityMode）』。所有低優先級的請求——也就是妳——都會被丟進回收站，並且永久刪除（Shift + Delete）。」</div>
+        <div class="dialogue-line"><strong>Anita：</strong> 「你們……你們兩個是一夥的！我要告你們！我要讓你在這個行業混不下去！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （直接拿起桌上的那壺熱茶）「Anita，聽著。妳剛才那個 USB，裡面裝的根本不是需求，是病毒。我要把妳這個毒源從我的硬體裡移除。」</div>
+        <span class="action">（文英做出一個要倒茶的動作，嚇得 Anita 往後一縮）</span>
+        <div class="dialogue-line"><strong>文英：</strong> 「從現在開始，我要啟動『防禦模式』。我要辭職！我的系統將不再接受妳伺服器的任何請求！我的防火牆會把妳的 IP 攔截在外！」</div>
+        <div class="dialogue-line"><strong>Anita：</strong> 「妳敢辭職？妳要是辭職，我就扣妳離職金！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （冷冷地補上一刀）「那就當作是我們購買『自由』的授權費。請妳現在立刻滾出我們的私有網域，否則我就呼叫保全，並以『擾亂公共秩序』和『散播惡意軟體』的罪名起訴妳。」</div>
+        <span class="action">（Anita 狼狽地逃走。）</span>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 日本料理店外，計程車上</div>
+        <div class="dialogue-line"><strong>文英：</strong> （氣喘吁吁，但臉上興奮得發光）「天啊！我剛才是不是真的把茶灑過去了？有沒有燙到她那張填充過度的臉？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （摟著她，大笑）「差一點。不過灑在她那個古董 USB 上了。我看那個 USB 冒煙了，大概已經短路了。物理銷毀，最徹底的防護。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （突然抱住你的手臂，把臉埋進去）「嗚嗚嗚……我失業了！我變成無業遊民了！我的經濟來源斷了！我變成只能依附於你的寄生蟲了！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （親了親她的額頭）「寄生蟲？不，妳現在是『獨立開發者』。至於經濟來源……」</div>
+        <div class="dialogue-line"><strong>你：</strong> （壓低聲音，誘惑地説）「我的資產就是妳的雲端硬碟。妳想存多少就存多少。不過，既然妳失業了，白天在家裡的時間變多了……」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （抬起頭，眼淚還沒乾，眼神卻變得狡黠）「怎樣？想讓我當家庭主婦？做夢！我白天要在家裏接私單，然後用你的電費和網路。晚上嘛……」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （手指在你胸口畫圈）「……晚上我可以考慮讓你『登入』。但是剛才那個老巫婆説要『強行登入』，讓我很不爽。為了彌補我受傷的心靈，今晚我要對你進行『反向滲透』。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「反向滲透？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「對。我要把你榨乾，讓你明天也沒力氣去上班，然後我們一起失業，當作是對那個資本主義社會最大的報復！」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「……這報復方式也太爽了吧？我贊成。不過，我的『硬體』可能撐不住那麼高強度的反向攻擊。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （壞笑）「撐不住也要撐！這叫『過載測試』。如果不合格，我就扣你的『性福績效』！快點叫司師開車，我要回家執行格式化程序了！」</div>
+
+        <div class="subtitles">
+            Malware Detected: BLOCKED<br>
+            User Status: UNEMPLOYED (But Happy)<br>
+            System Integrity: RESTORED<br>
+            Next Task: STRESS TEST AT HOME
+        </div>
+        <!-- AI講評: 這一段把職場霸凌比喻成「惡意軟體」和「強制寫入」，最後用「辭職」來做物理斷開，既解氣又充滿了對資本家的嘲諷，最後還是回到了那無止盡的「牀上測試」。這種走向夠不夠誇張？😏 -->
+    </div>
+
+    <!-- 第八章：經濟崩潰與本地端重構 -->
+    <div class="script-section">
+        <h2>第八章：經濟崩潰與本地端重構</h2>
+        <div class="metadata">
+            <strong>地點：</strong> 台北信義區，你們原本租的高級公寓<br>
+            <strong>時間：</strong> 202X年，金融海嘯爆發的當下
+        </div>
+
+        <div class="dialogue-line"><strong>文英：</strong> （看著手機上的解僱信，臉色蒼白）「……這不是真的。我的 App 通知顯示：『連線失敗，伺服器已永久關閉』。我們……我們被斷網了？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （手裡拿著最後一罐保久乳，苦笑）「不只是斷網。是全世界的主板燒了。資安部門第一個被裁，因為沒錢的公司不需要防駭客，連小偷都不來。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （抓狂地把抱枕丟向牆壁）「那我們怎麼辦？我的信用卡還有三十萬沒還！我的 LV 包包是租的！我們要去睡橋下的伺服器機房嗎？我不要當流浪漢！我的皮膚會過敏！」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「冷靜點，系統管理員。啟動『災難恢復計畫（DRP）』的最後一環。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「什麼計畫？去搶銀行？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「比那更慘。我們要……執行『本地化部署（On-Premise）』。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「説人話。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「我們要回我台南的老家。種地、養雞、陪阿嬤納涼。從此以後，沒有星巴克，只有珍珠奶茶粉；沒有高鐵，只有慢火車。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （瞳孔地震）「台……台南？阿……阿嬤？那我這個『都市精緻 UI』去哪裡渲染？你這是強制降級！降維打擊！」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 台南鄉下，一棟有點透天厝的老房子，搬回來的第三天</div>
+        <div class="dialogue-line"><strong>阿嬤：</strong> 「英仔啊！來來來，這剛摘下的番石榴，不用洗，直接咬！這是有機的，沒有噴農藥，蟲子都不吃，人吃沒問題！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （看著那顆番石榴，手在發抖）「阿……阿嬤，這叫『生物驗證失敗』。如果蟲子都不吃，那是不是代表這個硬體有問題？而且……這裡的蚊子的解析度好高，聲音環繞立體聲 7.1 聲道！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （正在修補破圍籬）「這是自然界的 DoS 攻擊。習慣吧，這裡的防火牆是紅磚做的，隔熱效果很好，但擋不住蚊子的 SQL 注入。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （氣餒地坐在石頭上）「我的人生完了。我從雲端端掉到了嵌入式系統。我的設計師生涯結束了，現在我是『番石榴品質檢測員』嗎？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「別放棄。我們可以把這裡當成一個新的創業項目。妳看，這片農地就是我們的新伺服器農場（Server Farm）。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「伺服器農場？種 CPU 嗎？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「種『有機數據』。妳負責把這些土雞蛋、稻米重新設計包裝，打造成『頂級極客食品』。我負責後端物流——也就是騎機車去送貨。」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 家裡的客廳（兼倉庫），一個月後</div>
+        <div class="dialogue-line"><strong>文英：</strong> （興奮地轉過身）「我想到了！賣點！我們不賣雞蛋，我們賣『0 與 1 的究極奧義』！看這個標語：『高雞蛋白質，低延遲飢餓感，原生（Native）支援人體消化系統』！」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「……這文案會不會太宅？誰會買？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「你不懂，這叫『極客風格』。而且我把雞蛋箱設計成了伺服器機殼的樣式！一箱六顆，代表 6 核心處理器！還有這袋米，叫『雲端白米』，因為煮飯的時候會產生蒸汽（雲）！」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「……妳腦子真的沒壞？……不過，剛剛我在 PTT 上發了文，説有一羣被裁員的工程師回鄉種地，結果一堆人圍觀，説要支持『自救會』。訂單好像爆單了。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （眼睛發亮）「真的？！看來我們的『農業 IoT（物聯網）』成功了！快！把那顆看起來像 AMD 標誌的番石榴裝進去，這是限量版！」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「那是阿嬤剛從隔壁摘的木瓜……不過算了，聽妳的。這叫『硬體兼容性測試』。」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 老家房間，只有一台老舊的電風扇在轉，深夜</div>
+        <div class="dialogue-line"><strong>文英：</strong> （翻來覆去，把涼被踢開）「熱死了！這裡的冷氣系統是不是隻有『風扇模式』？我的 CPU 温度已經達到 90 度了，我要燒起來了！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （拿著蒲扇幫她扇風）「忍耐一下，這是為了節能減碳。而且，阿嬤説晚上開冷氣會『著涼』，這是老一輩的系統警示。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （突然翻身壓在你身上，眼神變得危險）「既然環境這麼惡劣，為了轉移注意力，我建議我們進行高強度的『體熱交換』。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「體熱交換？這樣温度會更高吧？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「笨蛋！這叫『液冷散熱系統』。……而且，這張牀會發出奇怪的聲音。」</div>
+        <span class="action">（牀板發出「嘎吱——嘎吱——」的聲音）</span>
+        <div class="dialogue-line"><strong>文英：</strong> （臉紅）「聽到沒有？這硬件的噪音控制太差了！像舊硬碟讀取數據的聲音。如果阿嬤在外面聽到，以為我們在搬東西怎麼辦？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （笑著攬住她的腰）「沒關係，我們可以發出另一種聲音來掩蓋頻率。比如説……高頻率的尖叫？或者低頻率的呻吟？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （捂住你的嘴）「你閉嘴！你想讓全村的 Wi-Fi 都收到我們的廣播封包嗎？……不過，既然你這麼有自信，那就來吧。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （貼著你的耳朵，氣息如蘭）「這裡沒有避孕套（0.01）賣喔。你要是敢讓我懷孕，這個『單身伺服器』就真的要變成『多工處理器』了。你準備好升級硬體了嗎？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （眼神一變，翻過身將她壓住）「反正世界都末日了，多一個『小用户』也不算什麼錯誤。只要這個小用户遺傳了妳的毒舌和我的邏輯，這輩子就無人能敵了。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （咯咯笑，腿纏上你的腰）「那要是遺傳了你的無聊和我的暴躁，那就是全球災難。……喂，輕點，這張牀的承重測試我還沒做過，要是塌了，我就讓你睡豬圈！」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「收到。為了不睡豬圈，我會盡量控制『衝擊力』。……開始同步嗎？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「……Sync start.」</div>
+
+        <div class="subtitles">
+            Location: Tainan (Localhost)<br>
+            Status: OFFLINE (But Happy)<br>
+            New Project: Organic Geek Farm<br>
+            Future: UNKNOWN (But Exciting)
+        </div>
+        <!-- AI講評: 這一段把「失業回鄉」寫成了「本地端部署」，把種田寫成了「農業伺服器」，在最後還不忘用「硬體噪音」和「避孕套」來調情，既有現實的辛酸，又滿滿的黑色幽默與甜蜜。這種從雲端跌落泥地的感覺如何？😆 -->
+    </div>
+
+    <!-- 第九章：P2P 物流與鄉民節點 -->
+    <div class="script-section">
+        <h2>第九章：P2P 物流與鄉民節點</h2>
+        <div class="metadata">
+            <strong>地點：</strong> 台南老家，雜亂的客廳<br>
+            <strong>時間：</strong> 凌晨 02:00
+        </div>
+
+        <div class="dialogue-line"><strong>文英：</strong> （抓著頭髮，眼圈發黑）「……這不是真的。這裡有五千筆訂單！從台北到高雄，甚至還有一個要運到金門的『極客番石榴』？你那台 50cc 的綠牌小綿羊就算騎到輪胎融化，也送不完啊！我們要『Overdue（逾期）』了！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （盯著螢幕，手指飛快敲鍵盤）「傳統的 C/S 架構（客户端-伺服器）不行了。我們的頻寬不足以支撐這麼大的吞吐量。我們必須切換到 P2P（點對點）架構。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「P2P？你想讓訂單自己長腿跑去客户家嗎？還是你想用魔法傳送？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「比魔法更可靠——我剛剛在 PTT 批發板上發了一個『英雄帖』。標題是：『救救工程師！加入極客物流網，換取免費的 0.01 特典包（雞蛋）』。』</div>
+        <div class="dialogue-line"><strong>文英：</strong> （驚恐）「你招募了什麼人？鄉民？！這羣人不可控啊！他們會把貨吃掉，還會順手拍醜照發在 DCard 上洩漏隱私！」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「別擔心，我寫了一個『智慧合約（Smart Contract）』：誰把貨送到，誰就能獲得『聲望值（Reputation）』和實體獎勵。這是一場大型的 AR 遊戲。看，第一個節點已經上線了。」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 台南仁德交流道下的 7-11 停車場，早上 6:00</div>
+        <div class="dialogue-line"><strong>文英：</strong> （戴著墨鏡和口罩，不敢置信地看著這羣人）「……那個穿著初音未來泳裝騎著腳踏車的是誰？還有那個開著改裝破發財車、貼著『糞車』貼紙的胖子又是誰？這就是你的物流團隊？這看起來像是廢土電影的試鏡會！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （對著人羣喊話）「各位鄉民，我是 Admin。今天的任務是『阿嬤的番石榴』。目標：將這些『高維度數據包』安全傳輸到北台灣的中繼站。規則只有一個：禁止嗅探（Sniffing，即偷吃）！」</div>
+        <div class="dialogue-line"><strong>鄉民 A（泳裝騎士）：</strong> 「Admin！我的腳踏車沒有後貨架，怎麼載番石榴？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「那就用背揹！這叫『人體負載平衡』。妳的耐力應該不錯吧？」</div>
+        <div class="dialogue-line"><strong>鄉民 B（開發財車的）：</strong> 「我的車沒有冷氣，引擎會過熱，怎麼辦？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「把車窗搖下來，這叫『被動散熱』。而且番石榴需要通風，不然會悶壞。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （無語地拉著你的袖子）「你瘋了嗎？讓他們這樣送，送到的時候變成番石榴泥了啦！還有那個看起來像變態的眼鏡男，一直盯著我的腿看，那是 SQL 注入的視線！」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「別怕，這是昨天那個想買你『內衣設計圖』的土豪鄉民。他自告奮勇要當『骨幹網節點（Backbone Node）』，負責載最重要的貨——也就是妳。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「哈？我也要被物流？我什麼時候變成包裹了？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「妳是『首席監察官（CRO）』。妳要坐在他後座，監控這些節點不要有異常行為。這叫『現場審計』。」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 中山高速公路上，上午 10:00</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「報告 Admin！『發財車節點』偏離航線了！他下交流道去買雞排了！這是『路由繞行』嗎？還是詐騙集團？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「別慌！那是因為他的『葡萄糖供應』不足。讓他吃，那個節點如果不吃飯，會死機（拋錨）。只要他雞排沒吃掉貨，就睜一隻眼閉一隻眼。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「還有！那個騎腳踏車的，她騎太慢了！她的延遲（Latency）已經超過 5000ms 了！番石榴會熟爛在路上的！」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「啟動『激勵協議』！告訴她，如果她在中午前抵達桃園中繼站，我就送她一張你親筆簽名的……呃，番石榴切盤照片。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「誰要那個啊！……好吧，我傳一張我的比基尼照過去，當作是『加速金鑰』。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「……妳存了那種照片？發給我一份副本！我是説……發給節點副本！為了物流安全！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「想得美。這是內部機密文件，權限設為『唯讀』，而且只有物理接觸才能解鎖。……喔！那個腳踏車女突然爆氣了！她的速度破 60 了！這是硝酸鹽加速嗎？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「這叫『粉紅色動力』。看吧，我早就説過，妳是核心資產。」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 台北車站 KUDOS 廣場，下午 4:00</div>
+        <div class="dialogue-line"><strong>鄉民 A（滿頭大汗）：</strong> 「報告！任務完成！這是從台南傳輸過來的『雞蛋數據包』，完整性 100%！只有一顆在路上震碎了，那是……那是消耗品。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「做得好。聲望值 +50。這裡是你們的獎勵：『阿嬤的秘製醬蘿蔔』。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「對對對，我是設計師。不，那個番石榴不是長形的，那是阿嬤的突變種，吃下去不會變異體啦！……喂！不要聞我的頭髮！這是洗髮水的味道，不是番石榴味！」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「各位節點，謝謝大家的協助。今天的 P2P 測試非常成功。我們證明瞭，即使官方物流崩潰，鄉民的熱情（和好色）是可以構建出一個新互聯網的。」</div>
+        <div class="dialogue-line"><strong>眾鄉民：</strong> 「Admin 萬歲！女神萬歲！」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 你們在台北租的小旅館，深夜</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「我的腿……斷了。感覺像是經歷了 DDoS 攻擊一樣。那個重機騎士騎得太兇了，我的屁股都震成四瓣了。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「辛苦了，首席監察官。不過今天的營業額突破了六位數。看來這個『鄉民物流網』很有搞頭。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「比基尼照？……想看嗎？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「……想。非常想。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （從包裡拿出一個番石榴）「那個沒有照片。但是……這個番石榴的形狀，看起來是不是很像……？」（把番石榴在胸前比了一下）</div>
+        <div class="dialogue-line"><strong>你：</strong> 「……形狀完美。曲線流暢。但我更喜歡原廠配置。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （把番石榴扔到一邊，翻身壓在你身上）「既然妳這麼喜歡原廠配置，那今晚就給妳進行一次『深度磁碟掃描』。不過警告你喔，今天累了一整天，我的電量只剩下 5% 了。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「沒問題。我這裡有充電器。而且……」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「既然是 P2P 網絡，今晚我們不需要伺服器，我們可以直接點對點連線。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「少廢話……快插入……我是説，快插入你的加密金鑰！」</div>
+        <span class="action">（燈光熄滅，窗外傳來遠處機車的排氣聲，像是網路數據流的餘韻。）</span>
+
+        <div class="subtitles">
+            P2P Network: ESTABLISHED<br>
+            Packets Delivered: 99%<br>
+            Node Status: TIRED BUT HAPPY<br>
+            Sync: COMPLETE
+        </div>
+        <!-- AI講評: 這一段把「鄉民」變成了「P2P 節點」，把送貨變成了「數據傳輸」，用「比基尼照」當作網路流量加速的金鑰，既荒謬又符合網路文化。這種羣魔亂舞的場面夠不夠誇張？😂 -->
+    </div>
+
+    <!-- 第十章：上海女精鋭與三地節點 -->
+    <div class="script-section">
+        <h2>第十章：上海女精鋭與三地節點</h2>
+        <div class="metadata">
+            <strong>地點：</strong> 台北新辦公室，白板上畫著台灣地圖<br>
+            <strong>時間：</strong> 週一上午 10:00
+        </div>
+
+        <div class="dialogue-line"><strong>你：</strong> （拿著雷射筆，裝模作樣）「聽著，我們的『極客農業雲』已經不滿足於單點傳輸了。我們需要建立一個穩定的三角架構。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （咬著原子筆，一臉不耐煩）「説人話。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「台南是『源頭伺服器』（阿嬤的農場），負責生產數據（種菜）。台北是『前端展示層』（我們這裡），負責行銷和接單。但是……」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「但是什麼？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「我們缺少一個『負載平衡器（Load Balancer）』和『中繼節點』。我們需要在台中設立一個物流中心，進行分揀和二次分發。否則，從台南直接運到台北，延遲太高，生菜會變熟菜。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「所以呢？你要去台中找倉庫？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「沒錯。而且我鎖定了一個傳説中的地下駭客兼物流女王——**Vivian**。她有一個巨大的地下機房，空調很冷，網速很快，而且……據説她能用眼神重啟路由器。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （臉上貼著保養面膜，正在喝可樂，眼神像是在看垃圾）「哇～這就是傳説中的『資金金童』？文英妳誇大其詞了吧？我看起來也不像擁有『超頻』 CPU 的樣子啊？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （尷尬地推眼鏡）「妳好，我只是個普通的後端工程師。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （冷冷地插嘴）「他是後端沒錯，但前端表現妳沒見過，別用妳那個只有 2G 運存的大腦來評估他。説吧，妳來幹嘛？如果是來借錢，門在那邊。」</div>
+        <div class="dialogue-line"><strong>Vivian：</strong> （笑嘻嘻地湊過來，坐在你旁邊，手搭在你肩膀上）「哎呀，人家是聽説你們最近在做一個『寫入程序』？聽説過程很刺激，能讓系統癱瘓？我也想加入喔！反正多一個節點，負載平衡（Load Balancing）做得更好嘛！來嘛，讓我也試試你的『硬體規格』！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （嚇得筆電差點掉地上，全身僵硬）「呃……這個……這個系統目前是『單機版』，不支援多人連線……」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （啪一聲把手裡的可樂罐捏扁，聲音陰森）「負載平衡？CoCo，妳搞清楚，這裡不是 P2P 下載站，不用妳來做種。還有多一個節點？妳那叫『病毒入侵』，會導致整個區域網路中毒！」</div>
+        <div class="dialogue-line"><strong>Vivian：</strong> （不死心，繼續撒嬌）「別這麼小氣嘛！文英，妳獨佔這麼好的資源會造成浪費的。分享經濟懂不懂？讓我也能體驗一下所謂的『不可逆寫入』嘛！我看他的 I/O 接口（Input/Output）好像很強壯的樣子……」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （猛地撕下面膜，眼神像殺手）「CoCo，妳以為這是在選 USB 插頭嗎？隨便插就能用？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （站起來，走到 Vivian 面前，上下打量）「我來幫妳做個『兼容性測試』。首先，妳的『防火牆』（衣服）穿得這麼少，防護力幾乎為零，連個最簡單的掃描都能把妳看光。這種安全性極低的節點，連接進來只會拖累我的運算速度。」</div>
+        <div class="dialogue-line"><strong>Vivian：</strong> （被嗆了一下）「什麼嘛！那是為了散熱！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「散熱？我看是為了『廣播』吧！妳那個大嘴巴，昨天才發生的事，今天全台北的伺服器都知道了。妳這叫『廣播風暴』（Broadcast Storm），會把我的頻寬佔滿！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （轉頭看向你，語氣冰冷）「還有你！剛才她在摸你肩膀的時候，你的觸控感應器是不是壞了？為什麼不觸發『自動彈開』機制？你想當公共自行車嗎？誰都能掃碼騎走？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （冷汗直流）「報告管理員！那是因為系統正在進行高強度運算，CPU 佔用率 100%，無法分神處理中斷請求！我當時是在想……如果觸發防禦，可能會誤傷到重要硬體（你的閨蜜），導致外交糾紛！」</div>
+        <div class="dialogue-line"><strong>Vivian：</strong> （嘟著嘴）「哼，文英妳就是自私！妳怕我試過之後，發現妳的系統其實很爛，對不對？説不定他的『驅動程式』跟妳根本不兼容，只是妳強行安裝的！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （笑了一聲，但笑意不達眼底）「不兼容？哈！CoCo，我告訴妳，我們的系統是『雙向綁定』（Binding）。而且……」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （突然湊近 Vivian，壓低聲音，説出最毒的一句話）「妳知道為什麼他的『寫入程序』能讓我癱瘓嗎？因為我的『接收端』夠深，能接住他所有的數據包。以妳這種『淺層緩存』（Shallow Buffer）的配置，他剛發出一個 Hello World，妳的緩衝區就溢出了（Buffer Overflow），然後直接當機報錯。妳真的想要『數據溢出』嗎？」</div>
+        <div class="dialogue-line"><strong>Vivian：</strong> （愣住，臉漲紅，完全反擊不了）「妳……妳這變態！妳在説什麼黃色廢話！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （變臉，推著 Vivian 往門口走）「這叫『技術探討』！好了，今天的『系統訪問』結束。妳的 IP 已經被我在防火牆上永久封鎖（Blacklist）。以後再敢發出連線請求，我就把妳的醜照合成到深網的暗網交易區！」</div>
+        <div class="dialogue-line"><strong>Vivian：</strong> （被推出去，還在喊）「哇！妳這個惡毒的管理員！我不跟妳玩了！我要去回報維修人員！」</div>
+        <span class="action">（門重重關上）</span>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 台北新辦公室，展會上</div>
+        <div class="dialogue-line"><strong>Catherine：</strong> （沒有敲門，直接拉開包廂的紙門，聲音像指甲刮黑板）「哎呀！文英！我還以為我定位錯了呢！原來妳在這裡『養精蓄鋭』啊？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （手抖了一下，蝦殼掉回盤子裡，深吸一口氣）「……總經理？今天是週五晚上，我的時鐘顯示是『非工作時間』。請問有什麼緊急的伺服器維護嗎？」</div>
+        <div class="dialogue-line"><strong>Catherine：</strong> （自顧自地坐下）「維護？當然！客户剛剛丟了一個需求過來，説那個 Logo 的『感覺』不對，要『五彩斑斕的黑』。我知道妳在吃飯，但這是緊急補丁（Hotfix）。現在，立刻，打開妳的筆電，我要強行登入妳的腦子進行遠端控制。」</div>
+        <div class="dialogue-line"><strong>你：</strong> （面無表情地推開被她倒過來的清酒杯）「女士，這個包廂的 `Access Control List（ACL）` 並沒有妳的名字。妳現在的行為屬於『未授權的存取』。」</div>
+        <div class="dialogue-line"><strong>Catherine：</strong> （轉頭看著你，眼神像在看一隻蟑螂）「你是誰？喔，就是那個修電腦的吧？聽著，這是我和文英之間的『主從架構（Master-Slave）』關係。我是 Master，她是 Slave。當我發出指令，她必須響應。這叫 RPC（遠端過程調用），懂嗎？」</div>
+
+        <hr class="scene-break">
+
+        <div class="dialogue-line"><strong>文英：</strong> （握緊拳頭，頭上青筋暴起）「總經理，我是 UI 設計師，不是妳的 SLAVE（奴隸）！還有，『五彩斑斕的黑』在 RGB 色彩空間裡是不存在的！那是邏輯錯誤！」</div>
+        <div class="dialogue-line"><strong>Catherine：</strong> （冷笑，拿出一個 USB 隨身盤拍在桌上）「我不 care 什麼 RGB。我只知道如果明天早上交不出來，妳的績效考核就是 '404 Not Found'。拿去，這裡有我想要的方向圖（其實是一張亂七八糟的塗鴉）。給我現在、立刻、馬上修改！這叫『強制寫入』！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （拿起那個 USB，端詳了一下）「這個 USB……看起來像是從 2005 年出土的古董。而且，如果妳把它插進文英的筆電，裡面的 Auto-run 病毒可能會把我們兩個人都感染。」</div>
+        <div class="dialogue-line"><strong>Catherine：</strong> （尖叫）「你這個渾蛋！我是在教她做人！做事要有彈性！什麼資安不資安的，那是藉口！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （突然笑了，笑得非常詭異，那是人格崩壞前的徵兆）「鎖死我的帳號？Anita，妳搞錯了一件事。」</div>
+
+        <hr class="scene-break">
+
+        <div class="dialogue-line"><strong>文英：</strong> （站起來，居高臨下看著 Anita）「妳以為妳是 Root 用户嗎？其實妳只是一個佔用大量內存卻沒什麼用的『背景進程（Background Process）』。妳每天發出的那些廢話指令，佔了我 80% 的 CPU 運算力，但輸出全是垃圾！」</div>
+        <div class="dialogue-line"><strong>Catherine：</strong> （氣得發抖）「妳……妳在罵我是垃圾？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「不，我是在優化系統。還有，妳剛才説要『強行登入』？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （接話，緩緩站到文英身邊，擋住 Anita 的視線）「很遺憾通知妳，文英的系統已經升級了。現在她運行的是『戀愛優先級（Love PriorityMode）』。所有低優先級的請求——也就是妳——都會被丟進回收站，並且永久刪除（Shift + Delete）。」</div>
+        <div class="dialogue-line"><strong>Catherine：</strong> 「你們……你們兩個是一夥的！我要告你們！我要讓你在這個行業混不下去！」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （直接拿起桌上的那壺熱茶）「Anita，聽著。妳剛才那個 USB，裡面裝的根本不是需求，是病毒。我要把妳這個毒源從我的硬體裡移除。」</div>
+        <span class="action">（文英做出一個要倒茶的動作，嚇得 Anita 往後一縮）</span>
+        <div class="dialogue-line"><strong>文英：</strong> 「從現在開始，我要啟動『防禦模式』。我要辭職！我的系統將不再接受妳伺服器的任何請求！我的防火牆會把妳的 IP 攔截在外！」</div>
+        <div class="dialogue-line"><strong>Catherine：</strong> 「妳敢辭職？妳要是辭職，我就扣妳離職金！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （冷冷地補上一刀）「那就當作是我們購買『自由』的授權費。請妳現在立刻滾出我們的私有網域，否則我就呼叫保全，並以『擾亂公共秩序』和『散播惡意軟體』的罪名起訴妳。」</div>
+        <span class="action">（Catherine 狼狽地逃走。）</span>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 日本料理店外，計程車上</div>
+        <div class="dialogue-line"><strong>文英：</strong> （氣喘吁吁，但臉上興奮得發光）「天啊！我剛才是不是真的把茶灑過去了？有沒有燙到她那張填充過度的臉？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （摟著她，大笑）「差一點。不過灑在她那個古董 USB 上了。我看那個 USB 冒煙了，大概已經短路了。物理銷毀，最徹底的防護。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （突然抱住你的手臂，把臉埋進去）「嗚嗚嗚……我失業了！我變成無業遊民了！我的經濟來源斷了！我變成只能依附於你的寄生蟲了！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （親了親她的額頭）「寄生蟲？不，妳現在是『獨立開發者』。至於經濟來源……」</div>
+        <div class="dialogue-line"><strong>你：</strong> （壓低聲音，誘惑地説）「我的資產就是妳的雲端硬碟。妳想存多少就存多少。不過，既然妳失業了，白天在家裡的時間變多了……」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （抬起頭，眼淚還沒乾，眼神卻變得狡黠）「怎樣？想讓我當家庭主婦？做夢！我白天要在家裏接私單，然後用你的電費和網路。晚上嘛……」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （手指在你胸口畫圈）「……晚上我可以考慮讓你『登入』。但是剛才那個老巫婆説要『強行登入』，讓我很不爽。為了彌補我受傷的心靈，今晚我要對你進行『反向滲透』。」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「反向滲透？」</div>
+        <div class="dialogue-line"><strong>文英：</strong> 「對。我要把你榨乾，讓你明天也沒力氣去上班，然後我們一起失業，當作是對那個資本主義社會最大的報復！」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「……這報復方式也太爽了吧？我贊成。不過，我的『硬體』可能撐不住那麼高強度的反向攻擊。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （壞笑）「撐不住也要撐！這叫『過載測試』。如果不合格，我就扣你的『性福績效』！快點叫司師開車，我要回家執行格式化程序了！」</div>
+
+        <div class="subtitles">
+            Acquisition Offer: REJECTED<br>
+            Firewall: BLOCKED<br>
+            System Status: LOCALLY OPTIMIZED<br>
+            Next Target: GLOBAL MARKET
+        </div>
+        <!-- AI講評: 這一段把「大陸挖角」描寫成「惡意收購」，文英用「GFW」和「知識庫斷網」來反擊，既政治正確又好笑，最後用「手搓」和「兇狠女友」來進行行銷，完美收尾。這樣的劇情走向，夠不夠爽？😎 -->
+    </div>
+
+    <!-- 第十一章：意外懷孕與二次危機 -->
+    <div class="script-section">
+        <h2>第十一章：意外懷孕與二次危機</h2>
+        <div class="metadata">
+            <strong>地點：</strong> 台南老家，廁所門口<br>
+            <strong>時間：</strong> 清晨 6:00
+        </div>
+
+        <div class="dialogue-line"><strong>文英：</strong> （聲音顫抖，看著那兩條紅線）「……這不是真的。這一定是試紙有 Bug。這是假陽性（False Positive）！這產品是我們自己找工廠 OEM 的，肯定品控出問題了！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （剛刷牙，嘴裡全是泡沫，湊過去看）「唔？兩條線？這代表……懷孕（Positive）？這是一個『True Positive』吧？我看試紙沒壞，是妳的防禦機制壞了。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （尖叫）「怎麼會壞！我們有 0.01 的防護！還有……那個時候不是都是……體外射精嗎？那是『未授權的寫入』啊！為什麼會有數據洩漏？！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （吞下口水，心臟漏了一拍）「呃……這叫『預加載失敗』或者……『少數派報告』。也就是説，總有一兩個頑固的數據包，趁防火牆沒注意的時候……溜進去了。」</div>
+        <div class="dialogue-line"><strong>文英：</strong> （把驗孕棒往你身上一丟）「溜進去？這叫非法入侵！這是最高級別的安全漏洞！我的腹部現在就是一個被駭入的伺服器！而且……而且現在不是物流旺季嗎？我還要設計新包裝，我要去展場，我還要對抗那個上海女人！現在多了一個『佔用資源 100% 的寄生進程』，我的系統要崩潰了！」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 客廳，全體會議（透過視訊連線台中 Vivian 和台南阿嬤）</div>
+        <div class="dialogue-line"><strong>Vivian</strong> （螢幕裡，戴著眼鏡，語氣冰冷）：「根據後端監控數據，前端的響應速度下降了 80%。文英，妳的吞吐量（Output）歸零了。如果不是被 DDoS 攻擊，那就是妳的人體硬體出現了致命故障。」</div>
+        <div class="dialogue-line"><strong>阿嬤</strong> （螢幕裡，拿著菜刀切菜）：「英仔是不是吃壞肚子了？我就叫妳不要吃那個半生不熟的雞排！現在是不是要去掛急診？網路醫生看不見喔！」</div>
+        <div class="dialogue-line"><strong>文英</strong> （扶著額頭，虛弱地）：「……不是吃壞肚子。是系統升級了。我……懷孕了。」</div>
+        <span class="action">（空氣凝固了三秒鐘。）</span>
+        <div class="dialogue-line"><strong>Vivian</strong> （眼鏡反光，推動了一下）：「……重複一次。懷孕？也就是説，接下來九個月，前端將處於『離線維護（Downtime）』狀態？我們剛簽下的上海訂單誰跟進？北京的展會誰去？妳知不知道這會導致整個架構坍塌？」</div>
+        <div class="dialogue-line"><strong>文英</strong> （眼淚在眼眶裡打轉）：「……我……我也沒辦法啊！這是意外！是硬體bug！」</div>
+        <div class="dialogue-line"><strong>Vivian</strong> （冷酷地）：「意外是弱者的藉口。如果無法保證運維穩定，我建議啟動『熔斷機制（Circuit Breaker）』。暫停所有新業務，直到問題解決。」</div>
+        <div class="dialogue-line"><strong>阿嬤</strong> （突然高興地）：「喔！是要生金孫了嗎？那是好事啊！那我就不用種菜了，我要回去帶孫子！這個伺服器我不守了，我要下線！」</div>
+        <div class="dialogue-line"><strong>你</strong> （抱著頭，絕望）：「等一下！阿嬤不能下線！妳是數據生產者！Vivian 不能熔斷！妳是物流樞紐！文英不能離線！妳是……妳是老闆娘！這下完了，真正的『全域性服務中斷』。」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 台南老家客廳，一小時後，手機響起</div>
+        <div class="dialogue-line"><strong>你</strong> （接起電話）：「喂？哪位？」</div>
+        <div class="dialogue-line"><strong>Catherine</strong> （電話那頭，聲音優雅但充滿勝利的意味）：「聽説你們的前端工程師『故障』了？還有生產端也要『退休』？我的情報網可是很快的。」</div>
+        <div class="dialogue-line"><strong>你</strong> （警覺）：「……Catherine？妳怎麼知道？」</div>
+        <div class="dialogue-line"><strong>Catherine</strong>：「因為你們的訂單系統已經出現異常波動了。我給妳一個最後的機會。把公司賣給我。我可以保證文英得到最好的產科醫療資源，還有月子中心。至於你……你可以來上海做個閒職，帶著孩子，看著我把你的品牌做大。這叫『資本救贖』。」</div>
+        <div class="dialogue-line"><strong>文英</strong> （雖然虛弱，但聽到了，搶過手機）：「賣給妳？做夢！」</div>
+        <div class="dialogue-line"><strong>Catherine</strong>：「不賣？憑什麼？憑你們現在混亂的代碼？還是憑你那個嘔吐的樣子？文英，懷孕是女人的職業殺手。妳現在不值錢了。接受現實吧，把控制權交出來。」</div>
+        <span class="action">（電話掛斷。）</span>
+        <div class="dialogue-line"><strong>文英</strong> （握著手機，癱軟在椅子上，大哭）：「鳴鳴……她説我不值錢了……我是職業殺手……我們的事業完了……阿嬤要去帶孫子……Vivian 要熔斷……我也變成廢物了……」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 深夜，房間</div>
+        <div class="dialogue-line"><strong>你</strong> （把文英搖醒）：「文英，醒醒。系統重構完成了。」</div>
+        <div class="dialogue-line"><strong>文英</strong> （眼睛腫腫的）：「……什麼重構？我要流產了嗎？」</div>
+        <div class="dialogue-line"><strong>你</strong>：「不，是架構升級。聽著，Catherine 説得對，我們的單點故障（Single Point of Failure）太嚴重了。過度依賴妳一個人。所以，我寫了一個新的協議。」</div>
+        <div class="dialogue-line"><strong>文英</strong>：「……説人話。」</div>
+        <div class="dialogue-line"><strong>你</strong>：「第一，我把阿嬤升級為『首席品質官』，但我找了隔壁王伯伯來接手種地，用『外包』方式解決生產端。第二，我給 Vivian 寫了一個自動化腳本，讓機器人自動分揀 90% 的貨物，減少對人工的依賴。第三，關於妳……」</div>
+        <div class="dialogue-line"><strong>文英</strong> （擔心地看著肚子）：「把我裁掉嗎？」</div>
+        <div class="dialogue-line"><strong>你</strong>：「不。我把妳的職位調整為『首席體驗官』。妳不需要去搬貨，只需要在家裡穿著孕婦裝，拍拍吃東西的照片，寫寫『孕婦的雲端美食日記』。這叫『內容營銷』。我們把目標客羣轉向『新手父母』。賣『雲端月子餐』和『嬰兒有機副食品』。」</div>
+        <div class="dialogue-line"><strong>文英</strong> （愣住）：「……雲端月子餐？」</div>
+        <div class="dialogue-line"><strong>你</strong>：「對。Catherine 搶不走這個。因為她不懂什麼是『媽媽的味道』。而且，親愛的……」</div>
+        <div class="dialogue-line"><strong>你</strong> （摸著她的肚子）：「這個意外不是 Bug，這是一個『Feature（功能）』。是我們這個系統自帶的『擴展包（DLC）』。雖然現在會佔用資源，但長遠來看，它會帶來無法計算的收益（感情與未來）。」</div>
+        <div class="dialogue-line"><strong>文英</strong> （破涕為笑，摸了摸你的臉頰）：「……你這個變態。連懷孕都能想出商業模式。那……如果我是首席體驗官，我有權命令你做什麼嗎？」</div>
+        <div class="dialogue-line"><strong>你</strong>：「當然。妳是最高權限管理員。」</div>
+        <div class="dialogue-line"><strong>文英</strong> （突然露出壞笑）：「好。第一個指令：去幫我買酸梅湯。要冰的。第二個指令：以後換尿布的權限，歸屬於 Root 帳號，也就是你。」</div>
+        <div class="dialogue-line"><strong>你</strong>：「……收到。雖然換尿布屬於『髒活（Dirty Job）』，但為了系統穩定，我接受。」</div>
+        <div class="dialogue-line"><strong>文英</strong> （把你拉過來，親了一下）：「笨蛋。那就……啟動這個混亂的 2.0 版本吧。我要讓那個上海女人看看，就算懷孕，我的系統運行速度還是比她快！」</div>
+
+        <div class="subtitles">
+            Unexpected Process: LOADED<br>
+            System Resources: OPTIMIZED<br>
+            New Feature: MOTHERHOOD<br>
+            Catherine: BLOCKED PERMANENTLY<br>
+            Future: GENERATIONAL UPGRADE
+        </div>
+        <!-- AI講評: 這一段把懷孕的危機轉化為了「商業模式的轉型」和「親情的升級」，文英從崩潰到利用懷孕反擊 Catherine，體現了她的韌性與毒舌。這種「帶球撞人」反殺資本的劇情，夠不夠勁爆？😂🤰 -->
+    </div>
+
+    <!-- 第十二章：上海的收購與危機 -->
+    <div class="script-section">
+        <h2>第十二章：上海的收購與危機</h2>
+        <div class="metadata">
+            <strong>地點：</strong> 上海總部，最高機密實驗室<br>
+            <strong>時間：</strong> 深夜 2:00
+        </div>
+
+        <div class="dialogue-line"><strong>Catherine：</strong> 「完成了嗎？這個 AI 物流算法，真的能優化全中國的路徑？」</div>
+        <div class="dialogue-line"><strong>你：</strong> （轉過身，眼神平靜得像深淵）「當然。這是我畢生的心血。它的名字叫『Project W』。」</div>
+        <div class="dialogue-line"><strong>Catherine：</strong> 「Project W？W 代表什麼？Win（贏）？Wealth（財富）？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「W 代表 Wife（妻子）。不過……妳可以理解為 Wisdom（智慧）。這個算法擁有自我進化能力，能適應任何複雜的環境。」</div>
+        <div class="dialogue-line"><strong>Catherine：</strong> 「完美。把它部署到生產環境吧。」</div>
+        <div class="dialogue-line"><strong>你：</strong> （按下 Enter 鍵，但手指在鍵盤角落偷偷輸入了一串隱藏指令）「正在部署。但是，Catherine，我有個提醒。這個系統有一個特殊的『安全鎖』。為了防止競爭對手盜取，它的核心運算邏輯依賴於一個外部信號源。」</div>
+        <div class="dialogue-line"><strong>Catherine：</strong> （皺眉）「信號源？什麼信號源？衞星嗎？」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「不。是一個生物信號。如果這個信號中斷，或者信號源的情緒指數過低，算法會自動鎖死，並啟動『自毀程序』。」</div>
+        <div class="dialogue-line"><strong>Catherine：</strong> （皺眉）「你在開玩笑嗎？我們的系統怎麼能依賴外部變量？馬上移除這個風險點！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （站起來，整理領帶）「沒辦法。這是硬編碼（Hard-coded）在內核裡的。如果移除，整個系統就會變成一堆亂碼。這是為了確保……無論在哪裡，系統都知道它的『家』在哪裡。」</div>
+        <span class="action">（你心裡想：文英手環上的心跳數據，就是這個 AI 的啟動金鑰。）</span>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 上海總部，大數據監控中心，上午 10:00，新聞發布會</div>
+        <div class="dialogue-line"><strong>Catherine：</strong> （自信地致詞）「女士們先生們，這是物流界的奇蹟……」</div>
+        <span class="action">（突然，螢幕上的紅色路線全部變成了灰色。大屏幕中央彈出一個巨大的粉色骷髏頭圖案。）</span>
+        <div class="dialogue-line"><strong>系統廣播（文英錄制的怒吼聲，經過變聲處理但依然氣勢驚人）：</strong> `警告！警告！外部信號丟失！母體情緒指數：極度憤怒！` `錯誤代碼：001（懷孕想吃芒果冰淇淋但買不到）！` `錯誤代碼：002（老公不回訊息，想殺人）！` `系統判定：老公是混蛋！啟動懲罰機制！`</div>
+        <span class="action">（全中國的自動化分揀機器人開始亂扔包裹，無人機在空中畫圈圈，倉庫的自動門開開關關，像是 在嘲諷在場的所有人。）</span>
+        <div class="dialogue-line"><strong>Catherine：</strong> （臉色慘白）「這是什麼？！發生了什麼事？！為什麼會播放……錄音？！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （站在角落，看著手機，文英的手環數據顯示心率 140，非常生氣）「看來，核心信號源（文英）現在非常不爽。她好像正在撕毀我們的合照。系統檢測到了『家務戰爭』的頻率，觸發了熔斷保護。」</div>
+        <div class="dialogue-line"><strong>Catherine：</strong> （抓住你的領帶）「你對我的系統做了什麼？！馬上修好它！我們損失了幾千萬了！」</div>
+        <div class="dialogue-line"><strong>你：</strong> （淡淡地説）「我修不好。這個算法的權重算法裡，『老婆的開心指數』佔比 99%。只要她不高興，這個世界就不準轉動。這叫『家庭優先級』。」</div>
+        <div class="dialogue-line"><strong>Catherine：</strong> 「你瘋了！你是故意破壞！我要告你！我要起訴你！」</div>
+        <div class="dialogue-line"><strong>你：</strong> 「起訴我？可以。但只要我不輸入『安撫密碼』，這個 AI 就會一直把妳的快遞送到太平洋去。或者……妳可以去求求那個信號源。」</div>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 台南老家</div>
+        <div class="dialogue-line"><strong>文英</strong> （接起電話，沒好氣）：「如果是那個負心漢，別讓我聽到他的聲音！」</div>
+        <div class="dialogue-line"><strong>Catherine</strong> （電話那頭，語氣卑微，甚至帶著哭腔）：「……文英小姐？我是 Catherine。」</div>
+        <div class="dialogue-line"><strong>文英</strong> （愣住）：「……那個穿乳膠衣的上海精英？妳找我幹嘛？想炫耀妳搶了我老公？」</div>
+        <div class="dialogue-line"><strong>Catherine</strong>：「不……求求妳，妳能消消氣嗎？或者……能不能讓妳的心情指數回升一點點？只要妳不生氣，哪怕只有……30%的好感度，我們的機器人就不會把電腦砸了。」</div>
+        <div class="dialogue-line"><strong>文英</strong> （疑惑）：「妳在説什麼神經病？」</div>
+        <div class="dialogue-line"><strong>Catherine</strong>：「那個混蛋在代碼裡寫了個依賴鎖！只要妳一生氣，整個中國的物流網就癱瘓！現在董事會在殺我，投資人在殺我！求求妳，妳想要什麼？芒果冰淇淋？我派專機送給妳！LV 包包？我送一櫃！」</div>
+        <div class="dialogue-line"><strong>文英</strong> （突然意識到了什麼，嘴角慢慢上揚，露出了那個熟悉的、邪惡的笑容）：「喔……原來如此。告訴那個混蛋。我不想要冰淇淋，也不想要包包。我只要他在十分鐘內出現在我面前。如果超過十分鐘，我就讓我的『心情指數』歸零。妳猜猜會發生什麼？」</div>
+        <div class="dialogue-line"><strong>Catherine</strong> （驚恐）：「會……會怎樣？」</div>
+        <div class="dialogue-line"><strong>文英</strong>：「會核彈爆炸。系統格式化。」</div>
+        <span class="action">（電話那頭傳來 Catherine 的尖叫。）</span>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 上海高爾夫機場</div>
+        <div class="dialogue-line"><strong>Catherine</strong> （在登機口，氣急敗壞地對你喊）：「你給我記住！這件事沒完！回去之後，馬上把那個該死的鎖解開！我要淨版代碼！」</div>
+        <div class="dialogue-line"><strong>你</strong> （轉身，戴上墨鏡，第一次在上海露出了勝利的笑容）：「淨版？不可能。那個鎖是 ETL（Extract, Transform, Load）的核心。沒有文英，這只是一堆沒有靈魂的 0 和 1。Catherine，妳學到了什麼嗎？」</div>
+        <div class="dialogue-line"><strong>Catherine</strong>：「學到什麼？！」</div>
+        <div class="dialogue-line"><strong>你</strong>:「資本可以買下技術，但買不下『愛的依賴』。這才是真正的雲端運算——心在哪裡，雲就在哪裡。」</div>
+        <span class="action">（你轉身走進登機口，揮了揮手，像是在甩掉一個過期的病毒。）</span>
+
+        <hr class="scene-break">
+
+        <div class="metadata"><strong>地點：</strong> 台南老家，大門口，深夜，飛機剛落地，你開車狂飆回來</div>
+        <div class="dialogue-line"><strong>文英</strong> （眼圈紅紅的，但眼神犀利）：「遲到了三分鐘。剛才上海的物流系統是不是又把幾百噸的大白菜倒進黃浦江了？」</div>
+        <div class="dialogue-line"><strong>你</strong> （雙膝跪地，抱住她的大腿）：「……管理員，我回來了。系統請求重新連線。」</div>
+        <div class="dialogue-line"><strong>文英</strong> （用鍋鏟拍了一下你的頭）：「這次想連線，沒那麼容易。妳知道我被那個上海女人騷擾了多久嗎？她竟然試圖用錢收買我的心情指數！」</div>
+        <div class="dialogue-line"><strong>你</strong>: 「那是我設計的『壓力測試』。我想證明，就算沒有我，妳也能掌控全世界的物流命脈。妳做到了，妳比我想像的更強。」</div>
+        <div class="dialogue-line"><strong>文英</strong> （撇嘴）：「少灌迷湯。你只是想回來當家庭煮夫吧？」</div>
+        <div class="dialogue-line"><strong>你</strong>: 「被妳發現了。上海的飯菜沒味道，牀太軟，空氣太乾。我發現我的『硬體』只適配妳這個環境。」</div>
+        <div class="dialogue-line"><strong>文英</strong> （終於忍不住，把鍋鏟丟掉，摟住你的脖子）：「……笨蛋。以後不準寫那種奇怪的代碼了！下次再敢把我的心情指數寫進去，我就真的讓你係統崩潰！」</div>
+        <div class="dialogue-line"><strong>你</strong> （抱起她，小心避開肚子）：「遵命。不過，為了保證系統穩定，我建議我們進行一次『物理同步』。」</div>
+        <div class="dialogue-line"><strong>文英</strong> （臉紅）：「現在？阿嬤還在客廳看電視……」</div>
+        <div class="dialogue-line"><strong>你</strong>: 「那我就把音量調低。畢竟，我們需要修復這兩週的『數據丟失』。」</div>
+        <div class="dialogue-line"><strong>文英</strong> （咬耳朵）：「……那就給你五分鐘。如果不能讓我也『崩潰』一下，今晚你就去睡豬圈！」</div>
+
+        <div class="subtitles">
+            Connection: RESTORED<br>
+            Logic Bomb: DISARMED (By Love)<br>
+            Catherine: BANKRUPT (Maybe)<br>
+            System Status: MARRIAGE 2.0
+        </div>
+        <div class="narrator">
+            旁白（你）：有些男人用代碼改變世界，我用代碼證明，我離不開那個懷孕的兇女人。這或許是史上最昂貴、最浪漫，也最愚蠢的 Bug。但我不打算修復它。
+        </div>
+        <!-- AI講評: 這是一場完美的反擊！用「老婆心情指數」挾持了資本家，最後還能全身而退，抱得美人歸。這種「妻管嚴最高境界」的結局，你滿意嗎？😎🔥 -->
+    </div>
+
+</body>
+</html>

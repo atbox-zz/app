@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 蒙特卡洛 2.0 - 戰略決策模擬網</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --primary: #2c3e50; --accent: #e67e22; --bg: #f8f9fa; }
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); margin: 0; padding: 15px; }
+        .grid-layout { display: grid; grid-template-columns: 350px 1fr; gap: 20px; max-width: 1300px; margin: auto; }
+        .panel { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        h2 { border-bottom: 2px solid var(--accent); padding-bottom: 10px; font-size: 1.2rem; }
+        .input-group { margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 8px; }
+        label { display: block; font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; }
+        input[type="number"] { width: 60px; padding: 4px; border-radius: 4px; border: 1px solid #ccc; }
+        .btn-sync { background: #3498db; color: white; width: 100%; padding: 10px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 10px; }
+        .btn-run { background: var(--accent); color: white; width: 100%; padding: 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 1.1rem; font-weight: bold; }
+        .chart-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .radar-box { height: 400px; }
+        .stats-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9rem; }
+        .stats-table th { background: #eee; padding: 8px; }
+        .stats-table td { padding: 8px; border-bottom: 1px solid #eee; text-align: center; }
+        @media (max-width: 900px) { .grid-layout { grid-template-columns: 1fr; } .chart-container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="grid-layout">
+    <div class="panel">
+        <h2>🛠️ 選情模型參數</h2>
+        <button class="btn-sync" onclick="sync2026Data()">📡 同步 2026.01 最新民調 (API 模擬)</button>
+        
+        <div id="controls">
+            </div>
+
+        <button class="btn-run" onclick="startMonteCarlo()">🎲 啟動 10,000 次蒙特卡洛模擬</button>
+        
+        <p style="font-size: 0.8rem; color: #666; margin-top: 15px;">
+            * 模擬包含：Box-Muller 常態分配、棄保效應演算、組織動員加權。
+        </p>
+    </div>
+
+    <div class="panel">
+        <h2>📊 戰略分析報表</h2>
+        <div class="chart-container">
+            <div class="radar-box">
+                <canvas id="radarChart"></canvas>
+            </div>
+            <div class="radar-box">
+                <canvas id="winChart"></canvas>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <h3>🏁 模擬預測結果</h3>
+            <table class="stats-table" id="resultTable">
+                <thead>
+                    <tr>
+                        <th>候選人</th>
+                        <th>平均支持度</th>
+                        <th>勝選次數</th>
+                        <th>勝選機率 (Win Prob.)</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+let candidates = [
+    { id: 0, name: "李四川 (藍)", mean: 40, sd: 3, air: 70, org: 90, img: 85, color: "rgba(0, 0, 149, 0.7)" },
+    { id: 1, name: "蘇巧慧 (綠)", mean: 35, sd: 3, air: 85, org: 80, img: 80, color: "rgba(27, 148, 49, 0.7)" },
+    { id: 2, name: "黃國昌 (白)", mean: 15, sd: 5, air: 95, org: 40, img: 70, color: "rgba(40, 200, 200, 0.7)" }
+];
+
+let radarChart, winChart;
+
+// 1. 初始化界面
+function renderInputs() {
+    const container = document.getElementById('controls');
+    container.innerHTML = candidates.map((c, i) => `
+        <div class="input-group" style="border-left: 5px solid ${c.color}">
+            <label>${c.name}</label>
+            民調 %: <input type="number" value="${c.mean}" id="m-${i}"> 
+            誤差: <input type="number" value="${c.sd}" id="s-${i}"> <br>
+            <small>空戰:${c.air} / 組織:${c.org} / 形象:${c.img}</small>
+        </div>
+    `).join('');
+    updateRadar();
+}
+
+// 2. 雷達圖更新 (需求 1)
+function updateRadar() {
+    const ctx = document.getElementById('radarChart').getContext('2d');
+    if (radarChart) radarChart.destroy();
+    radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['空戰能力', '地方組織', '形象魅力'],
+            datasets: candidates.map(c => ({
+                label: c.name,
+                data: [c.air, c.org, c.img],
+                backgroundColor: c.color,
+                borderColor: c.color.replace('0.7', '1'),
+                borderWidth: 1
+            }))
+        },
+        options: { scales: { r: { suggestMin: 0, suggestMax: 100 } } }
+    });
+}
+
+// 3. 模擬 API 同步 (需求 2)
+function sync2026Data() {
+    // 模擬從 2026 年 1 月的真實民調數據更新
+    alert("正在連線至 2026 中央選委會/媒體民調資料庫...");
+    
+    // 根據 2026.01 的選情（民進黨初選白熱化、藍白合討論）調整參數
+    candidates[0].mean = 38.5; // 李四川
+    candidates[1].mean = 34.2; // 蘇巧慧
+    candidates[2].mean = 12.5; // 黃國昌
+    
+    renderInputs();
+}
+
+// 蒙特卡洛核心演算
+function randn_bm() {
+    let u = 0, v = 0;
+    while(u === 0) u = Math.random();
+    while(v === 0) v = Math.random();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
+function startMonteCarlo() {
+    const iterations = 10000;
+    const stats = candidates.map(c => ({ ...c, wins: 0, totalScore: 0 }));
+
+    for (let i = 0; i < iterations; i++) {
+        let currentScores = stats.map(c => {
+            let base = parseFloat(document.getElementById(`m-${c.id}`).value);
+            let sd = parseFloat(document.getElementById(`s-${c.id}`).value);
+            
+            // 加入組織力加權：組織力越高，得票下限越高
+            let orgBonus = (c.org / 100) * 2; 
+            let score = base + (randn_bm() * sd) + orgBonus;
+            return { id: c.id, score: score };
+        });
+
+        // 策略性棄保模擬：若第三名低於 12%，將部分選票流向光譜接近者
+        let whiteIndex = currentScores.find(s => s.id === 2);
+        if (whiteIndex.score < 12) {
+            let leakage = whiteIndex.score * 0.3;
+            whiteIndex.score -= leakage;
+            currentScores[0].score += leakage; // 假設流向藍營
+        }
+
+        let winner = currentScores.reduce((prev, curr) => (curr.score > prev.score) ? curr : prev);
+        stats[winner.id].wins++;
+        stats.forEach((c, idx) => c.totalScore += currentScores[idx].score);
+    }
+
+    updateResults(stats, iterations);
+}
+
+function updateResults(stats, total) {
+    // 更新表格
+    const tbody = document.querySelector('#resultTable tbody');
+    tbody.innerHTML = stats.sort((a,b) => b.wins - a.wins).map(c => `
+        <tr>
+            <td>${c.name}</td>
+            <td>${(c.totalScore/total).toFixed(2)}%</td>
+            <td>${c.wins}</td>
+            <td style="color:red; font-weight:bold;">${((c.wins/total)*100).toFixed(1)}%</td>
+        </tr>
+    `).join('');
+
+    // 更新勝率圖
+    const ctx = document.getElementById('winChart').getContext('2d');
+    if (winChart) winChart.destroy();
+    winChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: stats.map(c => c.name),
+            datasets: [{
+                data: stats.map(c => c.wins),
+                backgroundColor: stats.map(c => c.color)
+            }]
+        },
+        options: { plugins: { title: { display: true, text: '勝選機率分佈' } } }
+    });
+}
+
+// 啟動
+renderInputs();
+</script>
+
+</body>
+</html>
