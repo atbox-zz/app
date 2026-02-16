@@ -150,8 +150,8 @@ const MusicPlayer = () => {
         { text: "生物行為 Boids算法", filename: "boids_audio.html", isEnglish: false, isGame: true },
 		    { text: "矽基生命探索", filename: "silicon/siliconindex.html", isEnglish: false, isGame: true },
 		    { text: "投胎模擬器", filename: "ai_studio_rebirth.html", isEnglish: false, isGame: true },
-
-
+        { text: "量子隧穿說明", filename: "量子隧穿效應.html", isEnglish: false, isGame: true },
+		    { text: "量子隧穿動畫", filename: "量子隧穿效應1.html", isEnglish: false, isGame: true },
       ]
     },
     {
