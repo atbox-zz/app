@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>量子隧穿效應 · 相空間 · 高中生版</title>
+    <!-- 使用 MathJax 渲染 LaTeX 公式 -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" id="MathJax-script" async></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f5f9ff;
+            color: #1e2b3c;
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(2px);
+            border-radius: 2.5rem;
+            padding: 2rem 2rem 2.5rem;
+            box-shadow: 0 20px 40px rgba(0,20,40,0.12);
+            border: 1px solid rgba(110, 140, 200, 0.2);
+        }
+        h1 {
+            font-size: 2.4rem;
+            font-weight: 600;
+            background: linear-gradient(145deg, #0b2b5c, #1e4b8a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.25rem;
+            letter-spacing: -0.5px;
+        }
+        .subhead {
+            font-size: 1.2rem;
+            color: #2f4b7a;
+            border-left: 6px solid #3f7eb6;
+            padding-left: 1.2rem;
+            margin-bottom: 2rem;
+            font-weight: 350;
+        }
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 500;
+            margin: 2rem 0 1rem 0;
+            color: #113a5e;
+            border-bottom: 2px dashed #a0c4e2;
+            padding-bottom: 0.3rem;
+        }
+        h3 {
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: #1f4973;
+            margin: 1.5rem 0 0.8rem;
+        }
+        p, li {
+            font-size: 1.1rem;
+            color: #1e3a5f;
+            margin-bottom: 1rem;
+        }
+        .formula-card {
+            background: #ebf3fc;
+            padding: 1.2rem 1.5rem;
+            border-radius: 2rem;
+            margin: 1.5rem 0;
+            border: 1px solid #b9d6f0;
+            box-shadow: inset 0 2px 5px rgba(255,255,255,0.8), 0 6px 12px rgba(30,60,90,0.1);
+            overflow-x: auto;
+        }
+        .formula-card p {
+            margin: 0.5rem 0;
+            font-size: 1.2rem;
+        }
+        .inline-math {
+            background: #eef4fa;
+            padding: 0.15rem 0.4rem;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .highlight {
+            background: #f9f2cf;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-weight: 500;
+            color: #7a5800;
+        }
+        .canvas-wrapper {
+            background: #ffffffd6;
+            border-radius: 2rem;
+            padding: 1.5rem 1rem 1rem 1rem;
+            margin: 2rem 0;
+            box-shadow: 0 8px 18px rgba(0,32,64,0.1);
+            border: 1px solid white;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #fdfdfe;
+            border-radius: 20px;
+            border: 1px solid #b3cef0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 1rem 0 0;
+            font-size: 1rem;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .color-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 40%;
+            background: red;
+        }
+        .color-dot.blue {
+            background: #1f77b4;
+        }
+        .color-dot.gray {
+            background: #aaa;
+            border: 1px dashed #2d4b6e;
+        }
+        .analogy-box {
+            background: #e5effa;
+            border-radius: 1.8rem;
+            padding: 1.5rem 2rem;
+            margin: 2rem 0;
+            border-left: 8px solid #1e6bb8;
+            font-style: italic;
+        }
+        .footnote {
+            font-size: 0.95rem;
+            color: #2f5575;
+            border-top: 1px solid #bdd4ec;
+            margin-top: 2.5rem;
+            padding-top: 1.5rem;
+            text-align: center;
+        }
+        .var-list {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.5rem 1.5rem;
+            background: #f2f8ff;
+            padding: 1.2rem 2rem;
+            border-radius: 2rem;
+            margin: 1.2rem 0;
+        }
+        .var-list dt {
+            font-weight: 700;
+            color: #0f3f6f;
+            font-family: monospace;
+            font-size: 1.2rem;
+        }
+        .var-list dd {
+            color: #1d3d64;
+        }
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(to right, #c0d9f0, transparent);
+            margin: 2rem 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>⚛️ 量子穿牆術 · 相空間解謎</h1>
+    <div class="subhead">用高中生的直覺，看懂量子隧穿 + 維格納函數</div>
+
+    <!-- 引言：什麼是量子隧穿 -->
+    <p>想像你是一顆小彈珠，眼前有一座很高的平滑山丘（<strong>位能障壁</strong>）。在古典世界，如果你滾得不夠快（能量低於山高），你永遠不可能翻過山頂，只會滾回來。但在量子世界，你同時是一團「雲」（波包），這團雲有機會直接「滲透」到山丘的另一側——這就是<strong class="highlight">量子穿隧效應</strong>。以下我們用數學和圖像來理解它，連高中生都能掌握！</p>
+
+    <div class="analogy-box">
+        💡 貼心比喻：古典彈珠 vs 量子幽靈雲<br>
+        ・古典彈珠：能量不夠就真的過不去，像是撞到隱形牆。<br>
+        ・量子波包：像一團迷霧，一部份穿過山丘，一部份反彈回來，霧裡還有「干涉條紋」——那就是量子性格。
+    </div>
+
+    <h2>📦 步驟一：粒子的初始狀態 — 高斯波包</h2>
+    <p>我們用一個數學上很漂亮、也很實際的波包來描述粒子。它叫做「高斯波包」，在<strong>位置空間</strong>的形狀像一座平滑的小丘，同時帶有平均動量。初始時刻 \( t=0 \) 的波函數為：</p>
+    <div class="formula-card">
+        \[
+        \langle x | \psi(0) \rangle = \left( \frac{\alpha}{\pi} \right)^{1/4} \exp\left[ -\frac{\alpha}{2}(x - x_0)^2 + i k_0 x \right]
+        \]
+    </div>
+    <p>符號的祕密：</p>
+    <dl class="var-list">
+        <dt>α (阿法)</dt><dd>控制波包的寬度（α越大波包越窄，位置越確定，但動量就越不確定）</dd>
+        <dt>x₀</dt><dd>波包的中心位置（粒子大概在這裡）</dd>
+        <dt>k₀</dt><dd>波數，和動量有關 (\( p = \hbar k_0 \)，但這裡我們用自然單位讓 \(\hbar=1\))，代表粒子平均向右動量</dd>
+    </dl>
+    <p>👉 這個波包可以想成「粒子最可能出現在 x₀ 附近，而且正以某個速度向右移動」。</p>
+
+    <h2>⛰️ 步驟二：遇到的障礙 — 高斯位能壘</h2>
+    <p>讓粒子穿隧的是一座平滑山丘（不是硬牆），數學上常寫成高斯函數：</p>
+    <div class="formula-card">
+        \[
+        V(x) = A \exp\left[ -\frac{x^2}{2\sigma_{\text{pot}}^2} \right], \quad 
+        A = \frac{2L_{\text{pot}} V_0}{\sqrt{2\pi}\,\sigma_{\text{pot}}}
+        \]
+    </div>
+    <p>參數解讀：</p>
+    <dl class="var-list">
+        <dt>σ_pot</dt><dd>位能壘的寬度 (σ越小，山丘越瘦)</dd>
+        <dt>V₀ , L_pot</dt><dd>一起決定山丘的有效高度，\(A\) 就是山頂的高度。\(L_{\text{pot}}\) 可視為一種特徵長度，讓A的式子保持整潔。</dd>
+    </dl>
+    <p>在古典眼裡，如果粒子的平均能量 (～\(k_0^2/2\)) 低於 \(A\)，粒子就過不去。但量子說：不一定！</p>
+
+    <h2>🌌 步驟三：同時看位置與動量 — 相空間 & 維格納函數</h2>
+    <p>量子世界有個麻煩：你不能同時知道粒子的<strong>精確位置</strong>和<strong>精確動量</strong>（測不準原理）。但是我們又很想把兩者畫在同一張圖上，觀察粒子在「相空間 (x, p)」的分佈。為此，物理學家維格納設計了一個神奇的函數：</p>
+    <div class="formula-card">
+        \[
+        W(x, p) = \frac{1}{\pi} \int_{-\infty}^{\infty} dy \, \langle x + y | \psi(t) \rangle \langle \psi(t) | x - y \rangle \, e^{2ipy}
+        \]
+    </div>
+    <p>這個 \(W(x,p)\) 可以看成量子態在相空間中的「偽機率密度」，它有幾個怪脾氣：</p>
+    <ul style="margin-left: 2rem;">
+        <li>✅ 對 \(p\) 積分會得到位置機率密度 \(|\psi(x)|^2\)</li>
+        <li>✅ 對 \(x\) 積分會得到動量機率密度 \(|\phi(p)|^2\)</li>
+        <li>⚠️ 它<strong>可以變成負值</strong>！負值的地方代表純粹的量子干涉，古典機率絕不會有負的，所以它只是「準機率」。</li>
+    </ul>
+    <p>透過維格納函數，我們能同時看到波包在哪裡 (x)，以及它有多少種速度 (p)。</p>
+
+    <hr>
+
+    <h2>🔮 穿隧過程中的相空間變化（圖像解說）</h2>
+    <p>下圖是初始時刻 (\(t=0\)) 的「位置空間」：藍色是波包機率密度 \(|\psi|^2\)，紅色是位能壘 \(V(x)\)。你可以看到波包還在左邊 (\(x_0=-2\))，山丘在中心 (\(x=0\))。</p>
+
+    <!-- Canvas 繪製位置空間示意圖 (波包 + 位能壘) -->
+    <div class="canvas-wrapper">
+        <canvas id="tunnelingCanvas" width="600" height="300" style="width:100%; height:auto;"></canvas>
+        <div class="legend">
+            <div class="legend-item"><span class="color-dot blue"></span> 初始波包 \(|\psi(x)|^2\) (α=1, x₀=-2)</div>
+            <div class="legend-item"><span class="color-dot" style="background:#d62728;"></span> 高斯位能壘 \(V(x)\) (A=0.5, σ=1)</div>
+            <div class="legend-item"><span class="color-dot gray"></span> 能量參考線 (低於山頂)</div>
+        </div>
+        <p style="text-align:center; margin-top:0.5rem;">📊 古典觀點：波包能量 (約0.5) 低於山頂高度 (0.5) 時，仍可能發生穿隧。</p>
+    </div>
+
+    <p>當時間開始流動，波包向右撞擊位能壘，會發生什麼事？</p>
+    <ul>
+        <li><strong>一部份波包反射回來</strong> — 向左跑去 (在相空間中出現在 \(x&lt;0, p&lt;0\) 區域)。</li>
+        <li><strong>另一部份波包穿透山丘</strong> — 繼續向右 (\(x&gt;0, p&gt;0\))，但強度變小。</li>
+        <li><strong>干涉條紋</strong> — 反射波和入射波在左邊重疊，造成維格納函數出現「負值區」，像棋盤一樣的圖案，這是量子疊加的指紋。</li>
+    </ul>
+
+    <div class="analogy-box" style="background: #f8f2e0; border-left-color: #cc7f2a;">
+        🌀 想像你在水槽中製造一道波浪，碰到一個淺區（位能壘），一部份波浪會反彈，一部份會繼續前進，兩者在重疊區形成複雜的水波花紋。維格納函數就是把這種「波紋」用位置與動量同時表示出來，負值區域就是那些干涉條紋。
+    </div>
+
+    <h3>🧩 維格納函數怎麼顯示穿隧？</h3>
+    <p>下圖是概念性的相空間分佈（無法實際畫出精確數值，因為需要超級電腦模擬，但我們可以描繪主要特徵）：</p>
+    <div style="background: #e3eefa; border-radius: 2rem; padding: 1.2rem; display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center;">
+        <div style="min-width: 240px; flex:1;">
+            <p style="font-weight:700; margin-bottom:0.2rem;">⏳ 穿隧前 (t=0)</p>
+            <ul style="font-size:1rem;">
+                <li>一個高斯丘在 \(x\approx -2\) ，\(p\approx +k_0\) (正動量)。</li>
+                <li>完全沒有負值，因為還沒開始干涉。</li>
+            </ul>
+        </div>
+        <div style="min-width: 240px; flex:1;">
+            <p style="font-weight:700; margin-bottom:0.2rem;">⏳ 穿隧中 (t>0)</p>
+            <ul style="font-size:1rem;">
+                <li>兩大 lobe：反射部分 (\(x&lt;0, p&lt;0\)) 和穿透部分 (\(x>0, p>0\))。</li>
+                <li>在 \(x\approx0\) 附近出現負值的「皺褶」—量子干涉條紋。</li>
+                <li>穿透部分的總積分(機率) 就是穿隧機率。</li>
+            </ul>
+        </div>
+    </div>
+    <p style="margin-top:1rem;">這些負值區域無法用古典統計解釋，它們是波函數相位相干性的直接證明。科學家甚至用「維格納函數的負體積」來測量量子性有多強！</p>
+
+    <h2>📐 重新看公式：每個符號都是故事</h2>
+    <p>我們把三個主角公式擺在一起，並用口語重寫：</p>
+    <div class="formula-card">
+        <p>① 初始波包：<br> \( \psi(x,0) = \mathcal{N}\, e^{-\alpha (x-x_0)^2/2} \, e^{i k_0 x}\) <br>  📦 高斯形狀 × 波動 (\(e^{ik_0x}\) 像週期性的波浪)</p>
+        <p>② 位能壘：<br> \( V(x) = A e^{-x^2/(2\sigma^2)} \)  <br>  🏔️ 平滑高山，A決定高度，\(\sigma\)決定胖瘦</p>
+        <p>③ 維格納函數：<br> \( W(x,p) = \frac{1}{\pi}\int dy \, \psi^*(x-y)\,\psi(x+y)\, e^{2ipy} \)  <br>  🎛️ 把左右兩點的波函數關聯起來，再轉換成動量表示——同時看到x和p的資訊。</p>
+    </div>
+
+    <hr>
+
+    <h2>🧪 為什麼高中生要懂這些？</h2>
+    <p>穿隧效應不是課本上無聊的數學：</p>
+    <ul>
+        <li>⚡ 掃描穿隧顯微鏡 (STM) 利用穿隧電流看到原子，沒有它就不會有奈米科技。</li>
+        <li>☀️ 太陽內部的核融合靠穿隧才能發生，不然我們沒有陽光。</li>
+        <li>💻 未來的量子元件、量子位元也常常用穿隧來控制。</li>
+    </ul>
+    <p>而維格納函數更是量子電腦、量子光學的診斷工具——科學家用它來「拍照」量子態的模樣。下次你聽到「量子干涉」、「負機率」，就知道那是指維格納函數裡的魔法！</p>
+
+    <!-- 簡單名詞小幫手 -->
+    <div style="background: #f0f7ff; border-radius: 1.5rem; padding: 1.5rem; margin: 2rem 0;">
+        <h3 style="margin-top:0;">🔤 一句話符號備忘錄</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 0.8rem;">
+            <div><span style="font-weight:700;">\(x_0\)</span> 初始位置</div>
+            <div><span style="font-weight:700;">\(k_0\)</span> 初始波數 (正比於動量)</div>
+            <div><span style="font-weight:700;">\(\alpha\)</span> 波包集中度</div>
+            <div><span style="font-weight:700;">\(\sigma_{\text{pot}}\)</span> 位能寬度</div>
+            <div><span style="font-weight:700;">\(A\)</span> 位能高度 (由 \(V_0, L_{\text{pot}}\) 組成)</div>
+            <div><span style="font-weight:700;">\(W(x,p)\)</span> 維格納函數</div>
+        </div>
+    </div>
+
+    <div class="footnote">
+        ⚛️ 量子力學不是天書 — 用圖像+比喻，穿隧和相空間也可以很親切。<br>
+        ※ 本頁所有公式皆來自您提供的圖片，並用高中視角重新解讀。
+    </div>
+</div>
+
+<script>
+    (function() {
+        // 繪製位置空間示意圖 (波包機率密度 + 位能壘)
+        const canvas = document.getElementById('tunnelingCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const width = 600, height = 300;
+        canvas.width = width; canvas.height = height;
+
+        // 座標範圍
+        const xMin = -5, xMax = 5;
+        const yMin = 0, yMax = 1.0;   // 縱向範圍 0 ~ 1
+
+        // 轉換函數 (將數學座標轉成canvas像素)
+        function toCanvasX(x) {
+            return ((x - xMin) / (xMax - xMin)) * width;
+        }
+        function toCanvasY(y) {
+            return height - ((y - yMin) / (yMax - yMin)) * height; // 因為canvas y向下
+        }
+
+        // 背景白色
+        ctx.fillStyle = '#fdfdfe';
+        ctx.fillRect(0, 0, width, height);
+
+        // 畫極淡的網格線 (輔助)
+        ctx.beginPath();
+        ctx.strokeStyle = '#d9e6f2';
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i <= 10; i++) {
+            let xVal = xMin + i * (xMax - xMin) / 10;
+            let cx = toCanvasX(xVal);
+            ctx.moveTo(cx, 0);
+            ctx.lineTo(cx, height);
+            ctx.strokeStyle = '#e0ecf9';
+            ctx.stroke();
+        }
+        for (let i = 0; i <= 5; i++) {
+            let yVal = i * 0.2;
+            let cy = toCanvasY(yVal);
+            ctx.moveTo(0, cy);
+            ctx.lineTo(width, cy);
+            ctx.strokeStyle = '#e0ecf9';
+            ctx.stroke();
+        }
+
+        // 繪製座標軸
+        ctx.beginPath();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = '#274e7c';
+        // x軸
+        ctx.moveTo(0, toCanvasY(0));
+        ctx.lineTo(width, toCanvasY(0));
+        // y軸
+        ctx.moveTo(toCanvasX(0), 0);
+        ctx.lineTo(toCanvasX(0), height);
+        ctx.stroke();
+
+        // 標籤 "x" 和 "V / |ψ|²"
+        ctx.font = '13px "Segoe UI", Arial';
+        ctx.fillStyle = '#1f3f60';
+        ctx.fillText('x', width-15, toCanvasY(-0.03)+15);
+        ctx.fillText('機率密度 / 位能', 15, 25);
+
+        // 定義參數
+        const alpha = 1.0;
+        const x0 = -2.0;
+        const norm = Math.sqrt(Math.sqrt(alpha/Math.PI)); // 因為 |ψ|^2 = sqrt(α/π) * exp(-α (x-x0)^2) , 但繪圖用 |ψ|^2 直接
+        // 波包機率密度 ρ(x) = sqrt(α/π) * exp(-α (x-x0)^2)   (注意 α/π 開根號是正確的，因為歸一化)
+        function probDensity(x) {
+            return Math.sqrt(alpha / Math.PI) * Math.exp(-alpha * (x - x0) * (x - x0));
+        }
+
+        // 位能壘 V(x) 參數
+        const A = 0.5;      // 山頂高度 (為了圖形清楚，讓它與波包密度最大差不多)
+        const sigmaPot = 1.0;
+        function potential(x) {
+            return A * Math.exp(-x * x / (2 * sigmaPot * sigmaPot));
+        }
+
+        // 先畫位能壘 (紅色)
+        ctx.beginPath();
+        ctx.strokeStyle = '#d62728';
+        ctx.lineWidth = 3;
+        let first = true;
+        for (let px = 0; px <= width; px+=2) {
+            let x = xMin + (px / width) * (xMax - xMin);
+            let yVal = potential(x);
+            if (yVal > yMax) yVal = yMax; // 限制範圍
+            let cy = toCanvasY(yVal);
+            if (first) {
+                ctx.moveTo(px, cy);
+                first = false;
+            } else {
+                ctx.lineTo(px, cy);
+            }
+        }
+        ctx.stroke();
+
+        // 畫波包密度 (藍色)
+        ctx.beginPath();
+        ctx.strokeStyle = '#1f77b4';
+        ctx.lineWidth = 3;
+        first = true;
+        for (let px = 0; px <= width; px+=2) {
+            let x = xMin + (px / width) * (xMax - xMin);
+            let yVal = probDensity(x);
+            if (yVal > yMax) yVal = yMax;
+            let cy = toCanvasY(yVal);
+            if (first) {
+                ctx.moveTo(px, cy);
+                first = false;
+            } else {
+                ctx.lineTo(px, cy);
+            }
+        }
+        ctx.stroke();
+
+        // 畫一條水平虛線表示平均能量 (假設 k0^2/2 ≈ 0.25，這裡畫在0.25位置當參考)
+        ctx.beginPath();
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = '#808080';
+        ctx.lineWidth = 1.8;
+        let energyY = toCanvasY(0.28); // 大概在0.28 (低於山頂0.5)
+        ctx.moveTo(0, energyY);
+        ctx.lineTo(width, energyY);
+        ctx.stroke();
+        ctx.setLineDash([]); // 恢復實線
+
+        // 標註 x0 位置
+        let x0Canvas = toCanvasX(x0);
+        ctx.beginPath();
+        ctx.strokeStyle = '#1f77b4';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([3,3]);
+        ctx.moveTo(x0Canvas, toCanvasY(0));
+        ctx.lineTo(x0Canvas, toCanvasY(probDensity(x0)));
+        ctx.stroke();
+        ctx.fillStyle = '#1f77b4';
+        ctx.font = 'bold 13px "Segoe UI"';
+        ctx.fillText('x₀', x0Canvas-25, toCanvasY(probDensity(x0))-10);
+
+        // 標註位能頂點位置 (x=0)
+        let peakX = toCanvasX(0);
+        ctx.beginPath();
+        ctx.strokeStyle = '#d62728';
+        ctx.setLineDash([3,3]);
+        ctx.moveTo(peakX, toCanvasY(0));
+        ctx.lineTo(peakX, toCanvasY(A));
+        ctx.stroke();
+        ctx.fillStyle = '#d62728';
+        ctx.fillText('山頂', peakX+8, toCanvasY(A)-15);
+        ctx.setLineDash([]);
+    })();
+</script>
+
+<!-- 確保 MathJax 重新渲染可能出現的公式 -->
+<script>
+    if (window.MathJax) {
+        MathJax.typesetPromise?.();
+    }
+</script>
+</body>
+</html>
