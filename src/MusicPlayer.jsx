@@ -124,7 +124,6 @@ const MusicPlayer = () => {
         { text: "六十四卦速見表", filename: "./guaorder.html", isEnglish: false, isGame: true },
         { text: "公車路線", filename: "./indexv12.html", isEnglish: false, isGame: true },
         { text: "64卦狀態機", filename: "./yy.html", isEnglish: false, isGame: true },
-        { text: "八宮卦方立體", filename: "./zz.html", isEnglish: false, isGame: true },
         { text: "🤖AI示波器", filename: "./scope.html", isEnglish: false, isGame: true },
         { text: "🦋洛倫茲吸引子", filename: "./Lorenz_system_p.html", isEnglish: false, isGame: true },
         { text: "2D平面運動", filename: "./2DsimCanva.html", isEnglish: false, isGame: true },
@@ -152,6 +151,7 @@ const MusicPlayer = () => {
 		    { text: "投胎模擬器", filename: "ai_studio_rebirth.html", isEnglish: false, isGame: true },
         { text: "量子隧穿說明", filename: "量子隧穿效應.html", isEnglish: false, isGame: true },
 		    { text: "量子隧穿動畫", filename: "量子隧穿效應1.html", isEnglish: false, isGame: true },
+		    { text: "量子隧穿動畫1", filename: "量子隧穿效應claude4.html", isEnglish: false, isGame: true },
       ]
     },
     {
@@ -160,6 +160,7 @@ const MusicPlayer = () => {
         { text: "井字棋", filename: "./xx.html", isEnglish: false, isGame: true },
         { text: "🐍", filename: "./snake1.html", isEnglish: false, isGame: true },
         { text: "🎮魔術方塊", filename: "./cude6c.html", isEnglish: true, isGame: true },
+        { text: "八宮卦方立體", filename: "./zz.html", isEnglish: false, isGame: true },
         { text: "🔺64D", filename: "./vertices64d1.html", isEnglish: false, isGame: true },
         { text: "🔺64D2", filename: "./vis_mobile.html", isEnglish: false, isGame: true },
         { text: "DS OR單形法", filename: "./simplex.html", isEnglish: false, isGame: true },
