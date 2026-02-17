@@ -168,6 +168,7 @@ const MusicPlayer = () => {
         { text: "4維立方體", filename: "./Hypercube.html", isEnglish: false, isGame: true },
         { text: "【命中注定】", filename: "love_story.html", isEnglish: false, isGame: true },
         { text: "台指期", filename: "taiwan-future-arbitrage/taiwan-futures-arbitrage-final/index.html", isEnglish: false, isGame: true },
+        { text: "AI訓練", filename: "interactiveai/index.html", isEnglish: false, isGame: true },
       ]
 
     },
