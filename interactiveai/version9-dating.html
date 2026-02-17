@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>💘 戀愛 AI 教練</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;overflow-x:hidden}
+body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#f8a5c2 0%,#e056a0 60%,#764ba2 100%);min-height:100vh;padding:12px}
+
+h1{color:#fff;text-align:center;font-size:clamp(1.3rem,6vw,2rem);text-shadow:0 2px 8px rgba(0,0,0,0.25);margin-bottom:3px}
+.subtitle{color:rgba(255,255,255,0.88);text-align:center;font-size:clamp(0.78rem,3.5vw,1rem);margin-bottom:14px}
+
+.card{background:#fff;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,0.13);padding:14px;margin-bottom:12px}
+h2{color:#e056a0;font-size:clamp(0.95rem,4.5vw,1.25rem);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+h3{color:#764ba2;font-size:clamp(0.85rem,3.5vw,1rem);margin-bottom:6px}
+
+/* 場景按鈕 - 2列手機友善 */
+.scenes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+@media(min-width:480px){.scenes{grid-template-columns:repeat(6,1fr)}}
+.sbtn{padding:10px 4px;border:2px solid #eee;border-radius:12px;background:#fafafa;cursor:pointer;text-align:center;transition:all .2s;font-size:clamp(0.65rem,2.8vw,0.82rem);color:#555;line-height:1.4;width:100%}
+.sbtn .emo{font-size:clamp(1.3rem,5vw,1.7rem);display:block;margin-bottom:3px}
+.sbtn:active{transform:scale(.94)}
+.sbtn.active{border-color:#e056a0;background:linear-gradient(135deg,#fce4f3,#f9d0ea);color:#e056a0;font-weight:700}
+
+/* 訓練資料 */
+.train-list{background:#fdf0f8;border-radius:10px;padding:10px}
+.train-row{padding:7px 0;border-bottom:1px dashed #f0c0d8;font-size:clamp(0.7rem,2.8vw,0.88rem);line-height:1.5}
+.train-row:last-child{border-bottom:none}
+.train-row .top{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:3px}
+.io{background:#e056a0;color:#fff;border-radius:5px;padding:2px 7px;font-size:clamp(0.62rem,2.5vw,0.78rem);white-space:nowrap;flex-shrink:0}
+.io.out{background:#764ba2}
+.arrow{color:#ccc}
+.train-row .lbl{color:#888;font-size:clamp(0.65rem,2.5vw,0.82rem)}
+
+/* 캔버스 */
+#nn-canvas{width:100%;display:block;border-radius:12px;background:#1a1a2e}
+
+/* 訓練控制 */
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.btn{padding:13px 6px;border:none;border-radius:10px;cursor:pointer;font-weight:700;font-size:clamp(0.82rem,3.5vw,1rem);transition:all .2s;color:#fff;touch-action:manipulation}
+.btn:active{transform:scale(.96)}
+.btn-train{background:linear-gradient(135deg,#f093fb,#f5576c)}
+.btn-auto{background:linear-gradient(135deg,#4facfe,#00f2fe)}
+.btn-reset{background:linear-gradient(135deg,#a18cd1,#fbc2eb);grid-column:1/-1}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat-box{background:linear-gradient(135deg,#fce4f3,#f9d0ea);border-radius:10px;padding:10px;text-align:center}
+.stat-lbl{font-size:clamp(0.7rem,2.8vw,0.85rem);color:#aaa;margin-bottom:3px}
+.stat-val{font-size:clamp(1.3rem,6vw,1.8rem);font-weight:900;color:#e056a0}
+
+/* 滑桿 */
+.slider-wrap{margin-bottom:14px}
+.sl-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.sl-top span:first-child{font-weight:600;color:#555;font-size:clamp(0.82rem,3.5vw,1rem)}
+.sl-pct{font-size:clamp(0.9rem,4vw,1.1rem);font-weight:700;color:#e056a0;min-width:42px;text-align:right}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:7px;border-radius:4px;background:#f0c0d8;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#f093fb,#e056a0);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.18)}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#f093fb,#e056a0);cursor:pointer;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.18)}
+
+.predict-btn{width:100%;padding:16px;border:none;border-radius:12px;background:linear-gradient(135deg,#fa709a,#fee140);color:#fff;font-weight:700;font-size:clamp(1rem,4.5vw,1.2rem);cursor:pointer;margin-top:6px;box-shadow:0 4px 15px rgba(250,112,154,0.4);touch-action:manipulation;transition:all .2s}
+.predict-btn:active{transform:scale(.97)}
+
+/* 結果 */
+.result-box{border-radius:12px;padding:16px;text-align:center;margin-top:12px;display:none;border:2px solid transparent;animation:pop .3s ease}
+.result-box.show{display:block}
+.r-emo{font-size:clamp(2rem,10vw,3rem);margin-bottom:6px}
+.r-text{font-size:clamp(1.2rem,5.5vw,1.7rem);font-weight:700;margin-bottom:5px}
+.r-pct{font-size:clamp(1.4rem,7vw,2rem);font-weight:900;margin-bottom:8px}
+.r-advice{font-size:clamp(0.8rem,3.2vw,0.95rem);line-height:1.7;background:rgba(255,255,255,0.75);border-radius:8px;padding:10px;color:#555}
+
+/* 說明 */
+.steps{display:grid;gap:10px}
+.step{display:flex;gap:10px;align-items:flex-start}
+.step-ico{font-size:clamp(1.5rem,6vw,1.9rem);flex-shrink:0;line-height:1}
+.step-text h4{color:#555;font-weight:700;margin-bottom:2px;font-size:clamp(0.85rem,3.5vw,1rem)}
+.step-text p{color:#999;font-size:clamp(0.75rem,3vw,0.88rem);line-height:1.5}
+.tip-box{background:linear-gradient(135deg,#ffecd2,#fcb69f);border-radius:10px;padding:13px;margin-top:10px}
+.tip-box p{font-size:clamp(0.75rem,3vw,0.9rem);color:#7d4e2e;line-height:1.9}
+.disclaimer{background:#fff9e6;border:1px solid #ffd700;border-radius:10px;padding:10px;text-align:center;font-size:clamp(0.72rem,3vw,0.85rem);color:#8a6d00;margin-top:6px}
+
+@keyframes pop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.pulsing{animation:pulse 1s infinite}
+</style>
+</head>
+<body>
+
+<h1>💘 戀愛 AI 教練</h1>
+<p class="subtitle">用神經網路分析追女生的最佳時機！</p>
+
+<!-- 場景 -->
+<div class="card">
+  <h2>💑 選擇場景</h2>
+  <div class="scenes" id="scenes"></div>
+</div>
+
+<!-- 神經網路畫布 -->
+<div class="card">
+  <h2>🧠 神經網路結構</h2>
+  <canvas id="nn-canvas"></canvas>
+</div>
+
+<!-- 訓練資料 -->
+<div class="card">
+  <h2 id="scene-title">📚 學習案例</h2>
+  <p id="scene-desc" style="color:#aaa;font-size:clamp(0.78rem,3vw,0.92rem);margin-bottom:10px;line-height:1.5"></p>
+  <div class="train-list" id="train-list"></div>
+</div>
+
+<!-- 訓練 -->
+<div class="card">
+  <h2>🎮 訓練 AI</h2>
+  <div class="btn-row">
+    <button class="btn btn-train" onclick="trainOnce()">💪 學習一次</button>
+    <button class="btn btn-auto" id="auto-btn" onclick="toggleAuto()">🚀 快速訓練</button>
+    <button class="btn btn-reset" onclick="resetNN()">🔄 重新開始</button>
+  </div>
+  <div class="stats">
+    <div class="stat-box"><div class="stat-lbl">學習次數</div><div class="stat-val" id="epoch-val">0</div></div>
+    <div class="stat-box"><div class="stat-lbl">戀愛智慧</div><div class="stat-val" id="acc-val">0%</div></div>
+  </div>
+</div>
+
+<!-- 測試 -->
+<div class="card">
+  <h2>🔮 測試你的情況</h2>
+  <div class="slider-wrap">
+    <div class="sl-top"><span id="lbl-a">條件A</span><span class="sl-pct" id="pct-a">50%</span></div>
+    <input type="range" id="sl-a" min="0" max="100" value="50">
+  </div>
+  <div class="slider-wrap">
+    <div class="sl-top"><span id="lbl-b">條件B</span><span class="sl-pct" id="pct-b">50%</span></div>
+    <input type="range" id="sl-b" min="0" max="100" value="50">
+  </div>
+  <button class="predict-btn" onclick="predict()">💘 AI 戀愛顧問的建議？</button>
+  <div class="result-box" id="result-box">
+    <div class="r-emo" id="r-emo"></div>
+    <div class="r-text" id="r-text"></div>
+    <div class="r-pct" id="r-pct"></div>
+    <div class="r-advice" id="r-advice"></div>
+  </div>
+</div>
+
+<!-- 原理 -->
+<div class="card">
+  <h2>🤖 AI 怎麼學會追女生的？</h2>
+  <div class="steps">
+    <div class="step"><span class="step-ico">💔</span><div class="step-text"><h4>新手什麼都不懂</h4><p>像沒談過戀愛的宅男，亂猜答案</p></div></div>
+    <div class="step"><span class="step-ico">📖</span><div class="step-text"><h4>觀察成功 / 失敗案例</h4><p>看學長學姐的成功經驗和慘痛教訓</p></div></div>
+    <div class="step"><span class="step-ico">🎯</span><div class="step-text"><h4>找出追求的黃金法則</h4><p>歸納出「什麼情況該做什麼」的規律</p></div></div>
+    <div class="step"><span class="step-ico">💯</span><div class="step-text"><h4>變成戀愛專家</h4><p>面對新情況也能給出正確建議</p></div></div>
+  </div>
+  <div class="tip-box">
+    <p>💡 <strong>就像人類學戀愛：</strong><br>
+    • 小白：看到喜歡的就告白 → 被發卡<br>
+    • 學習：聽朋友分享、看PTT文章<br>
+    • 進步：知道要先培養感情、看時機<br>
+    • 高手：能準確判斷對方心意 🎓</p>
+  </div>
+  <div class="disclaimer">⚠️ 教學用途，實際追求請尊重對方意願，真心誠意最重要 💖</div>
+</div>
+
+<script>
+// ============ 神經網路 ============
+class NN {
+  constructor(lr=0.5){
+    this.lr=lr;
+    this.w1=this.rm(2,4); this.w2=this.rm(4,1);
+    this.b1=this.ra(4);   this.b2=this.ra(1);
+    this.H=[0,0,0,0]; this.O=[0];
+  }
+  rm(r,c){return Array(r).fill(0).map(()=>Array(c).fill(0).map(()=>Math.random()*2-1))}
+  ra(n){return Array(n).fill(0).map(()=>Math.random()*2-1)}
+  sig(x){return 1/(1+Math.exp(-x))}
+  sd(x){return x*(1-x)}
+  forward(inp){
+    this.H=this.b1.map((b,i)=>this.sig(inp.reduce((s,v,j)=>s+v*this.w1[j][i],b)));
+    this.O=this.b2.map((b,i)=>this.sig(this.H.reduce((s,v,j)=>s+v*this.w2[j][i],b)));
+    return this.O;
+  }
+  train(inp,tgt){
+    const o=this.forward(inp);
+    const oe=o.map((v,i)=>tgt[i]-v);
+    const od=o.map((v,i)=>oe[i]*this.sd(v));
+    const he=this.H.map((_,i)=>od.reduce((s,d,j)=>s+d*this.w2[i][j],0));
+    const hd=this.H.map((h,i)=>he[i]*this.sd(h));
+    this.w2.forEach((r,i)=>r.forEach((_,j)=>{this.w2[i][j]+=this.lr*od[j]*this.H[i]}));
+    this.w1.forEach((r,i)=>r.forEach((_,j)=>{this.w1[i][j]+=this.lr*hd[j]*inp[i]}));
+    this.b2=this.b2.map((b,i)=>b+this.lr*od[i]);
+    this.b1=this.b1.map((b,i)=>b+this.lr*hd[i]);
+    return Math.abs(oe[0]);
+  }
+  predict(inp){return this.forward(inp)[0]}
+}
+
+// ============ 場景 ============
+const SCENES=[
+  {id:'confess',emoji:'💌',name:'告白時機',
+   desc:'根據「她對你有好感」和「認識夠久」決定要不要告白',
+   lblA:'💕 她有好感',lblB:'⏰ 認識夠久',out:'💐 現在告白',
+   data:[{a:0,b:0,y:0,lbl:'😢 無感+才認識 → 會被發好人卡'},
+         {a:0,b:1,y:0.1,lbl:'😔 無感+認識久 → 友達以上很危險'},
+         {a:1,b:0,y:0.3,lbl:'🤔 有感+才認識 → 太急了，再等等'},
+         {a:1,b:1,y:1,  lbl:'🎉 有感+認識久 → 就是現在！衝！'}]},
+  {id:'date',emoji:'🎬',name:'約看電影',
+   desc:'根據「她心情好」和「你們聊得開心」決定要不要約',
+   lblA:'😊 她心情好',lblB:'💬 聊得開心',out:'🎫 約看電影',
+   data:[{a:0,b:0,y:0,  lbl:'😰 心情差+沒話聊 → 絕對別約'},
+         {a:0,b:1,y:0.2,lbl:'😕 心情差+聊得來 → 安慰就好'},
+         {a:1,b:0,y:0.3,lbl:'🤨 心情好+沒話題 → 可能被拒絕'},
+         {a:1,b:1,y:1,  lbl:'✨ 心情好+有話聊 → 最佳時機！'}]},
+  {id:'text',emoji:'📱',name:'訊息互動',
+   desc:'根據「她秒回」和「她主動找你」決定積不積極',
+   lblA:'⚡ 她秒回',lblB:'👋 她主動找',out:'🔥 積極互動',
+   data:[{a:0,b:0,y:0,  lbl:'💔 不秒回+不主動 → 別煩她了'},
+         {a:0,b:1,y:0.4,lbl:'🤷 不秒回+主動找 → 她可能很忙'},
+         {a:1,b:0,y:0.6,lbl:'😊 秒回+不主動 → 她害羞，慢慢來'},
+         {a:1,b:1,y:1,  lbl:'💯 秒回+主動找 → 穩了！繼續聊'}]},
+  {id:'gift',emoji:'🎁',name:'送禮決策',
+   desc:'根據「她提過想要」和「特殊節日」決定送不送',
+   lblA:'🗣️ 她說想要',lblB:'🎂 特殊節日',out:'💎 送貴重禮',
+   data:[{a:0,b:0,y:0,  lbl:'🚫 沒提+平常日 → 送了反而奇怪'},
+         {a:0,b:1,y:0.4,lbl:'🎈 沒提+節日 → 小禮物意思到'},
+         {a:1,b:0,y:0.5,lbl:'💭 提過+平常日 → 可以但別太貴'},
+         {a:1,b:1,y:1,  lbl:'💝 提過+節日 → 送！加分超多！'}]},
+  {id:'jealous',emoji:'😤',name:'吃醋訊號',
+   desc:'根據「她吃醋」和「確定關係了」判斷是不是好訊號',
+   lblA:'😤 她吃醋',lblB:'💑 確定關係',out:'💖 這是好事',
+   data:[{a:0,b:0,y:0.1,lbl:'😐 不吃醋+沒確定 → 她不在乎你'},
+         {a:0,b:1,y:0.2,lbl:'😌 不吃醋+有關係 → 感情可能淡了'},
+         {a:1,b:0,y:0.8,lbl:'😍 吃醋+沒確定 → 快去告白！'},
+         {a:1,b:1,y:1,  lbl:'🥰 吃醋+有關係 → 她很愛你，甜蜜'}]},
+  {id:'reply',emoji:'💬',name:'已讀判斷',
+   desc:'根據「之前聊得好」和「最近有按讚」判斷已讀是否正常',
+   lblA:'🤝 之前聊得好',lblB:'❤️ 最近有按讚',out:'✅ 還有希望',
+   data:[{a:0,b:0,y:0,  lbl:'💀 沒聊好+沒按讚 → 放棄吧'},
+         {a:0,b:1,y:0.5,lbl:'🤔 沒聊好+有按讚 → 繼續觀察'},
+         {a:1,b:0,y:0.4,lbl:'📵 聊得好+沒按讚 → 她很忙'},
+         {a:1,b:1,y:0.9,lbl:'😅 聊得好+有按讚 → 再傳一次！'}]}
+];
+
+// ============ 狀態 ============
+let nn=new NN(), sceneIdx=0, epoch=0, autoTimer=null, isAuto=false;
+const cvs=document.getElementById('nn-canvas');
+const cx=cvs.getContext('2d');
+
+// ============ 畫布自適應 ============
+function resizeCanvas(){
+  const W=cvs.parentElement.clientWidth-28; // 扣除 card padding
+  cvs.width=W;
+  cvs.height=Math.max(260, Math.round(W*0.52));
+  redraw();
+}
+
+function redraw(){
+  const a=+document.getElementById('sl-a').value/100;
+  const b=+document.getElementById('sl-b').value/100;
+  nn.forward([a,b]);
+  drawNN([a,b],nn.H,nn.O);
+}
+
+// ============ 畫神經網路 ============
+function drawNN(inp,hid,out){
+  const W=cvs.width, H=cvs.height;
+  cx.clearRect(0,0,W,H);
+  cx.fillStyle='#1a1a2e';
+  cx.fillRect(0,0,W,H);
+
+  const s=SCENES[sceneIdx];
+  // 4層：輸入(2)、隱藏1(4)、隱藏2(4)、輸出(1)
+  const layerX=[W*.1, W*.37, W*.63, W*.9];
+  const sizes=[2,4,4,1];
+  const clrs=['#f093fb','#4facfe','#43e97b','#fa709a'];
+  const vals=[inp, hid.slice(0,4), hid.slice(0,4), out];
+  const topPad=H*0.16, botPad=H*0.16;
+  const usable=H-topPad-botPad;
+
+  function ny(li,ni){
+    const n=sizes[li];
+    const gap=usable/(n);
+    return topPad + gap*ni + gap/2;
+  }
+
+  const R=Math.max(8, Math.min(16, W*0.028));
+  const fs=Math.max(8, Math.min(11, W*0.022));
+
+  // 連線
+  for(let li=0;li<3;li++){
+    for(let i=0;i<sizes[li];i++){
+      for(let j=0;j<sizes[li+1];j++){
+        const v=(vals[li][i]||0);
+        cx.beginPath();
+        cx.moveTo(layerX[li], ny(li,i));
+        cx.lineTo(layerX[li+1], ny(li+1,j));
+        cx.strokeStyle=`rgba(${li===0?'240,147,251':'79,172,254'},${.08+v*.45})`;
+        cx.lineWidth=.5+v*1.8;
+        cx.stroke();
+      }
+    }
+  }
+
+  // 節點
+  for(let li=0;li<4;li++){
+    for(let ni=0;ni<sizes[li];ni++){
+      const x=layerX[li], y=ny(li,ni);
+      const v=vals[li][ni]||0;
+      const r=R+v*3;
+      const g=cx.createRadialGradient(x,y,0,x,y,r);
+      g.addColorStop(0,'white');
+      g.addColorStop(.5,clrs[li]);
+      g.addColorStop(1,'transparent');
+      cx.beginPath(); cx.arc(x,y,r,0,Math.PI*2);
+      cx.fillStyle=g;
+      if(v>.5){cx.shadowBlur=12;cx.shadowColor=clrs[li]}
+      cx.fill(); cx.shadowBlur=0;
+      cx.strokeStyle=clrs[li]; cx.lineWidth=1.5; cx.stroke();
+    }
+  }
+
+  // 層標籤（頂部）
+  const layerNames=['輸入層','隱藏層1','隱藏層2','輸出層'];
+  cx.textAlign='center'; cx.font=`bold ${fs}px Arial`;
+  layerNames.forEach((nm,li)=>{
+    cx.fillStyle=clrs[li];
+    cx.fillText(nm, layerX[li], H*.08);
+  });
+
+  // 節點標籤（底部，每個節點下方）
+  const nodeLabels=[[s.lblA, s.lblB],[],[],[s.out]];
+  cx.font=`${fs-1}px Arial`;
+  for(let li=0;li<4;li++){
+    for(let ni=0;ni<sizes[li];ni++){
+      const lbl=nodeLabels[li][ni];
+      if(!lbl) continue;
+      const x=layerX[li], y=ny(li,ni);
+      const v=vals[li][ni]||0;
+      const r=R+v*3;
+      // 去掉 emoji，只保留文字，避免字太長
+      const txt=lbl.replace(/[\u{1F000}-\u{1FFFF}]/gu,'').replace(/^\s+/,'');
+      const maxW=Math.floor((layerX[1]-layerX[0])*0.85);
+      cx.fillStyle='rgba(255,255,255,.82)';
+      // 自動縮短
+      let display=txt;
+      cx.font=`${fs-1}px Arial`;
+      while(cx.measureText(display).width>maxW && display.length>2){
+        display=display.slice(0,-1);
+      }
+      if(display!==txt) display=display.trim()+'…';
+      cx.fillText(display, x, y+r+fs+1);
+    }
+  }
+}
+
+// ============ 場景 ============
+function loadScene(idx){
+  sceneIdx=idx;
+  const s=SCENES[idx];
+  document.querySelectorAll('.sbtn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  document.getElementById('scene-title').textContent=s.emoji+' '+s.name+' — 學習案例';
+  document.getElementById('scene-desc').textContent=s.desc;
+  document.getElementById('lbl-a').textContent=s.lblA;
+  document.getElementById('lbl-b').textContent=s.lblB;
+  document.getElementById('train-list').innerHTML=s.data.map(d=>`
+    <div class="train-row">
+      <div class="top">
+        <span class="io">${s.lblA.slice(0,2)}=${d.a?'是':'否'}</span>
+        <span class="io">${s.lblB.slice(0,2)}=${d.b?'是':'否'}</span>
+        <span class="arrow">→</span>
+        <span class="io out">${(d.y*100).toFixed(0)}%</span>
+      </div>
+      <div class="lbl">${d.lbl}</div>
+    </div>`).join('');
+  document.getElementById('result-box').classList.remove('show');
+  resetNN();
+}
+
+function buildBtns(){
+  document.getElementById('scenes').innerHTML=SCENES.map((s,i)=>`
+    <button class="sbtn ${i===0?'active':''}" onclick="loadScene(${i})">
+      <span class="emo">${s.emoji}</span>${s.name}
+    </button>`).join('');
+}
+
+// ============ 訓練 ============
+function getData(){return SCENES[sceneIdx].data.map(d=>({inp:[d.a,d.b],tgt:[d.y]}))}
+
+function updateStats(err){
+  epoch++;
+  document.getElementById('epoch-val').textContent=epoch;
+  document.getElementById('acc-val').textContent=Math.max(0,(1-err)*100).toFixed(1)+'%';
+}
+
+function trainOnce(){
+  const data=getData(); let err=0;
+  data.forEach(d=>{err+=nn.train(d.inp,d.tgt)});
+  updateStats(err/data.length);
+  redraw();
+}
+
+function toggleAuto(){
+  isAuto=!isAuto;
+  const btn=document.getElementById('auto-btn');
+  if(isAuto){
+    btn.textContent='⏹ 停止';
+    btn.classList.add('pulsing');
+    autoTimer=setInterval(()=>{
+      const data=getData(); let err=0;
+      data.forEach(d=>{err+=nn.train(d.inp,d.tgt)});
+      updateStats(err/data.length);
+      redraw();
+      if((1-err/data.length)*100>=95) toggleAuto();
+    },25);
+  } else {
+    clearInterval(autoTimer);
+    btn.textContent='🚀 快速訓練';
+    btn.classList.remove('pulsing');
+  }
+}
+
+function resetNN(){
+  if(isAuto) toggleAuto();
+  nn=new NN(); epoch=0;
+  document.getElementById('epoch-val').textContent='0';
+  document.getElementById('acc-val').textContent='0%';
+  document.getElementById('result-box').classList.remove('show');
+  redraw();
+}
+
+// ============ 預測 ============
+function getAdvice(v){
+  if(v<.2) return{bg:'#fff0f0',bc:'#ffb3b3',emo:'❌',text:'別做夢了',col:'#e53935',msg:'現在行動只會被發好人卡，先培養感情吧！'};
+  if(v<.4) return{bg:'#fff3e0',bc:'#ffcc80',emo:'😰',text:'機率很低',col:'#f57c00',msg:'條件不足，再努力觀察一陣子比較好'};
+  if(v<.6) return{bg:'#fffde7',bc:'#fff176',emo:'🤔',text:'可以試試',col:'#f9a825',msg:'有一點希望，但要做好被拒絕的心理準備'};
+  if(v<.8) return{bg:'#f1f8e9',bc:'#aed581',emo:'😊',text:'成功率不錯',col:'#558b2f',msg:'時機不錯，可以勇敢行動了！'};
+  return{bg:'#fce4ec',bc:'#f48fb1',emo:'💯',text:'就是現在！',col:'#c62828',msg:'完美時機，不出手會後悔！衝啊少年！💪'};
+}
+
+function predict(){
+  const a=+document.getElementById('sl-a').value/100;
+  const b=+document.getElementById('sl-b').value/100;
+  const v=nn.predict([a,b]);
+  const adv=getAdvice(v);
+  const box=document.getElementById('result-box');
+  box.style.background=adv.bg;
+  box.style.borderColor=adv.bc;
+  document.getElementById('r-emo').textContent=adv.emo;
+  document.getElementById('r-text').style.color=adv.col;
+  document.getElementById('r-text').textContent=adv.text;
+  document.getElementById('r-pct').style.color=adv.col;
+  document.getElementById('r-pct').textContent='成功率：'+(v*100).toFixed(0)+'%';
+  document.getElementById('r-advice').textContent='💬 '+adv.msg;
+  box.classList.add('show');
+  redraw();
+}
+
+// ============ 滑桿 ============
+['a','b'].forEach(k=>{
+  document.getElementById('sl-'+k).addEventListener('input',function(){
+    document.getElementById('pct-'+k).textContent=this.value+'%';
+    redraw();
+  });
+});
+
+// ============ 初始化 ============
+window.addEventListener('load',()=>{ buildBtns(); loadScene(0); resizeCanvas(); });
+window.addEventListener('resize',()=>{ resizeCanvas(); });
+</script>
+</body>
+</html>

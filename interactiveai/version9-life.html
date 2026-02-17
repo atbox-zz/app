@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🤖 生活化 AI 決策</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;overflow-x:hidden}
+body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#43e97b 0%,#38f9d7 40%,#4facfe 100%);min-height:100vh;padding:12px}
+
+h1{color:#fff;text-align:center;font-size:clamp(1.3rem,6vw,2rem);text-shadow:0 2px 8px rgba(0,0,0,0.2);margin-bottom:3px}
+.subtitle{color:rgba(255,255,255,0.9);text-align:center;font-size:clamp(0.78rem,3.5vw,1rem);margin-bottom:14px}
+
+.card{background:#fff;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,0.12);padding:14px;margin-bottom:12px}
+h2{color:#00b09b;font-size:clamp(0.95rem,4.5vw,1.25rem);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+
+/* 場景按鈕 */
+.scenes{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+@media(min-width:480px){.scenes{grid-template-columns:repeat(4,1fr)}}
+.sbtn{padding:12px 6px;border:2px solid #eee;border-radius:12px;background:#fafafa;cursor:pointer;text-align:center;transition:all .2s;font-size:clamp(0.65rem,2.8vw,0.85rem);color:#555;line-height:1.4;width:100%}
+.sbtn .emo{font-size:clamp(1.5rem,6vw,2rem);display:block;margin-bottom:4px}
+.sbtn:active{transform:scale(.94)}
+.sbtn.active{border-color:#00b09b;background:linear-gradient(135deg,#d4f5ee,#b2ede3);color:#00796b;font-weight:700}
+
+/* 訓練資料 */
+.train-list{background:#f0faf8;border-radius:10px;padding:10px}
+.train-row{padding:7px 0;border-bottom:1px dashed #b2ede3;font-size:clamp(0.7rem,2.8vw,0.88rem);line-height:1.5}
+.train-row:last-child{border-bottom:none}
+.train-row .top{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:3px}
+.io{background:#00b09b;color:#fff;border-radius:5px;padding:2px 7px;font-size:clamp(0.62rem,2.5vw,0.78rem);white-space:nowrap;flex-shrink:0}
+.io.out{background:#4facfe}
+.arrow{color:#ccc}
+.train-row .lbl{color:#888;font-size:clamp(0.65rem,2.5vw,0.82rem)}
+
+/* Canvas */
+#nn-canvas{width:100%;display:block;border-radius:12px;background:#1a1a2e}
+
+/* 訓練按鈕 */
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.btn{padding:13px 6px;border:none;border-radius:10px;cursor:pointer;font-weight:700;font-size:clamp(0.82rem,3.5vw,1rem);transition:all .2s;color:#fff;touch-action:manipulation}
+.btn:active{transform:scale(.96)}
+.btn-train{background:linear-gradient(135deg,#43e97b,#38f9d7)}
+.btn-auto{background:linear-gradient(135deg,#4facfe,#00f2fe)}
+.btn-reset{background:linear-gradient(135deg,#96fbc4,#f9f586);color:#555;grid-column:1/-1}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat-box{background:linear-gradient(135deg,#d4f5ee,#b2ede3);border-radius:10px;padding:10px;text-align:center}
+.stat-lbl{font-size:clamp(0.7rem,2.8vw,0.85rem);color:#aaa;margin-bottom:3px}
+.stat-val{font-size:clamp(1.3rem,6vw,1.8rem);font-weight:900;color:#00796b}
+
+/* 滑桿 */
+.slider-wrap{margin-bottom:14px}
+.sl-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.sl-top span:first-child{font-weight:600;color:#555;font-size:clamp(0.82rem,3.5vw,1rem)}
+.sl-pct{font-size:clamp(0.9rem,4vw,1.1rem);font-weight:700;color:#00b09b;min-width:42px;text-align:right}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:7px;border-radius:4px;background:#b2ede3;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#43e97b,#00b09b);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.18)}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#43e97b,#00b09b);cursor:pointer;border:none}
+
+.predict-btn{width:100%;padding:16px;border:none;border-radius:12px;background:linear-gradient(135deg,#43e97b,#4facfe);color:#fff;font-weight:700;font-size:clamp(1rem,4.5vw,1.2rem);cursor:pointer;margin-top:6px;box-shadow:0 4px 15px rgba(67,233,123,0.4);touch-action:manipulation;transition:all .2s}
+.predict-btn:active{transform:scale(.97)}
+
+/* 結果 */
+.result-box{border-radius:12px;padding:16px;text-align:center;margin-top:12px;display:none;border:2px solid transparent;animation:pop .3s ease}
+.result-box.show{display:block}
+.r-emo{font-size:clamp(2rem,10vw,3rem);margin-bottom:6px}
+.r-text{font-size:clamp(1.2rem,5.5vw,1.7rem);font-weight:700;margin-bottom:5px}
+.r-pct{font-size:clamp(1.4rem,7vw,2rem);font-weight:900;margin-bottom:8px}
+.r-advice{font-size:clamp(0.8rem,3.2vw,0.95rem);line-height:1.7;background:rgba(255,255,255,0.75);border-radius:8px;padding:10px;color:#555}
+
+/* 說明 */
+.steps{display:grid;gap:10px}
+.step{display:flex;gap:10px;align-items:flex-start}
+.step-ico{font-size:clamp(1.5rem,6vw,1.9rem);flex-shrink:0;line-height:1}
+.step-text h4{color:#555;font-weight:700;margin-bottom:2px;font-size:clamp(0.85rem,3.5vw,1rem)}
+.step-text p{color:#999;font-size:clamp(0.75rem,3vw,0.88rem);line-height:1.5}
+.tip-box{background:linear-gradient(135deg,#d4f5ee,#b2ede3);border-radius:10px;padding:13px;margin-top:10px}
+.tip-box p{font-size:clamp(0.75rem,3vw,0.9rem);color:#00796b;line-height:1.9}
+
+@keyframes pop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.pulsing{animation:pulse 1s infinite}
+</style>
+</head>
+<body>
+
+<h1>🤖 生活化 AI 決策</h1>
+<p class="subtitle">用日常場景學習神經網路！</p>
+
+<!-- 場景 -->
+<div class="card">
+  <h2>🎯 選擇生活場景</h2>
+  <div class="scenes" id="scenes"></div>
+</div>
+
+<!-- 神經網路畫布 -->
+<div class="card">
+  <h2>🧠 神經網路結構</h2>
+  <canvas id="nn-canvas"></canvas>
+</div>
+
+<!-- 訓練資料 -->
+<div class="card">
+  <h2 id="scene-title">📚 學習案例</h2>
+  <p id="scene-desc" style="color:#aaa;font-size:clamp(0.78rem,3vw,0.92rem);margin-bottom:10px;line-height:1.5"></p>
+  <div class="train-list" id="train-list"></div>
+</div>
+
+<!-- 訓練 -->
+<div class="card">
+  <h2>🎮 訓練 AI</h2>
+  <div class="btn-row">
+    <button class="btn btn-train" onclick="trainOnce()">💪 學習一次</button>
+    <button class="btn btn-auto" id="auto-btn" onclick="toggleAuto()">🚀 快速訓練</button>
+    <button class="btn btn-reset" onclick="resetNN()">🔄 重新開始</button>
+  </div>
+  <div class="stats">
+    <div class="stat-box"><div class="stat-lbl">學習次數</div><div class="stat-val" id="epoch-val">0</div></div>
+    <div class="stat-box"><div class="stat-lbl">AI 準確度</div><div class="stat-val" id="acc-val">0%</div></div>
+  </div>
+</div>
+
+<!-- 測試 -->
+<div class="card">
+  <h2>🔮 測試你的情況</h2>
+  <div class="slider-wrap">
+    <div class="sl-top"><span id="lbl-a">條件A</span><span class="sl-pct" id="pct-a">50%</span></div>
+    <input type="range" id="sl-a" min="0" max="100" value="50">
+  </div>
+  <div class="slider-wrap">
+    <div class="sl-top"><span id="lbl-b">條件B</span><span class="sl-pct" id="pct-b">50%</span></div>
+    <input type="range" id="sl-b" min="0" max="100" value="50">
+  </div>
+  <button class="predict-btn" onclick="predict()">🤖 AI 的建議是？</button>
+  <div class="result-box" id="result-box">
+    <div class="r-emo" id="r-emo"></div>
+    <div class="r-text" id="r-text"></div>
+    <div class="r-pct" id="r-pct"></div>
+    <div class="r-advice" id="r-advice"></div>
+  </div>
+</div>
+
+<!-- 原理 -->
+<div class="card">
+  <h2>💡 AI 怎麼做決策的？</h2>
+  <div class="steps">
+    <div class="step"><span class="step-ico">👶</span><div class="step-text"><h4>一開始什麼都不會</h4><p>就像嬰兒一樣，亂猜答案</p></div></div>
+    <div class="step"><span class="step-ico">📖</span><div class="step-text"><h4>看例子學習</h4><p>給它很多「這樣的情況→這樣決定」的例子</p></div></div>
+    <div class="step"><span class="step-ico">🎯</span><div class="step-text"><h4>發現規律</h4><p>逐漸找出「什麼情況→什麼決定」的模式</p></div></div>
+    <div class="step"><span class="step-ico">🎓</span><div class="step-text"><h4>學會預測</h4><p>面對新情況也能做出合理判斷</p></div></div>
+  </div>
+  <div class="tip-box">
+    <p>💡 <strong>就像人類學習：</strong><br>
+    • 小時候：父母教「紅燈停、綠燈行」<br>
+    • 成長後：看到黃燈也知道要減速<br>
+    • AI 也一樣：從例子中學會舉一反三！🚀</p>
+  </div>
+</div>
+
+<script>
+// ============ 神經網路 ============
+class NN {
+  constructor(lr=0.5){
+    this.lr=lr;
+    this.w1=this.rm(2,4); this.w2=this.rm(4,1);
+    this.b1=this.ra(4);   this.b2=this.ra(1);
+    this.H=[0,0,0,0]; this.O=[0];
+  }
+  rm(r,c){return Array(r).fill(0).map(()=>Array(c).fill(0).map(()=>Math.random()*2-1))}
+  ra(n){return Array(n).fill(0).map(()=>Math.random()*2-1)}
+  sig(x){return 1/(1+Math.exp(-x))}
+  sd(x){return x*(1-x)}
+  forward(inp){
+    this.H=this.b1.map((b,i)=>this.sig(inp.reduce((s,v,j)=>s+v*this.w1[j][i],b)));
+    this.O=this.b2.map((b,i)=>this.sig(this.H.reduce((s,v,j)=>s+v*this.w2[j][i],b)));
+    return this.O;
+  }
+  train(inp,tgt){
+    const o=this.forward(inp);
+    const oe=o.map((v,i)=>tgt[i]-v);
+    const od=o.map((v,i)=>oe[i]*this.sd(v));
+    const he=this.H.map((_,i)=>od.reduce((s,d,j)=>s+d*this.w2[i][j],0));
+    const hd=this.H.map((h,i)=>he[i]*this.sd(h));
+    this.w2.forEach((r,i)=>r.forEach((_,j)=>{this.w2[i][j]+=this.lr*od[j]*this.H[i]}));
+    this.w1.forEach((r,i)=>r.forEach((_,j)=>{this.w1[i][j]+=this.lr*hd[j]*inp[i]}));
+    this.b2=this.b2.map((b,i)=>b+this.lr*od[i]);
+    this.b1=this.b1.map((b,i)=>b+this.lr*hd[i]);
+    return Math.abs(oe[0]);
+  }
+  predict(inp){return this.forward(inp)[0]}
+}
+
+// ============ 場景 ============
+const SCENES=[
+  {id:'restaurant',emoji:'🍽️',name:'選餐廳',
+   desc:'根據「價格便宜」和「離家近」決定要不要去這家餐廳',
+   lblA:'💰 便宜嗎',lblB:'🏠 離家近',out:'👍 去這家',
+   data:[{a:0,b:0,y:0,  lbl:'❌ 又貴又遠 → 不去！'},
+         {a:0,b:1,y:0.3,lbl:'💸 貴但近 → 偶爾吧'},
+         {a:1,b:0,y:0.3,lbl:'🚗 便宜但遠 → 懶得跑'},
+         {a:1,b:1,y:1,  lbl:'✅ 又便宜又近 → 天天去！'}]},
+  {id:'outfit',emoji:'👕',name:'穿短袖',
+   desc:'根據「天氣熱」和「要運動」決定今天穿不穿短袖',
+   lblA:'🌡️ 天氣熱',lblB:'🏃 要運動',out:'👔 穿短袖',
+   data:[{a:0,b:0,y:0,  lbl:'❄️ 冷+不運動 → 穿長袖保暖'},
+         {a:0,b:1,y:0.6,lbl:'🏋️ 冷但運動 → 可穿短袖'},
+         {a:1,b:0,y:0.7,lbl:'☀️ 熱但不動 → 可穿短袖'},
+         {a:1,b:1,y:1,  lbl:'🔥 又熱又運動 → 一定短袖！'}]},
+  {id:'coffee',emoji:'☕',name:'喝咖啡',
+   desc:'根據「很累」和「現在是晚上」決定要不要喝咖啡',
+   lblA:'😴 很累',lblB:'🌙 晚上了',out:'☕ 喝咖啡',
+   data:[{a:0,b:0,y:0,  lbl:'😊 不累+白天 → 不用喝'},
+         {a:0,b:1,y:0,  lbl:'🌃 不累+晚上 → 喝了睡不著'},
+         {a:1,b:0,y:1,  lbl:'💪 累+白天 → 來一杯！'},
+         {a:1,b:1,y:0.2,lbl:'😰 累+晚上 → 忍住別喝'}]},
+  {id:'movie',emoji:'🎬',name:'看電影',
+   desc:'根據「評分高」和「朋友推薦」決定要不要去看電影',
+   lblA:'⭐ 評分高',lblB:'👥 朋友推',out:'🎟️ 去看！',
+   data:[{a:0,b:0,y:0,  lbl:'💩 爛片沒人推 → 不看'},
+         {a:0,b:1,y:0.4,lbl:'🤔 爛片但朋友推 → 考慮'},
+         {a:1,b:0,y:0.6,lbl:'🎭 好片沒人提 → 可以看'},
+         {a:1,b:1,y:1,  lbl:'🌟 好片又推薦 → 必看！'}]}
+];
+
+// ============ 狀態 ============
+let nn=new NN(), sceneIdx=0, epoch=0, autoTimer=null, isAuto=false;
+const cvs=document.getElementById('nn-canvas');
+const cx=cvs.getContext('2d');
+
+// ============ 畫布 ============
+function resizeCanvas(){
+  cvs.width=cvs.parentElement.clientWidth-28;
+  cvs.height=Math.max(260,Math.round(cvs.width*0.52));
+  redraw();
+}
+
+function redraw(){
+  const a=+document.getElementById('sl-a').value/100;
+  const b=+document.getElementById('sl-b').value/100;
+  nn.forward([a,b]);
+  drawNN([a,b],nn.H,nn.O);
+}
+
+function drawNN(inp,hid,out){
+  const W=cvs.width, H=cvs.height;
+  cx.clearRect(0,0,W,H);
+  cx.fillStyle='#1a1a2e';
+  cx.fillRect(0,0,W,H);
+
+  const s=SCENES[sceneIdx];
+  const layerX=[W*.1,W*.37,W*.63,W*.9];
+  const sizes=[2,4,4,1];
+  const clrs=['#43e97b','#4facfe','#f093fb','#f9ca24'];
+  const vals=[inp,hid.slice(0,4),hid.slice(0,4),out];
+  const topPad=H*.18, botPad=H*.16;
+  const usable=H-topPad-botPad;
+
+  function ny(li,ni){
+    const n=sizes[li];
+    const gap=usable/n;
+    return topPad+gap*ni+gap/2;
+  }
+
+  const R=Math.max(8,Math.min(16,W*.028));
+  const fs=Math.max(8,Math.min(11,W*.022));
+
+  // 連線
+  for(let li=0;li<3;li++){
+    for(let i=0;i<sizes[li];i++){
+      for(let j=0;j<sizes[li+1];j++){
+        const v=vals[li][i]||0;
+        cx.beginPath();
+        cx.moveTo(layerX[li],ny(li,i));
+        cx.lineTo(layerX[li+1],ny(li+1,j));
+        cx.strokeStyle=`rgba(67,233,123,${.07+v*.4})`;
+        cx.lineWidth=.5+v*1.8;
+        cx.stroke();
+      }
+    }
+  }
+
+  // 節點
+  for(let li=0;li<4;li++){
+    for(let ni=0;ni<sizes[li];ni++){
+      const x=layerX[li], y=ny(li,ni);
+      const v=vals[li][ni]||0;
+      const r=R+v*3;
+      const g=cx.createRadialGradient(x,y,0,x,y,r);
+      g.addColorStop(0,'white');
+      g.addColorStop(.5,clrs[li]);
+      g.addColorStop(1,'transparent');
+      cx.beginPath(); cx.arc(x,y,r,0,Math.PI*2);
+      cx.fillStyle=g;
+      if(v>.5){cx.shadowBlur=12;cx.shadowColor=clrs[li]}
+      cx.fill(); cx.shadowBlur=0;
+      cx.strokeStyle=clrs[li]; cx.lineWidth=1.5; cx.stroke();
+    }
+  }
+
+  // 層標籤
+  const layerNames=['輸入層','隱藏層1','隱藏層2','輸出層'];
+  cx.textAlign='center';
+  layerNames.forEach((nm,li)=>{
+    cx.font=`bold ${fs}px Arial`;
+    cx.fillStyle=clrs[li];
+    cx.fillText(nm,layerX[li],H*.09);
+  });
+
+  // 節點標籤
+  const nodeLabels=[[s.lblA,s.lblB],[],[],[s.out]];
+  cx.font=`${fs-1}px Arial`;
+  const maxW=Math.floor((layerX[1]-layerX[0])*.85);
+  for(let li=0;li<4;li++){
+    for(let ni=0;ni<sizes[li];ni++){
+      const lbl=nodeLabels[li][ni];
+      if(!lbl) continue;
+      const x=layerX[li], y=ny(li,ni);
+      const v=vals[li][ni]||0;
+      const r=R+v*3;
+      let txt=lbl.replace(/[\u{1F000}-\u{1FFFF}]/gu,'').replace(/^\s+/,'');
+      cx.font=`${fs-1}px Arial`;
+      while(cx.measureText(txt).width>maxW && txt.length>2) txt=txt.slice(0,-1);
+      cx.fillStyle='rgba(255,255,255,.85)';
+      cx.fillText(txt.trim(), x, y+r+fs+2);
+    }
+  }
+}
+
+// ============ 場景 ============
+function loadScene(idx){
+  sceneIdx=idx;
+  const s=SCENES[idx];
+  document.querySelectorAll('.sbtn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  document.getElementById('scene-title').textContent=s.emoji+' '+s.name+' — 學習案例';
+  document.getElementById('scene-desc').textContent=s.desc;
+  document.getElementById('lbl-a').textContent=s.lblA;
+  document.getElementById('lbl-b').textContent=s.lblB;
+  document.getElementById('train-list').innerHTML=s.data.map(d=>`
+    <div class="train-row">
+      <div class="top">
+        <span class="io">${s.lblA.slice(0,2)}=${d.a?'是':'否'}</span>
+        <span class="io">${s.lblB.slice(0,2)}=${d.b?'是':'否'}</span>
+        <span class="arrow">→</span>
+        <span class="io out">${(d.y*100).toFixed(0)}%</span>
+      </div>
+      <div class="lbl">${d.lbl}</div>
+    </div>`).join('');
+  document.getElementById('result-box').classList.remove('show');
+  resetNN();
+}
+
+function buildBtns(){
+  document.getElementById('scenes').innerHTML=SCENES.map((s,i)=>`
+    <button class="sbtn ${i===0?'active':''}" onclick="loadScene(${i})">
+      <span class="emo">${s.emoji}</span>${s.name}
+    </button>`).join('');
+}
+
+// ============ 訓練 ============
+function getData(){return SCENES[sceneIdx].data.map(d=>({inp:[d.a,d.b],tgt:[d.y]}))}
+
+function updateStats(err){
+  epoch++;
+  document.getElementById('epoch-val').textContent=epoch;
+  document.getElementById('acc-val').textContent=Math.max(0,(1-err)*100).toFixed(1)+'%';
+}
+
+function trainOnce(){
+  const data=getData(); let err=0;
+  data.forEach(d=>{err+=nn.train(d.inp,d.tgt)});
+  updateStats(err/data.length);
+  redraw();
+}
+
+function toggleAuto(){
+  isAuto=!isAuto;
+  const btn=document.getElementById('auto-btn');
+  if(isAuto){
+    btn.textContent='⏹ 停止';
+    btn.classList.add('pulsing');
+    autoTimer=setInterval(()=>{
+      const data=getData(); let err=0;
+      data.forEach(d=>{err+=nn.train(d.inp,d.tgt)});
+      updateStats(err/data.length);
+      redraw();
+      if((1-err/data.length)*100>=95) toggleAuto();
+    },25);
+  } else {
+    clearInterval(autoTimer);
+    btn.textContent='🚀 快速訓練';
+    btn.classList.remove('pulsing');
+  }
+}
+
+function resetNN(){
+  if(isAuto) toggleAuto();
+  nn=new NN(); epoch=0;
+  document.getElementById('epoch-val').textContent='0';
+  document.getElementById('acc-val').textContent='0%';
+  document.getElementById('result-box').classList.remove('show');
+  redraw();
+}
+
+// ============ 預測 ============
+function getAdvice(v){
+  if(v<.2) return{bg:'#fff0f0',bc:'#ffb3b3',emo:'❌',text:'不建議',col:'#e53935',msg:'這個情況 AI 覺得不太適合，換個條件試試看？'};
+  if(v<.4) return{bg:'#fff3e0',bc:'#ffcc80',emo:'🤔',text:'不太建議',col:'#f57c00',msg:'條件不太夠，可以再想想看是否值得'};
+  if(v<.6) return{bg:'#fffde7',bc:'#fff176',emo:'😐',text:'可以考慮',col:'#f9a825',msg:'有一定可能性，視個人情況而定'};
+  if(v<.8) return{bg:'#f1f8e9',bc:'#aed581',emo:'👍',text:'建議去！',col:'#558b2f',msg:'條件不錯，AI 覺得值得一試！'};
+  return{bg:'#e8f5e9',bc:'#81c784',emo:'💯',text:'強烈推薦！',col:'#1b5e20',msg:'完美條件！AI 強力建議，馬上行動吧！🎉'};
+}
+
+function predict(){
+  const a=+document.getElementById('sl-a').value/100;
+  const b=+document.getElementById('sl-b').value/100;
+  const v=nn.predict([a,b]);
+  const adv=getAdvice(v);
+  const box=document.getElementById('result-box');
+  box.style.background=adv.bg;
+  box.style.borderColor=adv.bc;
+  document.getElementById('r-emo').textContent=adv.emo;
+  document.getElementById('r-text').style.color=adv.col;
+  document.getElementById('r-text').textContent=adv.text;
+  document.getElementById('r-pct').style.color=adv.col;
+  document.getElementById('r-pct').textContent='信心度：'+(v*100).toFixed(0)+'%';
+  document.getElementById('r-advice').textContent='💬 '+adv.msg;
+  box.classList.add('show');
+  redraw();
+}
+
+// ============ 滑桿 ============
+['a','b'].forEach(k=>{
+  document.getElementById('sl-'+k).addEventListener('input',function(){
+    document.getElementById('pct-'+k).textContent=this.value+'%';
+    redraw();
+  });
+});
+
+// ============ 初始化 ============
+window.addEventListener('load',()=>{ buildBtns(); loadScene(0); resizeCanvas(); });
+window.addEventListener('resize',()=>{ resizeCanvas(); });
+</script>
+</body>
+</html>
