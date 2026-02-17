@@ -221,17 +221,18 @@
 
   <div class="title" id="title">2<sup>0</sup> = 1</div>
 
-  <!--div class="footer">
-    無限多方向DNA螺旋網絡 · 亂中有序 · 對數爆炸成長
-  </div-->
+  <div class="footer">
+    無限方向DNA螺旋網絡 · 亂中有序 · 對數爆炸成長
+  </div>
 
-  <!--div class="stats" id="stats">
-    <div style="margin-bottom:8px;font-size:16px;font-weight:bold;">等級 0 / 64</div>
+  <!---div class="stats" id="stats">
+    <div style="margin-bottom:8px;font-size:16px;font-weight:bold;">等級 0 / 256</div>
     <div style="margin-bottom:5px;">理論粒子: 1</div>
     <div style="margin-bottom:5px;">顯示粒子: 1</div>
     <div style="margin-bottom:8px;font-size:16px;color:#ff0;font-weight:bold;">螺旋數量: 1</div>
     <div style="font-size:12px;opacity:0.8;font-style:italic;">混沌初開...</div>
   </div-->
+
   <!-- 新增音樂控制按鈕 --------------------------------------------------------->
     <button id="music-control-btn" class="control-button">播放音樂</button>
       <audio id="background-music" loop>
@@ -443,7 +444,7 @@
       animationTime += 0.01;
 
       const now = Date.now();
-      if (now - lastUpdate >= 1000 && currentLevel < 64) {
+      if (now - lastUpdate >= 1000 && currentLevel < 256) {
         currentLevel++;
         currentActiveCount = Math.min(Math.pow(2, currentLevel), maxParticles);
         const currentHelixCount = getHelixCount(currentLevel);
@@ -474,7 +475,7 @@
                           growthLevel < 60 ? '趨向無限...' : '宇宙極限...';
 
         statsEl.innerHTML = `
-          <div style="margin-bottom:8px;font-size:16px;font-weight:bold;">等級 ${growthLevel} / 64</div>
+          <div style="margin-bottom:8px;font-size:16px;font-weight:bold;">等級 ${growthLevel} / 256</div>
           <div style="margin-bottom:5px;">理論粒子: ${formatNumber(particleCount)}</div>
           <div style="margin-bottom:5px;">顯示粒子: ${activeCount.toLocaleString()}</div>
           <div style="margin-bottom:8px;font-size:16px;color:#ff0;font-weight:bold;">螺旋數量: ${helixCount.toLocaleString()}</div>

@@ -164,6 +164,7 @@ const MusicPlayer = () => {
         { text: "🔺64D2", filename: "./vis_mobile.html", isEnglish: false, isGame: true },
         { text: "DS OR單形法", filename: "./simplex.html", isEnglish: false, isGame: true },
         { text: "Grok OR單形法", filename: "./simplex1.html", isEnglish: false, isGame: true },
+        { text: "4維立方體", filename: "./Hypercube.html", isEnglish: false, isGame: true },
         { text: "【命中注定】", filename: "love_story.html", isEnglish: false, isGame: true },
         { text: "台指期", filename: "taiwan-future-arbitrage/taiwan-futures-arbitrage-final/index.html", isEnglish: false, isGame: true },
       ]
