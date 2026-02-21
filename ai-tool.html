@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 年 AI 程式碼代理三大體系比較：OpenCode / oh-my-opencode、OpenClaw、Claude Code、Gemini、Codex</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.7;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      color: #1e1e1e;
+      background: #f9f9f9;
+    }
+    h1, h2, h3 {
+      color: #111;
+    }
+    h1 {
+      border-bottom: 3px solid #0066cc;
+      padding-bottom: 0.5rem;
+    }
+    h2 {
+      border-left: 6px solid #0066cc;
+      padding-left: 1rem;
+      margin-top: 2.5rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      background: white;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background: #0066cc;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background: #f8f9fa;
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 0.95rem;
+    }
+    code {
+      font-family: 'SF Mono', 'Consolas', monospace;
+      background: #f4f4f4;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+    .date {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+    }
+    .highlight {
+      background: #fff3cd;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>2026 年 AI 程式碼代理三大體系比較報告</h1>
+
+<div class="date">對話時間：2026 年 2 月（Taoyuan, Taiwan）</div>
+
+<p>這篇文章是與 Grok 的完整對話紀錄，主題圍繞目前（2026 年初）最熱門的 AI 程式碼代理工具生態，包含：</p>
+
+<ul>
+  <li><strong>OpenCode + oh-my-opencode</strong>（多智能體編排層）</li>
+  <li><strong>OpenClaw</strong>（全能個人/公司 AI 助理）</li>
+  <li><strong>Claude Code</strong>（Anthropic 原生多代理團隊）</li>
+  <li><strong>Google Gemini 系列</strong></li>
+  <li><strong>OpenAI Codex</strong>（GPT-5.3 時代 agentic coding 平台）</li>
+</ul>
+
+<p>對話從 oh-my-opencode 架構開始，一路延伸到成本優化、模型選擇、最強組合比較，適合想快速了解 2026 年 AI 程式碼工具現況的開發者閱讀。</p>
+
+<hr>
+
+<h2>1. oh-my-opencode 架構分析</h2>
+
+<p>oh-my-opencode 是目前 OpenCode 生態中最強大的插件/編排層，把單一模型的 AI coding agent 升級成多智能體協作系統。</p>
+
+<h3>主要分工表</h3>
+
+<table>
+  <tr>
+    <th>智能體名稱</th>
+    <th>希臘神話對應</th>
+    <th>主要職責</th>
+    <th>推薦模型（常見配置）</th>
+  </tr>
+  <tr><td>Sisyphus</td><td>西西弗斯</td><td>主控、持續推任務直到完成</td><td>Claude 3.5/4 Sonnet/Opus</td></tr>
+  <tr><td>Oracle</td><td>神諭</td><td>架構設計、Code Review、困難 debug</td><td>GPT-4o / o1 / Claude 4</td></tr>
+  <tr><td>Librarian / Scribe</td><td>圖書館員/書記</td><td>閱讀文件、Context7、寫文件</td><td>Claude / Gemini 1.5 Pro</td></tr>
+  <tr><td>Explorer / Scout</td><td>探險者</td><td>掃描專案結構、找檔案</td><td>Gemini Flash</td></tr>
+  <tr><td>Frontend Engineer</td><td>—</td><td>寫前端、UI、tailwind</td><td>Gemini 2.0/2.5 Pro</td></tr>
+  <tr><td>Hephaestus</td><td>赫菲斯托斯</td><td>工匠型執行者，把事情做完</td><td>Claude / GPT-4o</td></tr>
+</table>
+
+<p>最爽的指令： <code>ultrawork</code> 或 <code>ulw</code> → 全自動模式。</p>
+
+<hr>
+
+<h2>2. oh-my-opencode vs OpenClaw 比較</h2>
+
+<table>
+  <tr>
+    <th>面向</th>
+    <th>oh-my-opencode</th>
+    <th>OpenClaw</th>
+    <th>誰更適合</th>
+  </tr>
+  <tr><td>主要定位</td><td>專注 coding 的多智能體團隊</td><td>通用個人/團隊 AI 助理（聊天優先）</td><td>—</td></tr>
+  <tr><td>Coding 深度</td><td>★★★★★</td><td>★★★☆☆</td><td>oh-my-opencode 完勝</td></tr>
+  <tr><td>非 coding 能力</td><td>弱</td><td>★★★★★</td><td>OpenClaw 完勝</td></tr>
+  <tr><td>典型使用情境</td><td>寫新專案、重構 monorepo</td><td>清 email、排行程、自動回 issue、順便寫 code</td><td>—</td></tr>
+</table>
+
+<p>最佳實戰：OpenClaw 當外層助理 + oh-my-opencode 當 coding 內核（透過 skill 串接）。</p>
+
+<hr>
+
+<h2>3. OpenCode + oh-my-opencode 成本優化實戰</h2>
+
+<p>重點策略：</p>
+<ol>
+  <li>模型分層路由（Sisyphus 用 Claude，explorer 用 Flash/mini）</li>
+  <li>限制並行 agent 數（maxParallelAgents: 3–4）</li>
+  <li>優先免費/低價模型：Gemini Flash、MiniMax M2.5-free、GLM-4.7-Flash</li>
+  <li>上下文管理（/clear、/compress）</li>
+</ol>
+
+<h3>2026 年 2 月模型成本對比</h3>
+
+<table>
+  <tr><th>模型</th><th>約價 (USD/M)</th><th>適合角色</th><th>相對成本</th></tr>
+  <tr><td>Gemini Flash / mini</td><td>$0.075–0.35</td><td>Explorer / Librarian</td><td>★</td></tr>
+  <tr><td>MiniMax M2.1 / GLM flash</td><td>~$0.1–0.5</td><td>cheap tier</td><td>★</td></tr>
+  <tr><td>本地 32B 模型</td><td>$0</td><td>Explorer / 註解</td><td>免費</td></tr>
+</table>
+
+<hr>
+
+<h2>4. MiniMax M2.5-free vs GLM-4.7 交換使用</h2>
+
+<p>推薦分工：</p>
+<ul>
+  <li>讀/掃/輕任務 → GLM-4.7-Flash（完全免費）</li>
+  <li>寫 code/前端/重構 → MiniMax M2.5-free（coding 頂尖）</li>
+</ul>
+
+<p>結論：GLM-4.7-Flash 幾乎永久免費；MiniMax M2.5-free 很可能 1–4 周內 promo 結束，需注意公告。</p>
+
+<hr>
+
+<h2>5. 三大體系最強組合總結（2026 年 2 月）</h2>
+
+<h3>Claude Code 最強組合</h3>
+<p>Claude 4.6 Opus / Sonnet 4.6 + 原生 Agent Teams（3–16 agents 並行、共享 task queue）</p>
+
+<h3>Google Gemini 系列最強組合</h3>
+<p>Gemini 3.1 Pro（規劃/執行主力） + Gemini 3 Flash（80% 輕任務）</p>
+
+<h3>OpenAI Codex 最強組合</h3>
+<p>GPT-5.3-Codex（主力，code 品質最高） + GPT-5.3-Codex-Spark（real-time 補位） + Codex App multi-agent</p>
+
+<hr>
+
+<h2>結語</h2>
+
+<p>2026 年初的 AI 程式碼代理已進入「多模型 + 多代理」時代，沒有絕對的「最強」，只有最適合自己成本、品質、場景的組合。</p>
+
+<p>如果你是成本敏感的個人開發者，建議從 <strong>OpenCode + oh-my-opencode + Gemini Flash / GLM-4.7-Flash / MiniMax M2.5</strong> 開始；追求極致品質則可考慮 Claude Code Agent Teams 或 Codex（但成本較高）。</p>
+
+<p>未來幾個月，預計本地模型 + 更強的免費 tier 會進一步壓低門檻，讓一人 = 小型開發團隊成為常態。</p>
+
+<p>（本文由 Grok 與用戶對話整理而成，2026 年 2 月狀態）</p>
+
+</body>
+</html>
