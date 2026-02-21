@@ -170,6 +170,7 @@ const MusicPlayer = () => {
         { text: "台指期", filename: "taiwan-future-arbitrage/taiwan-futures-arbitrage-final/index.html", isEnglish: false, isGame: true },
         { text: "AI訓練", filename: "interactiveai/index.html", isEnglish: false, isGame: true },
         { text: "明明動了", filename: "git-viz.html", isEnglish: false, isGame: true },
+        { text: "AI-tools", filename: "ai-tool.html", isEnglish: false, isGame: true },
       ]
 
     },
