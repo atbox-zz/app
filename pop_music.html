@@ -28,7 +28,7 @@
 
     /* HERO */
     .hero {
-      min-height: 100vh;
+      min-height: 0vh;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -47,10 +47,11 @@
       position: absolute;
       top: 30px;
       font-size: 1.4rem;
-      color: rgba(0,0,0,0.08);
+      color: rgb(54, 2, 3);
       letter-spacing: 8px;
       white-space: nowrap;
       overflow: hidden;
+      
       width: 100%;
     }
 
@@ -541,10 +542,57 @@
 <div class="hero">
   <div class="label">Music Theory × Psychology</div>
   <h1>流行音樂的<br><em>黃金方程式</em></h1>
-  <p class="hero-sub">為什麼有些歌聽一次就忘不了？<br>拆解讓人上癮的音樂科學，以《我們一直都在》為例。</p>
+  <p class="hero-sub">為什麼有些歌聽一次就忘不了？<br>拆解讓人上癮的音樂科學，以<br>
+    <h2><button type="button" onclick="playMusic()" class="music-btn">
+    <em>《我們一直都在》</em></button></h2>
+    為例。</p>
+  <!--
+    <button type="button" onclick="playMusic()" class="music-btn">
+    我們一直都在
+    </button>
+  -->
   <div class="scroll-hint">▼ SCROLL</div>
 </div>
+<audio id="myAudio">
+    <source src="1766.mp3" type="audio/mpeg">
+    您的瀏覽器不支援 audio 元素。
+</audio>
 
+
+<script>
+function playMusic() {
+    var audio = document.getElementById("myAudio");
+    // 點擊時播放音樂
+    if (audio.paused) {
+        audio.play()
+    }
+    else {
+        audio.pause();
+    }
+
+    //audio.play().catch(function(error) {
+    //    console.log("播放失敗，請檢查檔案路徑是否正確：", error);
+    //});
+}
+</script>
+
+<style>
+/* 簡單的按鈕美化 (選填) */
+.music-btn {
+    padding: 10px 20px;
+    background-color: #0b0b10;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+.music-btn:hover {
+    background-color: #cc0000;
+}
+</style>
 <!-- THE FORMULA -->
 <section>
   <div class="section-header">
