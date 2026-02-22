@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>流行音樂的黃金方程式</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;700&family=Space+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0e0e0e;
+      --paper: #f5f0e8;
+      --accent: #c0392b;
+      --gold: #d4a017;
+      --muted: #7a7060;
+      --line: rgba(0,0,0,0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--paper);
+      color: var(--ink);
+      font-family: "Noto Sans TC", sans-serif;
+      font-weight: 300;
+      line-height: 1.9;
+      overflow-x: hidden;
+    }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 80px 20px;
+      position: relative;
+      border-bottom: 2px solid var(--ink);
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 39px, var(--line) 39px, var(--line) 40px),
+        var(--paper);
+    }
+
+    .hero::before {
+      content: "♩ ♪ ♫ ♬ ♩ ♪ ♫ ♬ ♩ ♪ ♫ ♬";
+      position: absolute;
+      top: 30px;
+      font-size: 1.4rem;
+      color: rgba(0,0,0,0.08);
+      letter-spacing: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .label {
+      font-family: "Space Mono", monospace;
+      font-size: 0.7rem;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 4px 12px;
+      display: inline-block;
+      margin-bottom: 30px;
+    }
+
+    .hero h1 {
+      font-family: "Noto Serif TC", serif;
+      font-weight: 900;
+      font-size: clamp(3rem, 10vw, 7rem);
+      line-height: 1.05;
+      letter-spacing: -2px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+      position: relative;
+    }
+
+    .hero h1 em::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      left: 0; right: 0;
+      height: 3px;
+      background: var(--gold);
+    }
+
+    .hero-sub {
+      max-width: 560px;
+      font-size: 1rem;
+      color: var(--muted);
+      margin-top: 20px;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 30px;
+      font-family: "Space Mono", monospace;
+      font-size: 0.65rem;
+      letter-spacing: 4px;
+      color: var(--muted);
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(6px); }
+    }
+
+    /* SECTIONS */
+    section {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 80px 40px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-num {
+      font-family: "Space Mono", monospace;
+      font-size: 5rem;
+      font-weight: 700;
+      color: rgba(0,0,0,0.05);
+      line-height: 1;
+      position: absolute;
+      top: -10px;
+      left: -10px;
+    }
+
+    .section-header {
+      position: relative;
+      margin-bottom: 50px;
+    }
+
+    .section-tag {
+      font-family: "Space Mono", monospace;
+      font-size: 0.65rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--gold);
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .section-header h2 {
+      font-family: "Noto Serif TC", serif;
+      font-size: clamp(1.6rem, 4vw, 2.8rem);
+      font-weight: 700;
+      line-height: 1.2;
+      border-left: 4px solid var(--accent);
+      padding-left: 20px;
+    }
+
+    /* BIG FORMULA BOX */
+    .formula-box {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 50px;
+      border-radius: 4px;
+      text-align: center;
+      margin: 60px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .formula-box::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--gold), var(--accent));
+    }
+
+    .formula-box .formula-title {
+      font-family: "Space Mono", monospace;
+      font-size: 0.65rem;
+      letter-spacing: 5px;
+      color: var(--gold);
+      margin-bottom: 30px;
+    }
+
+    .formula {
+      font-family: "Noto Serif TC", serif;
+      font-size: clamp(1.1rem, 3vw, 1.6rem);
+      font-weight: 700;
+      line-height: 2.2;
+      color: #fff;
+    }
+
+    .formula .op {
+      color: var(--gold);
+      margin: 0 10px;
+      font-size: 1.4em;
+    }
+
+    .formula .term {
+      display: inline-block;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 2px;
+    }
+
+    /* INGREDIENT CARDS */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 0;
+      border: 1px solid var(--ink);
+    }
+
+    .card {
+      padding: 36px 30px;
+      border-right: 1px solid var(--ink);
+      border-bottom: 1px solid var(--ink);
+      position: relative;
+      transition: background 0.2s;
+    }
+
+    .card:hover {
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .card:hover .card-num { color: var(--gold); }
+    .card:hover .card-desc { color: rgba(245,240,232,0.7); }
+    .card:hover .example-tag { color: var(--gold); border-color: var(--gold); }
+    .card:hover .example-text { border-color: rgba(255,255,255,0.2); color: var(--paper); }
+
+    .card-num {
+      font-family: "Space Mono", monospace;
+      font-size: 0.65rem;
+      letter-spacing: 3px;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    .card h3 {
+      font-family: "Noto Serif TC", serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+
+    .card-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .card .example-tag {
+      display: inline-block;
+      margin-top: 18px;
+      font-family: "Space Mono", monospace;
+      font-size: 0.6rem;
+      letter-spacing: 3px;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 2px 8px;
+    }
+
+    .card .example-text {
+      margin-top: 8px;
+      font-size: 0.85rem;
+      font-style: italic;
+      border-left: 2px solid var(--line);
+      padding-left: 12px;
+      color: #555;
+      line-height: 1.7;
+    }
+
+    /* STRUCTURE DIAGRAM */
+    .structure {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-top: 30px;
+    }
+
+    .structure-row {
+      display: flex;
+      align-items: stretch;
+      border: 1px solid var(--ink);
+      margin-top: -1px;
+    }
+
+    .structure-label {
+      background: var(--ink);
+      color: var(--paper);
+      font-family: "Space Mono", monospace;
+      font-size: 0.65rem;
+      letter-spacing: 3px;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transform: rotate(180deg);
+      padding: 20px 10px;
+      min-width: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .structure-label.chorus-lbl {
+      background: var(--accent);
+    }
+    .structure-label.bridge-lbl {
+      background: var(--gold);
+      color: var(--ink);
+    }
+
+    .structure-content {
+      padding: 24px 28px;
+      flex: 1;
+    }
+
+    .structure-content h4 {
+      font-family: "Noto Serif TC", serif;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .structure-content p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .structure-content .lyric-eg {
+      margin-top: 10px;
+      font-size: 0.82rem;
+      color: var(--accent);
+      font-family: "Space Mono", monospace;
+    }
+
+    .emotion-bar {
+      margin-top: 12px;
+      height: 4px;
+      background: var(--line);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .emotion-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--gold));
+      border-radius: 2px;
+    }
+
+    /* HOOK ANALYSIS */
+    .hook-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .hook-item {
+      border: 1px solid var(--ink);
+      padding: 28px;
+    }
+
+    .hook-item h4 {
+      font-family: "Noto Serif TC", serif;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hook-item h4 .icon {
+      font-size: 1.2rem;
+    }
+
+    .hook-item p {
+      font-size: 0.87rem;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    /* LYRIC TECHNIQUE */
+    .technique-list {
+      margin-top: 30px;
+    }
+
+    .technique-item {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      border-bottom: 1px solid var(--line);
+      padding: 28px 0;
+      gap: 30px;
+      align-items: start;
+    }
+
+    .technique-item:last-child { border-bottom: none; }
+
+    .tech-num {
+      font-family: "Noto Serif TC", serif;
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--line);
+      line-height: 1;
+      text-align: right;
+    }
+
+    .tech-body h4 {
+      font-family: "Noto Serif TC", serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--ink);
+    }
+
+    .tech-body p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .tech-body blockquote {
+      margin-top: 10px;
+      padding: 10px 16px;
+      background: rgba(0,0,0,0.04);
+      border-left: 3px solid var(--gold);
+      font-size: 0.85rem;
+      font-style: italic;
+      color: var(--ink);
+    }
+
+    /* EMOTION ARC */
+    .arc-wrapper {
+      margin-top: 40px;
+      padding: 40px;
+      border: 1px solid var(--ink);
+      position: relative;
+    }
+
+    .arc-svg {
+      width: 100%;
+      height: 120px;
+    }
+
+    .arc-stages {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      margin-top: 16px;
+      gap: 8px;
+    }
+
+    .arc-stage {
+      text-align: center;
+      font-family: "Space Mono", monospace;
+      font-size: 0.6rem;
+      letter-spacing: 2px;
+      color: var(--muted);
+    }
+
+    .arc-stage strong {
+      display: block;
+      font-family: "Noto Sans TC", sans-serif;
+      font-size: 0.75rem;
+      color: var(--ink);
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    /* FINAL FORMULA */
+    .final {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 100px 40px;
+      text-align: center;
+      border-top: 4px solid var(--gold);
+    }
+
+    .final h2 {
+      font-family: "Noto Serif TC", serif;
+      font-size: clamp(1.5rem, 5vw, 3rem);
+      font-weight: 900;
+      line-height: 1.4;
+      margin-bottom: 40px;
+    }
+
+    .final h2 span {
+      color: var(--gold);
+    }
+
+    .final-formula {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 60px;
+    }
+
+    .ff-pill {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 10px 22px;
+      font-family: "Noto Serif TC", serif;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 2px;
+      transition: background 0.2s;
+    }
+
+    .ff-pill:hover { background: var(--accent); border-color: var(--accent); }
+
+    .ff-plus {
+      color: var(--gold);
+      font-size: 1.4rem;
+      font-family: "Space Mono", monospace;
+    }
+
+    .final-note {
+      max-width: 600px;
+      margin: 0 auto;
+      font-size: 0.9rem;
+      color: rgba(245,240,232,0.5);
+      line-height: 2;
+    }
+
+    @media (max-width: 640px) {
+      section { padding: 50px 20px; }
+      .hook-grid { grid-template-columns: 1fr; }
+      .formula-box { padding: 30px 20px; }
+      .arc-stages { grid-template-columns: repeat(5, 1fr); font-size: 0.5rem; }
+      .technique-item { grid-template-columns: 50px 1fr; gap: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="label">Music Theory × Psychology</div>
+  <h1>流行音樂的<br><em>黃金方程式</em></h1>
+  <p class="hero-sub">為什麼有些歌聽一次就忘不了？<br>拆解讓人上癮的音樂科學，以《我們一直都在》為例。</p>
+  <div class="scroll-hint">▼ SCROLL</div>
+</div>
+
+<!-- THE FORMULA -->
+<section>
+  <div class="section-header">
+    <span class="section-tag">Formula 01</span>
+    <h2>核心公式總覽</h2>
+  </div>
+
+  <p>流行音樂不是魔法，而是一套可以拆解的<strong>情感工程</strong>。每一首讓你起雞皮疙瘩的歌，背後都運用了相同的心理學原理與結構設計。以下是最關鍵的黃金方程式：</p>
+
+  <div class="formula-box">
+    <div class="formula-title">THE GOLDEN FORMULA</div>
+    <div class="formula">
+      <span class="term">強力Hook</span>
+      <span class="op">×</span>
+      <span class="term">情緒弧線</span>
+      <span class="op">+</span>
+      <span class="term">視覺化意象</span>
+      <span class="op">+</span>
+      <span class="term">身份認同</span>
+      <span class="op">+</span>
+      <span class="term">重複記憶點</span>
+      <br>
+      <span style="color:var(--gold); font-size:0.7em; font-family:'Space Mono',monospace; letter-spacing:4px; display:block; margin-top:20px;">= 讓人無法忘記的歌曲</span>
+    </div>
+  </div>
+</section>
+
+<!-- STRUCTURE -->
+<section>
+  <div class="section-header">
+    <span class="section-tag">Formula 02</span>
+    <h2>歌曲結構：情緒的建築學</h2>
+  </div>
+
+  <p>好的歌曲結構像一棟精心設計的建築，帶領聽眾從入口走向最壯觀的景色，再安然落地。</p>
+
+  <div class="structure">
+
+    <div class="structure-row">
+      <div class="structure-label">INTRO</div>
+      <div class="structure-content">
+        <h4>引子 — 建立世界觀</h4>
+        <p>低調鋪陳，建立情境與音色。讓聽眾「進入」這首歌的時空。通常使用樂器或輕聲演唱，情緒強度最低。</p>
+        <div class="emotion-bar"><div class="emotion-fill" style="width:20%"></div></div>
+        <div class="lyric-eg">▸ 暗示「一百多年」的厚重感</div>
+      </div>
+    </div>
+
+    <div class="structure-row">
+      <div class="structure-label">VERSE</div>
+      <div class="structure-content">
+        <h4>主歌 — 說故事，鋪設情感</h4>
+        <p>具體敘事，填充細節，讓聽眾對角色或情境產生代入感。情緒逐步累積，為副歌爆發做準備。</p>
+        <div class="emotion-bar"><div class="emotion-fill" style="width:40%"></div></div>
+        <div class="lyric-eg">▸「走過戰火 走過流亡 / 雲彩在同一塊 塵埃」</div>
+      </div>
+    </div>
+
+    <div class="structure-row">
+      <div class="structure-label" style="background:#666">PRE</div>
+      <div class="structure-content">
+        <h4>導歌（Pre-chorus）— 張力蓄積</h4>
+        <p>連結主歌與副歌的橋樑。製造懸念與期待感，讓聽眾在心理上「等待爆發」，是被忽視卻最關鍵的段落。</p>
+        <div class="emotion-bar"><div class="emotion-fill" style="width:65%"></div></div>
+        <div class="lyric-eg">▸「只要這片土地上 還有人呼喊…」</div>
+      </div>
+    </div>
+
+    <div class="structure-row">
+      <div class="structure-label chorus-lbl">CHORUS</div>
+      <div class="structure-content">
+        <h4>副歌 — 情感頂點，核心訊息</h4>
+        <p>全曲最高潮。包含最重要的主題句（Hook），旋律最動人，歌詞最精煉。通常反覆出現2–3次以強化記憶。</p>
+        <div class="emotion-bar"><div class="emotion-fill" style="width:100%"></div></div>
+        <div class="lyric-eg">▸「我們一直都在 / 中華民國 永遠都在」← 核心記憶點</div>
+      </div>
+    </div>
+
+    <div class="structure-row">
+      <div class="structure-label bridge-lbl">BRIDGE</div>
+      <div class="structure-content">
+        <h4>橋段 — 打破預期，創造感動</h4>
+        <p>在重複副歌之前加入全新段落。改變節奏、和弦或角度，防止聽覺疲勞，同時創造「柳暗花明」的驚喜感。</p>
+        <div class="emotion-bar"><div class="emotion-fill" style="width:80%; background: linear-gradient(90deg, #d4a017, #c0392b);"></div></div>
+        <div class="lyric-eg">▸「風在狂 路在險 要緊牙也要走完 / 孩子在教室裡…」</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- HOOK SCIENCE -->
+<section>
+  <div class="section-header">
+    <span class="section-tag">Formula 03</span>
+    <h2>Hook的科學：讓人上癮的記憶點</h2>
+  </div>
+
+  <p>Hook（鉤子）是歌曲中最令人難忘的片段，通常只有4–8秒。研究顯示，人腦在聽到熟悉的Hook時，會釋放多巴胺——這就是為什麼你會不自覺哼唱同一句歌詞。</p>
+
+  <div class="hook-grid">
+    <div class="hook-item">
+      <h4><span class="icon">🎯</span> 精準的語言密度</h4>
+      <p>最強的Hook用最少的字說最多的話。「我們一直都在」六個字，涵蓋了主語、時態、存在狀態，信息密度極高。</p>
+    </div>
+    <div class="hook-item">
+      <h4><span class="icon">🔁</span> 策略性重複</h4>
+      <p>副歌重複出現，且每次出現後情緒更高漲。心理學稱之為「單純曝光效應」——重複接觸讓人產生喜愛感。</p>
+    </div>
+    <div class="hook-item">
+      <h4><span class="icon">📈</span> 音調的弧線感</h4>
+      <p>強力Hook通常在旋律最高點落在最重要的字詞上。「一直都<strong>在</strong>」的「在」字落在高音，自然強調了歌詞意涵。</p>
+    </div>
+    <div class="hook-item">
+      <h4><span class="icon">🧠</span> 開放式懸念</h4>
+      <p>「守著一盞燈 不說苦不說難 / 等第一道光線 回看」— 用未完成感引導聽眾繼續聆聽，心理上不自覺地「等待解答」。</p>
+    </div>
+  </div>
+</section>
+
+<!-- LYRIC TECHNIQUES -->
+<section>
+  <div class="section-header">
+    <span class="section-tag">Formula 04</span>
+    <h2>歌詞寫作的五大技法</h2>
+  </div>
+
+  <div class="technique-list">
+
+    <div class="technique-item">
+      <div class="tech-num">01</div>
+      <div class="tech-body">
+        <h4>具體意象取代抽象概念</h4>
+        <p>不說「歷史很長」，而是說「一百多年」。不說「我們很堅定」，而是說「守著一盞燈」。具體的意象讓聽眾的大腦自動生成畫面，產生身歷其境的感受。</p>
+        <blockquote>「孩子在教室裡 唸著還沒寫完的答案」<br>→ 一個畫面，承載了傳承、未來、希望三層意涵</blockquote>
+      </div>
+    </div>
+
+    <div class="technique-item">
+      <div class="tech-num">02</div>
+      <div class="tech-body">
+        <h4>「我們」的集體認同魔法</h4>
+        <p>第一人稱複數「我們」是流行音樂最強大的武器。它邀請聽眾「加入」歌曲所描述的群體，從旁觀者變成參與者，情感連結瞬間翻倍。</p>
+        <blockquote>「你站在我身邊 我站在你身邊 一起說出來」<br>→ 聽眾被直接召喚進入敘事之中</blockquote>
+      </div>
+    </div>
+
+    <div class="technique-item">
+      <div class="tech-num">03</div>
+      <div class="tech-body">
+        <h4>對比與張力</h4>
+        <p>黑夜 vs. 黎明、老去 vs. 出來、倒下 vs. 站起來。對比製造戲劇張力，讓歌詞在情感上「振動」，避免平板感，也讓每一個概念因為對立而更加鮮明。</p>
+        <blockquote>「有人老去 有人出來」「有人倒下去 有人接著站出來」</blockquote>
+      </div>
+    </div>
+
+    <div class="technique-item">
+      <div class="tech-num">04</div>
+      <div class="tech-body">
+        <h4>疊句的語氣加速</h4>
+        <p>「一直一直叫他們記住這個名字」— 重複詞語在口語和歌詞中都能製造強調感與節奏感，情感的力道隨著重複次數指數級增長。</p>
+        <blockquote>「一直一直」比單說「一直」的情感強度高出數倍</blockquote>
+      </div>
+    </div>
+
+    <div class="technique-item">
+      <div class="tech-num">05</div>
+      <div class="tech-body">
+        <h4>自然元素作為情感媒介</h4>
+        <p>「風」「海」「光線」「塵埃」— 大自然元素跨越文化與世代，幾乎所有人都能直覺理解這些意象的情感重量，是連結聽眾的最短距離。</p>
+        <blockquote>「名字刻在時間的海 浪再大掩目不蓋」<br>→ 時間具象化為「海」，永恆感油然而生</blockquote>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- EMOTION ARC -->
+<section>
+  <div class="section-header">
+    <span class="section-tag">Formula 05</span>
+    <h2>情緒弧線：讓人哭出來的節奏</h2>
+  </div>
+
+  <p>偉大的歌曲都有一條精心設計的「情緒曲線」，就像電影的三幕劇結構。情緒不能一直在最高點，也不能總是平淡。高低起伏才能製造出催淚的力量。</p>
+
+  <div class="arc-wrapper">
+    <svg class="arc-svg" viewBox="0 0 1000 120" preserveAspectRatio="none">
+      <!-- Grid lines -->
+      <line x1="0" y1="100" x2="1000" y2="100" stroke="#ddd" stroke-width="1"/>
+      <line x1="0" y1="60" x2="1000" y2="60" stroke="#ddd" stroke-width="1" stroke-dasharray="4,4"/>
+      <line x1="0" y1="20" x2="1000" y2="20" stroke="#ddd" stroke-width="1" stroke-dasharray="4,4"/>
+      <!-- Emotion curve -->
+      <path d="M 0,90 C 80,85 140,75 200,60 C 260,45 290,35 340,30
+               C 390,25 420,5 460,5 C 500,5 510,10 550,15
+               C 590,20 610,65 650,55
+               C 690,45 720,10 760,5 C 800,0 860,5 900,2 C 940,-3 980,0 1000,2"
+            fill="none" stroke="#c0392b" stroke-width="3" stroke-linecap="round"/>
+      <!-- Fill under curve -->
+      <path d="M 0,90 C 80,85 140,75 200,60 C 260,45 290,35 340,30
+               C 390,25 420,5 460,5 C 500,5 510,10 550,15
+               C 590,20 610,65 650,55
+               C 690,45 720,10 760,5 C 800,0 860,5 900,2 C 940,-3 980,0 1000,2
+               L 1000,110 L 0,110 Z"
+            fill="url(#arcGrad)" opacity="0.15"/>
+      <defs>
+        <linearGradient id="arcGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#c0392b"/>
+          <stop offset="100%" stop-color="transparent"/>
+        </linearGradient>
+      </defs>
+      <!-- Key point dots -->
+      <circle cx="460" cy="5" r="6" fill="#c0392b"/>
+      <circle cx="760" cy="5" r="6" fill="#d4a017"/>
+      <circle cx="1000" cy="2" r="6" fill="#c0392b"/>
+    </svg>
+
+    <div class="arc-stages">
+      <div class="arc-stage"><strong>引子＋主歌</strong>低調鋪陳<br>建立信任</div>
+      <div class="arc-stage"><strong>第一次副歌</strong>情感爆發<br>第一高潮</div>
+      <div class="arc-stage"><strong>第二段主歌</strong>情緒稍退<br>深化敘事</div>
+      <div class="arc-stage"><strong>橋段</strong>戲劇轉折<br>製造驚喜</div>
+      <div class="arc-stage"><strong>終曲副歌</strong>最終高潮<br>情感升華</div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL FORMULA -->
+<div class="final">
+  <h2>記住這個<span>方程式</span>，<br>你也能寫出打動人心的歌</h2>
+
+  <div class="final-formula">
+    <div class="ff-pill">精準Hook</div>
+    <div class="ff-plus">+</div>
+    <div class="ff-pill">Verse → Pre → Chorus結構</div>
+    <div class="ff-plus">+</div>
+    <div class="ff-pill">具體視覺意象</div>
+    <div class="ff-plus">+</div>
+    <div class="ff-pill">集體身份認同</div>
+    <div class="ff-plus">+</div>
+    <div class="ff-pill">情緒弧線設計</div>
+    <div class="ff-plus">+</div>
+    <div class="ff-pill">策略性重複</div>
+  </div>
+
+  <p class="final-note">
+    流行音樂的「好聽」不是偶然，而是創作者有意識地運用心理學、語言學與音樂理論的結果。<br>
+    《我們一直都在》每一句歌詞、每一個段落轉換，都精準落在聽眾情緒的觸發點上。<br><br>
+    <em style="color: rgba(245,240,232,0.4); font-family:'Space Mono',monospace; font-size:0.7rem; letter-spacing:3px;">中華民國 永遠都在</em>
+  </p>
+</div>
+
+</body>
+</html>
