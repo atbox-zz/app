@@ -17,7 +17,7 @@ https://claude.ai/public/artifacts/fe378c73-3e24-4029-89c5-5094587e4d2d
 Here are description in chinese part 1
 https://rd-value.blogspot.com/2025/07/httpsclaudeai-app.html
 
-"github_token":"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",
+
 
 pnpm run p
 pnpm run g
