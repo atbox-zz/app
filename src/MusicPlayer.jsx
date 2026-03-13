@@ -173,7 +173,7 @@ const MusicPlayer = () => {
         { text: "管線", filename: "pipe.html", isEnglish: false, isGame: true },
         { text: "AI-tools", filename: "ai-tool.html", isEnglish: false, isGame: true },
         { text: "pop方程式", filename: "pop_music2.html", isEnglish: false, isGame: true },
-        { text: "文字DNA編解碼", filename: "DNA—Cyper1.html", isEnglish: false, isGame: true },
+        { text: "文字DNA編解碼", filename: "DNA_Cyper1.html", isEnglish: false, isGame: true },
       ]
 
     },
