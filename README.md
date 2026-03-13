@@ -19,7 +19,7 @@ https://rd-value.blogspot.com/2025/07/httpsclaudeai-app.html
 
 "github_token":"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",
 
-npm run p
-npm run g
+pnpm run p
+pnpm run g
 git commit -a
 git push
