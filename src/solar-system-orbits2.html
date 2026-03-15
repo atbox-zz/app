@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <title>改良版 Solar System - Three.js</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body { height: 100%; margin: 0; background: #000; overflow: hidden; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans CJK TC"; }
+    #info { position: absolute; top: 12px; left: 12px; z-index: 10; color: #fff; background: rgba(0,0,0,0.4); padding: 8px 12px; border-radius: 6px; font-size: 13px; }
+    #credits { position: absolute; right: 12px; bottom: 12px; z-index: 10; color: #ddd; font-size: 12px; background: rgba(0,0,0,0.25); padding: 6px 8px; border-radius: 6px; }
+    canvas { display: block; }
+    .label {
+      color: white;
+      font-size: 12px;
+      padding: 2px 6px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 4px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">改良版：太陽系模擬 — 可拖曳/縮放、軌道線、土星環、地球月球</div>
+  <div id="credits">Three.js r153</div>
+
+  <!-- Three.js -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
+  <!-- 非 module 版 OrbitControls（與 Three.js 版本相容）-->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/examples/js/controls/OrbitControls.js"></script>
+
+  <script>
+  // ---------- 參數與行星資料（視覺化比例） ----------
+  const SCALE = 1.6; // 全域縮放，視需要調整視覺比例
+  const planetData = [
+    { name:'Mercury', texture:'https://threejs.org/examples/textures/planets/mercury.jpg', size: 0.38, orbit: 14, speed: 0.040 },
+    { name:'Venus',   texture:'https://threejs.org/examples/textures/planets/venus.jpg',   size: 0.95, orbit: 18, speed: 0.015 },
+    { name:'Earth',   texture:'https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg', size: 1.0, orbit: 22, speed: 0.010 },
+    { name:'Mars',    texture:'https://threejs.org/examples/textures/planets/mars_1k_color.jpg', size: 0.53, orbit: 26, speed: 0.008 },
+    { name:'Jupiter', texture:'https://threejs.org/examples/textures/planets/jupiter.jpg', size: 11.2*0.18, orbit: 34, speed: 0.0045 },
+    { name:'Saturn',  texture:'https://threejs.org/examples/textures/planets/saturn.jpg', size: 9.4*0.18, orbit: 44, speed: 0.0035 },
+    { name:'Uranus',  texture:'https://threejs.org/examples/textures/planets/uranus.jpg', size: 4.0*0.18, orbit: 52, speed: 0.0025 },
+    { name:'Neptune', texture:'https://threejs.org/examples/textures/planets/neptune.jpg', size: 3.9*0.18, orbit: 60, speed: 0.0020 }
+  ];
+
+  // ---------- 場景、相機、渲染器 ----------
+  const scene = new THREE.Scene();
+
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 4000);
+  camera.position.set(0, 60, 160);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio || 1);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  // ---------- 背景（星空） ----------
+  const loader = new THREE.TextureLoader();
+  loader.setCrossOrigin('anonymous');
+  loader.load('https://threejs.org/examples/textures/cube/skybox/px.jpg', () => {
+    // 使用一張大的星雲貼圖當背景（若有更好的全景圖可替換）
+  });
+  loader.load('https://threejs.org/examples/textures/space.jpg', function(tex){
+    scene.background = tex;
+  });
+
+  // ---------- 燈光與太陽 ----------
+  // 太陽用自發光材質（MeshBasic）並放置點光源
+  const sunTexture = loader.load('https://threejs.org/examples/textures/planets/sun.jpg');
+  const sunMat = new THREE.MeshBasicMaterial({ map: sunTexture });
+  const sunGeo = new THREE.SphereGeometry(7 * SCALE, 64, 64);
+  const sun = new THREE.Mesh(sunGeo, sunMat);
+  scene.add(sun);
+
+  // 太陽發光（PointLight）
+  const sunLight = new THREE.PointLight(0xffffff, 2.2, 2000);
+  sunLight.position.set(0,0,0);
+  scene.add(sunLight);
+
+  // 太陽暈（使用 Sprite）
+  const spriteCanvas = document.createElement('canvas');
+  spriteCanvas.width = 256; spriteCanvas.height = 256;
+  const sc = spriteCanvas.getContext('2d');
+  const g = sc.createRadialGradient(128,128,10,128,128,128);
+  g.addColorStop(0,'rgba(255,240,200,0.95)');
+  g.addColorStop(0.35,'rgba(255,200,70,0.6)');
+  g.addColorStop(1,'rgba(255,120,0,0)');
+  sc.fillStyle = g;
+  sc.fillRect(0,0,256,256);
+  const sunSpriteTex = new THREE.CanvasTexture(spriteCanvas);
+  const spriteMat = new THREE.SpriteMaterial({ map: sunSpriteTex, transparent:true, depthWrite:false });
+  const sunGlow = new THREE.Sprite(spriteMat);
+  sunGlow.scale.set(60 * SCALE, 60 * SCALE, 1);
+  sun.add(sunGlow);
+
+  // 全域柔光
+  scene.add(new THREE.AmbientLight(0xffffff, 0.25));
+
+  // ---------- 行星、軌道、標籤、特殊環（saturn/uranus） ----------
+  const planetGroup = new THREE.Group();
+  scene.add(planetGroup);
+
+  const planetMeshes = [];
+  const textCanvas = document.createElement('canvas');
+  const textCtx = textCanvas.getContext('2d');
+
+  function createLabelTexture(text) {
+    const padding = 8;
+    textCtx.font = 'Bold 32px Arial';
+    const metrics = textCtx.measureText(text);
+    const w = Math.ceil(metrics.width) + padding*2;
+    const h = 44 + padding;
+    textCanvas.width = w;
+    textCanvas.height = h;
+    textCtx.font = 'Bold 20px Arial';
+    textCtx.fillStyle = 'rgba(255,255,255,1)';
+    textCtx.textBaseline = 'middle';
+    // 背景
+    textCtx.fillStyle = 'rgba(0,0,0,0.45)';
+    roundRect(textCtx, 0, 0, w, h, 6, true, false);
+    // 文字
+    textCtx.fillStyle = 'white';
+    textCtx.fillText(text, padding, h/2);
+    const tex = new THREE.CanvasTexture(textCanvas);
+    tex.needsUpdate = true;
+    return tex;
+  }
+  function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.arcTo(x+w, y, x+w, y+h, r);
+    ctx.arcTo(x+w, y+h, x, y+h, r);
+    ctx.arcTo(x, y+h, x, y, r);
+    ctx.arcTo(x, y, x+w, y, r);
+    ctx.closePath();
+    if (fill) ctx.fill();
+    if (stroke) ctx.stroke();
+  }
+
+  function createOrbitLine(radius) {
+    const points = [];
+    const segments = 256;
+    for (let i = 0; i <= segments; i++) {
+      const theta = (i / segments) * Math.PI * 2;
+      points.push(new THREE.Vector3(Math.cos(theta) * radius, 0, Math.sin(theta) * radius));
+    }
+    const geom = new THREE.BufferGeometry().setFromPoints(points);
+    const mat = new THREE.LineBasicMaterial({ color: 0x444444, linewidth: 1, opacity: 0.7, transparent: true });
+    const line = new THREE.Line(geom, mat);
+    line.rotation.x = Math.PI / 2;
+    return line;
+  }
+
+  planetData.forEach((p, idx) => {
+    const tex = loader.load(p.texture);
+    const radius = (p.size * SCALE) + 0.02;
+    const geo = new THREE.SphereGeometry(radius, 48, 48);
+    const mat = new THREE.MeshPhongMaterial({ map: tex, shininess: 20 });
+    const mesh = new THREE.Mesh(geo, mat);
+
+    // 初始位置
+    mesh.position.set(p.orbit, 0, 0);
+    planetGroup.add(mesh);
+
+    // 軌道線
+    const orbitLine = createOrbitLine(p.orbit);
+    scene.add(orbitLine);
+
+    // 標籤（使用 Sprite）
+    const labelTex = createLabelTexture(p.name);
+    const labelMat = new THREE.SpriteMaterial({ map: labelTex, transparent: true, depthTest: false });
+    const label = new THREE.Sprite(labelMat);
+    label.scale.set( (labelTex.image.width/6), (labelTex.image.height/6), 1 );
+    label.position.set(0, radius + 4 * SCALE, 0);
+    mesh.add(label);
+
+    planetMeshes.push({
+      mesh,
+      orbit: p.orbit,
+      speed: p.speed,
+      angle: Math.random() * Math.PI * 2,
+      radius
+    });
+
+    // 土星、天王星環
+    if (p.name === 'Saturn') {
+      const ringTex = loader.load('https://threejs.org/examples/textures/planets/saturnringcolor.jpg');
+      const ringGeo = new THREE.RingGeometry(radius + 1.6, radius + 3.6, 128);
+      const ringMat = new THREE.MeshBasicMaterial({ map: ringTex, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = Math.PI * 0.47;
+      mesh.add(ring);
+    }
+    if (p.name === 'Uranus') {
+      const ringTex = loader.load('https://threejs.org/examples/textures/planets/uranusringcolour.jpg');
+      const ringGeo = new THREE.RingGeometry(radius + 0.8, radius + 1.8, 64);
+      const ringMat = new THREE.MeshBasicMaterial({ map: ringTex, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = Math.PI * 0.47;
+      mesh.add(ring);
+    }
+  });
+
+  // ---------- 地球月球系統（在地球 mesh 底下新增 moon） ----------
+  let earthMeshInfo = planetMeshes.find(p => p.mesh && p.mesh.children.some(c => c.material && c.material.map && c.material.map.image && p.mesh.name === 'Earth') );
+  // We will find Earth by name from planetData index 2 (Earth is at index 2)
+  const earthInfo = planetMeshes[2]; // planetData and planetMeshes have consistent ordering
+  if (earthInfo) {
+    const moonRadius = 0.27 * SCALE; // 視覺化大小
+    const moonGeo = new THREE.SphereGeometry(moonRadius, 32, 32);
+    const moonTex = loader.load('https://threejs.org/examples/textures/planets/moon_1024.jpg');
+    const moonMat = new THREE.MeshPhongMaterial({ map: moonTex, shininess: 5 });
+    const moon = new THREE.Mesh(moonGeo, moonMat);
+    // moon will orbit earth: add to a pivot
+    const moonPivot = new THREE.Object3D();
+    moon.position.set(3.2 * SCALE + earthInfo.radius, 0, 0); // 初始距離（視覺化）
+    moonPivot.add(moon);
+    earthInfo.mesh.add(moonPivot);
+    earthInfo.moon = { pivot: moonPivot, mesh: moon, angle: 0, speed: 0.04, distance: 3.2 * SCALE + earthInfo.radius };
+  }
+
+  // ---------- Controls ----------
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.minDistance = 20;
+  controls.maxDistance = 800;
+  controls.autoRotate = false;
+
+  // ---------- 動畫循環 ----------
+  function animate(time) {
+    requestAnimationFrame(animate);
+
+    // 行星公轉 + 自轉
+    planetMeshes.forEach((p, i) => {
+      p.angle += p.speed;
+      const x = Math.cos(p.angle) * p.orbit;
+      const z = Math.sin(p.angle) * p.orbit;
+      p.mesh.position.set(x, 0, z);
+      // 自轉速度（視覺）
+      p.mesh.rotation.y += 0.01 + (0.001 * (i % 3));
+    });
+
+    // 太陽自轉緩慢
+    sun.rotation.y += 0.002;
+
+    // 地月系統公轉
+    if (earthInfo && earthInfo.moon) {
+      earthInfo.moon.angle += earthInfo.moon.speed;
+      earthInfo.moon.pivot.rotation.y = earthInfo.moon.angle;
+    }
+
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // ---------- 視窗調整 ----------
+  window.addEventListener('resize', onWindowResize);
+  function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+
+  // ---------- 小提示：如果要開啟自動繞太陽的相機 ----------
+  // 可在外部呼叫下面函式來啟動 camera 自動繞行（範例）
+  function enableCameraOrbit(enable = false, radius = 160, speed = 0.0005) {
+    if (!enable) return;
+    let t0 = performance.now();
+    controls.enabled = false;
+    (function camLoop() {
+      const t = performance.now();
+      const dt = (t - t0);
+      t0 = t;
+      const ang = t * speed;
+      camera.position.x = Math.cos(ang) * radius;
+      camera.position.z = Math.sin(ang) * radius;
+      camera.position.y = 40 + Math.sin(ang * 0.5) * 8;
+      camera.lookAt(0,0,0);
+      renderer.render(scene, camera);
+      requestAnimationFrame(camLoop);
+    })();
+  }
+
+  // ----------（選擇性）鍵盤快捷鍵：按 H 隱藏/顯示標籤 ----------
+  window.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 'h') {
+      planetMeshes.forEach(p => {
+        p.mesh.children.forEach(c => {
+          if (c.type === 'Sprite') c.visible = !c.visible;
+        });
+      });
+    }
+  });
+  </script>
+</body>
+</html>

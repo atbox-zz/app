@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8" />
+    <title>六十四卦互動地圖（六維超立方體投影）</title>
+    <script type="text/javascript" src="https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.js"></script>
+    <link href="https://unpkg.com/vis-network@9.1.2/styles/vis-network.min.css" rel="stylesheet" type="text/css" />
+    <style>
+        body { font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif; margin:0; background:#f4f4f4; }
+        #container { display:flex; height:100vh; }
+        #mynetwork { flex:1; border-right:1px solid #ddd; }
+        #panel { width:420px; padding:16px; box-sizing:border-box; overflow-y:auto; background:white; }
+        .gua-title { font-size:22px; font-weight:700; margin-bottom:6px; }
+        .gua-bits { color:#666; margin-bottom:8px; }
+        .change-list { margin-top:12px; }
+        .change-item { padding:6px; border:1px solid #eee; margin-bottom:6px; cursor:pointer; border-radius:6px; transition:background-color 0.2s; }
+        .change-item:hover { background:#f5f5f5; }
+        .highlight { background:#fff9c4; }
+        .btn { display:inline-block; padding:8px 12px; border-radius:6px; background:#1976d2; color:white; text-decoration:none; cursor:pointer; transition:background-color 0.2s; }
+        .btn:hover { background:#1565c0; }
+        .gua-section { border-bottom:1px solid #eee; padding-bottom:12px; margin-bottom:12px; }
+        .gua-section:last-child { border-bottom:none; margin-bottom:0; }
+        .five-elements-panel { border:1px solid #ddd; padding:12px; border-radius:8px; margin-top:16px; background:#fafafa; }
+        .five-elements-panel h4 { margin-top:0; color:#444; }
+        .five-elements-panel input { width:100%; padding:6px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px; margin-bottom:8px; }
+        .five-elements-result { font-family:monospace; white-space:pre; background:#fff; padding:8px; border-radius:4px; margin-top:8px; overflow-x:auto; }
+        @media (max-width:900px){
+            #panel{width:46vw;}
+        }
+    </style>
+</head>
+<body>
+<div id="container">
+    <div id="mynetwork"></div>
+    <div id="panel">
+        <div class="gua-section">
+            <div class="gua-title" id="guaName">點選節點查看卦象</div>
+            <div class="gua-bits" id="guaBits"></div>
+            <div id="guaText"><em>卦辭 / 爻辭 會在此顯示。</em></div>
+        </div>
+        <div class="gua-section">
+            <h4 style="margin-top:0;">六個可能的變卦（點擊跳轉）</h4>
+            <div class="change-list" id="changeList"></div>
+            <a class="btn" id="btnCenter">重置視角</a>
+        </div>
+        <div class="gua-section five-elements-panel">
+            <h4>五行生剋動態模擬</h4>
+            <div>當前卦象五行狀態 ($$S_t$$):</div>
+            <div id="fiveElementsState" class="five-elements-result">載入中...</div>
+            <div style="margin-top:12px;">輸入天干地支（例如：甲子、乙丑）：</div>
+            <input type="text" id="tianGanDiZhiInput" value="甲子" />
+            <a class="btn" id="btnCalculate" style="background:#388e3c;">執行公式運算</a>
+            <div style="margin-top:12px;">運算後五行狀態 ($$S_{t+1}$$):</div>
+            <div id="fiveElementsResult" class="five-elements-result">點擊「執行公式運算」進行計算。</div>
+            <div style="margin-top:12px; color:#777; font-size:13px;">說明：此為數學模型演示，僅供概念理解。</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// --- 核心資料與設定 ---
+// 五行索引
+const elements = ['木', '火', '土', '金', '水'];
+const elementIndex = {'木': 0, '火': 1, '土': 2, '金': 3, '水': 4};
+
+// 八卦五行（納甲法簡化）
+const trigramElements = {
+    "乾": "金", "兌": "金", "離": "火", "震": "木",
+    "巽": "木", "坎": "水", "艮": "土", "坤": "土"
+};
+
+// 天干地支與五行對應
+const tianGan = {
+    '甲':'木', '乙':'木', '丙':'火', '丁':'火', '戊':'土',
+    '己':'土', '庚':'金', '辛':'金', '壬':'水', '癸':'水'
+};
+const diZhi = {
+    '子':'水', '丑':'土', '寅':'木', '卯':'木', '辰':'土',
+    '巳':'火', '午':'火', '未':'土', '申':'金', '酉':'金', '戌':'土', '亥':'水'
+};
+
+// 相生矩陣 (木->火->土->金->水->木)
+const M_生 = [
+    [0, 1, 0, 0, 0], // 木生火
+    [0, 0, 1, 0, 0], // 火生土
+    [0, 0, 0, 1, 0], // 土生金
+    [0, 0, 0, 0, 1], // 金生水
+    [1, 0, 0, 0, 0]  // 水生木
+];
+
+// 相剋矩陣 (木->土->水->火->金->木)
+const M_剋 = [
+    [0, 0, 1, 0, 0], // 木剋土
+    [0, 0, 0, 1, 0], // 火剋金
+    [0, 0, 0, 0, 1], // 土剋水
+    [1, 0, 0, 0, 0], // 金剋木
+    [0, 1, 0, 0, 0]  // 水剋火
+];
+
+// ------------------------------------
+// 易經資料（為簡化，此處僅放部分）
+const guaData = [
+    { gua: "乾", bits: "111111", upper: "乾", lower: "乾", text: "乾為天，元亨利貞。"},
+    { gua: "坤", bits: "000000", upper: "坤", lower: "坤", text: "坤為地，元亨。利牝馬之貞。"},
+    { gua: "屯", bits: "100010", upper: "坎", lower: "震", text: "屯：元亨，利貞，勿用有攸往。"},
+    { gua: "蒙", bits: "010001", upper: "艮", lower: "坎", text: "蒙：亨。匪我求童蒙，童蒙求我。"},
+    { gua: "需", bits: "111010", upper: "坎", lower: "乾", text: "需：有孚，光亨，貞吉。利涉大川。"},
+    { gua: "訟", bits: "010111", upper: "乾", lower: "坎", text: "訟：有孚，窒惕，中吉，終凶。利見大人，不利涉大川。"},
+    { gua: "師", bits: "000010", upper: "坎", lower: "坤", text: "師：貞，丈人吉，無咎。"},
+    { gua: "比", bits: "000011", upper: "坤", lower: "坎", text: "比：吉。原筮元永貞，無咎。不寧方來，後夫凶。"},
+    { gua: "小畜", bits: "111011", upper: "巽", lower: "乾", text: "小畜：亨。密雲不雨，自我西郊。"},
+    { gua: "履", bits: "110111", upper: "乾", lower: "兌", text: "履：虎尾，愬愬，終吉。"},
+    { gua: "泰", bits: "111000", upper: "坤", lower: "乾", text: "泰：小往大來，吉，亨。"},
+    { gua: "否", bits: "000111", upper: "乾", lower: "坤", text: "否：否之匪人，不利君子貞，大往小來。"},
+    { gua: "同人", bits: "101111", upper: "乾", lower: "離", text: "同人：同人于野，亨。利涉大川。利君子貞。"},
+    { gua: "大有", bits: "111101", upper: "離", lower: "乾", text: "大有：元亨。"},
+    { gua: "謙", bits: "001000", upper: "坤", lower: "艮", text: "謙：亨，君子有終。"},
+    { gua: "豫", bits: "000100", upper: "震", lower: "坤", text: "豫：利建侯行師。"},
+    { gua: "隨", bits: "100110", upper: "兌", lower: "震", text: "隨：元亨，利貞，無咎。"},
+    { gua: "蠱", bits: "011001", upper: "艮", lower: "巽", text: "蠱：元亨，利涉大川。先甲三日，後甲三日。"},
+    { gua: "臨", bits: "110000", upper: "坤", lower: "兌", text: "臨：元亨，利貞。至于八月有凶。"},
+    { gua: "觀", bits: "000010", upper: "巽", lower: "坤", text: "觀：盥而不薦，有孚顒若。"},
+    { gua: "噬嗑", bits: "101100", upper: "震", lower: "離", text: "噬嗑：亨。利用獄。"},
+    { gua: "賁", bits: "001101", upper: "離", lower: "艮", text: "賁：亨，小利有攸往。"},
+    { gua: "剝", bits: "000001", upper: "艮", lower: "坤", text: "剝：不利有攸往。"},
+    { gua: "復", bits: "100000", upper: "坤", lower: "震", text: "復：亨。出入無疾，朋來無咎。反復其道，七日來復。利有攸往。"},
+    { gua: "無妄", bits: "100111", upper: "乾", lower: "震", text: "無妄：元亨，利貞。其匪正有眚，不利有攸往。"},
+    { gua: "大畜", bits: "111001", upper: "艮", lower: "乾", text: "大畜：利貞。不家食吉。利涉大川。"},
+    { gua: "頤", bits: "100001", upper: "艮", lower: "震", text: "頤：貞吉，觀頤。自求口實。"},
+    { gua: "大過", bits: "011110", upper: "兌", lower: "巽", text: "大過：棟橈。利有攸往，亨。"},
+    { gua: "坎", bits: "010010", upper: "坎", lower: "坎", text: "坎：習坎，有孚，維心亨，行有尚。"},
+    { gua: "離", bits: "101101", upper: "離", lower: "離", text: "離：利貞。亨。畜牝牛吉。"},
+    { gua: "咸", bits: "001110", upper: "兌", lower: "艮", text: "咸：亨，利貞。取女吉。"},
+    { gua: "恆", bits: "100011", upper: "巽", lower: "震", text: "恆：亨，無咎，利貞。利有攸往。"},
+    { gua: "遯", bits: "001111", upper: "乾", lower: "艮", text: "遯：亨。小利貞。"},
+    { gua: "大壯", bits: "111100", upper: "震", lower: "乾", text: "大壯：利貞。"},
+    { gua: "晉", bits: "101000", upper: "坤", lower: "離", text: "晉：康侯用錫馬蕃庶，晝日三接。"},
+    { gua: "明夷", bits: "000101", upper: "離", lower: "坤", text: "明夷：利艱貞。"},
+    { gua: "家人", bits: "101011", upper: "巽", lower: "離", text: "家人：利女貞。"},
+    { gua: "睽", bits: "110101", upper: "離", lower: "兌", text: "睽：小事吉。"},
+    { gua: "蹇", bits: "001010", upper: "坎", lower: "艮", text: "蹇：利西南，不利東北。利見大人，貞吉。"},
+    { gua: "解", bits: "100011", upper: "震", lower: "坎", text: "解：利西南，無所往，其來復吉。有攸往，夙吉。"},
+    { gua: "損", bits: "001110", upper: "兌", lower: "艮", text: "損：有孚，元吉，無咎，可貞。利有攸往。曷之用？二簋可用享。"},
+    { gua: "益", bits: "100011", upper: "震", lower: "巽", text: "益：利有攸往，利涉大川。"},
+    { gua: "夬", bits: "111110", upper: "兌", lower: "乾", text: "夬：揚于王庭，孚號，有厲。告自邑，不利即戎。利有攸往。"},
+    { gua: "姤", bits: "011111", upper: "乾", lower: "巽", text: "姤：女壯，勿用取女。"},
+    { gua: "萃", bits: "000110", upper: "兌", lower: "坤", text: "萃：亨。王假有廟。利見大人，亨，利貞。用大牲吉。利有攸往。"},
+    { gua: "升", bits: "011000", upper: "坤", lower: "巽", text: "升：元亨。用見大人，勿恤，南征吉。"},
+    { gua: "困", bits: "110010", upper: "坎", lower: "兌", text: "困：亨，貞，大人吉。無咎。有言不信。"},
+    { gua: "井", bits: "010011", upper: "巽", lower: "坎", text: "井：改邑不改井，無喪無得。往來井井。汔至亦未繘井，羸其瓶，凶。"},
+    { gua: "革", bits: "101110", upper: "兌", lower: "離", text: "革：巳日乃孚，元亨，利貞。悔亡。"},
+    { gua: "鼎", bits: "011101", upper: "離", lower: "巽", text: "鼎：元吉，亨。"},
+    { gua: "震", bits: "100100", upper: "震", lower: "震", text: "震：亨。震來虩虩，笑言啞啞。震驚百里，不喪匕鬯。"},
+    { gua: "艮", bits: "001001", upper: "艮", lower: "艮", text: "艮：艮其止，止其所。時止則止，時行則行。動靜不失其時，其道光明。"},
+    { gua: "漸", bits: "011001", upper: "艮", lower: "巽", text: "漸：女歸吉，利貞。"},
+    { gua: "歸妹", bits: "110100", upper: "震", lower: "兌", text: "歸妹：征凶，無攸利。"},
+    { gua: "豐", bits: "101100", upper: "震", lower: "離", text: "豐：亨，王假之。勿憂，宜日中。"},
+    { gua: "旅", bits: "000101", upper: "離", lower: "艮", text: "旅：小亨，旅貞吉。"},
+    { gua: "巽", bits: "011011", upper: "巽", lower: "巽", text: "巽：小亨，利有攸往。利見大人。"},
+    { gua: "兌", bits: "110110", upper: "兌", lower: "兌", text: "兌：亨，利貞。"},
+    { gua: "渙", bits: "010011", upper: "巽", lower: "坎", text: "渙：亨。王假有廟，利涉大川。利貞。"},
+    { gua: "節", bits: "110010", upper: "坎", lower: "兌", text: "節：亨。苦節，不可貞。"},
+    { gua: "中孚", bits: "110011", upper: "巽", lower: "兌", text: "中孚：豚魚吉，利涉大川。利貞。"},
+    { gua: "小過", bits: "100100", upper: "震", lower: "艮", text: "小過：亨。利貞。可小事，不可大事。飛鳥遺之音，不宜上，宜下，大吉。"},
+    { gua: "既濟", bits: "101010", upper: "坎", lower: "離", text: "既濟：亨，小利貞。初吉，終亂。"},
+    { gua: "未濟", bits: "010101", upper: "離", lower: "坎", text: "未濟：亨。小狐汔濟，濡其尾，無攸利。"}
+];
+
+// 節點資料與邊（超立方體）
+const guaNames = [
+"乾為天","澤天夬","火天大有","雷天大壯","風天小畜","水天需","山天大畜","地天泰",
+"天澤履","兌為澤","火澤睽","雷澤歸妹","風澤中孚","水澤節","山澤損","地澤臨",
+"天火同人","澤火革","離為火","雷火豐","風火家人","水火既濟","山火賁","地火明夷",
+"天雷無妄","澤雷隨","火雷噬嗑","震為雷","風雷益","水雷屯","山雷頤","地雷復",
+"天風姤","澤風大過","火風鼎","雷風恆","巽為風","水風井","山風蠱","地風升",
+"天水訟","澤水困","火水未濟","雷水解","風水渙","坎為水","山水蒙","地水師",
+"天山遯","澤山咸","火山旅","雷山小過","風山漸","水山蹇","艮為山","地山謙",
+"天地否","澤地萃","火地晉","雷地豫","風地觀","水地比","山地剝","坤為地"
+];
+const kingwenBits = [
+"111111","111110","111101","111100","111011","111010","111001","111000",
+"110111","110110","110101","110100","110011","110010","110001","110000",
+"101111","101110","101101","101100","101011","101010","101001","101000",
+"100111","100110","100101","100100","100011","100010","100001","100000",
+"011111","011110","011101","011100","011011","011010","011001","011000",
+"010111","010110","010101","010100","010011","010010","010001","010000",
+"001111","001110","001101","001100","001011","001010","001001","001000",
+"000111","000110","000101","000100","000011","000010","000001","000000"
+];
+
+const nodes = [];
+const edges = [];
+const bitToIndex = {};
+const trigramBits = {"111": "乾", "110": "兌", "101": "離", "100": "震", "011": "巽", "010": "坎", "001": "艮", "000": "坤"};
+
+for(let i=0;i<kingwenBits.length;i++){
+    const bits = kingwenBits[i];
+    const name = guaNames[i];
+    const upperGua = trigramBits[bits.slice(0,3)];
+    const lowerGua = trigramBits[bits.slice(3,6)];
+    const sunCount = bits.split('').reduce((a,b)=>a+Number(b),0);
+    const colorScale = Math.round(255 - sunCount * 20);
+    const color = `rgb(${colorScale},${180},${200})`;
+
+    nodes.push({
+        id: i, label: name, title: `<b>${name}</b><br>${bits}`, bits: bits, gua: name,
+        value: Math.max(1,sunCount), color: color,
+        upperGua: upperGua, lowerGua: lowerGua
+    });
+    bitToIndex[bits]=i;
+}
+
+for(let i=0;i<kingwenBits.length;i++){
+    const bits = kingwenBits[i];
+    for(let j=0;j<6;j++){
+        const nb = bits.split('');
+        nb[j] = nb[j]==='1'?'0':'1';
+        const nbstr = nb.join('');
+        const k = bitToIndex[nbstr];
+        if(k!==undefined && i<k) {
+            edges.push({from:i,to:k});
+        }
+    }
+}
+
+// ------------------------------------
+// --- 五行運算函數 ---
+function createZeroVector() {
+    return new Array(5).fill(0);
+}
+
+function getGuaElementVector(guaNode) {
+    const s = createZeroVector();
+    const upperEl = trigramElements[guaNode.upperGua];
+    const lowerEl = trigramElements[guaNode.lowerGua];
+    if (upperEl) s[elementIndex[upperEl]] += 1;
+    if (lowerEl) s[elementIndex[lowerEl]] += 1;
+    return s;
+}
+
+function getTianGanDiZhiVector(tgdz) {
+    const V_生 = createZeroVector();
+    const V_剋 = createZeroVector();
+    const tianGanEl = tianGan[tgdz[0]];
+    const diZhiEl = diZhi[tgdz[1]];
+    
+    if (tianGanEl && diZhiEl) {
+        V_生[elementIndex[tianGanEl]] = 1;
+        V_剋[elementIndex[diZhiEl]] = 1;
+    }
+    return { V_生, V_剋 };
+}
+
+function matrixVectorMultiply(matrix, vector) {
+    const result = createZeroVector();
+    for (let i = 0; i < 5; i++) {
+        for (let j = 0; j < 5; j++) {
+            result[i] += matrix[i][j] * vector[j];
+        }
+    }
+    return result;
+}
+
+function vectorAdd(v1, v2) {
+    return v1.map((val, i) => val + v2[i]);
+}
+
+function vectorSubtract(v1, v2) {
+    return v1.map((val, i) => val - v2[i]);
+}
+
+// ------------------------------------
+// --- Vis.js 網路與 UI 互動 ---
+const container = document.getElementById('mynetwork');
+const data = { nodes: nodes, edges: edges };
+const options = {
+    nodes: { shape: 'dot', size: 18, font: {size:12} },
+    edges: { width: 1, color: {color:'#888'} },
+    physics: { stabilization: false, barnesHut: {gravitationalConstant:-4000, springLength:120} }
+};
+const network = new vis.Network(container, data, options);
+let currentSelectedNode = null;
+
+function showGua(idx) {
+    const node = nodes[idx];
+    currentSelectedNode = node;
+    document.getElementById('guaName').innerText = `${node.gua} （#${idx + 1}）`;
+    document.getElementById('guaBits').innerText = `六爻二進位：${node.bits} （上→下，1=陽，0=陰）`;
+    const guaInfo = guaData.find(g => g.gua === node.gua);
+    const text = guaInfo ? guaInfo.text : "卦辭與爻辭資料尚未載入。";
+    document.getElementById('guaText').innerHTML = `<h4>${node.gua} 卦辭</h4><div>${text}</div>`;
+
+    let changeHtml = '';
+    for(let j = 0; j < 6; j++) {
+        const bitsArr = node.bits.split('');
+        bitsArr[j] = bitsArr[j] === '1' ? '0' : '1';
+        const newBits = bitsArr.join('');
+        const newIdx = bitToIndex[newBits];
+        const moving = 6 - j;
+        changeHtml += `<div class="change-item" onclick="jumpTo(${newIdx})"><b>動爻 ${moving} → ${guaNames[newIdx]} （#${newIdx + 1}）</b><br><small>(${node.bits} → ${newBits})</small></div>`;
+    }
+    document.getElementById('changeList').innerHTML = changeHtml;
+
+    network.selectNodes([idx]);
+    network.focus(idx, {scale: 1.2, animation: true});
+    clearHighlights();
+    network.body.data.nodes.update({ id: idx, color: { background: '#ffeb3b' } });
+
+    // 五行狀態計算與顯示
+    const guaElVector = getGuaElementVector(node);
+    document.getElementById('fiveElementsState').innerText = `[${guaElVector.map((v, i) => `${elements[i]}:${v}`).join(', ')}]`;
+    document.getElementById('fiveElementsResult').innerText = "點擊「執行公式運算」進行計算。";
+}
+
+function jumpTo(idx) {
+    showGua(idx);
+}
+
+function clearHighlights() {
+    const updates = nodes.map(n => ({ id: n.id, color: { background: n.color } }));
+    network.body.data.nodes.update(updates);
+}
+
+// 點擊事件
+network.on("click", function(params) {
+    if(params.nodes.length > 0) {
+        const idx = params.nodes[0];
+        showGua(idx);
+    } else {
+        clearHighlights();
+    }
+});
+
+// 按鈕事件
+document.getElementById('btnCenter').onclick = function() { network.fit({animation: true}); };
+document.getElementById('btnCalculate').onclick = function() {
+    if (!currentSelectedNode) {
+        alert("請先點選一個卦象節點！");
+        return;
+    }
+
+    const tianGanDiZhi = document.getElementById('tianGanDiZhiInput').value;
+    const { V_生, V_剋 } = getTianGanDiZhiVector(tianGanDiZhi);
+    
+    if (V_生.every(v => v === 0) && V_剋.every(v => v === 0)) {
+        alert("請輸入有效的天干地支（例如：甲子）！");
+        return;
+    }
+
+    // S_t 向量
+    const S_t = getGuaElementVector(currentSelectedNode);
+
+    // M生 x V生
+    const bornEffect = matrixVectorMultiply(M_生, V_生);
+    
+    // M剋 x V剋
+    const killEffect = matrixVectorMultiply(M_剋, V_剋);
+
+    // 執行公式: S_t+1 = S_t + bornEffect - killEffect
+    const S_t_plus_1_temp = vectorAdd(S_t, bornEffect);
+    const S_t_plus_1 = vectorSubtract(S_t_plus_1_temp, killEffect);
+    
+    document.getElementById('fiveElementsResult').innerText = 
+`天干地支: ${tianGanDiZhi}
+V生: [${V_生.map((v, i) => `${elements[i]}:${v}`).join(', ')}]
+V剋: [${V_剋.map((v, i) => `${elements[i]}:${v}`).join(', ')}]
+------------------------
+S(t+1) = S(t) + (M生 × V生) - (M剋 × V剋)
+
+S(t)      = [${S_t.map((v, i) => `${elements[i]}:${v}`).join(', ')}]
++ (M生×V生) = [${bornEffect.map((v, i) => `${elements[i]}:${v}`).join(', ')}]
+- (M剋×V剋) = [${killEffect.map((v, i) => `${elements[i]}:${v}`).join(', ')}]
+------------------------
+S(t+1)    = [${S_t_plus_1.map((v, i) => `${elements[i]}:${v}`).join(', ')}]`;
+};
+
+// 初始載入
+showGua(0);
+</script>
+</body>
+</html>

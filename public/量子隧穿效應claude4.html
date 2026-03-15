@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>相空間中的量子穿隧效應 (維格納函數)</title>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #000; 
+            color: white; 
+            font-family: 'Microsoft JhengHei', sans-serif; 
+        }
+        #controls { 
+            position: absolute; 
+            top: 10px; 
+            left: 10px; 
+            z-index: 10; 
+            background: rgba(0,0,0,0.8); 
+            padding: 15px; 
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        #info { 
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #444;
+            max-width: 400px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        #info.show { display: block; }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        h2 { margin: 0 0 10px 0; font-size: 18px; }
+        .formula {
+            background: rgba(255,255,255,0.05);
+            padding: 8px;
+            margin: 8px 0;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        #values {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            min-width: 180px;
+        }
+        .value-item {
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .value-label {
+            color: #888;
+            margin-right: 10px;
+            font-size: 11px;
+        }
+        .value-number {
+            color: #4af;
+            font-weight: bold;
+            font-size: 11px;
+        }
+        canvas { display: block; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <div id="controls">
+        <h2>相空間中的量子穿隧效應</h2>
+        <button onclick="toggleInfo()">顯示/隱藏說明</button>
+        <div id="info">
+            <p><b>視覺化維格納函數 W(x, p)</b></p>
+            <p>X軸: 位置 | Z軸: 動量 | 高度: 機率密度</p>
+            <p><b style="color: #ff4444;">紅色牆:</b> 位能障壁 V(x)</p>
+            
+            <div class="formula">
+                <b>初始波包:</b><br>
+                ⟨x|ψ(0)⟩ = (α/π)^(1/4) exp[-α(x-x₀)²/2 + ik₀x]
+            </div>
+            
+            <div class="formula">
+                <b>高斯勢壘:</b><br>
+                V(x) = V₀ exp[-x²/(2σ²)]
+            </div>
+            
+            <div class="formula">
+                <b>維格納函數:</b><br>
+                W(x,p) = (1/π)∫dy ⟨x+y|ψ⟩⟨ψ|x-y⟩ e^(2ipy)
+            </div>
+            
+            <p style="margin-top: 12px; font-size: 12px; color: #999;">
+                觀察波包如何穿過勢壘!<br>
+                可以看到透射與反射分量的干涉圖樣
+            </p>
+        </div>
+    </div>
+
+    <div id="values">
+        <div class="value-item">
+            <span class="value-label">位置 X:</span>
+            <span class="value-number" id="xVal">0.00</span>
+        </div>
+        <div class="value-item">
+            <span class="value-label">動量 P:</span>
+            <span class="value-number" id="pVal">0.00</span>
+        </div>
+        <div class="value-item">
+            <span class="value-label">維格納 W:</span>
+            <span class="value-number" id="wVal">0.000</span>
+        </div>
+        <div class="value-item">
+            <span class="value-label">時間 t:</span>
+            <span class="value-number" id="tVal">0.00</span>
+        </div>
+    </div>
+
+<script>
+function toggleInfo() {
+    document.getElementById('info').classList.toggle('show');
+}
+
+// --- 1. 配置與常數 ---
+const N = 64; // 空間網格大小
+const M = 48; // 動量網格大小
+const X_RANGE = 20;
+const P_RANGE = 8;
+const dx = X_RANGE / N;
+const dp = P_RANGE / M;
+const dt = 0.008; // 時間步長
+
+// 物理參數
+const x0 = -6.0;    // 初始位置
+const k0 = 3.0;     // 初始動量
+const alpha = 1.2;  // 波包寬度
+const V0 = 4.0;     // 勢壘高度
+const sigmaPot = 0.6; // 勢壘寬度
+const barrierPos = 1.0; // 勢壘中心
+
+// 波函數陣列 psi(x) = Re + i*Im
+let psiRe = new Float32Array(N);
+let psiIm = new Float32Array(N);
+let potential = new Float32Array(N);
+
+// 維格納資料
+let wignerData = new Float32Array(N * M);
+let timeElapsed = 0;
+
+// --- 2. 初始化物理 ---
+function initPhysics() {
+    // 初始化波包 (高斯)
+    let norm = 0;
+    for (let i = 0; i < N; i++) {
+        let x = (i - N/2) * dx;
+        
+        let env = Math.exp(-0.5 * alpha * Math.pow(x - x0, 2));
+        let cosK = Math.cos(k0 * x);
+        let sinK = Math.sin(k0 * x);
+        
+        psiRe[i] = env * cosK;
+        psiIm[i] = env * sinK;
+        
+        norm += (psiRe[i]**2 + psiIm[i]**2) * dx;
+    }
+    
+    norm = Math.sqrt(norm);
+    for (let i = 0; i < N; i++) {
+        psiRe[i] /= norm;
+        psiIm[i] /= norm;
+    }
+
+    // 初始化位能 V(x)
+    for (let i = 0; i < N; i++) {
+        let x = (i - N/2) * dx;
+        let vVal = V0 * Math.exp(-Math.pow(x - barrierPos, 2) / (2 * sigmaPot * sigmaPot));
+        potential[i] = vVal;
+    }
+}
+
+// --- 3. 模擬步驟 ---
+function stepPhysics() {
+    let nextRe = new Float32Array(N);
+    let nextIm = new Float32Array(N);
+
+    for (let i = 1; i < N - 1; i++) {
+        let d2Re = (psiRe[i+1] - 2*psiRe[i] + psiRe[i-1]) / (dx*dx);
+        let d2Im = (psiIm[i+1] - 2*psiIm[i] + psiIm[i-1]) / (dx*dx);
+
+        let H_re = -0.5 * d2Re + potential[i] * psiRe[i];
+        let H_im = -0.5 * d2Im + potential[i] * psiIm[i];
+
+        nextRe[i] = psiRe[i] + H_im * dt;
+        nextIm[i] = psiIm[i] - H_re * dt;
+    }
+    
+    nextRe[0] = 0; nextRe[N-1] = 0;
+    nextIm[0] = 0; nextIm[N-1] = 0;
+
+    // 邊緣阻尼
+    for(let i=0; i<5; i++) { 
+        let damp = i / 5.0;
+        nextRe[i] *= damp; 
+        nextIm[i] *= damp; 
+        nextRe[N-1-i] *= damp; 
+        nextIm[N-1-i] *= damp;
+    }
+
+    psiRe = nextRe;
+    psiIm = nextIm;
+    timeElapsed += dt;
+}
+
+// --- 4. 維格納函數計算 ---
+function computeWigner() {
+    const maxLag = Math.floor(N / 3);
+
+    for (let i = 0; i < N; i++) {
+        for (let j = 0; j < M; j++) {
+            let p = (j - M/2) * dp;
+            
+            let sumRe = 0;
+
+            for (let k = -maxLag; k <= maxLag; k++) {
+                let idxPlus = i + k;
+                let idxMinus = i - k;
+
+                if (idxPlus >= 0 && idxPlus < N && idxMinus >= 0 && idxMinus < N) {
+                    let reMinus = psiRe[idxMinus];
+                    let imMinus = -psiIm[idxMinus];
+                    let rePlus = psiRe[idxPlus];
+                    let imPlus = psiIm[idxPlus];
+
+                    let prodRe = reMinus * rePlus - imMinus * imPlus;
+                    let prodIm = reMinus * imPlus + imMinus * rePlus;
+
+                    let angle = 2 * p * (k * dx);
+                    let cosA = Math.cos(angle);
+                    let sinA = Math.sin(angle);
+
+                    let termRe = prodRe * cosA - prodIm * sinA;
+                    sumRe += termRe * dx;
+                }
+            }
+            wignerData[i * M + j] = sumRe / Math.PI;
+        }
+    }
+}
+
+// --- 5. Three.js 視覺化 ---
+let scene, camera, renderer, controls;
+let wignerMesh, potentialMesh;
+let geometry;
+let raycaster, mouse;
+let planeXY, planeXZ;
+
+function init3D() {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0a0a);
+    scene.fog = new THREE.Fog(0x0a0a0a, 30, 60);
+
+    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(25, 18, 25);
+    camera.lookAt(0, 0, 0);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+
+    // 射線檢測
+    raycaster = new THREE.Raycaster();
+    mouse = new THREE.Vector2();
+
+    // 照明
+    const ambLight = new THREE.AmbientLight(0x333333);
+    scene.add(ambLight);
+    
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight1.position.set(10, 20, 10);
+    scene.add(dirLight1);
+    
+    const dirLight2 = new THREE.DirectionalLight(0x6666ff, 0.4);
+    dirLight2.position.set(-10, 10, -10);
+    scene.add(dirLight2);
+
+    // --- 維格納曲面 ---
+    geometry = new THREE.PlaneGeometry(X_RANGE, P_RANGE, N - 1, M - 1);
+    
+    const material = new THREE.MeshPhongMaterial({
+        side: THREE.DoubleSide,
+        vertexColors: true,
+        wireframe: false,
+        shininess: 30,
+        flatShading: false
+    });
+
+    wignerMesh = new THREE.Mesh(geometry, material);
+    wignerMesh.rotation.x = -Math.PI / 2;
+    scene.add(wignerMesh);
+
+    // --- XY 平面 (位置-高度) ---
+    const planeXYGeo = new THREE.PlaneGeometry(X_RANGE, 10, 1, 1);
+    const planeXYMat = new THREE.MeshBasicMaterial({ 
+        color: 0x00ffff, 
+        transparent: true, 
+        opacity: 0.1,
+        side: THREE.DoubleSide 
+    });
+    planeXY = new THREE.Mesh(planeXYGeo, planeXYMat);
+    planeXY.position.set(0, 5, -P_RANGE/2);
+    scene.add(planeXY);
+
+    // 添加 XY 平面邊框
+    const edgesXY = new THREE.EdgesGeometry(planeXYGeo);
+    const lineXY = new THREE.LineSegments(edgesXY, new THREE.LineBasicMaterial({ color: 0x00ffff }));
+    lineXY.position.copy(planeXY.position);
+    scene.add(lineXY);
+
+    // --- XZ 平面 (位置-動量) ---
+    const planeXZGeo = new THREE.PlaneGeometry(X_RANGE, P_RANGE, 1, 1);
+    const planeXZMat = new THREE.MeshBasicMaterial({ 
+        color: 0xffff00, 
+        transparent: true, 
+        opacity: 0.1,
+        side: THREE.DoubleSide 
+    });
+    planeXZ = new THREE.Mesh(planeXZGeo, planeXZMat);
+    planeXZ.rotation.x = -Math.PI / 2;
+    scene.add(planeXZ);
+
+    // 添加 XZ 平面邊框
+    const edgesXZ = new THREE.EdgesGeometry(planeXZGeo);
+    const lineXZ = new THREE.LineSegments(edgesXZ, new THREE.LineBasicMaterial({ color: 0xffff00 }));
+    lineXZ.rotation.copy(planeXZ.rotation);
+    scene.add(lineXZ);
+
+    // --- 位能障壁視覺化 ---
+    const potGeo = new THREE.BoxGeometry(sigmaPot * 5, 8, P_RANGE * 1.1);
+    const potMat = new THREE.MeshLambertMaterial({ 
+        color: 0xff2222, 
+        transparent: true, 
+        opacity: 0.35,
+        emissive: 0x440000
+    });
+    potentialMesh = new THREE.Mesh(potGeo, potMat);
+    potentialMesh.position.set(barrierPos, 4, 0); 
+    scene.add(potentialMesh);
+
+    // 參考網格
+    const gridHelper = new THREE.GridHelper(X_RANGE * 1.5, 30, 0x444444, 0x222222);
+    scene.add(gridHelper);
+
+    // 滑鼠移動事件
+    renderer.domElement.addEventListener('mousemove', onMouseMove);
+
+    initPhysics();
+}
+
+function onMouseMove(event) {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+}
+
+function updateVisualization() {
+    // 多個物理步驟每幀
+    for(let s = 0; s < 2; s++) {
+        stepPhysics();
+    }
+    
+    computeWigner();
+
+    const positions = geometry.attributes.position;
+    const colors = [];
+
+    // 找到最大振幅用於縮放
+    let maxW = 0.01;
+    for(let k = 0; k < wignerData.length; k++) {
+        maxW = Math.max(maxW, Math.abs(wignerData[k]));
+    }
+
+    // 更新頂點
+    for (let row = 0; row < M; row++) {
+        for (let col = 0; col < N; col++) {
+            let idx = row * N + col;
+            let val = wignerData[col * M + row];
+            
+            let height = val * 8.0 / maxW;
+            positions.setZ(idx, height);
+
+            // 顏色映射
+            const color = new THREE.Color();
+            let normalized = (val / maxW) * 0.5 + 0.5;
+            normalized = Math.max(0, Math.min(1, normalized));
+            
+            if (normalized < 0.5) {
+                color.setHSL(0.65 - normalized * 0.3, 0.9, 0.4 + normalized * 0.2);
+            } else {
+                color.setHSL(0.35 - (normalized - 0.5) * 0.7, 1.0, 0.5 + (normalized - 0.5) * 0.2);
+            }
+            
+            colors.push(color.r, color.g, color.b);
+        }
+    }
+
+    geometry.attributes.position.needsUpdate = true;
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    geometry.computeVertexNormals();
+
+    // 更新顯示值
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObject(wignerMesh);
+    
+    if (intersects.length > 0) {
+        const point = intersects[0].point;
+        const x = point.x;
+        const p = point.z;
+        
+        // 找到對應的維格納值
+        const xIdx = Math.floor((x / X_RANGE + 0.5) * N);
+        const pIdx = Math.floor((p / P_RANGE + 0.5) * M);
+        
+        if (xIdx >= 0 && xIdx < N && pIdx >= 0 && pIdx < M) {
+            const wVal = wignerData[xIdx * M + pIdx];
+            document.getElementById('xVal').textContent = x.toFixed(2);
+            document.getElementById('pVal').textContent = p.toFixed(2);
+            document.getElementById('wVal').textContent = wVal.toFixed(3);
+        }
+    }
+    
+    document.getElementById('tVal').textContent = timeElapsed.toFixed(2);
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    updateVisualization();
+    renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+init3D();
+animate();
+
+</script>
+</body>
+</html>

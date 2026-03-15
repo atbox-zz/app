@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>高階人臉換臉（Poisson 無縫融合）</title>
+
+  <!-- face-api (vladmandic) -->
+  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+  <!-- delaunator (Delaunay triangulation) -->
+  <script src="https://cdn.jsdelivr.net/npm/delaunator@5.0.0/index.min.js"></script>
+  <!-- opencv.js (for seamlessClone) -->
+  <script async src="https://docs.opencv.org/4.5.5/opencv.js" ></script>
+
+  <style>
+    /*（略 — 保留使用者原始風格，但簡化呈現）*/
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;padding:20px}
+    .container{max-width:1200px;margin:0 auto;background:#fff;border-radius:16px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+    h1{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .section{padding:14px;border-radius:10px;background:#f8f9fa;border:1px solid #e9ecef}
+    button{padding:10px;border-radius:8px;border:none;cursor:pointer}
+    .controls{display:flex;gap:8px;margin-top:12px}
+    canvas{max-width:100%;border-radius:8px;background:#000;display:block}
+    .face-library{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .face-card{width:110px;border-radius:8px;overflow:hidden;border:2px solid #dee2e6;cursor:pointer;padding:6px;background:#fff;text-align:center}
+    .face-card img{width:100%;height:80px;object-fit:cover;border-radius:6px}
+    .small{font-size:0.9rem;color:#555;margin-top:6px}
+    .hidden{display:none}
+    #loadingModels{padding:18px;text-align:center}
+    .value-display{background:#667eea;color:#fff;padding:4px 8px;border-radius:6px;margin-left:8px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+        <line x1="9" y1="9" x2="9.01" y2="9"></line>
+        <line x1="15" y1="9" x2="15.01" y2="9"></line>
+      </svg>
+      高階人臉換臉（landmark 三角剖分 + seamlessClone）
+    </h1>
+
+    <div id="loadingModels" class="section">
+      <div id="modelStatus">正在載入 face-api 模型與 OpenCV……</div>
+    </div>
+
+    <div class="grid">
+      <!-- 左側控制 -->
+      <div>
+        <div class="section">
+          <h3>上傳目標照片（Target）</h3>
+          <input type="file" id="targetInput" accept="image/*"><br>
+          <div class="small">目標照片需包含清晰人臉（可多臉）。</div>
+          <div style="margin-top:10px">
+            <h3 style="margin-top:12px">上傳來源臉部素材（Source）</h3>
+            <input type="file" id="sourceInput" accept="image/*"><br>
+            <div class="small">來源素材最好為正臉或近似角度，越清晰越好。</div>
+          </div>
+
+          <div style="margin-top:12px">
+            <label>透明度（暫顯）<span class="value-display" id="opacityLabel">0.8</span></label>
+            <input id="opacitySlider" type="range" min="0" max="1" step="0.01" value="0.8" style="width:100%">
+          </div>
+
+          <div style="margin-top:8px">
+            <label>來源臉放大比例（預處理）<span class="value-display" id="scaleLabel">1.0</span></label>
+            <input id="scaleSlider" type="range" min="0.6" max="1.6" step="0.01" value="1.0" style="width:100%">
+          </div>
+
+          <div class="controls">
+            <button id="detectBtn" style="background:#667eea;color:#fff">偵測並顯示 landmark</button>
+            <button id="swapBtn" style="background:#17a2b8;color:#fff" disabled>執行無縫換臉</button>
+            <button id="resetBtn">重置</button>
+          </div>
+
+          <div id="statusBox" class="small" style="margin-top:8px;color:#333"></div>
+        </div>
+
+        <div class="section" style="margin-top:12px">
+          <h3>素材庫（可快速選擇）</h3>
+          <div class="face-library" id="faceLibrary"></div>
+          <div style="margin-top:8px">
+            <button id="addSampleBtn">加入範例圖片</button>
+            <button id="clearLibBtn">清空素材庫</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右側畫布 -->
+      <div>
+        <div class="section">
+          <h3>預覽結果</h3>
+          <div style="display:flex;gap:8px;flex-direction:column">
+            <canvas id="resultCanvas"></canvas>
+            <canvas id="tempCanvas" class="hidden"></canvas>
+            <div class="small">下方為「最終融合結果」；你也可以點下載。</div>
+            <div class="controls" style="margin-top:8px">
+              <button id="downloadBtn" disabled style="background:#28a745;color:#fff">下載結果</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="section" style="margin-top:12px">
+          <h3>偵測資訊</h3>
+          <div id="faceInfo" class="small">尚未偵測</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ========== 全域變數 ========== */
+let modelsLoaded = false;
+let cvReady = false;
+let targetImg = null;
+let sourceImg = null;
+let targetDetections = null;
+let sourceDetections = null;
+let opacity = parseFloat(document.getElementById('opacitySlider').value);
+let sourceScale = parseFloat(document.getElementById('scaleSlider').value);
+
+/* DOM */
+const modelStatus = document.getElementById('modelStatus');
+const statusBox = document.getElementById('statusBox');
+const resultCanvas = document.getElementById('resultCanvas');
+const tempCanvas = document.getElementById('tempCanvas');
+const faceInfo = document.getElementById('faceInfo');
+const swapBtn = document.getElementById('swapBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+
+/* 載入 face-api 模型 與 監聽 OpenCV */
+async function loadModels(){
+  modelStatus.textContent = '載入 face-api 模型（ssdMobilenetv1 + faceLandmark68）……';
+  const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
+  await Promise.all([
+    faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+  ]);
+  modelsLoaded = true;
+  modelStatus.textContent = 'face-api 模型載入完成，等待 OpenCV……';
+  checkReady();
+}
+
+function checkReady(){
+  if(modelsLoaded && cvReady){
+    modelStatus.textContent = '所有模組已就緒：可以上傳圖像並執行換臉。';
+    statusBox.textContent = '';
+  }
+}
+
+/* 監聽 opencv.js 是否就緒 */
+function onOpenCvReady() {
+  cvReady = true;
+  modelStatus.textContent = (modelsLoaded ? '所有模組已就緒：可以上傳圖像並執行換臉。' : 'OpenCV 載入完成，等待 face-api 模型...');
+  checkReady();
+}
+// opencv.js 會在全域呼叫 Module 的 onRuntimeInitialized，我們把它綁定：
+if (typeof cv !== 'undefined') {
+  // 如果已經載入，則立即設定
+  if (cv.getBuildInformation) {
+    onOpenCvReady();
+  } else {
+    cv['onRuntimeInitialized']=onOpenCvReady;
+  }
+} else {
+  // 可能未載入 yet — 當 script async 載入完成會 self-initialize
+  window.addEventListener('opencvready', onOpenCvReady);
+}
+
+/* 載入模型啟動 */
+loadModels();
+
+/* 幫助函式：把 File -> HTMLImageElement */
+function fileToImage(file){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = ()=>resolve(img);
+    img.onerror = (e)=>reject(e);
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+/* 顯示圖片於 canvas（調整 canvas 尺寸）*/
+function drawImageToCanvas(img, canvas){
+  const maxW = 1200; // 不必要放太大
+  let w = img.naturalWidth || img.width;
+  let h = img.naturalHeight || img.height;
+  // 縮放但保留比例
+  if (w > maxW){ const ratio = maxW / w; w = maxW; h = h * ratio; }
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,w,h);
+  ctx.drawImage(img, 0, 0, w, h);
+}
+
+/* 取得 face-api 的 landmark array (x,y) 以 canvas 尺寸作為座標 */
+function landmarksToPoints(landmarks){
+  return landmarks.positions.map(p => [p.x, p.y]);
+}
+
+/* 權利：以 Delaunator 產生三角網格（基於 landmarks）*/
+function delaunayTriangles(points){
+  // Delaunator expects a flat array [x0,y0,x1,y1,...]
+  const coords = [];
+  points.forEach(p => { coords.push(p[0], p[1]); });
+  const d = Delaunator.from(coords);
+  const triangles = [];
+  for(let i=0;i<d.triangles.length;i+=3){
+    const t0 = d.triangles[i], t1 = d.triangles[i+1], t2 = d.triangles[i+2];
+    triangles.push([t0, t1, t2]);
+  }
+  return triangles;
+}
+
+/* 三角形仿射 warp：將 srcCanvas 上的 srcTri 貼到 dstCanvas 的 dstTri (像素級別) */
+function warpTriangle(srcCanvas, dstCanvas, srcTri, dstTri){
+  const sCtx = srcCanvas.getContext('2d');
+  const dCtx = dstCanvas.getContext('2d');
+
+  // bounding boxes
+  function bbox(tri){
+    const xs = tri.map(p=>p[0]); const ys = tri.map(p=>p[1]);
+    const minX = Math.floor(Math.min(...xs)), maxX = Math.ceil(Math.max(...xs));
+    const minY = Math.floor(Math.min(...ys)), maxY = Math.ceil(Math.max(...ys));
+    return {minX, minY, width: maxX - minX, height: maxY - minY};
+  }
+
+  const srcB = bbox(srcTri);
+  const dstB = bbox(dstTri);
+  if(srcB.width ===0 || srcB.height===0 || dstB.width===0 || dstB.height===0) return;
+
+  // Extract image data from source bounding rect
+  const srcData = sCtx.getImageData(srcB.minX, srcB.minY, srcB.width, srcB.height);
+  // Create temporary canvas for source patch
+  const tmpSrc = document.createElement('canvas');
+  tmpSrc.width = srcB.width; tmpSrc.height = srcB.height;
+  const tmpSrcCtx = tmpSrc.getContext('2d');
+  tmpSrcCtx.putImageData(srcData, 0, 0);
+
+  // Normalized coordinates relative to bounding boxes
+  const srcNorm = srcTri.map(p => [p[0]-srcB.minX, p[1]-srcB.minY]);
+  const dstNorm = dstTri.map(p => [p[0]-dstB.minX, p[1]-dstB.minY]);
+
+  // Compute affine transform matrix A such that A * srcNorm = dstNorm
+  // Solve for parameters of 2x3 affine matrix
+  // [ x' ]   [ a b c ] [ x ]
+  // [ y' ] = [ d e f ] [ y ]
+  // Build linear system for 6 unknowns using 3 points
+  const srcMat = [];
+  const dstVecX = [], dstVecY = [];
+  for(let i=0;i<3;i++){
+    const x = srcNorm[i][0], y = srcNorm[i][1];
+    srcMat.push([x, y, 1, 0, 0, 0]);
+    srcMat.push([0, 0, 0, x, y, 1]);
+    dstVecX.push(dstNorm[i][0]);
+    dstVecY.push(dstNorm[i][1]);
+  }
+  // Solve using basic Cramer's or matrix inverse (6x6). We'll use numeric elimination.
+  function solveLinear(A, b){
+    // A: NxN, b: N
+    const n = A.length;
+    // build augmented matrix
+    const M = [];
+    for(let i=0;i<n;i++){
+      M[i] = A[i].slice();
+      M[i].push(b[i]);
+    }
+    // Gaussian elimination
+    for(let i=0;i<n;i++){
+      // pivot
+      let maxRow = i;
+      for(let k=i+1;k<n;k++) if(Math.abs(M[k][i])>Math.abs(M[maxRow][i])) maxRow = k;
+      if(Math.abs(M[maxRow][i]) < 1e-12) continue;
+      // swap
+      const tmp = M[i]; M[i] = M[maxRow]; M[maxRow] = tmp;
+      // normalize
+      const pivot = M[i][i];
+      for(let j=i;j<=n;j++) M[i][j] /= pivot;
+      // eliminate
+      for(let r=0;r<n;r++){
+        if(r===i) continue;
+        const factor = M[r][i];
+        for(let c=i;c<=n;c++) M[r][c] -= factor * M[i][c];
+      }
+    }
+    // solution
+    const x = new Array(n);
+    for(let i=0;i<n;i++) x[i] = M[i][n];
+    return x;
+  }
+
+  // build A matrix (6x6)
+  const A = srcMat;
+  const bx = dstVecX.concat(dstVecY).slice(0,6); // but we actually built rows interleaved; simpler to directly build b vector matching rows:
+  // Rebuild proper b: since we pushed x then y for each point, b should be [x1,y1,x2,y2,x3,y3]
+  const b = [];
+  for(let i=0;i<3;i++){
+    b.push(dstNorm[i][0]);
+    b.push(dstNorm[i][1]);
+  }
+  const sol = solveLinear(A, b); // returns [a,b,c,d,e,f]
+  // apply transform: draw tmpSrc onto destination with transformed coords
+  // We can use dCtx.setTransform but need mapping from tmpSrc to dst patch
+  dCtx.save();
+  // create clipping path to dst triangle region (relative to dstB)
+  dCtx.beginPath();
+  dCtx.moveTo(dstTri[0][0], dstTri[0][1]);
+  dCtx.lineTo(dstTri[1][0], dstTri[1][1]);
+  dCtx.lineTo(dstTri[2][0], dstTri[2][1]);
+  dCtx.closePath();
+  dCtx.clip();
+
+  // Compute transform matrix that maps (srcNorm) -> (dst absolute)
+  // We'll set transform so that points in tmpSrc (0..w,0..h) are mapped
+  // Use 3 points mapping: (srcNorm[i]) in tmpSrc -> (dstTri[i]) absolute
+  // Build a matrix to map tmpSrc coords to destination canvas coords.
+  // We'll compute affine components from sol, but sol maps srcNorm -> dstNorm (relative to dstB).
+  const a = sol[0], b_ = sol[1], c = sol[2], d = sol[3], e = sol[4], f = sol[5];
+  // But dstNorm = A * srcNorm. dstAbsolute = dstB.min + dstNorm.
+  // So transformation from tmpSrc coords to dst absolute:
+  // xAbs = a * xSrc + b_ * ySrc + c + dstB.minX
+  // yAbs = d * xSrc + e * ySrc + f + dstB.minY
+  dCtx.setTransform(a, d, b_, e, c + dstB.minX, f + dstB.minY);
+  // draw tmpSrc onto dCtx; because we've transformed, draw at (srcB.minX, srcB.minY)? Actually tmpSrc has origin at 0,0
+  dCtx.globalAlpha = 1.0;
+  dCtx.drawImage(tmpSrc, 0, 0);
+  dCtx.restore();
+}
+
+/* 主要流程：偵測 landmarks（target & source） */
+async function detectLandmarks(){
+  if(!modelsLoaded){ alert('face-api 模型尚未就緒'); return; }
+  if(!targetImg || !sourceImg){ alert('請先上傳目標與來源圖片'); return; }
+  statusBox.textContent = '偵測中……';
+
+  // 把圖片 draw 到隱藏 canvas（以統一尺寸）
+  const tCanvas = document.createElement('canvas');
+  drawImageToCanvas(targetImg, tCanvas);
+  const sCanvas = document.createElement('canvas');
+  // 如果要縮放來源（scale），先把來源以 scale 處理
+  const sw = Math.round((sourceImg.naturalWidth || sourceImg.width) * sourceScale);
+  const sh = Math.round((sourceImg.naturalHeight || sourceImg.height) * sourceScale);
+  sCanvas.width = sw; sCanvas.height = sh;
+  const sCtx = sCanvas.getContext('2d'); sCtx.drawImage(sourceImg, 0, 0, sw, sh);
+
+  // face-api expects HTMLImageElement or canvas
+  const tDet = await faceapi.detectSingleFace(tCanvas).withFaceLandmarks();
+  if(!tDet){ faceInfo.textContent = '目標未偵測到臉（detectSingleFace）'; statusBox.textContent=''; return; }
+  targetDetections = tDet;
+
+  const sDet = await faceapi.detectSingleFace(sCanvas).withFaceLandmarks();
+  if(!sDet){ faceInfo.textContent = '來源素材未偵測到臉，請換張素材或調整 scale'; statusBox.textContent=''; return; }
+  sourceDetections = sDet;
+
+  // resize landmarks to canvas size (faceapi returns based on provided canvas already)
+  // 取得 landmark points arrays
+  const tPoints = landmarksToPoints(targetDetections.landmarks);
+  const sPoints = landmarksToPoints(sourceDetections.landmarks);
+
+  // 儲存畫布尺寸與比例（後續 warp 需要使用在相同尺寸上的圖片）
+  // 在 resultCanvas 上使用 target 尺寸作為基底
+  drawImageToCanvas(targetImg, resultCanvas);
+  // 繪製 landmark 到 resultCanvas（示意）
+  const ctx = resultCanvas.getContext('2d');
+  ctx.strokeStyle = 'lime';
+  ctx.lineWidth = 1;
+  tPoints.forEach(p=>{
+    ctx.beginPath(); ctx.arc(p[0], p[1], 2, 0, Math.PI*2); ctx.fillStyle='lime'; ctx.fill();
+  });
+
+  // 顯示一些 info
+  faceInfo.innerHTML = `已偵測：目標臉（1） landmark:${tPoints.length}，來源臉（1） landmark:${sPoints.length}`;
+  statusBox.textContent = '偵測完成，準備換臉。';
+
+  // 啟用換臉按鈕
+  swapBtn.disabled = false;
+}
+
+/* 執行換臉：主要步驟
+   1) 針對 target canvas 創建一個空白 canvas 做為暫存 (dst)
+   2) 針對 source canvas 做 Delaunay triangle (使用 source landmarks)
+   3) 以對應 mapping (source landmarks -> target landmarks) 逐三角 warp 到暫存 canvas
+   4) 建立 mask（target 臉部 convex hull）
+   5) 使用 OpenCV 的 seamlessClone 將暫存（source 已 warp）貼上到 target 上
+*/
+async function performAdvancedSwap(){
+  if(!modelsLoaded || !cvReady){ alert('模組尚未就緒'); return; }
+  if(!targetDetections || !sourceDetections){ alert('請先執行偵測'); return; }
+
+  statusBox.textContent = '開始進行三角剖分與仿射 warp……';
+  swapBtn.disabled = true;
+
+  // 建立 base canvas（與 resultCanvas 同尺寸）
+  drawImageToCanvas(targetImg, resultCanvas);
+  const dstCanvas = document.createElement('canvas');
+  dstCanvas.width = resultCanvas.width; dstCanvas.height = resultCanvas.height;
+  const dstCtx = dstCanvas.getContext('2d');
+  dstCtx.clearRect(0,0,dstCanvas.width,dstCanvas.height);
+
+  // 來源 canvas：我們需要把來源 warp 至 target 的尺寸比例（根據 landmarks 座標空間）
+  // 先把 source 繪到一個 canvas（保持來源檔的寬高）
+  const srcCanvas = document.createElement('canvas');
+  // 為了後續簡化對應，先把 source 也放大到與 target 同 scale (但保持相對 landmark 比例)
+  // 更正方法：計算 landmark 規模比例，再把 source 縮放合適大小使 landmark 匹配 target 大小的情況
+  // 計算 source / target 的眼間距比例作為縮放估算
+  const tPoints = landmarksToPoints(targetDetections.landmarks);
+  const sPoints = landmarksToPoints(sourceDetections.landmarks);
+
+  // 計算參考尺度：以兩眉中心或眼角距離為基準
+  function dist(a,b){ const dx=a[0]-b[0], dy=a[1]-b[1]; return Math.hypot(dx,dy); }
+  const tLeftEye = tPoints[36], tRightEye = tPoints[45];
+  const sLeftEye = sPoints[36], sRightEye = sPoints[45];
+  const tEyeDist = dist(tLeftEye, tRightEye);
+  const sEyeDist = dist(sLeftEye, sRightEye);
+  let scaleFactor = 1.0;
+  if(sEyeDist > 1e-3) scaleFactor = (tEyeDist / sEyeDist);
+
+  // 可以再乘上 sourceScale（使用者 slider）
+  scaleFactor *= sourceScale;
+
+  // 準備 srcCanvas
+  const srcW = Math.round((sourceImg.naturalWidth || sourceImg.width) * scaleFactor);
+  const srcH = Math.round((sourceImg.naturalHeight || sourceImg.height) * scaleFactor);
+  srcCanvas.width = srcW; srcCanvas.height = srcH;
+  const sCtx = srcCanvas.getContext('2d');
+  sCtx.drawImage(sourceImg, 0, 0, srcW, srcH);
+
+  // 由於我們縮放了 source 圖，需相應縮放 source landmarks 座標
+  const sPointsScaled = sPoints.map(p => [p[0]*scaleFactor, p[1]*scaleFactor]);
+
+  // Delaunay triangulation 使用 source landmarks（scaled）
+  const triangles = delaunayTriangles(sPointsScaled);
+
+  // 逐三角 warp：把 source tri (在 srcCanvas 座標) warp 到 target tri (在 resultCanvas 座標)
+  // 先建立一個暫存 canvas（跟 resultCanvas 同尺寸）當作 warpedSource
+  const warpedCanvas = document.createElement('canvas');
+  warpedCanvas.width = resultCanvas.width; warpedCanvas.height = resultCanvas.height;
+  const warpedCtx = warpedCanvas.getContext('2d');
+  warpedCtx.clearRect(0,0,warpedCanvas.width, warpedCanvas.height);
+
+  // mapping: for each triangle index triple, map sPointsScaled[idx] -> tPoints[idx]
+  for(const tri of triangles){
+    const [i0,i1,i2] = tri;
+    // guard: ensure indices exist and within range
+    if(i0 < 0 || i1 < 0 || i2 < 0 || i0 >= sPointsScaled.length || i1 >= sPointsScaled.length || i2 >= sPointsScaled.length) continue;
+    const srcTri = [ sPointsScaled[i0], sPointsScaled[i1], sPointsScaled[i2] ];
+    const dstTri = [ tPoints[i0], tPoints[i1], tPoints[i2] ];
+
+    // skip degenerate
+    const area = Math.abs((dstTri[0][0]*(dstTri[1][1]-dstTri[2][1]) + dstTri[1][0]*(dstTri[2][1]-dstTri[0][1]) + dstTri[2][0]*(dstTri[0][1]-dstTri[1][1]))/2);
+    if(area < 0.5) continue;
+
+    // perform warp of this triangle from srcCanvas -> warpedCanvas
+    warpTriangle(srcCanvas, warpedCanvas, srcTri, dstTri);
+  }
+
+  statusBox.textContent = '已完成三角仿射貼合，準備建立 mask 並呼叫 seamlessClone';
+
+  // 建立 mask：以 target landmarks 的 convex hull（簡單使用 face-api landmarks 的 faceOutline 範圍）
+  const hullIndices = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,26,25,24,23,22,21,20,19,18,17]; // face outline indices（68點）
+  const maskCanvas = document.createElement('canvas');
+  maskCanvas.width = resultCanvas.width; maskCanvas.height = resultCanvas.height;
+  const mCtx = maskCanvas.getContext('2d');
+  mCtx.fillStyle = 'white';
+  mCtx.beginPath();
+  hullIndices.forEach((idx,i)=>{
+    const p = tPoints[idx];
+    if(i===0) mCtx.moveTo(p[0], p[1]); else mCtx.lineTo(p[0], p[1]);
+  });
+  mCtx.closePath();
+  mCtx.fill();
+
+  // 現在使用 OpenCV 的 seamlessClone
+  // read mats
+  try {
+    // convert canvases to cv.Mat
+    const dstMat = cv.imread(resultCanvas); // target base
+    const srcMat = cv.imread(warpedCanvas);  // warped source (already positioned)
+    const maskMat = cv.imread(maskCanvas);
+    // mask needs to be single channel
+    let maskGray = new cv.Mat();
+    cv.cvtColor(maskMat, maskGray, cv.COLOR_RGBA2GRAY, 0);
+    // ensure mask binary
+    cv.threshold(maskGray, maskGray, 127, 255, cv.THRESH_BINARY);
+
+    // find center for seamlessClone: compute center of mask bounding box
+    const contours = new cv.MatVector();
+    const hierarchy = new cv.Mat();
+    cv.findContours(maskGray, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+    let cx = Math.round(resultCanvas.width/2), cy = Math.round(resultCanvas.height/2);
+    if(contours.size() > 0){
+      // compute moments of largest contour
+      let maxCnt = contours.get(0);
+      let maxArea = cv.contourArea(maxCnt);
+      for(let i=1;i<contours.size();i++){
+        const cnt = contours.get(i);
+        const area = cv.contourArea(cnt);
+        if(area > maxArea){ maxArea = area; maxCnt = cnt; }
+      }
+      const moments = cv.moments(maxCnt);
+      if(moments.m00 !== 0){
+        cx = Math.round(moments.m10 / moments.m00);
+        cy = Math.round(moments.m01 / moments.m00);
+      }
+    }
+
+    const center = new cv.Point(cx, cy);
+    const output = new cv.Mat();
+
+    // call seamlessClone (NORMAL_CLONE)
+    cv.seamlessClone(srcMat, dstMat, maskGray, center, output, cv.NORMAL_CLONE);
+
+    // show on resultCanvas
+    cv.imshow(resultCanvas, output);
+
+    // cleanup
+    dstMat.delete(); srcMat.delete(); maskMat.delete(); maskGray.delete(); contours.delete(); hierarchy.delete(); output.delete();
+
+    statusBox.textContent = '換臉並融合完成！你可以下載結果。';
+    downloadBtn.disabled = false;
+  } catch (err) {
+    console.error(err);
+    statusBox.textContent = 'OpenCV 處理失敗：' + err;
+  } finally {
+    swapBtn.disabled = false;
+  }
+}
+
+/* 事件綁定 */
+document.getElementById('targetInput').addEventListener('change', async (e)=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  targetImg = await fileToImage(f);
+  drawImageToCanvas(targetImg, resultCanvas);
+  faceInfo.textContent = '目標圖片已載入，請上傳來源素材並按「偵測並顯示 landmark」。';
+});
+document.getElementById('sourceInput').addEventListener('change', async (e)=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  sourceImg = await fileToImage(f);
+  statusBox.textContent = '來源素材載入完成。';
+});
+
+// 偵測按鈕
+document.getElementById('detectBtn').addEventListener('click', async ()=>{
+  try{
+    await detectLandmarks();
+  }catch(err){ console.error(err); statusBox.textContent = '偵測失敗：'+err; }
+});
+
+// swap 按鈕
+document.getElementById('swapBtn').addEventListener('click', async ()=>{
+  await performAdvancedSwap();
+});
+
+// reset
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(targetImg) drawImageToCanvas(targetImg, resultCanvas);
+  downloadBtn.disabled = true;
+  faceInfo.textContent = '已重置';
+});
+
+// sliders
+document.getElementById('opacitySlider').addEventListener('input', (e)=>{
+  opacity = parseFloat(e.target.value);
+  document.getElementById('opacityLabel').textContent = opacity.toFixed(2);
+});
+document.getElementById('scaleSlider').addEventListener('input', (e)=>{
+  sourceScale = parseFloat(e.target.value);
+  document.getElementById('scaleLabel').textContent = sourceScale.toFixed(2);
+});
+
+// 下載結果
+document.getElementById('downloadBtn').addEventListener('click', ()=>{
+  const link = document.createElement('a');
+  link.href = resultCanvas.toDataURL('image/png');
+  link.download = 'advanced-face-swap.png';
+  link.click();
+});
+
+// 簡單素材庫（範例按鈕）
+const faceLibrary = document.getElementById('faceLibrary');
+document.getElementById('addSampleBtn').addEventListener('click', ()=>{
+  // 這些只是示範URL（若有CORS問題請自行替換本地檔案或可用proxy）
+  const samples = [
+    'https://i.imgur.com/8Km9tLL.jpg', // sample faces
+    'https://i.imgur.com/Qr71crq.jpg'
+  ];
+  faceLibrary.innerHTML = '';
+  samples.forEach((u, idx)=>{
+    const div = document.createElement('div');
+    div.className = 'face-card';
+    const img = document.createElement('img');
+    img.src = u;
+    img.onload = ()=>{ /* no-op */ };
+    img.onclick = async ()=>{
+      // 將 sample 設為 sourceImg
+      sourceImg = img;
+      statusBox.textContent = '已選擇範例素材（請按 偵測並顯示 landmark）';
+    };
+    div.appendChild(img);
+    const name = document.createElement('div');
+    name.className = 'small'; name.textContent = '範例 ' + (idx+1);
+    div.appendChild(name);
+    faceLibrary.appendChild(div);
+  });
+});
+document.getElementById('clearLibBtn').addEventListener('click', ()=>{ faceLibrary.innerHTML=''; });
+
+</script>
+</body>
+</html>

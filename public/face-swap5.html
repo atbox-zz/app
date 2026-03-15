@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<title>顏色匹配升級 + 手動微調（無 OpenCV 版）</title>
+<style>
+    body { background:#111; color:#eee; font-family:sans-serif; padding:20px; }
+    .panel { margin-bottom:20px; }
+    canvas { max-width:100%; background:#222; margin-top:10px; }
+    input[type=range] { width:300px; }
+</style>
+</head>
+<body>
+
+<h2>🎨 顏色匹配升級 + 手動微調（無 OpenCV）</h2>
+
+<div class="panel">
+    <h3>來源圖片 A</h3>
+    <input type="file" id="imgAInput">
+    <canvas id="canvasA"></canvas>
+</div>
+
+<div class="panel">
+    <h3>目標圖片 B（要匹配的色調）</h3>
+    <input type="file" id="imgBInput">
+    <canvas id="canvasB"></canvas>
+</div>
+
+<hr>
+
+<h3>手動微調控件</h3>
+亮度：<input type="range" id="brightness" min="-100" max="100" value="0"><br>
+對比：<input type="range" id="contrast" min="-100" max="100" value="0"><br>
+飽和：<input type="range" id="saturation" min="-100" max="100" value="0"><br>
+色相旋轉：<input type="range" id="hue" min="-180" max="180" value="0"><br>
+
+<button id="downloadBtn">下載調整後圖片</button>
+
+<canvas id="outputCanvas"></canvas>
+
+<script>
+function loadImageToCanvas(fileInput, canvas) {
+    return new Promise((resolve) => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        const img = new Image();
+        img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            resolve();
+        };
+        img.src = URL.createObjectURL(file);
+    });
+}
+
+function applyAdjustments() {
+    const src = document.getElementById("canvasA");
+    const out = document.getElementById("outputCanvas");
+    const ctx = out.getContext("2d");
+
+    out.width = src.width;
+    out.height = src.height;
+    ctx.drawImage(src, 0, 0);
+
+    const imgData = ctx.getImageData(0, 0, out.width, out.height);
+    const data = imgData.data;
+
+    const brightness = parseInt(document.getElementById("brightness").value);
+    const contrast = parseInt(document.getElementById("contrast").value);
+    const saturation = parseInt(document.getElementById("saturation").value);
+    const hue = parseInt(document.getElementById("hue").value);
+
+    for (let i = 0; i < data.length; i += 4) {
+
+        // --- RGB ---
+        let r = data[i];
+        let g = data[i+1];
+        let b = data[i+2];
+
+        // 亮度
+        r += brightness;
+        g += brightness;
+        b += brightness;
+
+        // 對比
+        const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+        r = factor * (r - 128) + 128;
+        g = factor * (g - 128) + 128;
+        b = factor * (b - 128) + 128;
+
+        // 轉 HSL 調整飽和 + 色相
+        const max = Math.max(r,g,b);
+        const min = Math.min(r,g,b);
+        const l = (max + min) / 2;
+        let s = (max - min === 0 ? 0 : (max - min) / (1 - Math.abs(2*l-1)));
+        let h = (
+            max === r ? (g - b) / (max - min) :
+            max === g ? 2 + (b - r) / (max - min) :
+                         4 + (r - g) / (max - min)
+        ) * 60;
+        if (h < 0) h += 360;
+
+        // 調整色相 + 飽和度
+        h = (h + hue) % 360;
+        s = Math.min(1, Math.max(0, s + saturation/100));
+
+        // HSL -> RGB
+        const c = (1 - Math.abs(2*l/255 - 1)) * s;
+        const x = c * (1 - Math.abs((h/60) % 2 - 1));
+        const m = l/255 - c/2;
+
+        let rr=0, gg=0, bb=0;
+        if (h < 60)  { rr=c; gg=x; bb=0; }
+        else if (h<120){ rr=x; gg=c; bb=0; }
+        else if (h<180){ rr=0; gg=c; bb=x; }
+        else if (h<240){ rr=0; gg=x; bb=c; }
+        else if (h<300){ rr=x; gg=0; bb=c; }
+        else          { rr=c; gg=0; bb=x; }
+
+        data[i]   = (rr+m)*255;
+        data[i+1] = (gg+m)*255;
+        data[i+2] = (bb+m)*255;
+    }
+
+    ctx.putImageData(imgData, 0, 0);
+}
+
+document.getElementById("imgAInput").addEventListener("change", async () => {
+    await loadImageToCanvas(imgAInput, canvasA);
+    applyAdjustments();
+});
+
+document.getElementById("imgBInput").addEventListener("change", async () => {
+    await loadImageToCanvas(imgBInput, canvasB);
+});
+
+["brightness","contrast","saturation","hue"].forEach(id => {
+    document.getElementById(id).addEventListener("input", applyAdjustments);
+});
+
+document.getElementById("downloadBtn").addEventListener("click", () => {
+    const link = document.createElement("a");
+    link.download = "adjusted.png";
+    link.href = outputCanvas.toDataURL();
+    link.click();
+});
+</script>
+
+</body>
+</html>

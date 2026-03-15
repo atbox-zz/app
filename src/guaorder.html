@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>六十四卦速見表</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', 'PingFang TC', Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #8B4513;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #8B4513;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        .hexagram-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            gap: 8px;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+        .hexagram-card {
+            border: 2px solid #CD853F;
+            background: white;
+            padding: 6px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            aspect-ratio: 1 / 1.2;   /* 自適應比例，寬:高=1:1.2    height: 110px;*/
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+        }
+        .hexagram-card:hover {
+            background: #FFF8DC;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .hexagram-name {
+            font-size: 16px;
+            color: #000;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .hexagram-lines {
+            margin: 8px 0;
+            height: 36px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .line {
+            height: 4px;
+            margin: 1px 0;
+            background: #8B4513;
+        }
+        .solid-line {
+            width: 100%;
+        }
+        .broken-line {
+            background: linear-gradient(to right, #8B4513 0%, #8B4513 40%, transparent 40%, transparent 60%, #8B4513 60%, #8B4513 100%);
+        }
+        @media (max-width: 768px) {
+            .hexagram-grid {
+                grid-template-columns: repeat(8, 1fr);
+                grid-template-rows: repeat(8, 1fr);
+                gap: 4px;
+            }
+            .hexagram-card {
+                padding: 4px;
+            }
+            .hexagram-name {
+                font-size: 2.8vw;  /* 隨螢幕寬度縮放 */
+            }
+            .line {
+                height: 3px; /* 線條也縮小 */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>六十四卦速見表</h1>
+        
+        <h2>第一種排法</h2>
+        <div class="hexagram-grid" id="hexagramGrid1">
+            <!-- 第一種排法卦象 -->
+        </div>
+
+        <h2>第二種排法（上下卦互換）</h2>
+        <div class="hexagram-grid" id="hexagramGrid2">
+            <!-- 第二種排法卦象 -->
+        </div>
+
+        <h2>第三種排法（常見的六十四卦排列）</h2>
+        <div class="hexagram-grid" id="hexagramGrid3">
+         <!-- 序卦次序 -->
+        </div>
+    </div>
+
+    <script>
+        // 八卦基本數據
+        const trigrams = [
+            { name: '乾', symbol: '☰', lines: [1, 1, 1] },
+            { name: '兌', symbol: '☱', lines: [0, 1, 1] },
+            { name: '離', symbol: '☲', lines: [1, 0, 1] },
+            { name: '震', symbol: '☳', lines: [0, 0, 1] },
+            { name: '巽', symbol: '☴', lines: [1, 1, 0] },
+            { name: '坎', symbol: '☵', lines: [0, 1, 0] },
+            { name: '艮', symbol: '☶', lines: [1, 0, 0] },
+            { name: '坤', symbol: '☷', lines: [0, 0, 0] }
+        ];
+
+        // 六十四卦名稱數據
+        const hexagramNames = [
+            ['乾', '夬', '大有', '大壯', '小畜', '需', '大畜', '泰'],
+            ['履', '兌', '睽', '歸妹', '中孚', '節', '損', '臨'],
+            ['同人', '革', '離', '豐', '家人', '既濟', '賁', '明夷'],
+            ['無妄', '隨', '噬嗑', '震', '益', '屯', '頤', '復'],
+            ['姤', '萃', '鼎', '恆', '巽', '井', '蠱', '升'],
+            ['訟', '困', '未濟', '解', '渙', '坎', '蒙', '師'],
+            ['遯', '咸', '旅', '小過', '漸', '蹇', '艮', '謙'],
+            ['否', '大過', '晉', '豫', '觀', '比', '剝', '坤']
+        ];
+        // 六十四卦名稱數據
+        const hexagramOrder = [
+            "乾","坤","屯","蒙","需","訟","師","比",
+            "小畜","履","泰","否","同人","大有","謙","豫",
+            "隨","蠱","臨","觀","噬嗑","賁","剝","復",
+            "無妄","大畜","頤","大過","坎","離","咸","恆",
+            "遯","大壯","晉","明夷","家人","睽","蹇","解",
+            "損","益","夬","姤","萃","升","困","井",
+            "革","鼎","震","艮","漸","歸妹","豐","旅",
+            "巽","兌","渙","節","中孚","小過","既濟","未濟"
+        ];
+        const hexagramOrder_full = [
+        { "id": 1, "name": "乾", "upper": "乾", "lower": "乾", "upperSymbol": "☰", "lowerSymbol": "☰" },
+        { "id": 2, "name": "坤", "upper": "坤", "lower": "坤", "upperSymbol": "☷", "lowerSymbol": "☷" },
+        { "id": 3, "name": "屯", "upper": "坎", "lower": "震", "upperSymbol": "☵", "lowerSymbol": "☳" },
+        { "id": 4, "name": "蒙", "upper": "艮", "lower": "坎", "upperSymbol": "☶", "lowerSymbol": "☵" },
+        { "id": 5, "name": "需", "upper": "坎", "lower": "乾", "upperSymbol": "☵", "lowerSymbol": "☰" },
+        { "id": 6, "name": "訟", "upper": "乾", "lower": "坎", "upperSymbol": "☰", "lowerSymbol": "☵" },
+        { "id": 7, "name": "師", "upper": "坎", "lower": "坤", "upperSymbol": "☵", "lowerSymbol": "☷" },
+        { "id": 8, "name": "比", "upper": "坤", "lower": "坎", "upperSymbol": "☷", "lowerSymbol": "☵" },
+        { "id": 9, "name": "小畜", "upper": "巽", "lower": "乾", "upperSymbol": "☴", "lowerSymbol": "☰" },
+        { "id": 10, "name": "履", "upper": "乾", "lower": "兌", "upperSymbol": "☰", "lowerSymbol": "☱" },
+        { "id": 11, "name": "泰", "upper": "坤", "lower": "乾", "upperSymbol": "☷", "lowerSymbol": "☰" },
+        { "id": 12, "name": "否", "upper": "乾", "lower": "坤", "upperSymbol": "☰", "lowerSymbol": "☷" },
+        { "id": 13, "name": "同人", "upper": "離", "lower": "乾", "upperSymbol": "☲", "lowerSymbol": "☰" },
+        { "id": 14, "name": "大有", "upper": "乾", "lower": "離", "upperSymbol": "☰", "lowerSymbol": "☲" },
+        { "id": 15, "name": "謙", "upper": "坤", "lower": "艮", "upperSymbol": "☷", "lowerSymbol": "☶" },
+        { "id": 16, "name": "豫", "upper": "震", "lower": "坤", "upperSymbol": "☳", "lowerSymbol": "☷" },
+        { "id": 17, "name": "隨", "upper": "震", "lower": "兌", "upperSymbol": "☳", "lowerSymbol": "☱" },
+        { "id": 18, "name": "蠱", "upper": "艮", "lower": "巽", "upperSymbol": "☶", "lowerSymbol": "☴" },
+        { "id": 19, "name": "臨", "upper": "坤", "lower": "兌", "upperSymbol": "☷", "lowerSymbol": "☱" },
+        { "id": 20, "name": "觀", "upper": "巽", "lower": "坤", "upperSymbol": "☴", "lowerSymbol": "☷" },
+        { "id": 21, "name": "噬嗑", "upper": "震", "lower": "離", "upperSymbol": "☳", "lowerSymbol": "☲" },
+        { "id": 22, "name": "賁", "upper": "離", "lower": "艮", "upperSymbol": "☲", "lowerSymbol": "☶" },
+        { "id": 23, "name": "剝", "upper": "坤", "lower": "艮", "upperSymbol": "☷", "lowerSymbol": "☶" },
+        { "id": 24, "name": "復", "upper": "震", "lower": "坤", "upperSymbol": "☳", "lowerSymbol": "☷" },
+        { "id": 25, "name": "無妄", "upper": "乾", "lower": "震", "upperSymbol": "☰", "lowerSymbol": "☳" },
+        { "id": 26, "name": "大畜", "upper": "艮", "lower": "乾", "upperSymbol": "☶", "lowerSymbol": "☰" },
+        { "id": 27, "name": "頤", "upper": "艮", "lower": "震", "upperSymbol": "☶", "lowerSymbol": "☳" },
+        { "id": 28, "name": "大過", "upper": "兌", "lower": "巽", "upperSymbol": "☱", "lowerSymbol": "☴" },
+        { "id": 29, "name": "坎", "upper": "坎", "lower": "坎", "upperSymbol": "☵", "lowerSymbol": "☵" },
+        { "id": 30, "name": "離", "upper": "離", "lower": "離", "upperSymbol": "☲", "lowerSymbol": "☲" },
+        { "id": 31, "name": "咸", "upper": "兌", "lower": "艮", "upperSymbol": "☱", "lowerSymbol": "☶" },
+        { "id": 32, "name": "恆", "upper": "巽", "lower": "震", "upperSymbol": "☴", "lowerSymbol": "☳" },
+        { "id": 33, "name": "遯", "upper": "乾", "lower": "艮", "upperSymbol": "☰", "lowerSymbol": "☶" },
+        { "id": 34, "name": "大壯", "upper": "震", "lower": "乾", "upperSymbol": "☳", "lowerSymbol": "☰" },
+        { "id": 35, "name": "晉", "upper": "離", "lower": "坤", "upperSymbol": "☲", "lowerSymbol": "☷" },
+        { "id": 36, "name": "明夷", "upper": "坤", "lower": "離", "upperSymbol": "☷", "lowerSymbol": "☲" },
+        { "id": 37, "name": "家人", "upper": "離", "lower": "巽", "upperSymbol": "☲", "lowerSymbol": "☴" },
+        { "id": 38, "name": "睽", "upper": "兌", "lower": "離", "upperSymbol": "☱", "lowerSymbol": "☲" },
+        { "id": 39, "name": "蹇", "upper": "坎", "lower": "艮", "upperSymbol": "☵", "lowerSymbol": "☶" },
+        { "id": 40, "name": "解", "upper": "震", "lower": "坎", "upperSymbol": "☳", "lowerSymbol": "☵" },
+        { "id": 41, "name": "損", "upper": "艮", "lower": "兌", "upperSymbol": "☶", "lowerSymbol": "☱" },
+        { "id": 42, "name": "益", "upper": "巽", "lower": "震", "upperSymbol": "☴", "lowerSymbol": "☳" },
+        { "id": 43, "name": "夬", "upper": "乾", "lower": "兌", "upperSymbol": "☰", "lowerSymbol": "☱" },
+        { "id": 44, "name": "姤", "upper": "巽", "lower": "乾", "upperSymbol": "☴", "lowerSymbol": "☰" },
+        { "id": 45, "name": "萃", "upper": "坤", "lower": "兌", "upperSymbol": "☷", "lowerSymbol": "☱" },
+        { "id": 46, "name": "升", "upper": "巽", "lower": "坤", "upperSymbol": "☴", "lowerSymbol": "☷" },
+        { "id": 47, "name": "困", "upper": "坎", "lower": "兌", "upperSymbol": "☵", "lowerSymbol": "☱" },
+        { "id": 48, "name": "井", "upper": "巽", "lower": "坎", "upperSymbol": "☴", "lowerSymbol": "☵" },
+        { "id": 49, "name": "革", "upper": "兌", "lower": "離", "upperSymbol": "☱", "lowerSymbol": "☲" },
+        { "id": 50, "name": "鼎", "upper": "離", "lower": "巽", "upperSymbol": "☲", "lowerSymbol": "☴" },
+        { "id": 51, "name": "震", "upper": "震", "lower": "震", "upperSymbol": "☳", "lowerSymbol": "☳" },
+        { "id": 52, "name": "艮", "upper": "艮", "lower": "艮", "upperSymbol": "☶", "lowerSymbol": "☶" },
+        { "id": 53, "name": "漸", "upper": "巽", "lower": "艮", "upperSymbol": "☴", "lowerSymbol": "☶" },
+        { "id": 54, "name": "歸妹", "upper": "兌", "lower": "震", "upperSymbol": "☱", "lowerSymbol": "☳" },
+        { "id": 55, "name": "豐", "upper": "震", "lower": "離", "upperSymbol": "☳", "lowerSymbol": "☲" },
+        { "id": 56, "name": "旅", "upper": "離", "lower": "艮", "upperSymbol": "☲", "lowerSymbol": "☶" },
+        { "id": 57, "name": "巽", "upper": "巽", "lower": "巽", "upperSymbol": "☴", "lowerSymbol": "☴" },
+        { "id": 58, "name": "兌", "upper": "兌", "lower": "兌", "upperSymbol": "☱", "lowerSymbol": "☱" },
+        { "id": 59, "name": "渙", "upper": "坎", "lower": "巽", "upperSymbol": "☵", "lowerSymbol": "☴" },
+        { "id": 60, "name": "節", "upper": "兌", "lower": "坎", "upperSymbol": "☱", "lowerSymbol": "☵" },
+        { "id": 61, "name": "中孚", "upper": "巽", "lower": "兌", "upperSymbol": "☴", "lowerSymbol": "☱" },
+        { "id": 62, "name": "小過", "upper": "震", "lower": "艮", "upperSymbol": "☳", "lowerSymbol": "☶" },
+        { "id": 63, "name": "既濟", "upper": "坎", "lower": "離", "upperSymbol": "☵", "lowerSymbol": "☲" },
+        { "id": 64, "name": "未濟", "upper": "離", "lower": "坎", "upperSymbol": "☲", "lowerSymbol": "☵" }
+        ];
+
+        function createHexagramLines(upperTrigram, lowerTrigram) {
+            const lines = [...lowerTrigram.lines, ...upperTrigram.lines];
+            return lines.map(line => 
+                `<div class="line ${line ? 'solid-line' : 'broken-line'}"></div>`
+            ).join('');
+        }
+
+        function generateHexagrams() {
+            const grid1 = document.getElementById('hexagramGrid1');
+            const grid2 = document.getElementById('hexagramGrid2');
+            
+            // 第一種排法：列對應上卦，行對應下卦
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const upperTrigram = trigrams[col];
+                    const lowerTrigram = trigrams[row];
+                    const hexagramName = hexagramNames[col][row];
+                    
+                    const card = document.createElement('div');
+                    card.className = 'hexagram-card';
+                    card.innerHTML = `
+                        <div class="hexagram-name">${hexagramName}</div>
+                        <div class="hexagram-lines">
+                            ${createHexagramLines(upperTrigram, lowerTrigram)}
+                        </div>
+                    `;
+                    
+                    card.addEventListener('click', () => {
+                        alert(`${hexagramName}卦\n上卦：${upperTrigram.name} ${upperTrigram.symbol}\n下卦：${lowerTrigram.name} ${lowerTrigram.symbol}`);
+                    });
+                    
+                    grid1.appendChild(card);
+                }
+            }
+
+            // 第二種排法：行對應上卦，列對應下卦 (上下卦互換)
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const upperTrigram = trigrams[row]; 
+                    const lowerTrigram = trigrams[col];
+                    const hexagramName = hexagramNames[row][col];
+                    
+                    const card = document.createElement('div');
+                    card.className = 'hexagram-card';
+                    card.innerHTML = `
+                        <div class="hexagram-name">${hexagramName}</div>
+                        <div class="hexagram-lines">
+                            ${createHexagramLines(upperTrigram, lowerTrigram)}
+                        </div>
+                    `;
+                    
+                    card.addEventListener('click', () => {
+                        alert(`${hexagramName}卦\n上卦：${upperTrigram.name} ${upperTrigram.symbol}\n下卦：${lowerTrigram.name} ${lowerTrigram.symbol}`);
+                    });
+                    
+                    grid2.appendChild(card);
+                }
+            }
+            // 第三種排法：常見的六十四卦排列
+            const grid3 = document.getElementById('hexagramGrid3');
+            for (let i = 0; i < 64; i++) {
+                const name = hexagramOrder[i];
+
+                // 上下卦需要用演算法拆出來
+                const upper = trigrams[Math.floor(i / 8)];
+                const lower = trigrams[i % 8];
+
+                const card = document.createElement('div');
+                card.className = 'hexagram-card';
+                card.innerHTML = `
+                    <div class="hexagram-name">${name}</div>
+                    <div class="hexagram-lines">
+                        ${createHexagramLines(upper, lower)}
+                    </div>
+                `;
+                card.addEventListener('click', () => {
+                    alert(`${name}卦\n上卦：${upper.name} ${upper.symbol}\n下卦：${lower.name} ${lower.symbol}`);
+                });
+                grid3.appendChild(card);
+}
+        }
+
+        // 頁面載入完成後生成卦象
+        document.addEventListener('DOMContentLoaded', generateHexagrams);
+    </script>
+</body>
+</html>

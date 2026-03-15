@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>六十四卦 × 胺基酸密碼子 × 干支五行 — 互動計算器</title>
+  <style>
+    body{font-family: system-ui, -apple-system, "微軟正黑體", "Noto Sans TC", Arial; margin:12px; background:#f7f7fb; color:#111}
+    h1{font-size:18px;margin:6px 0}
+    .layout{display:flex;gap:12px;flex-wrap:wrap}
+    .panel{background:white;padding:10px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.06);flex:1;min-width:300px}
+    .grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+    .node{background:#eef2ff;border-radius:8px;padding:8px;text-align:center;cursor:pointer;border:1px solid rgba(12,34,99,0.06)}
+    .node:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(12,34,99,0.06)}
+    .node.active{background:#dfe8ff;border:2px solid #9fb0ff}
+    label{display:block;margin-top:6px;font-size:13px}
+    input[type=range]{width:100%}
+    .kv{display:flex;justify-content:space-between;font-size:13px}
+    pre{background:#0f1724;color:#e6eef8;padding:10px;border-radius:8px;overflow:auto}
+    .small{font-size:13px;color:#555}
+    button{background:#2563eb;color:white;border:none;padding:8px 10px;border-radius:8px;cursor:pointer}
+    button:active{transform:translateY(1px)}
+    .row{display:flex;gap:8px;align-items:center}
+    canvas{margin-top:10px}
+  </style>
+</head>
+<body>
+  <h1>六十四卦 × 胺基酸密碼子 × 干支五行 — 互動計算器</h1>
+  <div class="layout">
+    <div class="panel" style="flex:0 1 560px">
+      <div class="small">說明：點選一個節點 (64 個) 代表一個卦與 codon；系統會計算「今日干支 → 五行向量」，並套入遞迴公式計算 S_{t+1}。</div>
+      <hr />
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="panel" style="flex:0 1 380px">
+      <div id="info">
+        <div class="kv"><strong>選中節點：</strong><span id="selName">—</span></div>
+        <div class="kv"><strong>卦名：</strong><span id="selGua">—</span></div>
+        <div class="kv"><strong>codon：</strong><span id="selCodon">—</span></div>
+        <div class="kv"><strong>胺基酸：</strong><span id="selAA">—</span></div>
+        <div class="kv"><strong>codon 值（未縮放）：</strong><span id="selVal">—</span></div>
+        <div class="kv"><strong>S_t（初始分數，縮放 0–100）：</strong><span id="stVal">—</span></div>
+        <hr />
+        <div class="kv"><strong>今日公曆：</strong><span id="todayDate">—</span></div>
+        <div class="kv"><strong>今日干支：</strong><span id="ganzhi">—</span></div>
+        <div class="kv"><strong>五行向量 (天干+地支)：</strong><span id="vwx">—</span></div>
+      </div>
+
+      <hr />
+      <div>
+        <label>α（生放大） <span id="alphaVal">1</span></label>
+        <input id="alpha" type="range" min="0" max="3" step="0.01" value="1" />
+        <label>β（剋放大） <span id="betaVal">1</span></label>
+        <input id="beta" type="range" min="0" max="3" step="0.01" value="1" />
+        <label>δ 權重模式</label>
+        <div class="row"><select id="deltaMode"><option value="exp">2^{i-1}（指數，預設）</option><option value="equal">等權</option></select><button id="normBtn">正規化 δ</button></div>
+        <label>投影 P 函數</label>
+        <div class="row"><select id="pMode"><option value="clamp">clamp(0,100)</option><option value="sigmoid">sigmoid (映到 0–100)</option><option value="identity">identity</option></select></div>
+      </div>
+
+      <hr />
+      <div>
+        <button id="calcBtn">計算 S_{t+1}</button>
+        <div style="height:8px"></div>
+        <div class="kv"><strong>結果 S_{t+1}：</strong><span id="st1">—</span></div>
+        <div class="kv"><strong>吉凶判定：</strong><span id="luck">—</span></div>
+        <canvas id="chart" width="360" height="200"></canvas>
+      </div>
+
+      <hr />
+      <div>
+        <label>參數快速重置</label>
+        <div class="row"><button id="resetBtn">恢復預設</button><button id="exportBtn">匯出參數（JSON）</button></div>
+      </div>
+    </div>
+  </div>
+
+  <hr />
+  <div class="panel">
+    <strong>計算過程（逐步顯示）</strong>
+    <pre id="trace">尚未計算。</pre>
+  </div>
+
+<script>
+// ---------- 基本資料：64 個 codon 與胺基酸（RNA codons: U,C,A,G）
+const codonList = [
+  'UUU','UUC','UUA','UUG','UCU','UCC','UCA','UCG',
+  'UAU','UAC','UAA','UAG','UGU','UGC','UGA','UGG',
+  'CUU','CUC','CUA','CUG','CCU','CCC','CCA','CCG',
+  'CAU','CAC','CAA','CAG','CGU','CGC','CGA','CGG',
+  'AUU','AUC','AUA','AUG','ACU','ACC','ACA','ACG',
+  'AAU','AAC','AAA','AAG','AGU','AGC','AGA','AGG',
+  'GUU','GUC','GUA','GUG','GCU','GCC','GCA','GCG',
+  'GAU','GAC','GAA','GAG','GGU','GGC','GGA','GGG'
+];
+const codonToAA = {
+  UUU:'Phe',UUC:'Phe',UUA:'Leu',UUG:'Leu',UCU:'Ser',UCC:'Ser',UCA:'Ser',UCG:'Ser',
+  UAU:'Tyr',UAC:'Tyr',UAA:'Stop',UAG:'Stop',UGU:'Cys',UGC:'Cys',UGA:'Stop',UGG:'Trp',
+  CUU:'Leu',CUC:'Leu',CUA:'Leu',CUG:'Leu',CCU:'Pro',CCC:'Pro',CCA:'Pro',CCG:'Pro',
+  CAU:'His',CAC:'His',CAA:'Gln',CAG:'Gln',CGU:'Arg',CGC:'Arg',CGA:'Arg',CGG:'Arg',
+  AUU:'Ile',AUC:'Ile',AUA:'Ile',AUG:'Met',ACU:'Thr',ACC:'Thr',ACA:'Thr',ACG:'Thr',
+  AAU:'Asn',AAC:'Asn',AAA:'Lys',AAG:'Lys',AGU:'Ser',AGC:'Ser',AGA:'Arg',AGG:'Arg',
+  GUU:'Val',GUC:'Val',GUA:'Val',GUG:'Val',GCU:'Ala',GCC:'Ala',GCA:'Ala',GCG:'Ala',
+  GAU:'Asp',GAC:'Asp',GAA:'Glu',GAG:'Glu',GGU:'Gly',GGC:'Gly',GGA:'Gly',GGG:'Gly'
+};
+
+// ---------- 卦與 codon 映射（基於六爻二進制轉換）
+const guaNames = ['乾為天','坤為地','屯','蒙','需','訟','師','比','小畜','履','泰','否','同人','大有','謙','豫','隨','蠱','臨','觀','噬嗑','賁','剝','復','無妄','大畜','頤','大過','坎為水','離為火','鹹','恆','遯','大壯','晉','明夷','家人','睽','蹇','解','損','益','夬','姤','萃','升','困','井','革','鼎','震為雷','艮為山','漸','歸妹','豐','旅','巽為風','兌為澤','渙','節','中孚','小過','既濟','未濟'];
+const guaToCodon = {};
+for(let i = 0; i < 64; i++) {
+  const binary = i.toString(2).padStart(6, '0').split('').reverse().join('');
+  const codon = binary.replace(/0/g, 'U').replace(/1/g, 'C');
+  guaToCodon[guaNames[i]] = codon;
+  codonList[i] = codon; // 更新 codonList 與卦對應
+}
+
+// ---------- codon 值映射：U=1, C=2, A=3, G=4
+const baseVal = {U:1,C:2,A:3,G:4};
+function codonValue(codon) {
+  return codon.split('').reduce((s,ch)=>s + (baseVal[ch]||0),0);
+}
+function scaleTo100(v) { return v * (100/12); }
+
+// ---------- 干支與五行映射
+const stems = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const branches = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const stemToWu = {'甲':'木','乙':'木','丙':'火','丁':'火','戊':'土','己':'土','庚':'金','辛':'金','壬':'水','癸':'水'};
+const branchToWu = {'子':'水','丑':'土','寅':'木','卯':'木','辰':'土','巳':'火','午':'火','未':'土','申':'金','酉':'金','戌':'土','亥':'水'};
+const wuIndex = {'木':0,'火':1,'土':2,'金':3,'水':4};
+function stemToVector(stem) { const v = [0,0,0,0,0]; v[wuIndex[stemToWu[stem]]] = 1; return v; }
+function branchToVector(branch) { const v = [0,0,0,0,0]; v[wuIndex[branchToWu[branch]]] = 1; return v; }
+function getTotalVector(stem, branch) { return addVec(stemToVector(stem), branchToVector(branch)); }
+
+// ---------- 計算今日干支（1984-02-02 為甲子日）
+function daysBetween(a,b) {
+  const _MS = 24*3600*1000;
+  return Math.floor((Date.UTC(b.getFullYear(),b.getMonth(),b.getDate()) - Date.UTC(a.getFullYear(),a.getMonth(),a.getDate()))/_MS);
+}
+const refDate = new Date(Date.UTC(1984,1,2));
+function getGanZhiForDate(d) {
+  const days = daysBetween(refDate, d);
+  const idx = ((days % 60) + 60) % 60;
+  const stem = stems[idx % 10];
+  const branch = branches[idx % 12];
+  return {stem, branch, idx};
+}
+
+// ---------- M 生 / M 剋 的生成
+let Msheng = [];
+let Mke = [];
+for(let i=0;i<6;i++) {
+  Msheng.push(Array(5).fill(0).map((_,j)=>(((i+j)%5)+1)/15));
+  Mke.push(Array(5).fill(0).map((_,j)=>(((i+2+j)%5)+1)/18));
+}
+
+// δ 權重
+let delta = [1,2,4,8,16,32];
+function normalizeDelta() { const s = delta.reduce((a,b)=>a+b,0); delta = delta.map(x=>x/s); }
+
+// 介面建立：grid
+const grid = document.getElementById('grid');
+codonList.forEach((c, idx) => {
+  const el = document.createElement('div');
+  el.className = 'node';
+  el.dataset.codon = c;
+  el.dataset.gua = guaNames[idx];
+  el.dataset.idx = idx + 1;
+  el.innerHTML = `<div style="font-weight:600;font-size:13px">卦 ${idx+1}</div><div style="font-size:12px">${c}</div><div class="small">${codonToAA[c]||''}</div>`;
+  el.addEventListener('click', () => selectNode(el));
+  grid.appendChild(el);
+});
+let currentEl = null;
+function selectNode(el) {
+  if(currentEl) currentEl.classList.remove('active');
+  currentEl = el; el.classList.add('active');
+  const c = el.dataset.codon; const aa = codonToAA[c]||''; const val = codonValue(c);
+  document.getElementById('selName').innerText = '卦 ' + el.dataset.idx;
+  document.getElementById('selGua').innerText = el.dataset.gua;
+  document.getElementById('selCodon').innerText = c;
+  document.getElementById('selAA').innerText = aa;
+  document.getElementById('selVal').innerText = val;
+  const scaled = Math.round(scaleTo100(val)*100)/100;
+  document.getElementById('stVal').innerText = scaled;
+}
+
+// 顯示今日日期與干支
+function showToday() {
+  const d = new Date();
+  document.getElementById('todayDate').innerText = d.toLocaleDateString('zh-Hant', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const gz = getGanZhiForDate(d);
+  document.getElementById('ganzhi').innerText = gz.stem + gz.branch + '（idx=' + gz.idx + '）';
+  document.getElementById('vwx').innerText = JSON.stringify(getTotalVector(gz.stem, gz.branch));
+}
+showToday();
+
+// 控制元件
+const alphaEl = document.getElementById('alpha');
+const betaEl = document.getElementById('beta');
+alphaEl.addEventListener('input', () => document.getElementById('alphaVal').innerText = alphaEl.value);
+betaEl.addEventListener('input', () => document.getElementById('betaVal').innerText = betaEl.value);
+
+document.getElementById('normBtn').addEventListener('click', () => {
+  normalizeDelta();
+  alert('已正規化 δ（總和為 1）\nδ = [' + delta.map(x=>x.toFixed(3)).join(',') + ']');
+});
+document.getElementById('resetBtn').addEventListener('click', () => {
+  alphaEl.value = 1; betaEl.value = 1;
+  document.getElementById('alphaVal').innerText = '1';
+  document.getElementById('betaVal').innerText = '1';
+  delta = [1,2,4,8,16,32]; normalizeDelta();
+  Msheng = Msheng.map((v,i)=>v.map((x,ii)=>(((i+ii)%5)+1)/15));
+  Mke = Mke.map((v,i)=>v.map((x,ii)=>(((i+2+ii)%5)+1)/18));
+  alert('已重置為預設參數');
+});
+
+// 向量運算
+function dotVec(a,b) { return a.reduce((s,x,i)=>s + x*(b[i]||0),0); }
+function scalarMultiplyVec(v,s) { return v.map(x=>x*s); }
+function addVec(a,b) { return a.map((x,i)=>x + (b[i]||0)); }
+
+function applyP(x, mode) {
+  if(mode==='clamp') return Math.max(0, Math.min(100, x));
+  if(mode==='sigmoid') { const y = 1/(1+Math.exp(- (x-50)/10 )); return y*100; }
+  return x;
+}
+
+function compute() {
+  if(!currentEl) { alert('請先點選一個節點 codon'); return; }
+  const codon = currentEl.dataset.codon; const val = codonValue(codon); const St = scaleTo100(val);
+  const d = new Date(); const gz = getGanZhiForDate(d); const V5 = getTotalVector(gz.stem, gz.branch);
+  const alpha = parseFloat(alphaEl.value); const beta = parseFloat(betaEl.value);
+  let sumSheng = 0; let sumKe = 0; let trace = [];
+  for(let i=0; i<6; i++) {
+    const mS = dotVec(Msheng[i], V5); const mK = dotVec(Mke[i], V5);
+    const termS = mS * delta[i]; const termK = mK * delta[i];
+    sumSheng += termS; sumKe += termK;
+    trace.push(`i=${i+1} | M生·V = ${mS.toFixed(4)}, M剋·V = ${mK.toFixed(4)}, δ=${delta[i].toFixed(4)} => 生項=${termS.toFixed(4)}, 剋項=${termK.toFixed(4)}`);
+  }
+  trace.push('sumSheng=' + sumSheng.toFixed(6) + ', sumKe=' + sumKe.toFixed(6));
+  const raw = St + alpha * sumSheng - beta * sumKe;
+  const pmode = document.getElementById('pMode').value; const sNext = applyP(raw, pmode);
+  let luck = '';
+  if(sNext >= 80) luck = '大吉'; else if(sNext >= 60) luck = '小吉'; else if(sNext >= 40) luck = '平'; else if(sNext >= 20) luck = '小凶'; else luck = '大凶';
+
+  document.getElementById('st1').innerText = sNext.toFixed(3) + '（raw=' + raw.toFixed(3) + '）';
+  document.getElementById('luck').innerText = luck;
+
+  // 繪製五行分佈圖
+  const ctx = document.getElementById('chart').getContext('2d');
+  ctx.clearRect(0, 0, 360, 200);
+  ctx.fillStyle = '#2563eb';
+  const bars = [sNext/5, sNext/5, sNext/5, sNext/5, sNext/5]; // 均分展示
+  const maxHeight = 150;
+  bars.forEach((h, i) => {
+    ctx.fillRect(i * 72 + 20, 200 - h, 50, h);
+    ctx.fillStyle = '#111';
+    ctx.fillText(h.toFixed(1), i * 72 + 40, 190 - h);
+  });
+
+  document.getElementById('trace').innerText = '選卦=' + currentEl.dataset.gua + ' (codon=' + codon + ' ' + codonToAA[codon] + ')\nS_t（縮放）=' + St.toFixed(4) + '\n今日干支=' + gz.stem + gz.branch + ' 五行向量=' + JSON.stringify(V5) + '\n參數：α=' + alpha + ' β=' + beta + ' δ=' + delta.map(x=>x.toFixed(4)).join(',') + '\n--------------\n' + trace.join('\n');
+}
+
+document.getElementById('calcBtn').addEventListener('click', compute);
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const data = {alpha:parseFloat(alphaEl.value), beta:parseFloat(betaEl.value), delta, Msheng, Mke};
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'params.json'; a.click(); URL.revokeObjectURL(url);
+});
+
+selectNode(document.querySelector('.node'));
+</script>
+</body>
+</html>

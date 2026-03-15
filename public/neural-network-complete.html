@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hydraulic Neural Network - Fluid-Based Learning</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+      }
+
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #0a1520;
+        color: #e9f0ff;
+        overflow: hidden;
+      }
+
+      #app {
+        position: relative;
+        height: 100%;
+      }
+
+      canvas {
+        display: block;
+      }
+
+      .header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 1rem 2rem;
+        background: rgba(10, 21, 32, 0.95);
+        border-bottom: 1px solid rgba(79, 132, 255, 0.3);
+        backdrop-filter: blur(10px);
+        z-index: 10;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+      }
+
+      .header p {
+        margin: 0.25rem 0 0;
+        font-size: 0.85rem;
+        color: rgba(233, 240, 255, 0.6);
+      }
+
+      .layer-labels {
+        position: absolute;
+        top: 80px;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: space-around;
+        padding: 0 15%;
+        font-size: 0.75rem;
+        color: rgba(233, 240, 255, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        pointer-events: none;
+        z-index: 5;
+      }
+
+      .metrics-panel {
+        position: absolute;
+        top: 120px;
+        right: 2rem;
+        width: 280px;
+        background: rgba(10, 21, 32, 0.95);
+        border: 1px solid rgba(79, 132, 255, 0.4);
+        border-radius: 12px;
+        padding: 1.25rem;
+        backdrop-filter: blur(10px);
+      }
+
+      .metrics-panel h2 {
+        margin: 0 0 1rem;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: rgba(79, 132, 255, 0.8);
+      }
+
+      .metric-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        font-size: 0.85rem;
+      }
+
+      .metric-label {
+        color: rgba(233, 240, 255, 0.7);
+      }
+
+      .metric-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        font-family: 'Courier New', monospace;
+      }
+
+      .metric-value.loss {
+        color: #ff6b9d;
+      }
+
+      .metric-value.accuracy {
+        color: #4fffb0;
+      }
+
+      .chart {
+        width: 100%;
+        height: 100px;
+        margin: 1rem 0;
+        position: relative;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      canvas.mini-chart {
+        width: 100%;
+        height: 100%;
+      }
+
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: rgba(233, 240, 255, 0.5);
+        margin-top: 0.5rem;
+      }
+
+      .legend-panel {
+        position: absolute;
+        bottom: 2rem;
+        right: 2rem;
+        width: 280px;
+        background: rgba(10, 21, 32, 0.95);
+        border: 1px solid rgba(79, 132, 255, 0.4);
+        border-radius: 12px;
+        padding: 1.25rem;
+        backdrop-filter: blur(10px);
+      }
+
+      .legend-panel h2 {
+        margin: 0 0 1rem;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: rgba(79, 132, 255, 0.8);
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+        font-size: 0.8rem;
+      }
+
+      .legend-color {
+        width: 32px;
+        height: 12px;
+        border-radius: 6px;
+        flex-shrink: 0;
+      }
+
+      .controls-panel {
+        position: absolute;
+        bottom: 2rem;
+        left: 2rem;
+        width: 280px;
+        background: rgba(10, 21, 32, 0.95);
+        border: 1px solid rgba(79, 132, 255, 0.4);
+        border-radius: 12px;
+        padding: 1.25rem;
+        backdrop-filter: blur(10px);
+      }
+
+      .controls-panel h2 {
+        margin: 0 0 1rem;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: rgba(79, 132, 255, 0.8);
+      }
+
+      .control-item {
+        margin-bottom: 0.75rem;
+        font-size: 0.75rem;
+        color: rgba(233, 240, 255, 0.7);
+      }
+
+      .control-item kbd {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        background: rgba(79, 132, 255, 0.2);
+        border: 1px solid rgba(79, 132, 255, 0.4);
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 0.7rem;
+        margin-right: 0.5rem;
+      }
+
+      .input-group {
+        margin-bottom: 1rem;
+      }
+
+      .input-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 0.8rem;
+        color: rgba(233, 240, 255, 0.7);
+      }
+
+      .input-group input {
+        width: 100%;
+        padding: 0.5rem;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(79, 132, 255, 0.4);
+        border-radius: 6px;
+        color: #e9f0ff;
+        font-size: 0.9rem;
+        font-family: 'Courier New', monospace;
+      }
+
+      .input-group input:focus {
+        outline: none;
+        border-color: rgba(79, 132, 255, 0.8);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="header">
+        <h1>HYDRAULIC NEURAL NETWORK</h1>
+        <p>Fluid-Based Learning Visualization</p>
+      </div>
+
+      <div class="layer-labels">
+        <div>INPUT</div>
+        <div>HIDDEN 1</div>
+        <div>HIDDEN 2</div>
+        <div>OUTPUT</div>
+      </div>
+
+      <div class="metrics-panel">
+        <h2>Training Metrics</h2>
+        <div class="metric-row">
+          <span class="metric-label">Loss</span>
+          <span class="metric-value loss" id="lossValue">0.2563</span>
+        </div>
+        <div class="chart">
+          <canvas id="lossChart" class="mini-chart"></canvas>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Accuracy</span>
+          <span class="metric-value accuracy" id="accuracyValue">0.0%</span>
+        </div>
+        <div class="chart">
+          <canvas id="accuracyChart" class="mini-chart"></canvas>
+        </div>
+        <div class="info-row">
+          <span>Epoch: <span id="epoch">484</span></span>
+          <span>Dataset: <span id="dataset">XOR</span></span>
+          <span>Samples: <span id="samples">1939</span></span>
+        </div>
+      </div>
+
+      <div class="legend-panel">
+        <h2>Legend</h2>
+        <div class="legend-item">
+          <div class="legend-color" style="background: linear-gradient(90deg, #4db8ff, #6cf0ff);"></div>
+          <span>Blue Pipes: Positive weight (excitatory)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: linear-gradient(90deg, #ff4d6d, #ff8fa3);"></div>
+          <span>Red Pipes: Negative weight (inhibitory)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: linear-gradient(90deg, #4fffb0, #84ffb1);"></div>
+          <span>Fluid Level: Neuron activation</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: linear-gradient(90deg, #ffd700, #ffed4e);"></div>
+          <span>Gold Particles: Backpropagation</span>
+        </div>
+      </div>
+
+      <div class="controls-panel">
+        <h2>Controls</h2>
+        <div class="input-group">
+          <label>Learning Rate</label>
+          <input type="number" id="learningRate" value="1000" step="100" min="0">
+        </div>
+        <div class="control-item">
+          <kbd>SPACE</kbd> Pause/Resume
+        </div>
+        <div class="control-item">
+          <kbd>R</kbd> Reset Network
+        </div>
+        <div class="control-item">
+          <kbd>1-4</kbd> Change Dataset
+        </div>
+        <div class="control-item">
+          <kbd>UP/DOWN</kbd> Speed
+        </div>
+      </div>
+    </div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+      const app = document.getElementById("app");
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0a1520);
+      scene.fog = new THREE.Fog(0x0a1520, 15, 35);
+
+      const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+      camera.position.set(6, 3, 10);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.15;
+      app.appendChild(renderer.domElement);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.maxPolarAngle = Math.PI * 0.55;
+      controls.minDistance = 6;
+      controls.maxDistance = 18;
+
+      const ambient = new THREE.AmbientLight(0x4a5b8f, 0.5);
+      scene.add(ambient);
+
+      const keyLight = new THREE.PointLight(0x6cf0ff, 1.5, 30);
+      keyLight.position.set(4, 6, 6);
+      scene.add(keyLight);
+
+      const fillLight = new THREE.PointLight(0xff8fa3, 1.2, 30);
+      fillLight.position.set(-4, -2, 6);
+      scene.add(fillLight);
+
+      const nodePalette = [
+        { color: 0x4fffb0, emissive: 0x4fffb0 },
+        { color: 0x4db8ff, emissive: 0x4db8ff },
+        { color: 0x6cf0ff, emissive: 0x6cf0ff },
+        { color: 0xffd700, emissive: 0xffd700 }
+      ];
+
+      const layers = [
+        { x: -5, count: 3 },
+        { x: -1.5, count: 4 },
+        { x: 2, count: 4 },
+        { x: 5.5, count: 2 }
+      ];
+
+      const nodes = [];
+
+      layers.forEach((layer, layerIndex) => {
+        for (let i = 0; i < layer.count; i += 1) {
+          const node = new THREE.Mesh(
+            new THREE.SphereGeometry(0.4, 32, 32),
+            new THREE.MeshStandardMaterial({
+              color: nodePalette[Math.min(layerIndex, nodePalette.length - 1)].color,
+              emissive: nodePalette[Math.min(layerIndex, nodePalette.length - 1)].emissive,
+              emissiveIntensity: 0.5,
+              metalness: 0.3,
+              roughness: 0.2,
+            })
+          );
+          const yOffset = (layer.count - 1) * 1.2 * 0.5;
+          node.position.set(layer.x, i * 1.2 - yOffset, (i % 2 === 0 ? 1 : -1) * 0.6);
+          node.userData = { 
+            layerIndex, 
+            baseY: node.position.y,
+            value: (Math.random() * 0.5 + 0.1).toFixed(2)
+          };
+          scene.add(node);
+          nodes.push(node);
+
+          const ring = new THREE.Mesh(
+            new THREE.TorusGeometry(0.5, 0.02, 16, 32),
+            new THREE.MeshBasicMaterial({
+              color: nodePalette[Math.min(layerIndex, nodePalette.length - 1)].color,
+              transparent: true,
+              opacity: 0.6
+            })
+          );
+          ring.rotation.x = Math.PI / 2;
+          ring.position.copy(node.position);
+          scene.add(ring);
+        }
+      });
+
+      const pipes = [];
+      const connections = [];
+
+      for (let i = 0; i < layers.length - 1; i += 1) {
+        const layerNodes = nodes.filter((node) => node.userData.layerIndex === i);
+        const nextLayerNodes = nodes.filter((node) => node.userData.layerIndex === i + 1);
+        
+        layerNodes.forEach((startNode, startIndex) => {
+          nextLayerNodes.forEach((endNode, endIndex) => {
+            if ((startIndex + endIndex) % 2 !== 0) return;
+            
+            const isNegative = Math.random() > 0.5;
+            const curve = new THREE.CatmullRomCurve3([
+              startNode.position.clone(),
+              startNode.position.clone().lerp(endNode.position, 0.5).add(new THREE.Vector3(0, 0.3, 0)),
+              endNode.position.clone(),
+            ]);
+
+            const pipeColor = isNegative ? 0xff4d6d : 0x4db8ff;
+            const tubeGeometry = new THREE.TubeGeometry(curve, 20, 0.06, 12, false);
+            const tube = new THREE.Mesh(
+              tubeGeometry,
+              new THREE.MeshStandardMaterial({
+                color: pipeColor,
+                emissive: pipeColor,
+                emissiveIntensity: 0.4,
+                metalness: 0.5,
+                roughness: 0.3,
+              })
+            );
+            tube.userData = { curve, isNegative };
+            scene.add(tube);
+            pipes.push(tube);
+
+            connections.push({ 
+              curve, 
+              phase: Math.random() * Math.PI * 2,
+              isNegative 
+            });
+          });
+        });
+      }
+
+      const flowParticles = [];
+      connections.forEach((connection, index) => {
+        const color = connection.isNegative ? 0xffd700 : 0x8ef7ff;
+        const sphere = new THREE.Mesh(
+          new THREE.SphereGeometry(0.08, 16, 16),
+          new THREE.MeshBasicMaterial({
+            color: color,
+            transparent: true,
+            opacity: 0.95,
+          })
+        );
+        sphere.material.color.setHex(color);
+        scene.add(sphere);
+        flowParticles.push({ 
+          mesh: sphere, 
+          connection, 
+          speed: 0.15 + Math.random() * 0.2 
+        });
+      });
+
+      const ground = new THREE.Mesh(
+        new THREE.CircleGeometry(8, 64),
+        new THREE.MeshStandardMaterial({
+          color: 0x1a2a45,
+          roughness: 0.8,
+          metalness: 0.1,
+        })
+      );
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = -3;
+      scene.add(ground);
+
+      let epoch = 484;
+      let loss = 0.2563;
+      let accuracy = 0.0;
+      const lossHistory = [];
+      const accuracyHistory = [];
+
+      const lossCanvas = document.getElementById('lossChart');
+      const lossCtx = lossCanvas.getContext('2d');
+      const accuracyCanvas = document.getElementById('accuracyChart');
+      const accuracyCtx = accuracyCanvas.getContext('2d');
+
+      lossCanvas.width = 280;
+      lossCanvas.height = 100;
+      accuracyCanvas.width = 280;
+      accuracyCanvas.height = 100;
+
+      function updateMetrics() {
+        const scaleFactor = learningRate / 1000;
+        const updateSpeed = 1 + scaleFactor * 2; // 學習率影響更新速度
+        
+        epoch += Math.floor(updateSpeed);
+        loss = Math.max(0.001, loss - Math.random() * 0.02 * updateSpeed);
+        accuracy = Math.min(100, accuracy + Math.random() * 3 * updateSpeed);
+
+        document.getElementById('epoch').textContent = epoch;
+        document.getElementById('lossValue').textContent = loss.toFixed(4);
+        document.getElementById('accuracyValue').textContent = accuracy.toFixed(1) + '%';
+        document.getElementById('samples').textContent = epoch * 4 + 15; // 模擬累積樣本數
+
+        lossHistory.push(loss);
+        accuracyHistory.push(accuracy);
+        if (lossHistory.length > 50) lossHistory.shift();
+        if (accuracyHistory.length > 50) accuracyHistory.shift();
+
+        drawChart(lossCtx, lossHistory, '#ff6b9d', lossCanvas.width, lossCanvas.height);
+        drawChart(accuracyCtx, accuracyHistory, '#4fffb0', accuracyCanvas.width, accuracyCanvas.height);
+      }
+
+      function drawChart(ctx, data, color, width, height) {
+        ctx.clearRect(0, 0, width, height);
+        if (data.length < 2) return;
+
+        const max = Math.max(...data);
+        const min = Math.min(...data);
+        const range = max - min || 1;
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+
+        data.forEach((value, index) => {
+          const x = (index / (data.length - 1)) * width;
+          const y = height - ((value - min) / range) * (height - 20) - 10;
+          if (index === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        });
+
+        ctx.stroke();
+      }
+
+      const clock = new THREE.Clock();
+      let learningRate = 1000;
+      let metricsCounter = 0;
+
+      document.getElementById('learningRate').addEventListener('input', (e) => {
+        learningRate = parseFloat(e.target.value) || 0;
+      });
+
+      for (let i = 0; i < 30; i++) {
+        lossHistory.push(1.5 - i * 0.04);
+        accuracyHistory.push(i * 2);
+      }
+
+      function animate() {
+        const elapsed = clock.getElapsedTime();
+        const scaleFactor = learningRate / 1000;
+
+        metricsCounter++;
+        // 更新頻率：學習率越高更新越快
+        const updateInterval = Math.max(3, Math.floor(15 - scaleFactor * 10));
+        if (metricsCounter % updateInterval === 0) {
+          updateMetrics();
+        }
+
+        nodes.forEach((node) => {
+          const pulse = Math.sin(elapsed * 1.5 * scaleFactor + node.position.x) * 0.12;
+          node.position.y = node.userData.baseY + pulse;
+          node.material.emissiveIntensity = 0.5 + Math.abs(pulse) * 3;
+        });
+
+        pipes.forEach((pipe) => {
+          const heat = Math.sin(elapsed * 1.8 * scaleFactor) * 0.3;
+          pipe.material.emissiveIntensity = 0.4 + Math.abs(heat) * 0.5;
+        });
+
+        flowParticles.forEach((particle) => {
+          const { mesh, connection, speed } = particle;
+          const adjustedSpeed = speed * scaleFactor;
+          const t = (elapsed * adjustedSpeed + connection.phase) % 1;
+          const point = connection.curve.getPointAt(t);
+          mesh.position.copy(point);
+          mesh.scale.setScalar(0.9 + Math.sin(elapsed * 3 * scaleFactor + t * Math.PI * 2) * 0.2);
+        });
+
+        controls.update();
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+      }
+
+      function onResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      window.addEventListener("resize", onResize);
+      animate();
+    </script>
+  </body>
+</html>

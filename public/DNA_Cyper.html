@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文字基因加密 App</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        textarea { width: 100%; height: 100px; margin-bottom: 10px; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; }
+        .buttons { display: flex; gap: 10px; margin-bottom: 20px; }
+        button { flex: 1; padding: 10px; cursor: pointer; border: none; border-radius: 5px; color: white; font-weight: bold; }
+        .btn-encode { background-color: #e74c3c; } /* 紅色 */
+        .btn-decode { background-color: #2e31cc; } /* 藍色 #2ecc71 綠色 */
+        #output { padding: 10px; border: 1px dashed #aaa; min-height: 50px; word-break: break-all; white-space: pre-wrap; }
+        .label { font-weight: bold; margin-bottom: 5px; display: block; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🧬 基因加密 App</h2>
+    
+    <label class="label">輸入文字或 DNA 序列：</label>
+    <textarea id="inputArea" placeholder="輸入要編碼的文字，或要解碼的 DNA (ATCG)..."></textarea>
+
+    <div class="buttons">
+        <button class="btn-encode" onclick="handleEncode()">編碼 (紅色)</button>
+        <button class="btn-decode" onclick="handleDecode()">解碼 (藍色)</button>
+    </div>
+
+    <label class="label">輸出結果：</label>
+    <div id="output"></div>
+</div>
+
+<script>
+    // 映射表
+    const map = { '00': 'A', '01': 'T', '10': 'C', '11': 'G' };
+    const reverseMap = { 'A': '00', 'T': '01', 'C': '10', 'G': '11' };
+
+    // 編碼邏輯
+    function handleEncode() {
+        const text = document.getElementById('inputArea').value;
+        if (!text) return;
+
+        // 1. 轉為 UTF-8 位元組
+        const encoder = new TextEncoder();
+        const bytes = encoder.encode(text);
+
+        // 2. 轉為二進位字串並對應 DNA
+        let dna = "";
+        bytes.forEach(byte => {
+            let bin = byte.toString(2).padStart(8, '0');
+            for (let i = 0; i < bin.length; i += 2) {
+                dna += map[bin.substring(i, i + 2)];
+            }
+        });
+
+        displayOutput(dna, "#e74c3c");
+    }
+
+    // 解碼邏輯
+    function handleDecode() {
+        const dna = document.getElementById('inputArea').value.toUpperCase().replace(/[^ATCG]/g, '');
+        if (!dna || dna.length % 4 !== 0) {
+            displayOutput("無效的 DNA 序列（長度必須是 4 的倍數）", "black");
+            return;
+        }
+
+        try {
+            // 1. DNA 轉回二進位
+            let bin = "";
+            for (let char of dna) {
+                bin += reverseMap[char];
+            }
+
+            // 2. 二進位轉回位元組
+            let bytes = new Uint8Array(bin.length / 8);
+            for (let i = 0; i < bin.length; i += 8) {
+                bytes[i / 8] = parseInt(bin.substring(i, i + 8), 2);
+            }
+
+            // 3. UTF-8 轉回文字
+            const decoder = new TextDecoder();
+            const decodedText = decoder.decode(bytes);
+          //displayOutput(decodedText, "#2ecc71");  /* 綠色 */
+            displayOutput(decodedText, "#2e31cc"); //* 藍色 */
+        } catch (e) {
+            displayOutput("解碼失敗，請檢查格式", "black");
+        }
+    }
+
+    function displayOutput(content, color) {
+        const out = document.getElementById('output');
+        out.innerText = content;
+        out.style.color = color;
+    }
+</script>
+
+</body>
+</html>

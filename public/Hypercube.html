@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4維立方體可視化教學</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+        }
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(76, 201, 240, 0.3);
+            border: 1px solid rgba(76, 201, 240, 0.2);
+            transition: opacity 0.3s;
+        }
+        #info.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #info h1 {
+            margin-top: 0;
+            color: #4cc9f0;
+            font-size: 1.5em;
+            text-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
+        }
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(76, 201, 240, 0.3);
+            border: 1px solid rgba(76, 201, 240, 0.2);
+        }
+        .control-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        button {
+            background: linear-gradient(135deg, #4cc9f0 0%, #3aa8d0 100%);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(76, 201, 240, 0.4);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 201, 240, 0.6);
+        }
+        button.active {
+            background: linear-gradient(135deg, #f72585 0%, #d01257 100%);
+            box-shadow: 0 4px 15px rgba(247, 37, 133, 0.4);
+        }
+        .step {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-left: 3px solid #4cc9f0;
+            background: rgba(76, 201, 240, 0.1);
+            border-radius: 4px;
+        }
+        .step h3 {
+            margin-top: 0;
+            color: #4cc9f0;
+        }
+        .highlight {
+            color: #f72585;
+            font-weight: bold;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 0.9em;
+        }
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(76, 201, 240, 0.3);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #4cc9f0;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(76, 201, 240, 0.8);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #4cc9f0;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(76, 201, 240, 0.8);
+        }
+        #stats {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 100;
+            font-size: 0.9em;
+            border: 1px solid rgba(76, 201, 240, 0.2);
+        }
+        #stats h3 {
+            margin-top: 0;
+            color: #4cc9f0;
+        }
+        .toggle-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 101;
+            padding: 8px 15px;
+            font-size: 0.9em;
+        }
+        label {
+            margin: 0;
+            white-space: nowrap;
+        }
+        #colorMode {
+            padding: 8px 15px;
+            border-radius: 6px;
+            background: rgba(76, 201, 240, 0.2);
+            border: 1px solid #4cc9f0;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <button class="toggle-btn" id="toggleInfo">隱藏説明</button>
+        
+        <div id="info">
+            <h1>4維立方體（超立方體）可視化</h1>
+            <div class="step">
+                <h3>📐 什麼是4維立方體？</h3>
+                <p>4維立方體（Tesseract/超立方體）是立方體在4維空間的擴展：</p>
+                <ul>
+                    <li><span class="highlight">16個頂點</span> - 座標為 (±1, ±1, ±1, ±1)</li>
+                    <li><span class="highlight">32條邊</span> - 連接相鄰頂點</li>
+                    <li><span class="highlight">24個正方形面</span></li>
+                    <li><span class="highlight">8個立方體邊界</span></li>
+                </ul>
+            </div>
+            <div class="step">
+                <h3>👁️ 如何理解投影？</h3>
+                <p>就像3D物體在2D平面上產生陰影，4D超立方體在3D空間中產生投影。這個可視化展示了超立方體的3D投影，並通過4維旋轉展示其結構。</p>
+            </div>
+            <div class="step">
+                <h3>🎮 交互説明</h3>
+                <ul>
+                    <li><strong>鼠標拖動</strong> - 旋轉3D視角</li>
+                    <li><strong>滾輪</strong> - 縮放</li>
+                    <li><strong>按鈕</strong> - 切換4D旋轉模式</li>
+                    <li><strong>滑塊</strong> - 調節旋轉速度和投影距離</li>
+                </ul>
+            </div>
+            <div class="step">
+                <h3>🌈 維度理解</h3>
+                <p><strong>0維</strong>: 點 → <strong>1維</strong>: 線 → <strong>2維</strong>: 正方形 → <strong>3維</strong>: 立方體 → <strong>4維</strong>: 超立方體</p>
+                <p>每增加一維，元素數量都有規律地增長！</p>
+            </div>
+        </div>
+
+        <div id="stats">
+            <h3>統計信息</h3>
+            <p>頂點: <span class="highlight">16</span></p>
+            <p>邊: <span class="highlight">32</span></p>
+            <p>面: <span class="highlight">24</span></p>
+            <p>立方體: <span class="highlight">8</span></p>
+            <p style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(76, 201, 240, 0.3);">
+                當前角度:<br>
+                XY: <span id="angleXY">0°</span><br>
+                ZW: <span id="angleZW">0°</span><br>
+                XW: <span id="angleXW">0°</span>
+            </p>
+        </div>
+
+        <div id="controls">
+            <div class="control-row">
+                <button id="rotateXY">XY平面旋轉</button>
+                <button id="rotateZW">ZW平面旋轉</button>
+                <button id="rotateXW">XW平面旋轉</button>
+            </div>
+            <div class="control-row">
+                <button id="rotateAll" class="active">複合旋轉</button>
+                <button id="pause">暫停</button>
+                <button id="reset">重置</button>
+            </div>
+            <div class="control-row slider-container">
+                <label>速度:</label>
+                <input type="range" id="speedSlider" min="0" max="2" step="0.1" value="1">
+                <span id="speedValue">1.0x</span>
+            </div>
+            <div class="control-row slider-container">
+                <label>投影距離:</label>
+                <input type="range" id="distanceSlider" min="2" max="8" step="0.5" value="4">
+                <span id="distanceValue">4.0</span>
+            </div>
+            <div class="control-row slider-container">
+                <label>顏色模式:</label>
+                <select id="colorMode">
+                    <option value="default">默認</option>
+                    <option value="depth">深度漸變</option>
+                    <option value="rainbow">彩虹</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // OrbitControls 內聯實現
+        THREE.OrbitControls = function(camera, domElement) {
+            this.camera = camera;
+            this.domElement = domElement;
+            this.enabled = true;
+            this.target = new THREE.Vector3();
+            this.minDistance = 0;
+            this.maxDistance = Infinity;
+            this.enableDamping = false;
+            this.dampingFactor = 0.05;
+            
+            const scope = this;
+            const EPS = 0.000001;
+            const rotateStart = new THREE.Vector2();
+            const rotateEnd = new THREE.Vector2();
+            const rotateDelta = new THREE.Vector2();
+            const spherical = new THREE.Spherical();
+            const sphericalDelta = new THREE.Spherical();
+            let scale = 1;
+            const panOffset = new THREE.Vector3();
+            let zoomChanged = false;
+            
+            const STATE = { NONE: -1, ROTATE: 0, DOLLY: 1, PAN: 2, TOUCH_ROTATE: 3, TOUCH_PAN: 4, TOUCH_DOLLY_PAN: 5 };
+            let state = STATE.NONE;
+            
+            this.update = function() {
+                const offset = new THREE.Vector3();
+                const quat = new THREE.Quaternion().setFromUnitVectors(camera.up, new THREE.Vector3(0, 1, 0));
+                const quatInverse = quat.clone().invert();
+                const lastPosition = new THREE.Vector3();
+                const lastQuaternion = new THREE.Quaternion();
+                
+                return function update() {
+                    const position = scope.camera.position;
+                    offset.copy(position).sub(scope.target);
+                    offset.applyQuaternion(quat);
+                    spherical.setFromVector3(offset);
+                    
+                    if (scope.enableDamping) {
+                        spherical.theta += sphericalDelta.theta * scope.dampingFactor;
+                        spherical.phi += sphericalDelta.phi * scope.dampingFactor;
+                    } else {
+                        spherical.theta += sphericalDelta.theta;
+                        spherical.phi += sphericalDelta.phi;
+                    }
+                    
+                    spherical.phi = Math.max(EPS, Math.min(Math.PI - EPS, spherical.phi));
+                    spherical.makeSafe();
+                    spherical.radius *= scale;
+                    spherical.radius = Math.max(scope.minDistance, Math.min(scope.maxDistance, spherical.radius));
+                    
+                    scope.target.add(panOffset);
+                    offset.setFromSpherical(spherical);
+                    offset.applyQuaternion(quatInverse);
+                    position.copy(scope.target).add(offset);
+                    scope.camera.lookAt(scope.target);
+                    
+                    if (scope.enableDamping) {
+                        sphericalDelta.theta *= (1 - scope.dampingFactor);
+                        sphericalDelta.phi *= (1 - scope.dampingFactor);
+                        panOffset.multiplyScalar(1 - scope.dampingFactor);
+                    } else {
+                        sphericalDelta.set(0, 0, 0);
+                        panOffset.set(0, 0, 0);
+                    }
+                    
+                    scale = 1;
+                    
+                    if (zoomChanged || lastPosition.distanceToSquared(scope.camera.position) > EPS || 
+                        8 * (1 - lastQuaternion.dot(scope.camera.quaternion)) > EPS) {
+                        lastPosition.copy(scope.camera.position);
+                        lastQuaternion.copy(scope.camera.quaternion);
+                        zoomChanged = false;
+                        return true;
+                    }
+                    return false;
+                };
+            }();
+            
+            this.reset = function() {
+                scope.target.set(0, 0, 0);
+                scope.camera.position.set(0, 0, 5);
+                scope.update();
+            };
+            
+            function onMouseDown(e) {
+                if (!scope.enabled) return;
+                e.preventDefault();
+                rotateStart.set(e.clientX, e.clientY);
+                state = STATE.ROTATE;
+                scope.domElement.addEventListener('mousemove', onMouseMove);
+                scope.domElement.addEventListener('mouseup', onMouseUp);
+            }
+            
+            function onMouseMove(e) {
+                if (!scope.enabled) return;
+                e.preventDefault();
+                rotateEnd.set(e.clientX, e.clientY);
+                rotateDelta.subVectors(rotateEnd, rotateStart).multiplyScalar(0.5);
+                sphericalDelta.theta -= 2 * Math.PI * rotateDelta.x / scope.domElement.clientHeight;
+                sphericalDelta.phi -= 2 * Math.PI * rotateDelta.y / scope.domElement.clientHeight;
+                rotateStart.copy(rotateEnd);
+                scope.update();
+            }
+            
+            function onMouseUp() {
+                scope.domElement.removeEventListener('mousemove', onMouseMove);
+                scope.domElement.removeEventListener('mouseup', onMouseUp);
+                state = STATE.NONE;
+            }
+            
+            function onMouseWheel(e) {
+                if (!scope.enabled) return;
+                e.preventDefault();
+                if (e.deltaY < 0) {
+                    scale /= 0.95;
+                } else if (e.deltaY > 0) {
+                    scale *= 0.95;
+                }
+                scope.update();
+            }
+            
+            this.domElement.addEventListener('mousedown', onMouseDown);
+            this.domElement.addEventListener('wheel', onMouseWheel);
+            this.update();
+        };
+
+        // 場景設置
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 0);
+        document.getElementById('container').appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        camera.position.z = 5;
+
+        // 光源
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+
+        // 4D頂點
+        const vertices4D = [];
+        for (let i = 0; i < 16; i++) {
+            vertices4D.push([
+                (i & 1) ? 1 : -1,
+                (i & 2) ? 1 : -1,
+                (i & 4) ? 1 : -1,
+                (i & 8) ? 1 : -1
+            ]);
+        }
+
+        // 邊
+        const edges = [];
+        for (let i = 0; i < 16; i++) {
+            for (let j = i + 1; j < 16; j++) {
+                let diff = 0;
+                for (let k = 0; k < 4; k++) {
+                    if (vertices4D[i][k] !== vertices4D[j][k]) diff++;
+                }
+                if (diff === 1) edges.push([i, j]);
+            }
+        }
+
+        // 投影函數
+        let projectionDistance = 4;
+        function project4DTo3D(v4d, angles) {
+            let [x, y, z, w] = v4d;
+            const [aXY, aZW, aXW] = angles;
+            
+            // XY旋轉
+            let x1 = x * Math.cos(aXY) - y * Math.sin(aXY);
+            let y1 = x * Math.sin(aXY) + y * Math.cos(aXY);
+            
+            // ZW旋轉
+            let z2 = z * Math.cos(aZW) - w * Math.sin(aZW);
+            let w2 = z * Math.sin(aZW) + w * Math.cos(aZW);
+            
+            // XW旋轉
+            let x3 = x1 * Math.cos(aXW) - w2 * Math.sin(aXW);
+            let w3 = x1 * Math.sin(aXW) + w2 * Math.cos(aXW);
+            
+            // 透視投影
+            const scale = projectionDistance / (projectionDistance + w3);
+            return new THREE.Vector3(x3 * scale, y1 * scale, z2 * scale);
+        }
+
+        // 可視化對象
+        const verticesGroup = new THREE.Group();
+        const edgesGroup = new THREE.Group();
+        scene.add(verticesGroup);
+        scene.add(edgesGroup);
+
+        const vertexGeometry = new THREE.SphereGeometry(0.06, 16, 16);
+        const vertexMeshes = [];
+        const edgeLines = [];
+
+        let colorMode = 'default';
+        function getVertexColor(index) {
+            if (colorMode === 'rainbow') {
+                return new THREE.Color().setHSL(index / 16, 1, 0.5);
+            } else if (colorMode === 'depth') {
+                return new THREE.Color(0xf72585);
+            }
+            return new THREE.Color(0xf72585);
+        }
+
+        // 創建頂點
+        for (let i = 0; i < 16; i++) {
+            const mat = new THREE.MeshPhongMaterial({ 
+                color: getVertexColor(i),
+                emissive: getVertexColor(i),
+                emissiveIntensity: 0.3
+            });
+            const mesh = new THREE.Mesh(vertexGeometry, mat);
+            verticesGroup.add(mesh);
+            vertexMeshes.push(mesh);
+        }
+
+        // 創建邊
+        const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x4cc9f0, linewidth: 2 });
+        for (let i = 0; i < edges.length; i++) {
+            const geom = new THREE.BufferGeometry();
+            const line = new THREE.Line(geom, edgeMaterial);
+            edgesGroup.add(line);
+            edgeLines.push(line);
+        }
+
+        // 旋轉狀態
+        let rotationAngles = [0, 0, 0];
+        let rotationMode = 'all';
+        let isPaused = false;
+        let rotationSpeed = 1;
+
+        function updateTesseract() {
+            for (let i = 0; i < 16; i++) {
+                const pos = project4DTo3D(vertices4D[i], rotationAngles);
+                vertexMeshes[i].position.copy(pos);
+                
+                if (colorMode === 'depth') {
+                    const depth = (pos.z + 2) / 4;
+                    vertexMeshes[i].material.color.setHSL(0.55 + depth * 0.15, 0.8, 0.5);
+                }
+            }
+
+            for (let i = 0; i < edges.length; i++) {
+                const [si, ei] = edges[i];
+                const sp = vertexMeshes[si].position;
+                const ep = vertexMeshes[ei].position;
+                const positions = new Float32Array([sp.x, sp.y, sp.z, ep.x, ep.y, ep.z]);
+                edgeLines[i].geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            }
+            
+            // 更新角度顯示
+            document.getElementById('angleXY').textContent = (rotationAngles[0] * 180 / Math.PI % 360).toFixed(0) + '°';
+            document.getElementById('angleZW').textContent = (rotationAngles[1] * 180 / Math.PI % 360).toFixed(0) + '°';
+            document.getElementById('angleXW').textContent = (rotationAngles[2] * 180 / Math.PI % 360).toFixed(0) + '°';
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (!isPaused) {
+                const baseSpeed = 0.01 * rotationSpeed;
+                if (rotationMode === 'xy') {
+                    rotationAngles[0] += baseSpeed;
+                } else if (rotationMode === 'zw') {
+                    rotationAngles[1] += baseSpeed;
+                } else if (rotationMode === 'xw') {
+                    rotationAngles[2] += baseSpeed;
+                } else if (rotationMode === 'all') {
+                    rotationAngles[0] += baseSpeed * 0.5;
+                    rotationAngles[1] += baseSpeed * 0.7;
+                    rotationAngles[2] += baseSpeed * 0.3;
+                }
+            }
+            
+            updateTesseract();
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // 事件監聽
+        function setActiveButton(btn) {
+            document.querySelectorAll('#controls button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        document.getElementById('rotateXY').addEventListener('click', function() {
+            rotationMode = 'xy';
+            isPaused = false;
+            setActiveButton(this);
+        });
+
+        document.getElementById('rotateZW').addEventListener('click', function() {
+            rotationMode = 'zw';
+            isPaused = false;
+            setActiveButton(this);
+        });
+
+        document.getElementById('rotateXW').addEventListener('click', function() {
+            rotationMode = 'xw';
+            isPaused = false;
+            setActiveButton(this);
+        });
+
+        document.getElementById('rotateAll').addEventListener('click', function() {
+            rotationMode = 'all';
+            isPaused = false;
+            setActiveButton(this);
+        });
+
+        document.getElementById('pause').addEventListener('click', function() {
+            isPaused = !isPaused;
+            this.textContent = isPaused ? '繼續' : '暫停';
+            setActiveButton(this);
+        });
+
+        document.getElementById('reset').addEventListener('click', () => {
+            rotationAngles = [0, 0, 0];
+            controls.reset();
+            rotationMode = 'all';
+            isPaused = false;
+            document.getElementById('pause').textContent = '暫停';
+        });
+
+        document.getElementById('speedSlider').addEventListener('input', (e) => {
+            rotationSpeed = parseFloat(e.target.value);
+            document.getElementById('speedValue').textContent = rotationSpeed.toFixed(1) + 'x';
+        });
+
+        document.getElementById('distanceSlider').addEventListener('input', (e) => {
+            projectionDistance = parseFloat(e.target.value);
+            document.getElementById('distanceValue').textContent = projectionDistance.toFixed(1);
+        });
+
+        document.getElementById('colorMode').addEventListener('change', (e) => {
+            colorMode = e.target.value;
+            vertexMeshes.forEach((mesh, i) => {
+                mesh.material.color = getVertexColor(i);
+                mesh.material.emissive = getVertexColor(i);
+            });
+        });
+
+        document.getElementById('toggleInfo').addEventListener('click', function() {
+            const info = document.getElementById('info');
+            info.classList.toggle('hidden');
+            this.textContent = info.classList.contains('hidden') ? '顯示説明' : '隱藏説明';
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        updateTesseract();
+        animate();
+    </script>
+</body>
+</html>
