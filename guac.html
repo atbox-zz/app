@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>六十四卦 · 八卦方圓圖（Unicode 爻符號）</title>
+<style>
+  :root{
+    --bg1:#fff7eb; --bg2:#f0e7df; --accent:#7b3f00;
+    --panel:#ffffffcc;
+    font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#333}
+  .wrap{max-width:1100px;margin:18px auto;padding:16px;}
+  h1{margin:6px 0 12px 0;color:#3b2f2f;text-align:center}
+  canvas{display:block;margin:0 auto;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,0.15)}
+  .note{max-width:1100px;margin:12px auto;color:#5b4b3b;font-size:14px;text-align:center}
+  .credit{font-size:12px;color:#7a6a5a;text-align:center;margin-top:6px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>六十四卦 · 八卦方圓圖（⚊ = 陽、⚋ = 陰）</h1>
+    <canvas id="guaCanvas" width="1000" height="1000" aria-label="六十四卦方圓圖"></canvas>
+    <div class="note">滑鼠移到某卦上會放大；點選可鎖定放大（再次點選解除）。資料來源：Wikibooks（六十四卦表）與中文維基方圓排列說明。</div>
+    <div class="credit">© 自動生成 — 如需不同字體、顏色或要把爻換成線條（非 Unicode）請告訴我。</div>
+  </div>
+
+<script>
+// ======= 你提供的順序（我會忠實依此順序順時針排列） =======
+const gua64Names = [ 
+  "坤為地", "地雷復", "地水師", "地澤臨", "地山謙", "地火明夷", "地風升", "地天泰",
+  "雷地豫", "震為雷", "雷水解", "雷澤歸妹", "雷山小過", "雷火豐", "雷風恆", "雷天大壯",
+  "水地比", "水雷屯", "坎為水", "水澤節", "水山蹇", "水火既濟", "水風井", "水天需",
+  "澤地萃", "澤雷隨", "澤水困", "兌為澤", "澤山咸", "澤火革", "澤風大過", "澤天夬",
+  "山地剝", "山雷頤", "山水蒙", "山澤損", "艮為山", "山火賁", "山風蠱", "山天大畜",
+  "火地晉", "火雷噬嗑", "火水未濟", "火澤睽", "火山旅", "離為火", "火風鼎", "火天大有",
+  "風地觀", "風雷益", "風水渙", "風澤中孚", "風山漸", "風火家人", "巽為風", "風天小畜",
+  "天地否", "天雷無妄", "天水訟", "天澤履", "天山遯", "天火同人", "天風姤", "乾為天"
+];
+
+// ======= 來自 Wikibooks 的 canonical 名稱 與 binary（上→下） =======
+// 來源表（Wikibooks: I Ching/The 64 Hexagrams），binary: '1' = 陽, '0' = 陰；字串順序為【上→下】。
+// 我在畫面上會把它反轉為【下→上】以符合爻位顯示習慣。
+const canonicalBinary = {
+  "乾":"111111","坤":"000000","屯":"010001","蒙":"100010","需":"010111","訟":"111010","師":"000010","比":"010000",
+  "小畜":"110111","履":"111011","泰":"000111","否":"111000","同人":"111101","大有":"101111","謙":"000100","豫":"001000",
+  "隨":"011001","蠱":"100110","臨":"000011","觀":"110000","噬嗑":"101001","賁":"100101","剝":"100000","復":"000001",
+  "無妄":"111001","大畜":"100111","頤":"100001","大過":"011110","坎":"010010","離":"101101","咸":"011100","恆":"001110",
+  "遯":"111100","大壯":"001111","晉":"101000","明夷":"000101","家人":"110101","睽":"101011","蹇":"010100","解":"001010",
+  "損":"100011","益":"110001","夬":"011111","姤":"111110","萃":"011000","升":"000110","困":"011010","井":"010110",
+  "革":"011101","鼎":"101110","震":"001001","艮":"100100","漸":"110100","歸妹":"001011","豐":"001101","旅":"101100",
+  "巽":"110110","兌":"011011","渙":"110010","節":"010011","中孚":"110011","小過":"001100","既濟":"010101","未濟":"101010"
+};
+
+// 小工具：從你的字串（例如 "地雷復"）找到對應的 canonical 名稱（如 "復"），再取 binary
+function findBinaryByLabel(fullName){
+  // 先嘗試精確鍵（若使用者提供恰好是 canonical 名稱）
+  if(canonicalBinary[fullName]) return canonicalBinary[fullName];
+  // 否則嘗試以 canonical 名稱為子字串檢索（多數情況像 '地雷復' 含 '復'）
+  for(const key of Object.keys(canonicalBinary)){
+    if(fullName.indexOf(key) !== -1) return canonicalBinary[key];
+  }
+  // 找不到就回傳全陰（保險）
+  return "000000";
+}
+
+// Canvas 與畫面設定
+const canvas = document.getElementById('guaCanvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const cx = W/2, cy = H/2;
+const outerR = 420;
+const guaR = 330;
+const labelR = 380;
+
+// 畫古風漸層背景
+function drawBackground(){
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#fff8ec');
+  g.addColorStop(1,'#efe6dc');
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+  // subtle texture circles
+  for(let i=0;i<8;i++){
+    ctx.beginPath();
+    ctx.arc(cx,cy, 120 + i*40, 0, Math.PI*2);
+    ctx.strokeStyle = (i%2===0)?'rgba(120,80,40,0.03)':'rgba(60,40,20,0.02)';
+    ctx.lineWidth = 1; ctx.stroke();
+  }
+}
+
+// 畫八卦方位（乾、兌、離、震、巽、坎、艮、坤） — 以傳統方位放置（這裡放在外圈）
+const baguaChars = ["坎","艮","震","巽","離","坤","兌","乾"];
+function drawBagua(){
+  ctx.save();
+  ctx.font = "700 28px Noto Sans TC, sans-serif";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  for(let i=0;i<8;i++){
+    const angle = (i/8)*Math.PI*2 - Math.PI/2; // 從上方開始順時針
+    const x = cx + (outerR+60)*Math.cos(angle);
+    const y = cy + (outerR+60)*Math.sin(angle);
+    ctx.fillStyle = "#4b2f2f";
+    ctx.fillText(baguaChars[i], x, y);
+  }
+  ctx.restore();
+}
+
+// 主要繪製：每一卦的名字與六爻（使用 Unicode：⚊ = 陽, ⚋ = 陰）
+function drawAll(guaNames, highlightIndex = -1, scaleHover = 1.0){
+  drawBackground();
+
+  // 外圓
+  ctx.beginPath(); ctx.arc(cx,cy, outerR+10,0,Math.PI*2); ctx.lineWidth = 2; ctx.strokeStyle = "#b89b7a"; ctx.stroke();
+
+  drawBagua();
+
+  // 每卦一個「卡片範圍」，並記錄位置供互動
+  window._guaHotspots = [];
+
+  for(let i=0;i<64;i++){
+    const angle = (i/64)*Math.PI*2 - Math.PI/2; // 從頂端開始順時針
+    const tx = cx + guaR * Math.cos(angle);
+    const ty = cy + guaR * Math.sin(angle);
+
+    // 如果是 hover 則放大一些
+    const isHighlighted = (i === highlightIndex);
+    const s = isHighlighted ? 1.12 * scaleHover : 1.0;
+
+    ctx.save();
+    ctx.translate(tx, ty);
+    ctx.scale(s,s);
+    ctx.rotate(angle + Math.PI/2); // 讓文字沿圓的切線方向，維持可讀性
+
+    // 背景圓片
+    ctx.beginPath();
+    roundRect(ctx, -62, -52, 124, 104, 10);
+    ctx.fillStyle = isHighlighted ? "#fffdf6" : "#fff";
+    ctx.fill();
+    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = isHighlighted ? "#8b5a2b" : "rgba(0,0,0,0.08)";
+    ctx.stroke();
+
+    // 卦名（顯示你給的 full 名稱，若空間不足會縮小）
+    ctx.font = "600 12px Noto Sans TC";
+    ctx.fillStyle = "#38261f";
+    ctx.textAlign = "center";
+    ctx.fillText(guaNames[i], 0, -30);
+
+    // 取得 binary（上→下），在畫面上 we draw bottom→top
+    const bin = findBinaryByLabel(guaNames[i]); // e.g. '000001' (上→下)
+    // 反轉字串以從底爻（初爻）開始
+    const binBottomUp = bin.split('').reverse().join('');
+
+    // 每行的 Unicode 爻（由下到上）
+    ctx.font = "20px 'Segoe UI Symbol', 'Noto Sans Symbols', Noto Sans TC";
+    ctx.textBaseline = "middle";
+    for(let j=0;j<6;j++){
+      const ch = (binBottomUp[j] === '1') ? '⚊' : '⚋';
+      const py = 18 - j*12; // bottom at +18, top at -42
+      ctx.fillText(ch, 0, py);
+    }
+
+    ctx.restore();
+
+    // hotspot rectangle (approx in canvas coordinates)
+    // 因為 earlier we rotated/translated, we compute bounding box simply by polar coords
+    const box = {
+      x: tx - 70, y: ty - 60, w: 140, h: 120, idx: i
+    };
+    window._guaHotspots.push(box);
+  }
+
+  // 中心大圓與標題
+  ctx.beginPath(); ctx.arc(cx,cy,110,0,Math.PI*2); ctx.fillStyle="#fff8e6"; ctx.fill();
+  ctx.lineWidth = 3; ctx.strokeStyle = "#b58653"; ctx.stroke();
+  ctx.font = "700 22px Noto Sans TC"; ctx.fillStyle="#5b3f2f"; ctx.textAlign = "center"; ctx.fillText("八卦方圓圖 · 六十四卦", cx, cy - 6);
+  ctx.font = "14px Noto Sans TC"; ctx.fillStyle="#6d4a3a"; ctx.fillText("⚊ = 陽  務實；  ⚋ = 陰  柔順（顯示為下→上）", cx, cy + 18);
+}
+
+// helper: rounded rect
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+// ------ interactivity: hover 放大、點選鎖定 ------
+let hovered = -1;
+let locked = -1;
+let hoverScale = 1.0;
+const cRect = canvas.getBoundingClientRect();
+
+function getMousePos(e){
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (canvas.width/rect.width);
+  const my = (e.clientY - rect.top) * (canvas.height/rect.height);
+  return {x: mx, y: my};
+}
+
+function findHotspotAt(x,y){
+  if(!window._guaHotspots) return -1;
+  for(const h of window._guaHotspots){
+    if(x >= h.x && x <= h.x + h.w && y >= h.y && y <= h.y + h.h) return h.idx;
+  }
+  return -1;
+}
+
+canvas.addEventListener('mousemove', (e)=>{
+  const m = getMousePos(e);
+  const idx = findHotspotAt(m.x, m.y);
+  if(idx !== hovered){
+    hovered = idx;
+    render();
+  }
+});
+canvas.addEventListener('mouseleave', ()=>{ hovered = -1; render(); });
+canvas.addEventListener('click', (e)=>{
+  const m = getMousePos(e);
+  const idx = findHotspotAt(m.x, m.y);
+  if(idx === -1){ locked = -1; } else {
+    locked = (locked === idx) ? -1 : idx;
+  }
+  render();
+});
+
+// render loop with smooth hover scale
+function render(){
+  if(locked !== -1){
+    // when locked, slightly larger scale
+    hoverScale = 1.06;
+    drawAll(gua64Names, locked, hoverScale);
+  } else {
+    // smooth shrink/grow
+    hoverScale += (1.0 - hoverScale) * 0.25;
+    drawAll(gua64Names, hovered, hoverScale);
+  }
+}
+
+// 初始繪製
+render();
+
+// ===== 附註：若要匯出為圖片可用以下（使用者按鈕等可再加） =====
+// const dataURL = canvas.toDataURL('image/png'); console.log(dataURL);
+</script>
+</body>
+</html>

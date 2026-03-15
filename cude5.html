@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>3×3 魔術方塊｜旋轉示意＋公式速查＋回放功能</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  color: #333;
+}
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+header h1 {
+  color: white;
+  font-size: 2.5rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  margin-bottom: 10px;
+}
+
+.main-container {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 30px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .main-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+.viewer {
+  background: rgba(255,255,255,0.95);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  backdrop-filter: blur(10px);
+}
+
+.stage {
+  position: relative;
+  height: 400px;
+  perspective: 1000px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cube-wrap {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  cursor: grab;
+  user-select: none;
+}
+
+.cube-wrap:active {
+  cursor: grabbing;
+}
+
+.cube {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease;
+}
+
+.face {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 2px;
+  padding: 8px;
+  background: #222;
+  border-radius: 8px;
+}
+
+.face--F { transform: rotateY(0deg) translateZ(100px); }
+.face--B { transform: rotateY(180deg) translateZ(100px); }
+.face--U { transform: rotateX(90deg) translateZ(100px); }
+.face--D { transform: rotateX(-90deg) translateZ(100px); }
+.face--R { transform: rotateY(90deg) translateZ(100px); }
+.face--L { transform: rotateY(-90deg) translateZ(100px); }
+
+.sticker {
+  border-radius: 4px;
+  border: 1px solid rgba(0,0,0,0.2);
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.3);
+  transition: all 0.2s ease;
+}
+
+.hud {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chip {
+  background: rgba(0,0,0,0.7);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.btn {
+  background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(238, 90, 111, 0.3);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(238, 90, 111, 0.4);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.panel {
+  background: rgba(255,255,255,0.95);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  backdrop-filter: blur(10px);
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.panel h2 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.algo {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 15px;
+  border-left: 4px solid #667eea;
+  transition: all 0.2s ease;
+}
+
+.algo:hover {
+  transform: translateX(5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.algo h3 {
+  color: #495057;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.algo pre {
+  background: #2d3748;
+  color: #e2e8f0;
+  padding: 12px;
+  border-radius: 8px;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+.play-btn {
+  background: linear-gradient(45deg, #4ecdc4, #44a08d);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 10px rgba(68, 160, 141, 0.3);
+}
+
+.play-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(68, 160, 141, 0.4);
+}
+
+.play-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.controls {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.speed-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.speed-control label {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.speed-control input {
+  width: 100px;
+}
+
+.status {
+  background: rgba(52, 152, 219, 0.1);
+  border: 1px solid rgba(52, 152, 219, 0.3);
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+  color: #2980b9;
+  font-size: 0.9rem;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.moves {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+  justify-content: center;
+}
+
+.move {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.8);
+  border: 2px solid rgba(102,126,234,0.2);
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  color: #333;
+}
+
+.move.active {
+  background: #667eea;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+}
+
+.playback-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+  background: rgba(102,126,234,0.1);
+  border-radius: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.custom-input {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid rgba(102,126,234,0.3);
+  border-radius: 8px;
+  font-size: 14px;
+  margin: 10px 0;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+}
+
+.custom-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+}
+
+/* 滾動條樣式 */
+.panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.panel::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.1);
+  border-radius: 3px;
+}
+
+.panel::-webkit-scrollbar-thumb {
+  background: rgba(102, 126, 234, 0.3);
+  border-radius: 3px;
+}
+
+.panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(102, 126, 234, 0.5);
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>3×3 魔術方塊｜旋轉示意＋公式速查＋回放功能</h1>
+</header>
+
+<div class="main-container">
+  <section class="viewer">
+    <div class="stage">
+      <div class="cube-wrap" id="cubeWrap">
+        <div class="cube" id="cube"></div>
+      </div>
+      <div class="hud">
+        <span class="chip" id="angleReadout">旋轉：0°, 0°</span>
+        <button class="btn" id="resetBtn">重置視角</button>
+      </div>
+    </div>
+  </section>
+
+  <main class="panel" id="formulaPanel">
+    <h2>🎯 經典公式速查</h2>
+    
+    <div class="controls">
+      <div class="speed-control">
+        <label>播放速度:</label>
+        <input type="range" id="speedSlider" min="200" max="1000" value="600" step="100">
+        <span id="speedValue">600ms</span>
+      </div>
+    </div>
+    
+    <div class="status" id="statusDisplay">
+      選擇一個公式開始回放動畫
+    </div>
+
+    <div id="movesContainer" class="moves"></div>
+    
+    <div class="playback-controls">
+      <button class="btn" id="pauseBtn">⏸ 暫停</button>
+      <button class="btn" id="stopBtn">⏹ 停止</button>
+    </div>
+
+    <input type="text" id="customAlgo" class="custom-input" placeholder="輸入自訂公式，例如: R U R' U' F' U F">
+    <div style="text-align: center; margin-top: 10px;">
+      <button class="btn" id="playCustom">播放自訂公式</button>
+    </div>
+  </main>
+</div>
+
+</div>
+
+<script>
+// 生成魔方貼紙
+(function(){
+  const colors = {
+    F: '#00d084', // 綠色
+    B: '#0051ba', // 藍色  
+    U: '#ffffff', // 白色
+    D: '#ffd500', // 黃色
+    R: '#c41e3a', // 紅色
+    L: '#ff5800'  // 橙色
+  };
+  
+  const cubeEl = document.getElementById('cube');
+  const faces = ['F','B','U','D','R','L'];
+  
+  faces.forEach(face => {
+    const faceEl = document.createElement('div');
+    faceEl.className = `face face--${face}`;
+    
+    for(let i = 0; i < 9; i++){
+      const sticker = document.createElement('div');
+      sticker.className = 'sticker';
+      sticker.style.background = colors[face];
+      faceEl.appendChild(sticker);
+    }
+    
+    cubeEl.appendChild(faceEl);
+  });
+})();
+
+// 旋轉控制
+(function(){
+  const cube = document.getElementById('cube');
+  const wrap = document.getElementById('cubeWrap');
+  const readout = document.getElementById('angleReadout');
+  const resetBtn = document.getElementById('resetBtn');
+  
+  let rotX = -18, rotY = -32, scale = 1;
+  let dragging = false, lastX = 0, lastY = 0;
+  
+  function render(){ 
+    cube.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${scale})`;
+    readout.textContent = `旋轉：${Math.round(rotX)}°, ${Math.round(rotY)}°`;
+  }
+  
+  function onDown(x, y){ 
+    dragging = true; 
+    lastX = x; 
+    lastY = y;
+    wrap.style.cursor = 'grabbing';
+  }
+  
+  function onMove(x, y){ 
+    if(!dragging) return;
+    rotY += (x - lastX) * 0.4;
+    rotX -= (y - lastY) * 0.4;
+    lastX = x; 
+    lastY = y; 
+    render();
+  }
+  
+  function onUp(){ 
+    dragging = false;
+    wrap.style.cursor = 'grab';
+  }
+  
+  // 鼠標事件
+  wrap.addEventListener('mousedown', e => onDown(e.clientX, e.clientY));
+  window.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
+  window.addEventListener('mouseup', onUp);
+  
+  // 觸摸事件
+  wrap.addEventListener('touchstart', e => {
+    if(e.touches.length === 1){
+      const t = e.touches[0];
+      onDown(t.clientX, t.clientY);
+    }
+  }, {passive: true});
+  
+  wrap.addEventListener('touchmove', e => {
+    if(e.touches.length === 1){
+      const t = e.touches[0];
+      onMove(t.clientX, t.clientY);
+    }
+  }, {passive: true});
+  
+  wrap.addEventListener('touchend', onUp);
+  
+  // 滾輪縮放
+  wrap.addEventListener('wheel', e => {
+    e.preventDefault();
+    scale += e.deltaY > 0 ? -0.1 : 0.1;
+    scale = Math.max(0.5, Math.min(2, scale));
+    render();
+  });
+  
+  resetBtn.addEventListener('click', () => {
+    rotX = -18; 
+    rotY = -32; 
+    scale = 1; 
+    render();
+  });
+  
+  render();
+})();
+
+// 公式與回放功能
+const formulas = [
+  {
+    name: 'F2L 對插',
+    description: '底層十字完成後的角塊邊塊同時歸位',
+    seq: ["U", "R", "U'", "R'", "U'", "F'", "U", "F"]
+  },
+  {
+    name: 'OLL 小魚',
+    description: '頂層朝向一致 - 經典小魚形狀',
+    seq: ["R", "U", "R'", "U", "R", "U2", "R'"]
+  },
+  {
+    name: 'PLL U-perm',
+    description: '頂層位置調整 - U字形三邊循環',
+    seq: ["R2", "U", "R", "U", "R'", "U'", "R'", "U'", "R'", "U", "R'"]
+  },
+  {
+    name: 'OLL 十字',
+    description: '頂面形成十字的基本公式',
+    seq: ["F", "R", "U", "R'", "U'", "F'"]
+  },
+  {
+    name: 'PLL A-perm',
+    description: '三個角塊的循環交換',
+    seq: ["R'", "F", "R'", "B2", "R", "F'", "R'", "B2", "R2"]
+  },
+  {
+    name: '觸發器',
+    description: '最基本的手順組合',
+    seq: ["R", "U", "R'", "U'"]
+  }
+];
+
+const statusDisplay = document.getElementById('statusDisplay');
+const speedSlider = document.getElementById('speedSlider');
+const speedValue = document.getElementById('speedValue');
+const movesContainer = document.getElementById('movesContainer');
+
+let isPlaying = false;
+let currentInterval = null;
+let isPaused = false;
+
+// 速度控制
+speedSlider.addEventListener('input', () => {
+  speedValue.textContent = speedSlider.value + 'ms';
+});
+
+// 生成公式列表
+formulas.forEach((formula, index) => {
+  const algoDiv = document.createElement('div');
+  algoDiv.className = 'algo';
+  
+  const title = document.createElement('h3');
+  title.textContent = formula.name;
+  
+  const description = document.createElement('p');
+  description.textContent = formula.description;
+  description.style.fontSize = '0.85rem';
+  description.style.color = '#666';
+  description.style.marginBottom = '10px';
+  
+  const sequence = document.createElement('pre');
+  sequence.textContent = formula.seq.join(' ');
+  
+  const playBtn = document.createElement('button');
+  playBtn.className = 'play-btn';
+  playBtn.textContent = '▶ 播放';
+  playBtn.onclick = () => playSequence(formula.seq, formula.name);
+  
+  algoDiv.appendChild(title);
+  algoDiv.appendChild(description);
+  algoDiv.appendChild(sequence);
+  algoDiv.appendChild(playBtn);
+  
+  const panel = document.getElementById('formulaPanel');
+  panel.insertBefore(algoDiv, panel.querySelector('.controls'));
+});
+
+// 正確的魔方旋轉邏輯
+function applyVisualMove(move) {
+  const cube = document.getElementById('cube');
+  
+  // 獲取當前的旋轉狀態
+  const currentTransform = cube.style.transform;
+  const rotXMatch = currentTransform.match(/rotateX\(([^)]+)\)/);
+  const rotYMatch = currentTransform.match(/rotateY\(([^)]+)\)/);
+  const scaleMatch = currentTransform.match(/scale\(([^)]+)\)/);
+  
+  const currentRotX = rotXMatch ? parseFloat(rotXMatch[1]) : -18;
+  const currentRotY = rotYMatch ? parseFloat(rotYMatch[1]) : -32;
+  const currentScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
+  
+  // 計算旋轉增量
+  let deltaX = 0, deltaY = 0, deltaZ = 0;
+  let rotationAngle = 90;
+  
+  // 處理逆時針和雙轉
+  if(move.includes("'")) rotationAngle = -90;
+  if(move.includes('2')) rotationAngle = move.includes("'") ? -180 : 180;
+  
+  // 根據面計算旋轉軸
+  const face = move.charAt(0);
+  switch(face) {
+    case 'R':
+      deltaX = -rotationAngle; // R面順時針從右側看
+      break;
+    case 'L': 
+      deltaX = rotationAngle;  // L面與R面相反
+      break;
+    case 'U':
+      deltaY = rotationAngle;  // U面順時針從上方看
+      break;
+    case 'D':
+      deltaY = -rotationAngle; // D面與U面相反
+      break;
+    case 'F':
+      deltaZ = rotationAngle;  // F面順時針從前方看
+      break;
+    case 'B':
+      deltaZ = -rotationAngle; // B面與F面相反
+      break;
+  }
+  
+  // 高亮對應的面
+  const faceElement = cube.querySelector(`.face--${face}`);
+  if(faceElement) {
+    faceElement.style.filter = 'brightness(1.4) saturate(1.3)';
+    faceElement.style.transform += ' scale(1.02)';
+  }
+  
+  // 執行旋轉動畫
+  cube.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+  
+  let newTransform = `rotateX(${currentRotX + deltaX}deg) rotateY(${currentRotY + deltaY}deg) scale(${currentScale})`;
+  if(deltaZ !== 0) {
+    newTransform += ` rotateZ(${deltaZ}deg)`;
+  }
+  
+  cube.style.transform = newTransform;
+  
+  // 恢復原始狀態
+  setTimeout(() => {
+    cube.style.transform = `rotateX(${currentRotX}deg) rotateY(${currentRotY}deg) scale(${currentScale})`;
+    
+    if(faceElement) {
+      faceElement.style.filter = '';
+      faceElement.style.transform = faceElement.style.transform.replace(' scale(1.02)', '');
+    }
+  }, 450);
+}
+
+// 動畫回放函數
+function playSequence(sequence, formulaName) {
+  if (isPlaying) {
+    stopCurrentAnimation();
+    return;
+  }
+  
+  isPlaying = true;
+  isPaused = false;
+  
+  statusDisplay.innerHTML = `🎬 正在播放: <strong>${formulaName}</strong>`;
+  
+  // 顯示動作序列
+  movesContainer.innerHTML = '';
+  sequence.forEach((move, index) => {
+    const moveEl = document.createElement('div');
+    moveEl.className = 'move';
+    moveEl.textContent = move;
+    moveEl.dataset.index = index;
+    movesContainer.appendChild(moveEl);
+  });
+  
+  let stepIndex = 0;
+  const speed = parseInt(speedSlider.value);
+  
+  function playNextMove() {
+    if (!isPlaying) return;
+    if (isPaused) {
+      setTimeout(playNextMove, 100);
+      return;
+    }
+    
+    if (stepIndex >= sequence.length) {
+      stopCurrentAnimation();
+      statusDisplay.innerHTML = `✅ <strong>${formulaName}</strong> 播放完成！`;
+      setTimeout(() => {
+        statusDisplay.textContent = '選擇一個公式開始回放動畫';
+      }, 2000);
+      return;
+    }
+    
+    // 高亮當前步驟
+    const moves = movesContainer.querySelectorAll('.move');
+    moves.forEach((move, index) => {
+      move.classList.toggle('active', index === stepIndex);
+    });
+    
+    const currentMove = sequence[stepIndex];
+    statusDisplay.innerHTML = `🎬 <strong>${formulaName}</strong> - 步驟 ${stepIndex + 1}/${sequence.length}: <code>${currentMove}</code>`;
+    
+    // 執行視覺旋轉
+    applyVisualMove(currentMove);
+    
+    stepIndex++;
+    setTimeout(playNextMove, speed);
+  }
+  
+  playNextMove();
+}
+
+function stopCurrentAnimation() {
+  isPlaying = false;
+  isPaused = false;
+  
+  // 清除高亮
+  const moves = movesContainer.querySelectorAll('.move');
+  moves.forEach(move => move.classList.remove('active'));
+}
+
+// 控制按鈕
+document.getElementById('pauseBtn').addEventListener('click', () => {
+  if (!isPlaying) return;
+  
+  isPaused = !isPaused;
+  const btn = document.getElementById('pauseBtn');
+  btn.textContent = isPaused ? '▶ 繼續' : '⏸ 暫停';
+  
+  if (isPaused) {
+    statusDisplay.innerHTML = '⏸ 已暫停';
+  }
+});
+
+document.getElementById('stopBtn').addEventListener('click', () => {
+  stopCurrentAnimation();
+  statusDisplay.textContent = '選擇一個公式開始回放動畫';
+  document.getElementById('pauseBtn').textContent = '⏸ 暫停';
+});
+
+// 自訂公式
+document.getElementById('playCustom').addEventListener('click', () => {
+  const input = document.getElementById('customAlgo');
+  const sequence = input.value.trim().split(/\s+/).filter(move => move.length > 0);
+  
+  if (sequence.length === 0) {
+    alert('請輸入有效的魔方公式');
+    return;
+  }
+  
+  playSequence(sequence, '自訂公式');
+});
+
+// 頁面載入完成
+window.addEventListener('load', () => {
+  console.log('🎮 3D魔術方塊已載入完成！');
+  console.log('💡 使用滑鼠或手指拖拽可旋轉視角');
+  console.log('🎯 點擊公式按鈕觀看動畫演示');
+});
+</script>
+</body>
+</html>

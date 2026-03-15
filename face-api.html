@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>人臉辨識與標注系統</title>
+  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 2.5em;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+
+    .section {
+      background: #f8f9fa;
+      padding: 25px;
+      border-radius: 15px;
+      border: 2px solid #e9ecef;
+    }
+
+    .section-title {
+      font-size: 1.5em;
+      color: #495057;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 10px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+    }
+
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(56, 239, 125, 0.4);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(235, 51, 73, 0.4);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .canvas-container {
+      position: relative;
+      background: #000;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 20px 0;
+      min-height: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    canvas, video {
+      max-width: 100%;
+      display: block;
+    }
+
+    .placeholder {
+      color: #6c757d;
+      font-size: 1.2em;
+    }
+
+    .face-list {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 15px;
+    }
+
+    .face-item {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #dee2e6;
+    }
+
+    .face-info {
+      flex: 1;
+    }
+
+    .face-name {
+      font-weight: bold;
+      color: #495057;
+      font-size: 1.1em;
+    }
+
+    .face-time {
+      color: #6c757d;
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+
+    .delete-btn {
+      width: auto;
+      padding: 8px 15px;
+      background: #dc3545;
+      color: white;
+      font-size: 0.9em;
+      margin: 0;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin: 10px 0;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      font-size: 1em;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .save-btn {
+      width: auto;
+      padding: 12px 20px;
+      margin: 0;
+    }
+
+    .alert {
+      padding: 15px;
+      border-radius: 10px;
+      margin: 15px 0;
+      display: none;
+    }
+
+    .alert.show {
+      display: block;
+    }
+
+    .alert-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0,deg); }
+      100% { transform: rotate(360,deg); }
+    }
+
+    .result-item {
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 10px;
+      border: 2px solid;
+    }
+
+    .result-known {
+      background: #d4edda;
+      border-color: #28a745;
+    }
+
+    .result-unknown {
+      background: #f8d7da;
+      border-color: #dc3545;
+    }
+
+    .result-name {
+      font-weight: bold;
+      font-size: 1.1em;
+      margin-bottom: 5px;
+    }
+
+    .result-confidence {
+      color: #6c757d;
+      font-size: 0.9em;
+    }
+
+    @media (max-width: 1024px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* 手機畫面優化 */
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      .container {
+        padding: 20px;
+        border-radius: 15px;
+      }
+
+      h1 {
+        font-size: 1.8em;
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+      }
+
+      h1 svg {
+        width: 30px;
+        height: 30px;
+      }
+
+      .content {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .section {
+        padding: 15px;
+      }
+
+      .section-title {
+        font-size: 1.2em;
+      }
+
+      button {
+        padding: 12px;
+        font-size: 0.95em;
+      }
+
+      .canvas-container {
+        min-height: 300px;
+      }
+
+      canvas, video {
+        width: 100%;
+        height: auto;
+      }
+
+      .face-list {
+        max-height: 250px;
+      }
+
+      .face-item {
+        padding: 12px;
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+      }
+
+      .face-name {
+        font-size: 1em;
+      }
+
+      .face-time {
+        font-size: 0.85em;
+      }
+
+      .delete-btn {
+        width: 100%;
+        padding: 10px;
+      }
+
+      .input-group {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .save-btn {
+        width: 100%;
+      }
+
+      .result-item {
+        padding: 12px;
+      }
+
+      .result-name {
+        font-size: 1em;
+      }
+
+      .loading {
+        padding: 40px 20px;
+      }
+
+      .spinner {
+        width: 50px;
+        height: 50px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 15px;
+      }
+
+      h1 {
+        font-size: 1.5em;
+      }
+
+      .section {
+        padding: 12px;
+      }
+
+      .section-title {
+        font-size: 1.1em;
+      }
+
+      button {
+        padding: 10px;
+        font-size: 0.9em;
+      }
+
+      .canvas-container {
+        min-height: 250px;
+      }
+
+      .face-item {
+        padding: 10px;
+      }
+
+      .alert {
+        padding: 12px;
+        font-size: 0.9em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+      人臉辨識與標注系統
+    </h1>
+
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>正在載入模型，請稍候...</p>
+    </div>
+
+    <div id="alert" class="alert"></div>
+
+    <div id="mainContent" style="display: none;">
+      <div class="content">
+        <!-- 左側控制面板 -->
+        <div>
+          <div class="section" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 20%);">
+            <h2 class="section-title" style="color: white;">📸 步驟 1: 註冊人臉</h2>
+            <button class="btn-primary" onclick="document.getElementById('registerInput').click()">
+              <span>📤</span> 上傳照片並註冊人臉
+            </button>
+            <input type="file" id="registerInput" accept="image/*" style="display: none;" onchange="handleRegisterImage(event)">
+          </div>
+
+          <div class="section" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); margin-top: 20px;">
+            <h2 class="section-title" style="color: white;">🔍 步驟 2: 辨識人臉</h2>
+            <button id="recognizeBtn" class="btn-success" onclick="document.getElementById('recognizeInput').click()">
+              <span>📤</span> 上傳照片進行辨識
+            </button>
+            <button id="webcamBtn" class="btn-success" onclick="toggleWebcam()">
+              <span>📹</span> 啟動即時辨識
+            </button>
+            <input type="file" id="recognizeInput" accept="image/*" style="display: none;" onchange="handleRecognizeImage(event)">
+            <p id="noFacesWarning" style="color: white; margin-top: 10px; display: none;">⚠️ 請先註冊至少一個人臉</p>
+          </div>
+
+          <div class="section" style="margin-top: 20px;">
+            <h2 class="section-title">👥 已註冊人臉 (<span id="faceCount">0</span>)</h2>
+            <div id="faceList" class="face-list"></div>
+          </div>
+        </div>
+
+        <!-- 右側顯示區域 -->
+        <div>
+          <div class="canvas-container" id="canvasContainer">
+            <canvas id="canvas" style="display: none;"></canvas>
+            <video id="video" autoplay muted style="display: none;"></video>
+            <canvas id="videoCanvas" style="display: none; position: absolute; top: 0; left: 0;"></canvas>
+            <div id="placeholder" class="placeholder">等待上傳照片或啟動攝影機...</div>
+          </div>
+
+          <div id="detectionPanel" style="display: none;">
+            <div class="section">
+              <h2 class="section-title">✍️ 偵測到人臉 - 請輸入姓名</h2>
+              <div id="labelInputs"></div>
+            </div>
+          </div>
+
+          <div id="resultsPanel" style="display: none;">
+            <div class="section">
+              <h2 class="section-title">✅ 辨識結果</h2>
+              <div id="results"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let modelsLoaded = false;
+    let savedFaces = [];
+    let detectedFaces = [];
+    let faceMatcher = null;
+    let isWebcamActive = false;
+    let stream = null;
+
+    // 載入模型
+    async function loadModels() {
+      try {
+        const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
+        await Promise.all([
+          faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+          faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+          faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+        ]);
+        modelsLoaded = true;
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        loadSavedFaces();
+      } catch (err) {
+        showAlert('模型載入失敗: ' + err.message, 'error');
+        document.getElementById('loading').innerHTML = '<p style="color: red;">載入失敗，請重新整理頁面</p>';
+      }
+    }
+
+    // 載入已儲存的人臉
+    function loadSavedFaces() {
+      const saved = localStorage.getItem('savedFaces');
+      savedFaces = saved ? JSON.parse(saved) : [];
+      updateFaceMatcher();
+      updateFaceList();
+      updateButtons();
+    }
+
+    // 更新人臉比對器
+    function updateFaceMatcher() {
+      if (savedFaces.length === 0) {
+        faceMatcher = null;
+        return;
+      }
+
+      const labeledDescriptors = savedFaces.map(face => 
+        new faceapi.LabeledFaceDescriptors(
+          face.name,
+          [new Float32Array(face.descriptor)]
+        )
+      );
+      
+      faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.6);
+    }
+
+    // 更新按鈕狀態
+    function updateButtons() {
+      const disabled = savedFaces.length === 0;
+      document.getElementById('recognizeBtn').disabled = disabled;
+      document.getElementById('webcamBtn').disabled = disabled;
+      document.getElementById('noFacesWarning').style.display = disabled ? 'block' : 'none';
+    }
+
+    // 更新人臉清單
+    function updateFaceList() {
+      const listEl = document.getElementById('faceList');
+      const countEl = document.getElementById('faceCount');
+      
+      countEl.textContent = savedFaces.length;
+      
+      if (savedFaces.length === 0) {
+        listEl.innerHTML = '<p style="color: #6c757d; text-align: center; padding: 20px;">尚未註冊任何人臉</p>';
+        return;
+      }
+
+      listEl.innerHTML = savedFaces.map(face => `
+        <div class="face-item">
+          <div class="face-info">
+            <div class="face-name">${face.name}</div>
+            <div class="face-time">${new Date(face.timestamp).toLocaleString('zh-TW')}</div>
+          </div>
+          <button class="delete-btn" onclick="deleteFace(${face.id})">🗑️ 刪除</button>
+        </div>
+      `).join('');
+    }
+
+    // 顯示提示訊息
+    function showAlert(message, type = 'error') {
+      const alertEl = document.getElementById('alert');
+      alertEl.className = `alert alert-${type} show`;
+      alertEl.textContent = message;
+      setTimeout(() => {
+        alertEl.className = 'alert';
+      }, 5000);
+    }
+
+    // 註冊人臉
+    async function handleRegisterImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const img = await loadImage(file);
+      const detections = await faceapi
+        .detectAllFaces(img)
+        .withFaceLandmarks()
+        .withFaceDescriptors();
+
+      if (detections.length === 0) {
+        showAlert('未偵測到人臉，請上傳包含清晰人臉的照片', 'error');
+        return;
+      }
+
+      detectedFaces = detections;
+      drawDetections(img, detections);
+      showLabelInputs(detections.length);
+      document.getElementById('resultsPanel').style.display = 'none';
+    }
+
+    // 辨識人臉
+    async function handleRecognizeImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!faceMatcher) {
+        showAlert('請先註冊至少一個人臉', 'error');
+        return;
+      }
+
+      const img = await loadImage(file);
+      const detections = await faceapi
+        .detectAllFaces(img)
+        .withFaceLandmarks()
+        .withFaceDescriptors();
+
+      if (detections.length === 0) {
+        showAlert('未偵測到人臉', 'error');
+        return;
+      }
+
+      const results = detections.map(detection => {
+        const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
+        return {
+          box: detection.detection.box,
+          name: bestMatch.label !== 'unknown' ? bestMatch.label : '未知',
+          distance: bestMatch.distance,
+          confidence: Math.round((1 - bestMatch.distance) * 100)
+        };
+      });
+
+      drawRecognitionResults(img, results);
+      showResults(results);
+      document.getElementById('detectionPanel').style.display = 'none';
+    }
+
+    // 載入圖片
+    function loadImage(file) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.src = URL.createObjectURL(file);
+        img.onload = () => resolve(img);
+      });
+    }
+
+    // 繪製偵測結果
+    function drawDetections(img, detections) {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+
+      const displaySize = { width: img.width, height: img.height };
+      faceapi.matchDimensions(canvas, displaySize);
+      const resizedDetections = faceapi.resizeResults(detections, displaySize);
+      faceapi.draw.drawDetections(canvas, resizedDetections);
+      faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+
+      canvas.style.display = 'block';
+      document.getElementById('video').style.display = 'none';
+      document.getElementById('videoCanvas').style.display = 'none';
+      document.getElementById('placeholder').style.display = 'none';
+    }
+
+    // 繪製辨識結果
+    function drawRecognitionResults(img, results) {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+
+      results.forEach(result => {
+        const { box, name, confidence } = result;
+        
+        ctx.strokeStyle = name === '未知' ? '#dc3545' : '#28a745';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(box.x, box.y, box.width, box.height);
+        
+        ctx.fillStyle = name === '未知' ? '#dc3545' : '#28a745';
+        ctx.fillRect(box.x, box.y - 30, box.width, 30);
+        
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 18px Arial';
+        ctx.fillText(`${name} (${confidence}%)`, box.x + 5, box.y - 8);
+      });
+
+      canvas.style.display = 'block';
+      document.getElementById('video').style.display = 'none';
+      document.getElementById('videoCanvas').style.display = 'none';
+      document.getElementById('placeholder').style.display = 'none';
+    }
+
+    // 顯示標籤輸入框
+    function showLabelInputs(count) {
+      const panel = document.getElementById('detectionPanel');
+      const inputsEl = document.getElementById('labelInputs');
+      
+      inputsEl.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        inputsEl.innerHTML += `
+          <div class="input-group">
+            <input type="text" id="nameInput${i}" placeholder="人臉 #${i + 1} 的姓名">
+            <button class="btn-primary save-btn" onclick="saveFace(${i})">💾 儲存</button>
+          </div>
+        `;
+      }
+      
+      panel.style.display = 'block';
+      document.getElementById('resultsPanel').style.display = 'none';
+    }
+
+    // 儲存人臉
+    function saveFace(index) {
+      const nameInput = document.getElementById(`nameInput${index}`);
+      const name = nameInput.value.trim();
+      
+      if (!name) {
+        showAlert('請輸入姓名', 'error');
+        return;
+      }
+
+      const detection = detectedFaces[index];
+      const newFace = {
+        id: Date.now() + index,
+        name: name,
+        descriptor: Array.from(detection.descriptor),
+        timestamp: new Date().toISOString()
+      };
+
+      savedFaces.push(newFace);
+      localStorage.setItem('savedFaces', JSON.stringify(savedFaces));
+      updateFaceMatcher();
+      updateFaceList();
+      updateButtons();
+      
+      nameInput.value = '';
+      showAlert(`已儲存 ${name} 的人臉資料`, 'success');
+    }
+
+    // 刪除人臉
+    function deleteFace(id) {
+      if (!confirm('確定要刪除此人臉資料？')) return;
+      
+      savedFaces = savedFaces.filter(face => face.id !== id);
+      localStorage.setItem('savedFaces', JSON.stringify(savedFaces));
+      updateFaceMatcher();
+      updateFaceList();
+      updateButtons();
+      showAlert('已刪除人臉資料', 'success');
+    }
+
+    // 顯示辨識結果
+    function showResults(results) {
+      const panel = document.getElementById('resultsPanel');
+      const resultsEl = document.getElementById('results');
+      
+      resultsEl.innerHTML = results.map((result, index) => `
+        <div class="result-item ${result.name === '未知' ? 'result-unknown' : 'result-known'}">
+          <div class="result-name">人臉 #${index + 1}: ${result.name}</div>
+          <div class="result-confidence">信心度: ${result.confidence}%</div>
+        </div>
+      `).join('');
+      
+      panel.style.display = 'block';
+    }
+
+    // 切換攝影機
+    async function toggleWebcam() {
+      if (!faceMatcher) {
+        showAlert('請先註冊至少一個人臉', 'error');
+        return;
+      }
+
+      if (isWebcamActive) {
+        stopWebcam();
+      } else {
+        await startWebcam();
+      }
+    }
+
+    // 啟動攝影機
+    async function startWebcam() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+        const video = document.getElementById('video');
+        video.srcObject = stream;
+        
+        video.style.display = 'block';
+        document.getElementById('videoCanvas').style.display = 'block';
+        document.getElementById('canvas').style.display = 'none';
+        document.getElementById('placeholder').style.display = 'none';
+        document.getElementById('detectionPanel').style.display = 'none';
+        document.getElementById('resultsPanel').style.display = 'none';
+        
+        isWebcamActive = true;
+        document.getElementById('webcamBtn').innerHTML = '<span>⏹️</span> 停止辨識';
+        document.getElementById('webcamBtn').className = 'btn-danger';
+        
+        video.addEventListener('play', recognizeFacesFromWebcam);
+      } catch (err) {
+        showAlert('無法啟動攝影機: ' + err.message, 'error');
+      }
+    }
+
+    // 停止攝影機
+    function stopWebcam() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+      
+      const video = document.getElementById('video');
+      video.srcObject = null;
+      video.style.display = 'none';
+      document.getElementById('videoCanvas').style.display = 'none';
+      document.getElementById('placeholder').style.display = 'block';
+      
+      isWebcamActive = false;
+      document.getElementById('webcamBtn').innerHTML = '<span>📹</span> 啟動即時辨識';
+      document.getElementById('webcamBtn').className = 'btn-success';
+    }
+
+    // 從攝影機辨識人臉
+    async function recognizeFacesFromWebcam() {
+      if (!isWebcamActive) return;
+
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('videoCanvas');
+
+      if (video.readyState === 4) {
+        const detections = await faceapi
+          .detectAllFaces(video)
+          .withFaceLandmarks()
+          .withFaceDescriptors();
+
+        const displaySize = { width: video.videoWidth, height: video.videoHeight };
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        faceapi.matchDimensions(canvas, displaySize);
+        
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        if (detections.length > 0) {
+          const resizedDetections = faceapi.resizeResults(detections, displaySize);
+          
+          resizedDetections.forEach(detection => {
+            const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
+            const box = detection.detection.box;
+            const label = bestMatch.label !== 'unknown' ? bestMatch.label : '未知';
+            const confidence = Math.round((1 - bestMatch.distance) * 100);
+            
+            const drawBox = new faceapi.draw.DrawBox(box, { 
+              label: `${label} (${confidence}%)`,
+              boxColor: label === '未知' ? '#dc3545' : '#28a745'
+            });
+            drawBox.draw(canvas);
+          });
+        }
+      }
+
+      setTimeout(recognizeFacesFromWebcam, 100);
+    }
+
+    // 頁面載入時初始化
+    window.addEventListener('load', loadModels);
+  </script>
+</body>
+</html>

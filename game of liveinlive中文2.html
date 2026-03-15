@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Second Generation Life - Multi-Species Evolution</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f23, #1a1a40);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 5px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.8em;
+            font-weight: bold;
+            animation: gradient 3s ease-in-out infinite;
+        }
+
+        .subtitle {
+            text-align: center;
+            margin-bottom: 25px;
+            opacity: 0.9;
+            font-size: 1.2em;
+            color: #4ecdc4;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 13px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .primary-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .secondary-btn {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+        }
+
+        .tertiary-btn {
+            background: linear-gradient(45deg, #45b7d1, #3a9bc1);
+            color: white;
+            box-shadow: 0 4px 15px rgba(69, 183, 209, 0.3);
+        }
+
+        .species-btn {
+            background: linear-gradient(45deg, #96ceb4, #85c1a5);
+            color: white;
+            box-shadow: 0 4px 15px rgba(150, 206, 180, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        canvas {
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: #0a0a0a;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            cursor: crosshair;
+        }
+
+        .species-selector {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .species-option {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .species-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .species-option.active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .species-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .stat {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.6em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .species-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .species-stat {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .species-name {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin: 0 auto;
+            max-width: 300px;
+        }
+
+        .speed-slider {
+            width: 150px;
+            height: 6px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .speed-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(255, 107, 107, 0.3);
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 20px;
+        }
+
+        .instructions h3 {
+            color: #4ecdc4;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .feature {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #4ecdc4;
+        }
+
+        @keyframes gradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .species-selector {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>第二代生命模擬器</h1>
+        <p class="subtitle">多物種演化與複雜生態系統</p>
+
+        <div class="controls">
+            <button id="playPause" class="primary-btn">▶ 開始</button>
+            <button id="step" class="secondary-btn">單步</button>
+            <button id="clear" class="tertiary-btn">清除</button>
+            <button id="random" class="species-btn">隨機混合</button>
+            <button id="predator" class="primary-btn">捕食者場景</button>
+            <button id="ecosystem" class="secondary-btn">建立生態系</button>
+            <button id="virus" class="tertiary-btn">病毒場景</button>
+            <button id="evolution" class="species-btn">啟用演化</button>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="gameCanvas" width="900" height="600"></canvas>
+            <div class="species-selector">
+                <h4 style="margin-top: 0; color: #4ecdc4;">選擇物種</h4>
+                <div class="species-option active" data-species="0">
+                    <div class="species-color" style="background: #00ff88;"></div>
+                    <span>基本生命</span>
+                </div>
+                <div class="species-option" data-species="1">
+                    <div class="species-color" style="background: #ff6b6b;"></div>
+                    <span>捕食者</span>
+                </div>
+                <div class="species-option" data-species="2">
+                    <div class="species-color" style="background: #4ecdc4;"></div>
+                    <span>草食動物</span>
+                </div>
+                <div class="species-option" data-species="3">
+                    <div class="species-color" style="background: #ffd93d;"></div>
+                    <span>生產者</span>
+                </div>
+                <div class="species-option" data-species="4">
+                    <div class="species-color" style="background: #9b59b6;"></div>
+                    <span>病毒</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="generation" style="color: #ff6b6b;">0</div>
+                <div class="stat-label">世代數</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="totalPop" style="color: #4ecdc4;">0</div>
+                <div class="stat-label">總人口數</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="diversity" style="color: #ffd93d;">0</div>
+                <div class="stat-label">物種數量</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="stability" style="color: #9b59b6;">0%</div>
+                <div class="stat-label">生態穩定性</div>
+            </div>
+        </div>
+        
+        <div class="species-stats" id="speciesStats"></div>
+
+        <div class="speed-control">
+            <span>速度：</span>
+            <input type="range" id="speedSlider" class="speed-slider" min="1" max="20" value="8">
+            <span id="speedValue">8</span>
+        </div>
+
+        <div class="instructions">
+            <h3>第二代生命模擬器特色</h3>
+            <p style="text-align: center; margin-bottom: 20px;">
+                <strong>點擊畫布</strong> 放置選定物種 • <strong>不同物種互動</strong> • 觀察 <strong>演化</strong> 與 <strong>生態系統</strong> 的形成！
+            </p>
+            
+            <div class="features">
+                <div class="feature">
+                    <strong>🌱 生產者：</strong> 產生能量、繁殖緩慢，是生態系的基礎
+                </div>
+                <div class="feature">
+                    <strong>🦌 草食動物：</strong> 吃生產者、吃飽時繁殖、餓了會遷徙
+                </div>
+                <div class="feature">
+                    <strong>🦁 捕食者：</strong> 獵食草食動物、有力但需持續覓食
+                </div>
+                <div class="feature">
+                    <strong>🦠 病毒：</strong> 快速傳播、轉化其他物種、最終耗盡
+                </div>
+                <div class="feature">
+                    <strong>⚡ 演化：</strong> 隨時間演變、依據生存改變特性
+                </div>
+                <div class="feature">
+                    <strong>🌍 生態系：</strong> 複雜互動、獵物與捕食者循環、尋求平衡
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class SecondGenerationLife {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.cellSize = 6;
+                this.cols = Math.floor(this.canvas.width / this.cellSize);
+                this.rows = Math.floor(this.canvas.height / this.cellSize);
+                
+                // Species types: 0=Basic, 1=Predator, 2=Herbivore, 3=Producer, 4=Virus
+                this.species = {
+                    0: { name: 'Basic Life', color: '#00ff88', birthRate: 0.3, deathRate: 0.1, energy: 1 },
+                    1: { name: 'Predator', color: '#ff6b6b', birthRate: 0.15, deathRate: 0.2, energy: 3 },
+                    2: { name: 'Herbivore', color: '#4ecdc4', birthRate: 0.25, deathRate: 0.15, energy: 2 },
+                    3: { name: 'Producer', color: '#ffd93d', birthRate: 0.4, deathRate: 0.05, energy: 1 },
+                    4: { name: 'Virus', color: '#9b59b6', birthRate: 0.8, deathRate: 0.3, energy: 1 }
+                };
+                
+                this.grid = this.createGrid();
+                this.nextGrid = this.createGrid();
+                this.energyGrid = this.createEnergyGrid();
+                
+                this.selectedSpecies = 0;
+                this.isRunning = false;
+                this.generation = 0;
+                this.speed = 8;
+                this.animationId = null;
+                this.lastTime = 0;
+                this.populationHistory = [];
+                
+                this.setupEventListeners();
+                this.render();
+                this.updateStats();
+            }
+
+            createGrid() {
+                return Array(this.rows).fill().map(() => Array(this.cols).fill(-1));
+            }
+
+            createEnergyGrid() {
+                return Array(this.rows).fill().map(() => Array(this.cols).fill(0));
+            }
+
+            setupEventListeners() {
+                const playPauseBtn = document.getElementById('playPause');
+                const stepBtn = document.getElementById('step');
+                const clearBtn = document.getElementById('clear');
+                const randomBtn = document.getElementById('random');
+                const predatorBtn = document.getElementById('predator');
+                const ecosystemBtn = document.getElementById('ecosystem');
+                const virusBtn = document.getElementById('virus');
+                const evolutionBtn = document.getElementById('evolution');
+                const speedSlider = document.getElementById('speedSlider');
+
+                playPauseBtn.addEventListener('click', () => this.togglePlay());
+                stepBtn.addEventListener('click', () => this.step());
+                clearBtn.addEventListener('click', () => this.clear());
+                randomBtn.addEventListener('click', () => this.createRandomMix());
+                predatorBtn.addEventListener('click', () => this.createPredatorScenario());
+                ecosystemBtn.addEventListener('click', () => this.createEcosystem());
+                virusBtn.addEventListener('click', () => this.createVirusScenario());
+                evolutionBtn.addEventListener('click', () => this.enableEvolution());
+                speedSlider.addEventListener('input', (e) => this.setSpeed(e.target.value));
+
+                this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
+                
+                // Species selector
+                document.querySelectorAll('.species-option').forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        document.querySelectorAll('.species-option').forEach(o => o.classList.remove('active'));
+                        option.classList.add('active');
+                        this.selectedSpecies = parseInt(option.dataset.species);
+                    });
+                });
+            }
+
+            handleCanvasClick(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const col = Math.floor(x / this.cellSize);
+                const row = Math.floor(y / this.cellSize);
+                
+                if (row >= 0 && row < this.rows && col >= 0 && col < this.cols) {
+                    if (this.grid[row][col] === this.selectedSpecies) {
+                        this.grid[row][col] = -1;
+                        this.energyGrid[row][col] = 0;
+                    } else {
+                        this.grid[row][col] = this.selectedSpecies;
+                        this.energyGrid[row][col] = this.species[this.selectedSpecies].energy;
+                    }
+                    this.render();
+                    this.updateStats();
+                }
+            }
+
+            togglePlay() {
+                this.isRunning = !this.isRunning;
+                const btn = document.getElementById('playPause');
+                
+                if (this.isRunning) {
+                    btn.textContent = '⏸ 暫停';
+                    btn.className = 'tertiary-btn';
+                    this.animate();
+                } else {
+                    btn.textContent = '▶ 開始';
+                    btn.className = 'primary-btn';
+                    if (this.animationId) {
+                        cancelAnimationFrame(this.animationId);
+                    }
+                }
+            }
+
+            animate(currentTime = 0) {
+                if (!this.isRunning) return;
+
+                const deltaTime = currentTime - this.lastTime;
+                const frameRate = 1000 / this.speed;
+
+                if (deltaTime >= frameRate) {
+                    this.step();
+                    this.lastTime = currentTime;
+                }
+
+                this.animationId = requestAnimationFrame((time) => this.animate(time));
+            }
+
+            step() {
+                // Reset next grid
+                for (let row = 0; row < this.rows; row++) {
+                    for (let col = 0; col < this.cols; col++) {
+                        this.nextGrid[row][col] = -1;
+                    }
+                }
+
+                // Process each cell
+                for (let row = 0; row < this.rows; row++) {
+                    for (let col = 0; col < this.cols; col++) {
+                        this.processCell(row, col);
+                    }
+                }
+
+                // Swap grids
+                [this.grid, this.nextGrid] = [this.nextGrid, this.grid];
+                
+                this.generation++;
+                this.updateEcosystem();
+                this.render();
+                this.updateStats();
+            }
+
+            processCell(row, col) {
+                const currentSpecies = this.grid[row][col];
+                const neighbors = this.getNeighborInfo(row, col);
+                
+                if (currentSpecies === -1) {
+                    // Empty cell - check for birth
+                    this.checkBirth(row, col, neighbors);
+                } else {
+                    // Occupied cell - check survival and interactions
+                    this.checkSurvival(row, col, currentSpecies, neighbors);
+                }
+            }
+
+            getNeighborInfo(row, col) {
+                const info = { total: 0, species: {}, predators: 0, food: 0, same: 0 };
+                
+                for (let i = -1; i <= 1; i++) {
+                    for (let j = -1; j <= 1; j++) {
+                        if (i === 0 && j === 0) continue;
+                        
+                        const newRow = row + i;
+                        const newCol = col + j;
+                        
+                        if (newRow >= 0 && newRow < this.rows && 
+                            newCol >= 0 && newCol < this.cols) {
+                            const species = this.grid[newRow][newCol];
+                            if (species !== -1) {
+                                info.total++;
+                                info.species[species] = (info.species[species] || 0) + 1;
+                                
+                                if (species === 1) info.predators++; // Predators
+                                if (species === 3) info.food++; // Producers (food)
+                                if (species === this.grid[row][col]) info.same++;
+                            }
+                        }
+                    }
+                }
+                
+                return info;
+            }
+
+            checkBirth(row, col, neighbors) {
+                // Find dominant species that could give birth
+                let maxCount = 0;
+                let dominantSpecies = -1;
+                
+                for (const [species, count] of Object.entries(neighbors.species)) {
+                    if (count > maxCount) {
+                        maxCount = count;
+                        dominantSpecies = parseInt(species);
+                    }
+                }
+
+                if (dominantSpecies !== -1 && maxCount >= 2) {
+                    const spec = this.species[dominantSpecies];
+                    let birthChance = spec.birthRate;
+                    
+                    // More lenient birth conditions
+                    if (dominantSpecies === 1 && neighbors.food < 1) birthChance *= 0.5; // Predators need less food
+                    if (dominantSpecies === 2 && neighbors.food > 0) birthChance *= 2.0; // Herbivores thrive with producers
+                    if (dominantSpecies === 3 && neighbors.total < 6) birthChance *= 1.5; // Producers more resilient
+                    if (dominantSpecies === 4) birthChance *= (neighbors.total > 0 ? 2.0 : 0.2); // Virus spreads easier
+                    
+                    // More flexible birth conditions
+                    if (Math.random() < birthChance && (maxCount >= 2 || (dominantSpecies === 3 && maxCount >= 1))) {
+                        this.nextGrid[row][col] = dominantSpecies;
+                    }
+                }
+            }
+
+            checkSurvival(row, col, species, neighbors) {
+                let survives = false;
+                const spec = this.species[species];
+                
+                // More lenient survival rules
+                if (neighbors.total >= 1 && neighbors.total <= 6) {
+                    survives = true;
+                }
+
+                // Species-specific survival rules (more forgiving)
+                switch(species) {
+                    case 0: // Basic Life - more resilient
+                        survives = neighbors.total >= 1 && neighbors.total <= 5;
+                        if (neighbors.total === 0) survives = Math.random() < 0.1; // Can survive alone occasionally
+                        break;
+                        
+                    case 1: // Predator - less dependent on food
+                        survives = neighbors.total >= 1 && neighbors.total <= 5;
+                        if (neighbors.food === 0 && neighbors.species[2] === 0 && neighbors.species[0] === 0) {
+                            survives = Math.random() < 0.3; // Can survive without food sometimes
+                        }
+                        break;
+                        
+                    case 2: // Herbivore - more resilient to predators
+                        survives = neighbors.total >= 1 && neighbors.total <= 6;
+                        if (neighbors.predators > 3) survives = Math.random() < 0.4; // Some escape predators
+                        if (neighbors.food > 0) survives = true; // Always survive with food
+                        break;
+                        
+                    case 3: // Producer - much more resilient
+                        survives = neighbors.total <= 6; // Less affected by overcrowding
+                        if (neighbors.total === 0) survives = Math.random() < 0.7; // Often survive alone
+                        break;
+                        
+                    case 4: // Virus - more balanced
+                        survives = neighbors.total > 0 && neighbors.total <= 7; // Less likely to burn out
+                        if (neighbors.total > 0) this.spreadVirus(row, col, neighbors);
+                        break;
+                }
+
+                // Reduced random death rate
+                if (survives && Math.random() < spec.deathRate * 0.5) {
+                    survives = false;
+                }
+
+                if (survives) {
+                    this.nextGrid[row][col] = species;
+                }
+            }
+
+            spreadVirus(row, col, neighbors) {
+                // Virus converts nearby cells (reduced infection rate)
+                for (let i = -1; i <= 1; i++) {
+                    for (let j = -1; j <= 1; j++) {
+                        if (i === 0 && j === 0) continue;
+                        
+                        const newRow = row + i;
+                        const newCol = col + j;
+                        
+                        if (newRow >= 0 && newRow < this.rows && 
+                            newCol >= 0 && newCol < this.cols) {
+                            if (this.grid[newRow][newCol] !== -1 && 
+                                this.grid[newRow][newCol] !== 4 && 
+                                Math.random() < 0.1) { // Reduced from 0.2 to 0.1
+                                this.nextGrid[newRow][newCol] = 4; // Convert to virus
+                            }
+                        }
+                    }
+                }
+            }
+
+            updateEcosystem() {
+                // Track population changes for stability calculation
+                const currentPop = this.getPopulationCounts();
+                this.populationHistory.push(currentPop);
+                if (this.populationHistory.length > 20) {
+                    this.populationHistory.shift();
+                }
+            }
+
+            clear() {
+                this.grid = this.createGrid();
+                this.energyGrid = this.createEnergyGrid();
+                this.generation = 0;
+                this.populationHistory = [];
+                this.render();
+                this.updateStats();
+            }
+
+            createRandomMix() {
+                this.clear();
+                for (let row = 0; row < this.rows; row++) {
+                    for (let col = 0; col < this.cols; col++) {
+                        if (Math.random() < 0.15) {
+                            const species = Math.floor(Math.random() * 5);
+                            this.grid[row][col] = species;
+                            this.energyGrid[row][col] = this.species[species].energy;
+                        }
+                    }
+                }
+                this.render();
+                this.updateStats();
+            }
+
+            createPredatorScenario() {
+                this.clear();
+                // Create herbivore population
+                for (let i = 0; i < 100; i++) {
+                    const row = Math.floor(Math.random() * this.rows);
+                    const col = Math.floor(Math.random() * this.cols);
+                    this.grid[row][col] = 2; // Herbivore
+                }
+                // Add some predators
+                for (let i = 0; i < 20; i++) {
+                    const row = Math.floor(Math.random() * this.rows);
+                    const col = Math.floor(Math.random() * this.cols);
+                    this.grid[row][col] = 1; // Predator
+                }
+                this.render();
+                this.updateStats();
+            }
+
+            createEcosystem() {
+                this.clear();
+                // Create balanced ecosystem
+                const patterns = [
+                    { species: 3, count: 150 }, // Producers
+                    { species: 2, count: 80 },  // Herbivores
+                    { species: 1, count: 30 },  // Predators
+                    { species: 0, count: 50 }   // Basic life
+                ];
+                
+                patterns.forEach(pattern => {
+                    for (let i = 0; i < pattern.count; i++) {
+                        const row = Math.floor(Math.random() * this.rows);
+                        const col = Math.floor(Math.random() * this.cols);
+                        if (this.grid[row][col] === -1) {
+                            this.grid[row][col] = pattern.species;
+                            this.energyGrid[row][col] = this.species[pattern.species].energy;
+                        }
+                    }
+                });
+                
+                this.render();
+                this.updateStats();
+            }
+
+            createVirusScenario() {
+                this.createEcosystem();
+                // Add virus outbreak
+                const centerRow = Math.floor(this.rows / 2);
+                const centerCol = Math.floor(this.cols / 2);
+                
+                for (let i = -2; i <= 2; i++) {
+                    for (let j = -2; j <= 2; j++) {
+                        const row = centerRow + i;
+                        const col = centerCol + j;
+                        if (row >= 0 && row < this.rows && col >= 0 && col < this.cols) {
+                            this.grid[row][col] = 4; // Virus
+                        }
+                    }
+                }
+                
+                this.render();
+                this.updateStats();
+            }
+
+            enableEvolution() {
+                // Modify species properties slightly
+                Object.keys(this.species).forEach(key => {
+                    const species = this.species[key];
+                    species.birthRate += (Math.random() - 0.5) * 0.1;
+                    species.deathRate += (Math.random() - 0.5) * 0.05;
+                    species.birthRate = Math.max(0.05, Math.min(0.9, species.birthRate));
+                    species.deathRate = Math.max(0.01, Math.min(0.5, species.deathRate));
+                });
+                alert('Evolution enabled! Species traits have been modified.');
+            }
+
+            setSpeed(value) {
+                this.speed = parseInt(value);
+                document.getElementById('speedValue').textContent = value;
+            }
+
+            getPopulationCounts() {
+                const counts = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
+                for (let row = 0; row < this.rows; row++) {
+                    for (let col = 0; col < this.cols; col++) {
+                        const species = this.grid[row][col];
+                        if (species !== -1) {
+                            counts[species]++;
+                        }
+                    }
+                }
+                return counts;
+            }
+
+            calculateStability() {
+                if (this.populationHistory.length < 2) return 0;
+                
+                const latest = this.populationHistory[this.populationHistory.length - 1];
+                const previous = this.populationHistory[this.populationHistory.length - 2];
+                
+                let totalChange = 0;
+                let totalPopulation = 0;
+                
+                for (let species = 0; species < 5; species++) {
+                    const currentPop = latest[species] || 0;
+                    const previousPop = previous[species] || 0;
+                    totalChange += Math.abs(currentPop - previousPop);
+                    totalPopulation += currentPop;
+                }
+                
+                if (totalPopulation === 0) return 0;
+                
+                const stability = 100 - (totalChange / totalPopulation * 100);
+                return Math.max(0, Math.min(100, stability));
+            }
+
+            render() {
+                this.ctx.fillStyle = '#0a0a0a';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Draw grid lines (subtle)
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+                this.ctx.lineWidth = 0.5;
+                
+                for (let i = 0; i <= this.cols; i += 5) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(i * this.cellSize, 0);
+                    this.ctx.lineTo(i * this.cellSize, this.canvas.height);
+                    this.ctx.stroke();
+                }
+                
+                for (let i = 0; i <= this.rows; i += 5) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, i * this.cellSize);
+                    this.ctx.lineTo(this.canvas.width, i * this.cellSize);
+                    this.ctx.stroke();
+                }
+
+                // Draw living cells with species-specific appearance
+                for (let row = 0; row < this.rows; row++) {
+                    for (let col = 0; col < this.cols; col++) {
+                        const species = this.grid[row][col];
+                        if (species !== -1) {
+                            const x = col * this.cellSize;
+                            const y = row * this.cellSize;
+                            
+                            this.drawCell(x, y, species);
+                        }
+                    }
+                }
+            }
+
+            drawCell(x, y, species) {
+                const spec = this.species[species];
+                const size = this.cellSize - 1;
+                
+                // Create species-specific visual effects
+                switch(species) {
+                    case 0: // Basic Life - simple green circle
+                        this.ctx.fillStyle = spec.color;
+                        this.ctx.fillRect(x, y, size, size);
+                        break;
+                        
+                    case 1: // Predator - angular red shape
+                        const gradient1 = this.ctx.createRadialGradient(x + size/2, y + size/2, 0, x + size/2, y + size/2, size/2);
+                        gradient1.addColorStop(0, '#ff8a80');
+                        gradient1.addColorStop(1, '#ff1744');
+                        this.ctx.fillStyle = gradient1;
+                        this.ctx.fillRect(x, y, size, size);
+                        // Add aggressive "teeth"
+                        this.ctx.fillStyle = '#ffff00';
+                        this.ctx.fillRect(x + 1, y + 1, 2, 2);
+                        break;
+                        
+                    case 2: // Herbivore - soft blue oval
+                        const gradient2 = this.ctx.createRadialGradient(x + size/2, y + size/2, 0, x + size/2, y + size/2, size/2);
+                        gradient2.addColorStop(0, '#80deea');
+                        gradient2.addColorStop(1, '#00acc1');
+                        this.ctx.fillStyle = gradient2;
+                        this.ctx.beginPath();
+                        this.ctx.ellipse(x + size/2, y + size/2, size/2, size/3, 0, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        break;
+                        
+                    case 3: // Producer - bright yellow star
+                        this.ctx.fillStyle = spec.color;
+                        this.ctx.fillRect(x, y, size, size);
+                        // Add energy glow
+                        this.ctx.shadowColor = '#ffd93d';
+                        this.ctx.shadowBlur = 3;
+                        this.ctx.fillRect(x, y, size, size);
+                        this.ctx.shadowBlur = 0;
+                        break;
+                        
+                    case 4: // Virus - pulsing purple
+                        const pulse = Math.sin(this.generation * 0.3) * 0.3 + 0.7;
+                        this.ctx.fillStyle = `rgba(155, 89, 182, ${pulse})`;
+                        this.ctx.fillRect(x, y, size, size);
+                        // Add infection tendrils
+                        this.ctx.strokeStyle = '#9b59b6';
+                        this.ctx.lineWidth = 1;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(x, y);
+                        this.ctx.lineTo(x + size, y + size);
+                        this.ctx.moveTo(x + size, y);
+                        this.ctx.lineTo(x, y + size);
+                        this.ctx.stroke();
+                        break;
+                }
+            }
+
+            updateStats() {
+                const populations = this.getPopulationCounts();
+                const totalPop = Object.values(populations).reduce((a, b) => a + b, 0);
+                const diversity = Object.values(populations).filter(count => count > 0).length;
+                const stability = this.calculateStability();
+                
+                document.getElementById('generation').textContent = this.generation;
+                document.getElementById('totalPop').textContent = totalPop;
+                document.getElementById('diversity').textContent = diversity;
+                document.getElementById('stability').textContent = Math.round(stability) + '%';
+                
+                this.updateSpeciesStats(populations);
+            }
+
+            updateSpeciesStats(populations) {
+                const container = document.getElementById('speciesStats');
+                container.innerHTML = '';
+                
+                Object.keys(this.species).forEach(speciesId => {
+                    const species = this.species[speciesId];
+                    const count = populations[speciesId];
+                    
+                    const statDiv = document.createElement('div');
+                    statDiv.className = 'species-stat';
+                    
+                    const totalPop = Object.values(populations).reduce((a, b) => a + b, 0);
+                    const percentage = totalPop > 0 ? ((count / totalPop) * 100).toFixed(1) : '0.0';
+                    
+                    statDiv.innerHTML = `
+                        <div class="species-name">
+                            <div class="species-color" style="background: ${species.color}; width: 15px; height: 15px; margin-right: 8px;"></div>
+                            ${species.name}
+                        </div>
+                        <div style="font-size: 1.4em; font-weight: bold; color: ${species.color};">${count}</div>
+                        <div style="opacity: 0.8;">${percentage}% of ecosystem</div>
+                        <div style="font-size: 0.8em; opacity: 0.6;">
+                            Birth: ${(species.birthRate * 100).toFixed(1)}% | 
+                            Death: ${(species.deathRate * 100).toFixed(1)}%
+                        </div>
+                    `;
+                    
+                    container.appendChild(statDiv);
+                });
+            }
+        }
+
+        // Initialize the game when the page loads
+        window.addEventListener('load', () => {
+            new SecondGenerationLife();
+        });
+    </script>
+</body>
+</html>

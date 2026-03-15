@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>人臉偵測與換臉系統</title>
+  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 2.5em;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 30px;
+    }
+
+    .section {
+      background: #f8f9fa;
+      padding: 25px;
+      border-radius: 15px;
+      border: 2px solid #e9ecef;
+    }
+
+    .section-title {
+      font-size: 1.5em;
+      color: #495057;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 10px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+    }
+
+    .btn-success:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(56, 239, 125, 0.4);
+    }
+
+    .btn-warning {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+
+    .btn-warning:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .canvas-container {
+      position: relative;
+      background: #000;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 20px 0;
+      min-height: 500px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    canvas {
+      max-width: 100%;
+      display: block;
+    }
+
+    .placeholder {
+      color: #6c757d;
+      font-size: 1.2em;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .face-library {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-top: 15px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .face-card {
+      background: white;
+      border: 3px solid #dee2e6;
+      border-radius: 10px;
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+
+    .face-card:hover {
+      border-color: #667eea;
+      transform: scale(1.05);
+    }
+
+    .face-card.selected {
+      border-color: #667eea;
+      background: #e8eaf6;
+      box-shadow: 0 0 15px rgba(102, 126, 234, 0.5);
+    }
+
+    .face-card img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .face-card-name {
+      font-weight: bold;
+      color: #495057;
+      font-size: 0.9em;
+    }
+
+    .alert {
+      padding: 15px;
+      border-radius: 10px;
+      margin: 15px 0;
+      display: none;
+    }
+
+    .alert.show {
+      display: block;
+    }
+
+    .alert-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert-info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .slider-container {
+      margin: 15px 0;
+    }
+
+    .slider-container label {
+      display: block;
+      margin-bottom: 8px;
+      color: #495057;
+      font-weight: bold;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 8px;
+      border-radius: 5px;
+      background: #dee2e6;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #667eea;
+      cursor: pointer;
+    }
+
+    .value-display {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 5px;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+
+    .info-box {
+      background: #e8f4f8;
+      border-left: 4px solid #17a2b8;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 5px;
+    }
+
+    .info-box h3 {
+      color: #17a2b8;
+      margin-bottom: 10px;
+    }
+
+    .info-box ul {
+      margin-left: 20px;
+      color: #495057;
+    }
+
+    .info-box li {
+      margin: 5px 0;
+    }
+
+    @media (max-width: 1024px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+
+      .face-library {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      .container {
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 1.8em;
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .face-library {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .canvas-container {
+        min-height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+        <line x1="9" y1="9" x2="9.01" y2="9"></line>
+        <line x1="15" y1="9" x2="15.01" y2="9"></line>
+      </svg>
+      人臉偵測與換臉系統
+    </h1>
+
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>正在載入模型，請稍候...</p>
+    </div>
+
+    <div id="alert" class="alert"></div>
+
+    <div id="mainContent" style="display: none;">
+      <div class="content">
+        <!-- 左側控制面板 -->
+        <div>
+          <div class="section">
+            <h2 class="section-title">📤 上傳照片</h2>
+            <button class="btn-primary" onclick="document.getElementById('uploadInput').click()">
+              <span>📷</span> 選擇要換臉的照片
+            </button>
+            <input type="file" id="uploadInput" accept="image/*" style="display: none;" onchange="handleUploadImage(event)">
+            
+            <div class="slider-container">
+              <label>
+                透明度調整
+                <span class="value-display" id="opacityValue">70%</span>
+              </label>
+              <input type="range" id="opacitySlider" min="0" max="100" value="70" oninput="updateOpacity(this.value)">
+            </div>
+
+            <div class="slider-container">
+              <label>
+                臉部縮放
+                <span class="value-display" id="scaleValue">100%</span>
+              </label>
+              <input type="range" id="scaleSlider" min="50" max="150" value="100" oninput="updateScale(this.value)">
+            </div>
+          </div>
+
+          <div class="section" style="margin-top: 20px;">
+            <h2 class="section-title">🎭 換臉素材庫</h2>
+            <button class="btn-success" onclick="document.getElementById('faceLibInput').click()">
+              <span>➕</span> 新增換臉素材
+            </button>
+            <input type="file" id="faceLibInput" accept="image/*" style="display: none;" onchange="addFaceToLibrary(event)">
+            
+            <div class="face-library" id="faceLibrary"></div>
+          </div>
+
+          <div class="info-box" style="margin-top: 20px;">
+            <h3>💡 使用說明</h3>
+            <ul>
+              <li>上傳包含人臉的照片</li>
+              <li>新增換臉素材到素材庫</li>
+              <li>點選素材進行換臉</li>
+              <li>調整透明度和縮放</li>
+              <li>下載最終結果</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 右側顯示區域 -->
+        <div>
+          <div class="canvas-container">
+            <canvas id="canvas"></canvas>
+            <div id="placeholder" class="placeholder">
+              請上傳一張包含人臉的照片開始使用
+            </div>
+          </div>
+
+          <div class="controls">
+            <button id="swapBtn" class="btn-warning" onclick="performFaceSwap()" disabled>
+              <span>🔄</span> 執行換臉
+            </button>
+            <button id="resetBtn" class="btn-primary" onclick="resetImage()" disabled>
+              <span>↻</span> 重置
+            </button>
+            <button id="downloadBtn" class="btn-success" onclick="downloadImage()" disabled>
+              <span>💾</span> 下載結果
+            </button>
+          </div>
+
+          <div id="faceInfo" class="section" style="margin-top: 20px; display: none;">
+            <h2 class="section-title">📊 偵測資訊</h2>
+            <div id="faceInfoContent"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let modelsLoaded = false;
+    let originalImage = null;
+    let detectedFaces = [];
+    let faceLibrary = [];
+    let selectedFace = null;
+    let currentOpacity = 0.7;
+    let currentScale = 1.0;
+
+    // 載入模型
+    async function loadModels() {
+      try {
+        const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
+        await Promise.all([
+          faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+          faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+        ]);
+        modelsLoaded = true;
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        loadFaceLibrary();
+        showAlert('模型載入完成！可以開始使用', 'success');
+      } catch (err) {
+        showAlert('模型載入失敗: ' + err.message, 'error');
+        document.getElementById('loading').innerHTML = '<p style="color: red;">載入失敗，請重新整理頁面</p>';
+      }
+    }
+
+    // 載入素材庫
+    function loadFaceLibrary() {
+      const saved = localStorage.getItem('faceLibrary');
+      if (saved) {
+        faceLibrary = JSON.parse(saved);
+        updateFaceLibraryDisplay();
+      }
+    }
+
+    // 顯示提示訊息
+    function showAlert(message, type = 'info') {
+      const alertEl = document.getElementById('alert');
+      alertEl.className = `alert alert-${type} show`;
+      alertEl.textContent = message;
+      setTimeout(() => {
+        alertEl.className = 'alert';
+      }, 5000);
+    }
+
+    // 上傳主照片
+    async function handleUploadImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const img = await loadImage(file);
+      originalImage = img;
+
+      // 偵測人臉
+      const detections = await faceapi
+        .detectAllFaces(img)
+        .withFaceLandmarks();
+
+      if (detections.length === 0) {
+        showAlert('未偵測到人臉，請上傳包含清晰人臉的照片', 'error');
+        return;
+      }
+
+      detectedFaces = detections;
+      drawOriginalImage();
+      
+      document.getElementById('faceInfo').style.display = 'block';
+      document.getElementById('faceInfoContent').innerHTML = `
+        <p style="font-size: 1.1em;"><strong>偵測到 ${detections.length} 張人臉</strong></p>
+        <p style="color: #6c757d; margin-top: 5px;">請從素材庫選擇要換上的臉部素材</p>
+      `;
+      
+      document.getElementById('resetBtn').disabled = false;
+      document.getElementById('downloadBtn').disabled = false;
+      
+      if (selectedFace) {
+        document.getElementById('swapBtn').disabled = false;
+      }
+
+      showAlert(`成功偵測到 ${detections.length} 張人臉！`, 'success');
+    }
+
+    // 新增素材到素材庫
+    async function addFaceToLibrary(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const newFace = {
+          id: Date.now(),
+          name: `素材 ${faceLibrary.length + 1}`,
+          dataUrl: e.target.result
+        };
+
+        faceLibrary.push(newFace);
+        localStorage.setItem('faceLibrary', JSON.stringify(faceLibrary));
+        updateFaceLibraryDisplay();
+        showAlert('素材已加入素材庫', 'success');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // 更新素材庫顯示
+    function updateFaceLibraryDisplay() {
+      const container = document.getElementById('faceLibrary');
+      
+      if (faceLibrary.length === 0) {
+        container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #6c757d; padding: 20px;">素材庫是空的<br>請新增換臉素材</p>';
+        return;
+      }
+
+      container.innerHTML = faceLibrary.map(face => `
+        <div class="face-card ${selectedFace && selectedFace.id === face.id ? 'selected' : ''}" onclick="selectFace(${face.id})">
+          <img src="${face.dataUrl}" alt="${face.name}">
+          <div class="face-card-name">${face.name}</div>
+          <button class="delete-btn" style="width: 100%; padding: 5px; margin-top: 5px; font-size: 0.8em;" onclick="event.stopPropagation(); deleteFaceFromLibrary(${face.id})">🗑️</button>
+        </div>
+      `).join('');
+    }
+
+    // 選擇素材
+    function selectFace(id) {
+      selectedFace = faceLibrary.find(f => f.id === id);
+      updateFaceLibraryDisplay();
+      
+      if (originalImage) {
+        document.getElementById('swapBtn').disabled = false;
+        showAlert(`已選擇 ${selectedFace.name}`, 'info');
+      }
+    }
+
+    // 刪除素材
+    function deleteFaceFromLibrary(id) {
+      if (!confirm('確定要刪除此素材？')) return;
+      
+      faceLibrary = faceLibrary.filter(f => f.id !== id);
+      localStorage.setItem('faceLibrary', JSON.stringify(faceLibrary));
+      
+      if (selectedFace && selectedFace.id === id) {
+        selectedFace = null;
+        document.getElementById('swapBtn').disabled = true;
+      }
+      
+      updateFaceLibraryDisplay();
+      showAlert('素材已刪除', 'success');
+    }
+
+    // 載入圖片
+    function loadImage(file) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.src = URL.createObjectURL(file);
+        img.onload = () => resolve(img);
+      });
+    }
+
+    // 繪製原始圖片
+    function drawOriginalImage() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      canvas.width = originalImage.width;
+      canvas.height = originalImage.height;
+      ctx.drawImage(originalImage, 0, 0);
+
+      // 繪製人臉框
+      const displaySize = { width: originalImage.width, height: originalImage.height };
+      faceapi.matchDimensions(canvas, displaySize);
+      const resizedDetections = faceapi.resizeResults(detectedFaces, displaySize);
+      faceapi.draw.drawDetections(canvas, resizedDetections);
+      faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+
+      canvas.style.display = 'block';
+      document.getElementById('placeholder').style.display = 'none';
+    }
+
+    // --- 輔助函式 1: 取得區域的平均顏色 ---
+    function getAverageColor(ctx, x, y, width, height) {
+      try {
+        const imageData = ctx.getImageData(x, y, width, height);
+        const data = imageData.data;
+        let r = 0, g = 0, b = 0;
+        let count = 0;
+
+        for (let i = 0; i < data.length; i += 4) {
+          // 忽略透明像素
+          if (data[i + 3] > 0) { 
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+            count++;
+          }
+        }
+        return count > 0 ? { r: Math.round(r / count), g: Math.round(g / count), b: Math.round(b / count) } : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // --- 輔助函式 2: 膚色遷移 (Reinhard Color Transfer 簡化版) ---
+    function matchSkinTone(sourceCanvas, targetColor) {
+      const ctx = sourceCanvas.getContext('2d');
+      const width = sourceCanvas.width;
+      const height = sourceCanvas.height;
+      
+      // 取得素材臉的平均顏色
+      const sourceColor = getAverageColor(ctx, 0, 0, width, height);
+      if (!sourceColor || !targetColor) return;
+
+      const imgData = ctx.getImageData(0, 0, width, height);
+      const data = imgData.data;
+
+      // 計算差異 (Delta)
+      const dr = targetColor.r - sourceColor.r;
+      const dg = targetColor.g - sourceColor.g;
+      const db = targetColor.b - sourceColor.b;
+
+      // 像素級調整
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] > 0) { // 只調整非透明區域
+          // 簡單的加法色彩平衡 (保留亮度對比，調整色偏)
+          // 使用 Math.min/max 確保顏色在 0-255 之間
+          data[i]     = Math.min(255, Math.max(0, data[i] + dr));     // R
+          data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + dg)); // G
+          data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + db)); // B
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+    }
+    
+    // 執行換臉
+    async function performFaceSwap() {
+      if (!originalImage || !selectedFace || detectedFaces.length === 0) {
+        showAlert('請先上傳照片並選擇素材', 'error');
+        return;
+      }
+
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // 1. 重置畫布
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(originalImage, 0, 0);
+
+      // 預載入素材圖片
+      const swapFaceImg = new Image();
+      swapFaceImg.src = selectedFace.dataUrl;
+      await new Promise(resolve => { swapFaceImg.onload = resolve; });
+
+      // 對每個偵測到的人臉進行處理
+      for (const detection of detectedFaces) {
+        const landmarks = detection.landmarks;
+        const box = detection.detection.box;
+
+        // --- A. 準備素材畫布 (Off-screen Canvas) ---
+        // 我們建立一個暫存畫布來處理素材的變形和變色，而不影響主畫面
+        const tempCanvas = document.createElement('canvas');
+        const tCtx = tempCanvas.getContext('2d');
+        
+        // 讓暫存畫布稍微大一點，容納縮放
+        const w = box.width * currentScale;
+        const h = box.height * currentScale;
+        tempCanvas.width = w;
+        tempCanvas.height = h;
+
+        // 繪製素材到暫存畫布
+        tCtx.drawImage(swapFaceImg, 0, 0, w, h);
+
+        // --- B. 執行膚色遷移 ---
+        // 取得「原始照片」中該人臉區域的平均顏色
+        const originalFaceColor = getAverageColor(ctx, box.x + box.width*0.25, box.y + box.height*0.25, box.width*0.5, box.height*0.5);
+        
+        // 調整暫存畫布中的顏色去匹配原始照片
+        matchSkinTone(tempCanvas, originalFaceColor);
+
+        // --- C. 計算旋轉角度 ---
+        const leftEye = landmarks.positions[36];
+        const rightEye = landmarks.positions[45];
+        const angle = Math.atan2(rightEye.y - leftEye.y, rightEye.x - leftEye.x);
+
+        // --- D. 在主畫布上繪製 ---
+        ctx.save(); // 儲存狀態
+
+        // 1. 定位與旋轉
+        const centerX = box.x + box.width / 2;
+        const centerY = box.y + box.height / 2;
+        ctx.translate(centerX, centerY);
+        ctx.rotate(angle);
+
+        // 2. 建立剪裁路徑 (Masking) - 這是關鍵！
+        // 我們畫一個橢圓形或圓角矩形作為遮罩，並加上羽化
+        ctx.beginPath();
+        // 這裡我們模擬一個臉部形狀的遮罩 (寬度略小於高度)
+        ctx.ellipse(0, 0, (w / 2) * 0.9, (h / 2) * 0.95, 0, 0, 2 * Math.PI);
+        
+        // 3. 設定羽化效果 (Soft Edge)
+        // 利用 shadowBlur 來製造邊緣模糊，讓貼圖不那麼生硬
+        ctx.shadowColor = "rgba(0,0,0,1)"; // 這裡顏色不重要，因為我們是用 clip
+        // 但在 clip 模式下 shadowBlur 效果有限，我們改用 globalCompositeOperation 的方式模擬羽化
+        // 或者簡單地，我們不做 clip，而是用合成模式：
+        
+        // 簡單羽化方案：限制繪製區域
+        ctx.clip(); 
+
+        // 4. 設定整體透明度
+        ctx.globalAlpha = currentOpacity;
+
+        // 5. 繪製處理過顏色的素材
+        // 使用 'overlay' 或 'hard-light' 可以讓紋理更融合，但 'source-over' 最穩定
+        // ctx.globalCompositeOperation = 'hard-light'; // 可選：嘗試混合模式
+        
+        ctx.drawImage(tempCanvas, -w / 2, -h / 2);
+
+        ctx.restore(); // 恢復狀態
+      }
+
+      showAlert('像素級融合換臉完成！', 'success');
+    }
+
+    // 更新透明度
+    function updateOpacity(value) {
+      currentOpacity = value / 100;
+      document.getElementById('opacityValue').textContent = value + '%';
+    }
+
+    // 更新縮放
+    function updateScale(value) {
+      currentScale = value / 100;
+      document.getElementById('scaleValue').textContent = value + '%';
+    }
+
+    // 重置圖片
+    function resetImage() {
+      if (originalImage) {
+        drawOriginalImage();
+        showAlert('已重置為原始圖片', 'info');
+      }
+    }
+
+    // 下載圖片
+    function downloadImage() {
+      const canvas = document.getElementById('canvas');
+      const link = document.createElement('a');
+      link.download = 'face-swap-result.png';
+      link.href = canvas.toDataURL();
+      link.click();
+      showAlert('圖片已下載', 'success');
+    }
+
+    // 頁面載入時初始化
+    window.addEventListener('load', loadModels);
+  </script>
+</body>
+</html>

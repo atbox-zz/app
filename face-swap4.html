@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>高階臉部換臉引擎（示範）</title>
+
+  <!-- face-api (vladmandic) -->
+  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+  <!-- delaunator (Delaunay triangulation) -->
+  <script src="https://cdn.jsdelivr.net/npm/delaunator@5.0.0/index.min.js"></script>
+  <!-- opencv.js (asynchronous load) -->
+  <script async src="https://docs.opencv.org/4.5.5/opencv.js"></script>
+
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family: "Segoe UI", Tahoma, sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;padding:20px}
+    .container{max-width:1200px;margin:0 auto;background:#fff;border-radius:12px;padding:20px;box-shadow:0 20px 40px rgba(0,0,0,0.2)}
+    h1{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .section{background:#f8f9fa;padding:14px;border-radius:10px;border:1px solid #e9ecef}
+    input[type=file]{width:100%}
+    button{padding:10px;border-radius:8px;border:none;cursor:pointer}
+    canvas{max-width:100%;border-radius:8px;background:#000;display:block}
+    .controls{display:flex;gap:8px;margin-top:8px}
+    .small{font-size:0.9rem;color:#444;margin-top:8px}
+    .value-display{background:#667eea;color:#fff;padding:4px 8px;border-radius:6px;margin-left:8px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+        <line x1="9" y1="9" x2="9.01" y2="9"></line>
+        <line x1="15" y1="9" x2="15.01" y2="9"></line>
+      </svg>
+      高階臉部換臉引擎（Landmark → Delaunay → Warp → seamlessClone）
+    </h1>
+
+    <div id="status" class="section small">載入模型中，請稍候…</div>
+
+    <div class="grid" style="margin-top:12px">
+      <div>
+        <div class="section">
+          <h3>上傳圖片</h3>
+          <label>目標照片（Target — 要被換臉的圖）</label>
+          <input id="targetInput" type="file" accept="image/*"><br>
+          <label style="margin-top:8px">來源照片（Source — 要貼上的臉）</label>
+          <input id="sourceInput" type="file" accept="image/*">
+          <div class="controls">
+            <button id="detectBtn" style="background:#667eea;color:#fff">偵測 landmark</button>
+            <button id="swapBtn" style="background:#17a2b8;color:#fff" disabled>執行換臉</button>
+            <button id="resetBtn">重置</button>
+          </div>
+
+          <div style="margin-top:10px">
+            <label>來源縮放 (scale) <span class="value-display" id="scaleLabel">1.00</span></label>
+            <input id="scaleSlider" type="range" min="0.6" max="1.6" step="0.01" value="1.0" style="width:100%">
+          </div>
+
+          <div style="margin-top:8px">
+            <label>遮罩羽化 (feather radius) <span class="value-display" id="featherLabel">20</span></label>
+            <input id="featherSlider" type="range" min="0" max="80" step="1" value="20" style="width:100%">
+          </div>
+
+          <div style="margin-top:8px">
+            <label>顏色校正 (enable)</label>
+            <input id="colorMatch" type="checkbox" checked>（將來源亮度/色調與目標匹配）
+          </div>
+
+          <div id="infoBox" class="small" style="margin-top:10px">尚未執行偵測。</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section">
+          <h3>預覽與結果</h3>
+          <canvas id="resultCanvas"></canvas>
+          <div class="controls" style="margin-top:8px">
+            <button id="downloadBtn" disabled style="background:#28a745;color:#fff">下載結果</button>
+          </div>
+        </div>
+
+        <div class="section" style="margin-top:12px">
+          <h3>說明</h3>
+          <p class="small">此檔為前端示範引擎；若需高品質結果，請使用角度相近且解析度高的來源圖。執行流程：偵測 landmark → 以來源 landmarks 做 Delaunay → 仿射 warp 每個三角形 → 建 mask → seamlessClone。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ---------- 全域變數 ---------- */
+let modelsReady = false;
+let cvReady = false;
+let targetImg = null, sourceImg = null;
+let targetDet = null, sourceDet = null;
+let scaleFactor = 1.0;
+let featherRadius = 20;
+let colorMatching = true;
+
+/* DOM */
+const statusEl = document.getElementById('status');
+const infoBox = document.getElementById('infoBox');
+const resultCanvas = document.getElementById('resultCanvas');
+const swapBtn = document.getElementById('swapBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+
+/* 監聽 OpenCV 載入 */
+function onOpenCvReady(){ cvReady = true; updateStatus(); }
+if(typeof cv !== 'undefined'){
+  if(cv.getBuildInformation){ onOpenCvReady(); } else { cv['onRuntimeInitialized']=onOpenCvReady; }
+}
+
+/* 載入 face-api 模型 */
+async function loadFaceModels(){
+  const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
+  statusEl.textContent = '載入 face-api 模型…';
+  await Promise.all([
+    faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+  ]);
+  modelsReady = true;
+  updateStatus();
+}
+loadFaceModels();
+
+/* 更新狀態 */
+function updateStatus(){
+  if(modelsReady && cvReady){
+    statusEl.textContent = '系統就緒：已載入 face-api 與 OpenCV。';
+  } else {
+    statusEl.textContent = '載入中：face-api ' + (modelsReady? 'ok':'loading') + '，OpenCV ' + (cvReady? 'ok':'loading');
+  }
+}
+
+/* File -> Image */
+function fileToImage(file){
+  return new Promise((resolve,reject)=>{
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = ()=>resolve(img);
+    img.onerror = e=>reject(e);
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+/* 將 image 畫到 canvas（限制最大寬度以避免過大） */
+function drawImageToCanvas(img, canvas, maxW=1200){
+  let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+  if(w > maxW){ const r = maxW / w; w = maxW; h = Math.round(h * r); }
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d'); ctx.clearRect(0,0,w,h); ctx.drawImage(img,0,0,w,h);
+}
+
+/* landmarks → [ [x,y], ... ] */
+function landmarksToPoints(landmarks){
+  return landmarks.positions.map(p=>[p.x, p.y]);
+}
+
+/* Delaunay 三角化（使用 Delaunator，輸入點為 [ [x,y], ... ]） */
+function delaunayTriangles(points){
+  // Delaunator.from expects flat array [x,y,x,y,...] if given array of points it will fail; use explicit
+  const coords = [];
+  points.forEach(p=>{ coords.push(p[0], p[1]); });
+  const d = Delaunator.from(coords);
+  const triangles = [];
+  for(let i=0;i<d.triangles.length;i+=3){
+    triangles.push([d.triangles[i], d.triangles[i+1], d.triangles[i+2]]);
+  }
+  return triangles;
+}
+
+/* 求三角形 bounding box */
+function triBBox(tri){ const xs = tri.map(p=>p[0]), ys = tri.map(p=>p[1]); const minX=Math.floor(Math.min(...xs)), minY=Math.floor(Math.min(...ys)); const maxX=Math.ceil(Math.max(...xs)), maxY=Math.ceil(Math.max(...ys)); return {minX,minY,width:maxX-minX,height:maxY-minY}; }
+
+/* 求仿射參數（3 點對應） */
+function solveAffine(srcPts, dstPts){
+  // srcPts/dstPts are arrays of 3 points: [[x,y],...]
+  // Solve for a,b,c,d,e,f in 2x3 matrix
+  const A = [];
+  const b = [];
+  for(let i=0;i<3;i++){
+    const [x,y] = srcPts[i];
+    A.push([x, y, 1, 0, 0, 0]);
+    A.push([0, 0, 0, x, y, 1]);
+    b.push(dstPts[i][0]);
+    b.push(dstPts[i][1]);
+  }
+  // Gaussian elimination
+  const n = 6;
+  const M = [];
+  for(let i=0;i<n;i++){ M[i]=A[i].slice(); M[i].push(b[i]); }
+  for(let i=0;i<n;i++){
+    // pivot
+    let maxR=i; for(let r=i+1;r<n;r++) if(Math.abs(M[r][i])>Math.abs(M[maxR][i])) maxR=r;
+    if(Math.abs(M[maxR][i]) < 1e-12) continue;
+    [M[i],M[maxR]]=[M[maxR],M[i]];
+    const piv=M[i][i];
+    for(let c=i;c<=n;c++) M[i][c]/=piv;
+    for(let r=0;r<n;r++){
+      if(r===i) continue;
+      const f=M[r][i];
+      for(let c=i;c<=n;c++) M[r][c]-=f*M[i][c];
+    }
+  }
+  const sol = new Array(n);
+  for(let i=0;i<n;i++) sol[i]=M[i][n];
+  return sol; // [a,b,c,d,e,f]
+}
+
+/* warp 一個三角形 from srcCanvas -> dstCanvas */
+function warpTriangle(srcCanvas, dstCanvas, srcTri, dstTri){
+  const sCtx = srcCanvas.getContext('2d'), dCtx = dstCanvas.getContext('2d');
+  const sB = triBBox(srcTri), dB = triBBox(dstTri);
+  if(sB.width<=0 || sB.height<=0 || dB.width<=0 || dB.height<=0) return;
+  // extract source patch
+  const srcPatch = sCtx.getImageData(sB.minX, sB.minY, sB.width, sB.height);
+  const tmpSrc = document.createElement('canvas'); tmpSrc.width = sB.width; tmpSrc.height = sB.height;
+  tmpSrc.getContext('2d').putImageData(srcPatch, 0, 0);
+  // compute normalized coordinates relative to bbox
+  const sNorm = srcTri.map(p=>[p[0]-sB.minX, p[1]-sB.minY]);
+  const dNorm = dstTri.map(p=>[p[0]-dB.minX, p[1]-dB.minY]);
+  const sol = solveAffine(sNorm, dNorm); // maps srcNorm -> dstNorm (in dst bbox coords)
+  const a=sol[0], b=sol[1], c=sol[2], d=sol[3], e=sol[4], f=sol[5];
+  dCtx.save();
+  dCtx.beginPath();
+  dCtx.moveTo(dstTri[0][0], dstTri[0][1]);
+  dCtx.lineTo(dstTri[1][0], dstTri[1][1]);
+  dCtx.lineTo(dstTri[2][0], dstTri[2][1]);
+  dCtx.closePath();
+  dCtx.clip();
+  // set transform: maps tmpSrc coords to absolute canvas coords
+  // xAbs = a*x + b*y + c + dB.minX
+  // yAbs = d*x + e*y + f + dB.minY
+  dCtx.setTransform(a, d, b, e, c + dB.minX, f + dB.minY);
+  dCtx.drawImage(tmpSrc, 0, 0);
+  dCtx.restore();
+}
+
+/* 顏色校正：簡單的亮度/對比與色相匹配（透過將來源平均亮度對齊目標） */
+function simpleColorMatch(srcCanvas, dstCanvas, maskCanvas){
+  // compute mean RGB of masked area
+  const sCtx = srcCanvas.getContext('2d'), dCtx = dstCanvas.getContext('2d'), mCtx = maskCanvas.getContext('2d');
+  const sData = sCtx.getImageData(0,0,srcCanvas.width, srcCanvas.height);
+  const dData = dCtx.getImageData(0,0,dstCanvas.width, dstCanvas.height);
+  const mData = mCtx.getImageData(0,0,maskCanvas.width, maskCanvas.height);
+  // compute average of masked pixels
+  function avgRGBA(data){
+    let r=0,g=0,b=0,cnt=0;
+    for(let i=0;i<data.data.length;i+=4){
+      const a = data.data[i+3];
+      if(a > 128){
+        r += data.data[i]; g += data.data[i+1]; b += data.data[i+2]; cnt++;
+      }
+    }
+    if(cnt===0) return [0,0,0];
+    return [r/cnt, g/cnt, b/cnt];
+  }
+  const sAvg = avgRGBA(sData), dAvg = avgRGBA(dData);
+  const gainR = (dAvg[0] + 1) / (sAvg[0] + 1), gainG = (dAvg[1]+1)/(sAvg[1]+1), gainB = (dAvg[2]+1)/(sAvg[2]+1);
+  // apply gains to srcCanvas
+  for(let i=0;i<sData.data.length;i+=4){
+    sData.data[i] = Math.min(255, sData.data[i] * gainR);
+    sData.data[i+1] = Math.min(255, sData.data[i+1] * gainG);
+    sData.data[i+2] = Math.min(255, sData.data[i+2] * gainB);
+  }
+  sCtx.putImageData(sData, 0, 0);
+}
+
+/* 建立 face mask（以 face outline 為主），並羽化（Gaussian-like blur via canvas） */
+function buildMask(width, height, points, feather=20){
+  const mask = document.createElement('canvas'); mask.width = width; mask.height = height;
+  const mCtx = mask.getContext('2d');
+  mCtx.fillStyle = 'black';
+  mCtx.fillRect(0,0,width,height);
+  mCtx.fillStyle = 'white';
+  mCtx.beginPath();
+  // face outline indices 0~16 + 17~26 reversed to close
+  const outline = points.slice(0,17).concat(points.slice(17,27).reverse());
+  outline.forEach((p,i)=>{ if(i===0) mCtx.moveTo(p[0],p[1]); else mCtx.lineTo(p[0],p[1]); });
+  mCtx.closePath(); mCtx.fill();
+  // feather via repeated globalAlpha & drawImage scaling trick (cheap blur)
+  if(feather>0){
+    // create temporary doubled canvas, scale down/up to blur (cheap)
+    const tmp = document.createElement('canvas'); tmp.width = width; tmp.height = height;
+    const tCtx = tmp.getContext('2d');
+    // draw mask to tmp, scale down and up
+    const smallW = Math.max(1, Math.round(width / (feather/4 + 1)));
+    const smallH = Math.max(1, Math.round(height / (feather/4 + 1)));
+    const small = document.createElement('canvas'); small.width = smallW; small.height = smallH;
+    small.getContext('2d').drawImage(mask, 0, 0, smallW, smallH);
+    tCtx.imageSmoothingEnabled = true;
+    tCtx.clearRect(0,0,width,height);
+    tCtx.drawImage(small, 0, 0, width, height);
+    return tmp;
+  }
+  return mask;
+}
+
+/* 主要偵測函式（偵測 target & source 的 single face landmarks） */
+async function detectLandmarks(){
+  if(!modelsReady){ alert('face-api 尚未載入完成'); return; }
+  if(!targetImg || !sourceImg){ alert('請先上傳目標與來源圖片'); return; }
+  infoBox.textContent = '開始偵測 landmark…';
+  // draw to temporary canvases (faceapi works with canvas)
+  const tCanvas = document.createElement('canvas'); drawImageToCanvas(targetImg, tCanvas);
+  const sCanvas = document.createElement('canvas'); drawImageToCanvas(sourceImg, sCanvas);
+  const tDet = await faceapi.detectSingleFace(tCanvas).withFaceLandmarks();
+  const sDet = await faceapi.detectSingleFace(sCanvas).withFaceLandmarks();
+  if(!tDet){ infoBox.textContent='目標圖未偵測到臉。'; return; }
+  if(!sDet){ infoBox.textContent='來源圖未偵測到臉。'; return; }
+  // we need landmarks in coordinates relative to rendered canvas sizes
+  // faceapi returns positions relative to the canvas passed; since we used drawImageToCanvas, positions are already correct
+  targetDet = tDet;
+  sourceDet = sDet;
+  // show detected landmarks overlay on resultCanvas
+  drawImageToCanvas(targetImg, resultCanvas);
+  const ctx = resultCanvas.getContext('2d');
+  ctx.fillStyle = 'lime';
+  const tPts = landmarksToPoints(targetDet.landmarks);
+  tPts.forEach(p=>{ ctx.beginPath(); ctx.arc(p[0], p[1], 2, 0, Math.PI*2); ctx.fill(); });
+  infoBox.textContent = `偵測完成：target landmarks ${tPts.length}，source landmarks ${landmarksToPoints(sourceDet.landmarks).length}`;
+  swapBtn.disabled = false;
+}
+
+/* 執行高階換臉流程 */
+async function performSwap(){
+  if(!modelsReady || !cvReady){ alert('模型或 OpenCV 尚未就緒'); return; }
+  if(!targetDet || !sourceDet){ alert('請先執行偵測'); return; }
+  swapBtn.disabled = true;
+  infoBox.textContent = '開始進行三角剖分與仿射 warp……';
+
+  // 1) 基底 canvas（resultCanvas）為 target 的尺寸
+  drawImageToCanvas(targetImg, resultCanvas);
+  const targetW = resultCanvas.width, targetH = resultCanvas.height;
+
+  // 2) 建立 srcCanvas：把 source 依比例 scale 到合適大小（根據眼距比例）
+  const sImgW = sourceImg.naturalWidth || sourceImg.width, sImgH = sourceImg.naturalHeight || sourceImg.height;
+  const tPts = landmarksToPoints(targetDet.landmarks);
+  const sPtsOrig = landmarksToPoints(sourceDet.landmarks);
+  // compute eye distances
+  function dist(a,b){ const dx=a[0]-b[0], dy=a[1]-b[1]; return Math.hypot(dx,dy); }
+  const tEyeDist = dist(tPts[36], tPts[45]);
+  const sEyeDist = dist(sPtsOrig[36], sPtsOrig[45]) || 1.0;
+  const estimatedScale = (tEyeDist / sEyeDist) * scaleFactor;
+  const srcCanvas = document.createElement('canvas');
+  srcCanvas.width = Math.round(sImgW * estimatedScale);
+  srcCanvas.height = Math.round(sImgH * estimatedScale);
+  srcCanvas.getContext('2d').drawImage(sourceImg, 0, 0, srcCanvas.width, srcCanvas.height);
+
+  // scaled source points
+  const sPts = sPtsOrig.map(p => [p[0]*estimatedScale, p[1]*estimatedScale]);
+
+  // 3) triangulation (use source landmarks indices)
+  const triangles = delaunayTriangles(sPts);
+
+  // 4) warpedCanvas: same size as target canvas
+  const warpedCanvas = document.createElement('canvas');
+  warpedCanvas.width = targetW; warpedCanvas.height = targetH;
+  const warpedCtx = warpedCanvas.getContext('2d'); warpedCtx.clearRect(0,0,targetW,targetH);
+
+  // For each triangle in source, map to target using corresponding landmark indices
+  for(const tri of triangles){
+    const [i0,i1,i2] = tri;
+    if(i0 >= sPts.length || i1 >= sPts.length || i2 >= sPts.length) continue;
+    const srcTri = [ sPts[i0], sPts[i1], sPts[i2] ];
+    const dstTri = [ tPts[i0], tPts[i1], tPts[i2] ];
+    // simple area check
+    const area = Math.abs((dstTri[0][0]*(dstTri[1][1]-dstTri[2][1]) + dstTri[1][0]*(dstTri[2][1]-dstTri[0][1]) + dstTri[2][0]*(dstTri[0][1]-dstTri[1][1]))/2);
+    if(area < 0.5) continue;
+    warpTriangle(srcCanvas, warpedCanvas, srcTri, dstTri);
+  }
+
+  infoBox.textContent = 'Warp 完成，準備顏色校正與建立遮罩...';
+
+  // 5) 建立遮罩（以 target landmarks 的 outline）, 並 feather
+  const maskCanvas = buildMask(targetW, targetH, tPts, featherRadius);
+
+  // 6) optional 顏色校正：把 warpedCanvas 色調與 target 對齊
+  if(colorMatching){
+    simpleColorMatch(warpedCanvas, resultCanvas, maskCanvas);
+  }
+
+  // 7) 使用 OpenCV 的 seamlessClone
+  try {
+    const srcMat = cv.imread(warpedCanvas);
+    const dstMat = cv.imread(resultCanvas);
+    const maskMat = cv.imread(maskCanvas);
+    const maskGray = new cv.Mat();
+    cv.cvtColor(maskMat, maskGray, cv.COLOR_RGBA2GRAY, 0);
+    cv.threshold(maskGray, maskGray, 127, 255, cv.THRESH_BINARY);
+
+    // compute center of mask
+    const contours = new cv.MatVector(); const hierarchy = new cv.Mat();
+    cv.findContours(maskGray, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+    let cx = Math.round(targetW/2), cy = Math.round(targetH/2);
+    if(contours.size()>0){
+      let maxIdx = 0; let maxArea = 0;
+      for(let i=0;i<contours.size();i++){
+        const area = cv.contourArea(contours.get(i));
+        if(area>maxArea){ maxArea = area; maxIdx = i; }
+      }
+      const M = cv.moments(contours.get(maxIdx));
+      if(M.m00 !== 0){ cx = Math.round(M.m10 / M.m00); cy = Math.round(M.m01 / M.m00); }
+    }
+    const center = new cv.Point(cx, cy);
+    const output = new cv.Mat();
+    cv.seamlessClone(srcMat, dstMat, maskGray, center, output, cv.NORMAL_CLONE);
+    cv.imshow(resultCanvas, output);
+
+    // cleanup
+    srcMat.delete(); dstMat.delete(); maskMat.delete(); maskGray.delete();
+    contours.delete(); hierarchy.delete(); output.delete();
+
+    infoBox.textContent = '完成：已執行 seamlessClone，結果顯示於畫布上。';
+    downloadBtn.disabled = false;
+  } catch (err){
+    console.error(err);
+    infoBox.textContent = 'OpenCV 處理失敗：' + err;
+  } finally {
+    swapBtn.disabled = false;
+  }
+}
+
+/* 事件綁定 & UI 行為 */
+document.getElementById('targetInput').addEventListener('change', async (e)=>{
+  const f = e.target.files[0]; if(!f) return;
+  targetImg = await fileToImage(f);
+  drawImageToCanvas(targetImg, resultCanvas);
+  infoBox.textContent = '目標圖已載入，請上傳來源圖並按偵測。';
+  downloadBtn.disabled = true;
+});
+document.getElementById('sourceInput').addEventListener('change', async (e)=>{
+  const f = e.target.files[0]; if(!f) return;
+  sourceImg = await fileToImage(f);
+  infoBox.textContent = '來源圖已載入。';
+});
+document.getElementById('detectBtn').addEventListener('click', detectLandmarks);
+document.getElementById('swapBtn').addEventListener('click', performSwap);
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(targetImg) drawImageToCanvas(targetImg, resultCanvas);
+  infoBox.textContent = '已重置。';
+  downloadBtn.disabled = true;
+});
+document.getElementById('scaleSlider').addEventListener('input', (e)=>{
+  scaleFactor = parseFloat(e.target.value);
+  document.getElementById('scaleLabel').textContent = scaleFactor.toFixed(2);
+});
+document.getElementById('featherSlider').addEventListener('input', (e)=>{
+  featherRadius = parseInt(e.target.value, 10);
+  document.getElementById('featherLabel').textContent = featherRadius;
+});
+document.getElementById('colorMatch').addEventListener('change', (e)=>{ colorMatching = e.target.checked; });
+
+document.getElementById('downloadBtn').addEventListener('click', ()=>{
+  const link = document.createElement('a');
+  link.href = resultCanvas.toDataURL('image/png');
+  link.download = 'face-swap-result.png';
+  link.click();
+});
+</script>
+</body>
+</html>

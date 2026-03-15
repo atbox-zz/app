@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🪐 投胎模擬器 Mobile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+        
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; 
+            background-color: #0f172a; 
+            color: #e2e8f0; 
+            -webkit-tap-highlight-color: transparent;
+            /* 防止 iOS 彈性捲動導致背景穿幫 */
+            overscroll-behavior-y: none;
+        }
+        
+        /* 隱藏卷軸但保留滑動功能 */
+        .card-scroll { 
+            -ms-overflow-style: none; 
+            scrollbar-width: none; 
+        }
+        .card-scroll::-webkit-scrollbar { 
+            display: none; 
+        }
+        
+        /* 選項選中特效 */
+        .select-box:checked + div { 
+            border-color: #38bdf8; 
+            background-color: #1e293b; 
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); 
+            transform: scale(1.02);
+        }
+        
+        /* 彈窗動畫 */
+        .pop-in { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes popIn { 
+            from { opacity: 0; transform: scale(0.9) translateY(20px); } 
+            to { opacity: 1; transform: scale(1) translateY(0); } 
+        }
+
+        .neon-text { text-shadow: 0 0 15px rgba(168, 85, 247, 0.6); }
+    </style>
+</head>
+<body class="min-h-screen pb-24 selection:bg-purple-500 selection:text-white">
+
+    <!-- 標題區 -->
+    <header class="text-center pt-8 pb-6 px-4">
+        <div class="inline-block px-3 py-1 bg-indigo-900/50 border border-indigo-500/30 rounded-full mb-3 text-[10px] font-bold tracking-widest text-indigo-200">BETA 2.0 MOBILE</div>
+        <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 mb-2 neon-text">
+            投胎模擬器
+        </h1>
+        <p class="text-slate-400 text-xs font-bold tracking-widest opacity-80">REBIRTH GACHA SYSTEM</p>
+    </header>
+
+    <!-- 第一部分：伺服器導覽 (手機橫滑優化) -->
+    <section class="mb-10 pl-4">
+        <h2 class="text-sm font-bold mb-3 flex items-center text-slate-300">
+            <span class="mr-2">🌍</span> 伺服器熱門榜
+            <span class="ml-auto mr-4 text-[28px] text-slate-500 bg-slate-800/80 px-2 py-1 rounded-full">← 左右滑動 →</span>
+        </h2>
+        
+        <!-- 增加 snap-x 讓滑動有磁吸感，padding-right 讓最後一張卡片能露出來 -->
+        <div class="flex overflow-x-auto gap-3 card-scroll pb-4 snap-x snap-mandatory pr-4">
+            
+            <!-- SSR 卡片 -->
+            <div class="flex-none w-[85vw] max-w-[300px] bg-slate-800 rounded-2xl p-5 border border-yellow-500/30 shadow-lg relative overflow-hidden snap-center">
+                <div class="absolute top-0 right-0 bg-yellow-500 text-black text-[10px] font-bold px-3 py-1 rounded-bl-xl z-10 shadow-md">SSR 夢幻區</div>
+                <div class="text-5xl mb-3">🇫🇮 🇨🇭</div>
+                <h3 class="font-bold text-lg text-yellow-100">北歐快樂天堂</h3>
+                <p class="text-xs text-slate-400 mt-0.5 mb-3">芬蘭、瑞士、挪威</p>
+                <div class="space-y-1.5">
+                    <div class="flex items-center text-xs text-slate-300"><span class="text-green-400 mr-2">✓</span> 從搖籃養到墳墓</div>
+                    <div class="flex items-center text-xs text-slate-300"><span class="text-green-400 mr-2">✓</span> 風景美如畫</div>
+                    <div class="flex items-center text-xs text-slate-400"><span class="text-red-400 mr-2">✗</span> 稅金極高、冬天憂鬱</div>
+                </div>
+                <div class="mt-4 text-xs text-yellow-500 font-mono bg-yellow-500/10 p-2 rounded text-center font-bold">中獎率 &lt; 0.5%</div>
+            </div>
+
+            <!-- SR 卡片 -->
+            <div class="flex-none w-[85vw] max-w-[300px] bg-slate-800 rounded-2xl p-5 border border-purple-500/30 shadow-lg relative snap-center">
+                <div class="absolute top-0 right-0 bg-purple-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl z-10">SR 課金區</div>
+                <div class="text-5xl mb-3">🇺🇸 🇩🇪</div>
+                <h3 class="font-bold text-lg text-purple-100">歐美列強</h3>
+                <p class="text-xs text-slate-400 mt-0.5 mb-3">美國、德國、英國</p>
+                <div class="space-y-1.5">
+                    <div class="flex items-center text-xs text-slate-300"><span class="text-green-400 mr-2">✓</span> 薪資上限極高</div>
+                    <div class="flex items-center text-xs text-slate-300"><span class="text-green-400 mr-2">✓</span> 世界文化中心</div>
+                    <div class="flex items-center text-xs text-slate-400"><span class="text-red-400 mr-2">✗</span> 治安醫療看運氣</div>
+                </div>
+                <div class="mt-4 text-xs text-purple-400 font-mono bg-purple-500/10 p-2 rounded text-center font-bold">中獎率 約 8%</div>
+            </div>
+
+            <!-- R+ 卡片 -->
+            <div class="flex-none w-[85vw] max-w-[300px] bg-slate-800 rounded-2xl p-5 border border-green-500/30 shadow-lg relative snap-center">
+                <div class="absolute top-0 right-0 bg-green-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl z-10">R+ 隱藏版</div>
+                <div class="text-5xl mb-3">🇹🇼 🇯🇵</div>
+                <h3 class="font-bold text-lg text-green-100">亞洲便利區</h3>
+                <p class="text-xs text-slate-400 mt-0.5 mb-3">台灣、日本、泰國</p>
+                <div class="space-y-1.5">
+                    <div class="flex items-center text-xs text-slate-300"><span class="text-green-400 mr-2">✓</span> 東西超好吃</div>
+                    <div class="flex items-center text-xs text-slate-300"><span class="text-green-400 mr-2">✓</span> 便利商店是神</div>
+                    <div class="flex items-center text-xs text-slate-400"><span class="text-red-400 mr-2">✗</span> 社會壓力大</div>
+                </div>
+                <div class="mt-4 text-xs text-green-400 font-mono bg-green-500/10 p-2 rounded text-center font-bold">中獎率 約 3%</div>
+            </div>
+            
+            <!-- Wild Africa 卡片 (新增) -->
+            <div class="flex-none w-[85vw] max-w-[300px] bg-slate-800 rounded-2xl p-5 border border-orange-600/30 shadow-lg relative snap-center">
+                <div class="absolute top-0 right-0 bg-orange-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl z-10">Wild 野性區</div>
+                <div class="text-5xl mb-3">🇿🇦 🇪🇬 🇰🇪</div>
+                <h3 class="font-bold text-lg text-orange-100">非洲大陸</h3>
+                <p class="text-xs text-slate-400 mt-0.5 mb-3">南非、埃及、肯亞</p>
+                <div class="space-y-1.5">
+                    <div class="flex items-center text-xs text-slate-300"><span class="text-green-400 mr-2">✓</span> 大自然的壯闊與野性</div>
+                    <div class="flex items-center text-xs text-slate-300"><span class="text-green-400 mr-2">✓</span> 發展潛力巨大</div>
+                    <div class="flex items-center text-xs text-slate-400"><span class="text-red-400 mr-2">✗</span> 生存難度 Hardcore</div>
+                </div>
+                <div class="mt-4 text-xs text-orange-400 font-mono bg-orange-600/10 p-2 rounded text-center font-bold">中獎率 約 17%</div>
+            </div>
+
+            <!-- N 卡片 -->
+            <div class="flex-none w-[85vw] max-w-[300px] bg-slate-800 rounded-2xl p-5 border border-slate-600 shadow-lg relative snap-center">
+                <div class="absolute top-0 right-0 bg-slate-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl z-10">N 常駐區</div>
+                <div class="text-5xl mb-3">🇮🇳 🇨🇳</div>
+                <h3 class="font-bold text-lg text-slate-200">人口大國區</h3>
+                <p class="text-xs text-slate-400 mt-0.5 mb-3">印度、中國、奈及利亞</p>
+                <div class="space-y-1.5">
+                    <div class="flex items-center text-xs text-slate-300"><span class="text-green-400 mr-2">✓</span> 熱鬧充滿生命力</div>
+                    <div class="flex items-center text-xs text-slate-300"><span class="text-green-400 mr-2">✓</span> 不怕沒人陪</div>
+                    <div class="flex items-center text-xs text-slate-400"><span class="text-red-400 mr-2">✗</span> 開局難度 Hard</div>
+                </div>
+                <div class="mt-4 text-xs text-slate-300 font-mono bg-slate-700/50 p-2 rounded text-center font-bold">中獎率 > 50%</div>
+            </div>
+        </div>
+
+        <!-- 協議書 (加強點擊區域) -->
+        <div class="mt-2 pr-4">
+            <label for="agreement" class="flex items-start gap-3 bg-slate-800/40 p-4 rounded-xl border border-slate-700 active:bg-slate-800 transition cursor-pointer">
+                <input type="checkbox" id="agreement" class="mt-1 w-5 h-5 accent-blue-500 rounded border-slate-600">
+                <span class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 mb-2 neon-text">                
+                    我已閱讀並知悉 <span class="text-yellow-400 font-bold">SSR 國家名額極少</span>，若投胎結果不理想，本人承諾不得向閻羅王客訴。
+                </span>
+            </label>
+        </div>
+    </section>
+
+    <!-- 第二部分：志願選單 -->
+    <section class="max-w-md mx-auto px-4" id="quiz-section">
+        <h2 class="text-xl font-bold mb-6 text-center text-slate-100 flex items-center justify-center gap-2">
+            <span>📝</span> 填寫靈魂志願
+        </h2>
+
+        <!-- Q1 -->
+        <div class="mb-8">
+            <p class="text-sm font-bold mb-3 text-blue-300">Q1. 下輩子想玩什麼模式？</p>
+            <div class="grid grid-cols-2 gap-3">
+                <label class="cursor-pointer relative group">
+                    <input type="radio" name="q1" value="easy" class="select-box absolute opacity-0 w-full h-full cursor-pointer">
+                    <div class="border border-slate-600 rounded-xl p-4 transition-all bg-slate-800/40 flex items-center gap-3">
+                        <div class="text-2xl">👶</div>
+                        <div>
+                            <div class="font-bold text-base text-white">簡單模式 (Easy)</div>
+                            <div class="text-xs text-slate-400">福利好、不加班、國家養我。</div>
+                        </div>
+                    </div>
+                </label>
+                <label class="cursor-pointer relative group">
+                    <input type="radio" name="q1" value="hard" class="select-box absolute opacity-0 w-full h-full cursor-pointer">
+                    <div class="border border-slate-600 rounded-xl p-4 transition-all bg-slate-800/40 flex items-center gap-3">
+                        <div class="text-2xl">🐺</div>
+                        <div>
+                            <div class="font-bold text-base text-white">困難模式 (Hard)</div>
+                            <div class="text-xs text-slate-400">競爭激烈、機會多、賺大錢。</div>
+                        </div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="mb-8">
+            <p class="text-sm font-bold mb-3 text-blue-300">Q2. 對人類的容忍度？</p>
+            <div class="grid grid-cols-2 gap-3">
+                <label class="cursor-pointer relative group">
+                    <input type="radio" name="q2" value="introvert" class="select-box absolute opacity-0 w-full h-full cursor-pointer">
+                    <div class="border border-slate-600 rounded-xl p-4 transition-all bg-slate-800/40 flex items-center gap-3">
+                        <div class="text-2xl">🤐</div>
+                        <div>
+                            <div class="font-bold text-base text-white">社恐 (I人)</div>
+                            <div class="text-xs text-slate-400">別跟我說話，保持社交距離。</div>
+                        </div>
+                    </div>
+                </label>
+                <label class="cursor-pointer relative group">
+                    <input type="radio" name="q2" value="extrovert" class="select-box absolute opacity-0 w-full h-full cursor-pointer">
+                    <div class="border border-slate-600 rounded-xl p-4 transition-all bg-slate-800/40 flex items-center gap-3">
+                        <div class="text-2xl">🥳</div>
+                        <div>
+                            <div class="font-bold text-base text-white">社牛 (E人)</div>
+                            <div class="text-xs text-slate-400">熱鬧才像家，隨時路邊跳舞。</div>
+                        </div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="mb-8">
+            <p class="text-sm font-bold mb-3 text-blue-300">Q3. 胃能接受什麼？</p>
+            <div class="grid grid-cols-2 gap-3">
+                <label class="cursor-pointer relative group">
+                    <input type="radio" name="q3" value="tasty" class="select-box absolute opacity-0 w-full h-full cursor-pointer">
+                    <div class="border border-slate-600 rounded-xl p-4 transition-all bg-slate-800/40 flex items-center gap-3">
+                        <div class="text-2xl">🍜</div>
+                        <div>
+                            <div class="font-bold text-base text-white">美食獵人</div>
+                            <div class="text-xs text-slate-400">難吃的東西是犯罪，我要好吃！</div>
+                        </div>
+                    </div>
+                </label>
+                <label class="cursor-pointer relative group">
+                    <input type="radio" name="q3" value="survive" class="select-box absolute opacity-0 w-full h-full cursor-pointer">
+                    <div class="border border-slate-600 rounded-xl p-4 transition-all bg-slate-800/40 flex items-center gap-3">
+                        <div class="text-2xl">🥔</div>
+                        <div>
+                            <div class="font-bold text-base text-white">生命維持</div>
+                            <div class="text-xs text-slate-400">馬鈴薯、炸魚、冷麵包都能活。</div>
+                        </div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="mb-10">
+            <p class="text-sm font-bold mb-3 text-blue-300">Q4. 氣候偏好？</p>
+            <div class="grid grid-cols-2 gap-3">
+                <label class="cursor-pointer relative group">
+                    <input type="radio" name="q4" value="cold" class="select-box absolute opacity-0 w-full h-full cursor-pointer">
+                    <div class="border border-slate-600 rounded-xl p-4 transition-all bg-slate-800/40 flex items-center gap-3">
+                        <div class="text-2xl mb-2">❄️</div>
+                        <div class="font-bold text-base text-white">怕熱</div>
+                        <div class="text-[10px] text-slate-400">給我雪與暖氣</div>
+                    </div>
+                </label>
+                <label class="cursor-pointer relative group">
+                    <input type="radio" name="q4" value="hot" class="select-box absolute opacity-0 w-full h-full cursor-pointer">
+                    <div class="border border-slate-600 rounded-xl p-4 transition-all bg-slate-800/40 flex items-center gap-3">
+                        <div class="text-2xl">☀️</div>
+                        <div class="font-bold text-base text-white">怕冷</div>
+                        <div class="text-[10px] text-slate-400">給我陽光沙灘</div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- 提交按鈕 (浮動感) -->
+        <button onclick="startGacha()" class="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xl py-5 rounded-2xl shadow-lg shadow-blue-900/50 transform transition active:scale-95 mb-4 border border-white/10 relative overflow-hidden">
+            <span class="relative z-10 drop-shadow-md">🔴 提交申請，開始投胎</span>
+            <!-- 光澤特效 -->
+            <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-black/20 to-transparent"></div>
+        </button>
+        <!-- AI 顧問區塊 (仿 Gemini 介面) -->
+    <div class="mt-12 mb-8">
+        <div class="text-center mb-4">
+            <p class="text-xs text-slate-500 mb-2">選項太少？有特殊需求？</p>
+            <h3 class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-pink-400 flex items-center justify-center gap-2">
+                <span class="text-xl">✨</span> 詢問 AI 投胎顧問
+            </h3>
+        </div>
+
+        <!-- 聊天視窗 -->
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-2xl relative">
+            <!-- 頂部列 -->
+            <div class="bg-slate-800/80 backdrop-blur p-3 border-b border-slate-700 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                    <div class="w-2 h-2 rounded-full bg-yellow-500"></div>
+                    <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                </div>
+                <div class="text-[10px] font-bold text-slate-400 tracking-widest">GEMINI REBIRTH PROTOCOL</div>
+            </div>
+
+            <!-- 對話內容區 -->
+            <div id="chat-history" class="h-64 overflow-y-auto p-4 space-y-4 bg-slate-900/50 scroll-smooth">
+                <!-- AI 開場白 -->
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-pink-500 flex items-center justify-center shrink-0">
+                        <span class="text-xs text-white">✨</span>
+                    </div>
+                    <div class="bg-slate-800 rounded-2xl rounded-tl-none p-3 text-sm text-slate-200 shadow-md border border-slate-700/50">
+                        <p>你好，我是你的專屬投胎顧問。如果你覺得上面的選項太普通，請告訴我你具體想過什麼樣的生活？</p>
+                        <p class="text-xs text-slate-500 mt-2">例如：我想轉生成有錢人家的貓、我想要後宮佳麗三千...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 輸入區 -->
+            <div class="p-3 bg-slate-800 border-t border-slate-700 flex gap-2">
+                <input type="text" id="user-input" placeholder="輸入你的特殊願望..." 
+                    class="flex-1 bg-slate-900 text-white text-sm rounded-xl px-4 py-3 border border-slate-600 focus:outline-none focus:border-blue-500 transition placeholder-slate-500"
+                    onkeypress="if(event.key === 'Enter') sendMessage()">
+                <button onclick="sendMessage()" class="bg-blue-600 hover:bg-blue-500 text-white rounded-xl px-4 transition active:scale-95">
+                    ➤
+                </button>
+            </div>
+        </div>
+    </div>
+        <p class="text-center text-[10px] text-slate-600">*按下按鈕即代表放棄本世記憶</p>
+    </section>
+
+    <!-- 結果彈窗 (手機版優化) -->
+    <div id="result-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="w-full max-w-sm bg-slate-900 border border-slate-700 rounded-3xl p-6 relative pop-in shadow-2xl flex flex-col justify-center min-h-[50vh]">
+            <!-- 關閉按鈕 -->
+            <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-slate-800 rounded-full text-slate-400 hover:text-white">✕</button>
+
+            <!-- Loading 動畫 -->
+            <div id="loading-view" class="text-center py-8">
+                <div class="relative inline-block">
+                    <div class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-6"></div>
+                    <div class="absolute top-0 left-0 w-16 h-16 border-4 border-purple-500/30 rounded-full animate-ping"></div>
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-white">靈魂傳輸中...</h3>
+                <p id="loading-text" class="text-slate-400 text-sm animate-pulse">正在賄賂閻羅王...</p>
+            </div>
+
+            <!-- 結果內容 -->
+            <div id="result-view" class="hidden text-center">
+                <!-- 徽章 -->
+                <div id="result-badge" class="inline-block px-4 py-1.5 bg-red-600 text-white font-black tracking-widest rounded-lg shadow-lg text-sm mb-5 transform -rotate-3 ring-2 ring-white/10">SSR</div>
+                
+                <h2 class="text-2xl font-black mb-1 text-white">投胎結果通知書</h2>
+                <div class="text-[10px] text-slate-500 mb-6 tracking-widest">OFFICIAL CERTIFICATE</div>
+
+                <!-- 結果卡片 -->
+                <div class="p-6 bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl border border-slate-600 relative overflow-hidden shadow-inner">
+                    <!-- 理想結果小字 -->
+                    <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-700/50">
+                        <span class="text-xs text-slate-400">理想志願</span>
+                        <span id="ideal-match" class="text-blue-400 font-bold text-xs">芬蘭 (100%)</span>
+                    </div>
+                    
+                    <!-- 實際結果大字 -->
+                    <div class="py-2">
+                        <div id="real-country-flag" class="text-8xl mb-2 drop-shadow-xl select-none">🇮🇳</div>
+                        <h3 id="real-country-name" class="text-3xl font-black text-white mb-1">印度</h3>
+                        <div class="inline-block bg-slate-950/50 px-3 py-1 rounded-full border border-slate-700">
+                            <p id="real-chance" class="text-[10px] font-mono text-slate-400">人口機率：17.7%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 評語 -->
+                <div class="mt-6 mb-8 px-2">
+                    <p id="result-comment" class="text-sm text-slate-300 italic leading-relaxed font-serif">
+                        "雖然這裡沒有極光，但這裡有最熱鬧的社交生活和香料！"
+                    </p>
+                </div>
+
+                <!-- 重抽按鈕 -->
+                <button onclick="location.reload()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 rounded-xl transition border border-slate-600 flex items-center justify-center gap-2 active:scale-95">
+                    <span>🔄</span> 不服！喝孟婆湯重抽
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 邏輯腳本 (保持不變) -->
+    <script>
+        // 1. 資料庫：國家屬性與人口權重 
+        const countries = [
+            // SSR
+            { id: 'fin', name: '芬蘭', flag: '🇫🇮', tags: ['easy', 'introvert', 'cold', 'survive'], ticket: 5, rank: 'SSR', comment: "恭喜！擊敗全球 99.9% 靈魂，歡迎來到社恐天堂。" },
+            { id: 'che', name: '瑞士', flag: '🇨🇭', tags: ['easy', 'introvert', 'cold', 'survive', 'tasty'], ticket: 8, rank: 'SSR', comment: "上輩子拯救了銀河系？準備好享受好山好水好有錢。" },
+            { id: 'isl', name: '冰島', flag: '🇮🇸', tags: ['easy', 'introvert', 'cold', 'survive'], ticket: 1, rank: 'SSR', comment: "雖然沒有蚊子很棒，但小心別在此孤獨終老。" },
+            { id: 'nor', name: '挪威', flag: '🇳🇴', tags: ['easy', 'introvert', 'cold', 'survive'], ticket: 5, rank: 'SSR', comment: "這大概是地球上最接近天堂的地方，除了物價之外。" },
+
+            // SR
+            { id: 'usa', name: '美國', flag: '🇺🇸', tags: ['hard', 'extrovert', 'survive', 'hot', 'cold'], ticket: 330, rank: 'SR', comment: "充滿機會的土地！記得買醫療保險，這很重要。" },
+            { id: 'jpn', name: '日本', flag: '🇯🇵', tags: ['hard', 'introvert', 'tasty', 'cold'], ticket: 125, rank: 'SR', comment: "食物好吃、街道乾淨，但記得練習「讀空氣」。" },
+            { id: 'twn', name: '台灣', flag: '🇹🇼', tags: ['hard', 'extrovert', 'tasty', 'hot'], ticket: 23, rank: 'SR', comment: "隱藏版彩蛋！交通像大逃殺，但珍奶半糖少冰是真理。" },
+            { id: 'deu', name: '德國', flag: '🇩🇪', tags: ['easy', 'introvert', 'survive', 'cold'], ticket: 83, rank: 'SR', comment: "效率與秩序的國度，麵包可能會咬斷你的牙齒。" },
+            { id: 'gbr', name: '英國', flag: '🇬🇧', tags: ['easy', 'introvert', 'survive', 'cold'], ticket: 67, rank: 'SR', comment: "天氣陰沉，食物...嗯，至少可以天天喝下午茶。" },
+            { id: 'can', name: '加拿大', flag: '🇨🇦', tags: ['easy', 'introvert', 'survive', 'cold'], ticket: 38, rank: 'SR', comment: "好山好水好無聊，還有很有禮貌的熊。" },
+            
+            // R
+            { id: 'tha', name: '泰國', flag: '🇹🇭', tags: ['hard', 'extrovert', 'tasty', 'hot'], ticket: 70, rank: 'R', comment: "薩瓦迪卡！天天享受按摩和路邊攤美食，熱情滿分。" },
+            { id: 'bra', name: '巴西', flag: '🇧🇷', tags: ['hard', 'extrovert', 'tasty', 'hot'], ticket: 214, rank: 'R', comment: "熱情奔放！足球、森巴、嘉年華。這裡沒有「社恐」兩個字。" },
+            { id: 'rus', name: '俄羅斯', flag: '🇷🇺', tags: ['easy', 'introvert', 'survive', 'cold'], ticket: 144, rank: 'R', comment: "戰鬥民族歡迎你。這裡冬天很長，伏特加很烈。" },
+            { id: 'vnm', name: '越南', flag: '🇻🇳', tags: ['hard', 'extrovert', 'tasty', 'hot'], ticket: 97, rank: 'R', comment: "機車海與河粉的國度，這裡的活力會讓你大吃一驚。" },
+
+            // --- 非洲擴充包 (Africa Expansion) ---
+            { id: 'zaf', name: '南非', flag: '🇿🇦', tags: ['hard', 'extrovert', 'hot', 'survive'], ticket: 60, rank: 'R', comment: "彩虹之國！這裡有企鵝也有獅子，風景絕美，但貧富差距有點大，出門請注意安全。" },
+            { id: 'egy', name: '埃及', flag: '🇪🇬', tags: ['hard', 'introvert', 'hot', 'survive'], ticket: 111, rank: 'N', comment: "金字塔與法老的故鄉。天氣很熱，觀光客很多，交通比你想像的還要瘋狂。" },
+            { id: 'ken', name: '肯亞', flag: '🇰🇪', tags: ['hard', 'extrovert', 'hot', 'survive'], ticket: 55, rank: 'N', comment: "Jambo! 想當馬拉松選手嗎？這裡是最佳出生點。出門就有機會看到動物大遷徙。" },
+            { id: 'mdg', name: '馬達加斯加', flag: '🇲🇬', tags: ['easy', 'introvert', 'hot', 'survive'], ticket: 30, rank: 'R', comment: "恭喜你到了動物天堂！這裡的物種 80% 是獨有的，包括那隻愛跳舞的狐猴。" },
+            { id: 'eth', name: '衣索比亞', flag: '🇪🇹', tags: ['hard', 'introvert', 'hot', 'survive'], ticket: 126, rank: 'N', comment: "人類的起源地！這裡有獨特的曆法（一年有13個月）和世界頂級的咖啡。" },
+
+            // N
+            { id: 'ind', name: '印度', flag: '🇮🇳', tags: ['hard', 'extrovert', 'tasty', 'hot'], ticket: 1400, rank: 'N', comment: "別擔心，這裡是世界的中心。練好瑜伽，準備擠火車！" },
+            { id: 'chn', name: '中國', flag: '🇨🇳', tags: ['hard', 'extrovert', 'tasty', 'cold', 'hot'], ticket: 1410, rank: 'N', comment: "Hard 模式霸主。競爭激烈，但外送速度世界第一。" },
+            { id: 'nga', name: '奈及利亞', flag: '🇳🇬', tags: ['hard', 'extrovert', 'survive', 'hot'], ticket: 210, rank: 'N', comment: "歡迎來到非洲巨人！這裡充滿活力，而且...真的很熱。" },
+            { id: 'idn', name: '印尼', flag: '🇮🇩', tags: ['hard', 'extrovert', 'tasty', 'hot'], ticket: 270, rank: 'N', comment: "千島之國！每天都在熱帶雨林與塞車中度過。" },
+            { id: 'pak', name: '巴基斯坦', flag: '🇵🇰', tags: ['hard', 'extrovert', 'tasty', 'hot'], ticket: 230, rank: 'N', comment: "板球是信仰，食物很辣，大家庭很熱鬧。" },
+            { id: 'bgd', name: '孟加拉', flag: '🇧🇩', tags: ['hard', 'extrovert', 'survive', 'hot'], ticket: 170, rank: 'N', comment: "世界人口密度最高處，永遠不缺人陪你聊天。" }
+        ];
+
+        const loadingTexts = [
+            "正在賄賂閻羅王...", "正在計算陰德值...", "嘗試擠進瑞典產房...失敗...",
+            "正在掃描全球空缺...", "與命運女神擲骰子中...", "系統繁忙，排隊投胎中..."
+        ];
+
+        function startGacha() {
+            const agreement = document.getElementById('agreement');
+            if (!agreement.checked) {
+                alert("⚠️ 請先勾選同意投胎協議！");
+                agreement.parentElement.scrollIntoView({behavior: "smooth", block: "center"});
+                return;
+            }
+
+            const q1 = document.querySelector('input[name="q1"]:checked');
+            const q2 = document.querySelector('input[name="q2"]:checked');
+            const q3 = document.querySelector('input[name="q3"]:checked');
+            const q4 = document.querySelector('input[name="q4"]:checked');
+
+            if (!q1 || !q2 || !q3 || !q4) {
+                alert("⚠️ 請先填寫完所有志願！");
+                document.getElementById('quiz-section').scrollIntoView({behavior: "smooth"});
+                return;
+            }
+
+            const userTags = [q1.value, q2.value, q3.value, q4.value];
+            
+            // 算法開始
+            let bestMatch = null;
+            let maxScore = -1;
+
+            countries.forEach(country => {
+                const score = country.tags.filter(tag => userTags.includes(tag)).length;
+                if (score > maxScore) {
+                    maxScore = score;
+                    bestMatch = country;
+                }
+            });
+
+            const totalTickets = countries.reduce((sum, country) => sum + country.ticket, 0);
+            let randomPointer = Math.random() * totalTickets;
+            let realCountry = null;
+
+            for (const country of countries) {
+                randomPointer -= country.ticket;
+                if (randomPointer <= 0) {
+                    realCountry = country;
+                    break;
+                }
+            }
+            if (!realCountry) realCountry = countries[countries.length - 1];
+
+            // 顯示 UI
+            const modal = document.getElementById('result-modal');
+            const loadingView = document.getElementById('loading-view');
+            const resultView = document.getElementById('result-view');
+            
+            modal.classList.remove('hidden');
+            loadingView.classList.remove('hidden');
+            resultView.classList.add('hidden');
+            
+            document.getElementById('loading-text').innerText = loadingTexts[Math.floor(Math.random() * loadingTexts.length)];
+
+            setTimeout(() => {
+                loadingView.classList.add('hidden');
+                resultView.classList.remove('hidden');
+
+                document.getElementById('ideal-match').innerText = `${bestMatch.name} (100%)`;
+                document.getElementById('real-country-flag').innerText = realCountry.flag;
+                document.getElementById('real-country-name').innerText = realCountry.name;
+                
+                const chance = ((realCountry.ticket / totalTickets) * 100).toFixed(2);
+                document.getElementById('real-chance').innerText = `機率：${chance}%`;
+                document.getElementById('result-comment').innerText = `"${realCountry.comment}"`;
+
+                const badge = document.getElementById('result-badge');
+                badge.innerText = realCountry.rank;
+                badge.className = "inline-block px-4 py-1.5 font-black tracking-widest rounded-lg shadow-lg text-sm mb-5 transform -rotate-3 ring-2 ring-white/10 text-white";
+                
+                if (realCountry.rank === 'SSR') badge.classList.add('bg-yellow-500');
+                else if (realCountry.rank === 'SR') badge.classList.add('bg-purple-600');
+                else if (realCountry.rank === 'R') badge.classList.add('bg-green-600');
+                else badge.classList.add('bg-slate-600');
+
+            }, 2000);
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').classList.add('hidden');
+        }
+
+        // --- AI 聊天機器人邏輯 ---
+    const chatHistory = document.getElementById('chat-history');
+    const userInput = document.getElementById('user-input');
+    let isTyping = false;
+
+    function sendMessage() {
+        const text = userInput.value.trim();
+        if (!text || isTyping) return;
+
+        // 1. 顯示使用者訊息
+        addMessage(text, 'user');
+        userInput.value = '';
+        isTyping = true;
+
+        // 2. 模擬 AI 思考 (顯示 Typing 動畫)
+        const loadingId = addLoadingBubble();
+        
+        // 3. 模擬延遲後回覆
+        setTimeout(() => {
+            removeMessage(loadingId);
+            const response = generateAIResponse(text);
+            addMessage(response, 'ai');
+            isTyping = false;
+        }, 1500 + Math.random() * 1000); // 隨機延遲 1.5~2.5秒
+    }
+
+    function addMessage(text, sender) {
+        const div = document.createElement('div');
+        div.className = sender === 'user' ? 'flex items-end justify-end gap-2' : 'flex items-start gap-3';
+        
+        if (sender === 'user') {
+            div.innerHTML = `
+                <div class="bg-blue-600 text-white rounded-2xl rounded-tr-none p-3 text-sm shadow-md max-w-[80%]">
+                    ${text}
+                </div>
+            `;
+        } else {
+            div.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-pink-500 flex items-center justify-center shrink-0">
+                    <span class="text-xs text-white">✨</span>
+                </div>
+                <div class="bg-slate-800 rounded-2xl rounded-tl-none p-3 text-sm text-slate-200 shadow-md border border-slate-700/50 max-w-[85%]">
+                    ${text}
+                </div>
+            `;
+        }
+        chatHistory.appendChild(div);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+
+    function addLoadingBubble() {
+        const id = 'loading-' + Date.now();
+        const div = document.createElement('div');
+        div.id = id;
+        div.className = 'flex items-start gap-3';
+        div.innerHTML = `
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-pink-500 flex items-center justify-center shrink-0">
+                <span class="text-xs text-white">✨</span>
+            </div>
+            <div class="bg-slate-800 rounded-2xl rounded-tl-none p-4 text-slate-200 shadow-md border border-slate-700/50">
+                <div class="flex gap-1">
+                    <div class="w-2 h-2 bg-slate-500 rounded-full animate-bounce"></div>
+                    <div class="w-2 h-2 bg-slate-500 rounded-full animate-bounce delay-100"></div>
+                    <div class="w-2 h-2 bg-slate-500 rounded-full animate-bounce delay-200"></div>
+                </div>
+            </div>
+        `;
+        chatHistory.appendChild(div);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+        return id;
+    }
+
+    function removeMessage(id) {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    }
+
+    // 簡單的關鍵字回應邏輯 (偽 AI)
+    function generateAIResponse(text) {
+        const t = text.toLowerCase();
+        
+        if (t.includes('貓') || t.includes('狗') || t.includes('寵物')) {
+            return "正在查詢「跨物種投胎」方案...<br><br>系統分析：轉生成<b>杜拜皇室的貓</b>是目前最優解。<br>優點：伙食費比你現在薪水高。<br>機率：0.00001% (建議多積陰德)";
+        }
+        if (t.includes('錢') || t.includes('富二代') || t.includes('財富')) {
+            return "收到「極度貪婪」訊號。系統推薦您投胎至 <b>卡達 (Qatar)</b>。<br><br>警告：如果運氣不好，可能會變成去卡達蓋體育場的移工。";
+        }
+        if (t.includes('魔法') || t.includes('異世界') || t.includes('超能力')) {
+            return "偵測到二次元幻想。正在為您尋找卡車...🚚<br><br>系統提示：地球伺服器目前未安裝「魔法模組」。是否考慮轉服至「VR 元宇宙」？";
+        }
+        if (t.includes('不想工作') || t.includes('躺平') || t.includes('累')) {
+            return "理解您的需求。系統推薦：<b>熊貓</b>。<br><br>工作內容：吃竹子、睡覺、被圍觀。<br>缺點：性慾低落，瀕臨絕種。";
+        }
+        if (t.includes('帥') || t.includes('美') || t.includes('顏值')) {
+            return "顏值參數已鎖定。<br><br>系統警告：長得好看但在<b>印度</b>或<b>巴西</b>貧民窟出生，難度係數將提升至 Hell Mode。確定要繼續嗎？";
+        }
+        // 加在 generateAIResponse 函式裡面
+        if (t.includes('非洲') || t.includes('大自然') || t.includes('動物')) {
+            return "系統偵測到您嚮往大自然。<br><br>特別推薦：<b>馬達加斯加</b>。<br>優點：遠離世界紛爭，每天看狐猴跳舞。<br>缺點：網路可能不太好，但誰在乎呢？";
+        }
+        // 預設幹話
+        const defaultResponses = [
+            "這個要求有點超出了地球 Online 的運算範圍，但我可以幫你安排去<b>澳洲</b>與袋鼠搏鬥。",
+            "您的慾望已被閻羅王標記為「貪得無厭」。系統將自動把您的投胎地點修正為：<b>南極洲</b> (企鵝)。",
+            "正在計算...計算失敗。您的要求太奇葩了，系統決定隨機把你丟到<b>馬達加斯加</b>。",
+            "這聽起來不錯，但根據大數據，您有 87% 的機率會變成一棵樹。"
+        ];
+        return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+    }
+    </script>
+</body>
+</html>
