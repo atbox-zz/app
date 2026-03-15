@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>如何使用 HTML 文件 - Taiwan Futures Arbitrage</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Microsoft JhengHei', sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.8s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+
+        .header .subtitle {
+            color: #666;
+            font-size: 1.2em;
+        }
+
+        h2 {
+            color: #667eea;
+            margin: 40px 0 20px 0;
+            padding: 15px 0 15px 20px;
+            border-left: 5px solid #667eea;
+            background: linear-gradient(to right, rgba(102, 126, 234, 0.1), transparent);
+        }
+
+        h3 {
+            color: #764ba2;
+            margin: 25px 0 15px 0;
+        }
+
+        .file-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin: 10px 10px 10px 0;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .method-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 5px solid #667eea;
+        }
+
+        .method-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .feature-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.3s;
+        }
+
+        .feature-item:hover {
+            transform: translateX(5px);
+        }
+
+        .feature-item strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .code-command {
+            background: #1e1e1e;
+            color: #4ec9b0;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+
+        .workflow-steps {
+            counter-reset: step-counter;
+            list-style: none;
+            padding: 0;
+            margin: 25px 0;
+        }
+
+        .workflow-steps li {
+            counter-increment: step-counter;
+            background: #f8f9fa;
+            padding: 20px 20px 20px 70px;
+            margin: 15px 0;
+            border-radius: 10px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .workflow-steps li:hover {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            transform: translateX(5px);
+        }
+
+        .workflow-steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .comparison-box {
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .comparison-box.txt {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+
+        .comparison-box.html {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .comparison-box h3 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .comparison-box ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .comparison-box li {
+            padding: 8px 0;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(253, 203, 110, 0.3);
+        }
+
+        .highlight-box h2 {
+            color: #2d3436;
+            margin: 0 0 15px 0;
+            padding: 0;
+            border: none;
+            background: none;
+        }
+
+        .icon {
+            font-size: 2em;
+            margin-right: 10px;
+        }
+
+        .tip-box {
+            background: #e3f2fd;
+            border-left: 5px solid #2196f3;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .tip-box h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .download-section {
+            text-align: center;
+            margin: 50px 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            color: white;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 15px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1>🌐 Taiwan Futures Arbitrage</h1>
+                <p class="subtitle">HTML 版本使用說明</p>
+            </div>
+
+            <h2>📂 您現在擁有的 HTML 文件</h2>
+            <div style="margin: 25px 0;">
+                <div class="file-badge">1. index.html - 專案主頁</div>
+                <div class="file-badge">2. quickstart.html - 快速開始</div>
+                <div class="file-badge">3. documentation.html - 完整文檔</div>
+            </div>
+
+            <p style="margin: 20px 0; font-size: 1.1em;">加上原有的重要文件：</p>
+            <div style="margin: 25px 0;">
+                <div class="file-badge" style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);">
+                    taiwan-futures-arbitrage.tar.gz
+                </div>
+                <div class="file-badge" style="background: linear-gradient(135deg, #55efc4 0%, #00b894 100%);">
+                    README-FIRST.txt
+                </div>
+                <div class="file-badge" style="background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%); color: #2d3436;">
+                    00-PROJECT-OVERVIEW.txt
+                </div>
+            </div>
+
+            <h2>🌐 如何使用 HTML 文件</h2>
+            
+            <div class="method-box">
+                <h3><span class="method-number">1</span>直接在瀏覽器中打開（推薦）</h3>
+                <ol style="margin-left: 40px; margin-top: 15px;">
+                    <li>找到下載的 <strong>index.html</strong> 文件</li>
+                    <li>雙擊文件，會自動在瀏覽器中打開</li>
+                    <li>您會看到精美的專案介紹頁面</li>
+                    <li>可以點擊頂部導航切換到不同頁面</li>
+                </ol>
+            </div>
+
+            <div class="method-box">
+                <h3><span class="method-number">2</span>拖放到瀏覽器</h3>
+                <ol style="margin-left: 40px; margin-top: 15px;">
+                    <li>打開您的瀏覽器（Chrome, Firefox, Safari, Edge 等）</li>
+                    <li>將 index.html 文件拖放到瀏覽器窗口</li>
+                    <li>頁面會自動載入</li>
+                </ol>
+            </div>
+
+            <div class="method-box">
+                <h3><span class="method-number">3</span>右鍵選單</h3>
+                <p style="margin-left: 40px; margin-top: 15px;">
+                    <strong>Windows:</strong> 右鍵點擊 → 打開方式 → 選擇瀏覽器<br>
+                    <strong>macOS:</strong> 右鍵點擊 → 打開方式 → 選擇瀏覽器
+                </p>
+            </div>
+
+            <h2>🎨 HTML 頁面特色</h2>
+            
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <strong>index.html (主頁)</strong>
+                    🎨 漸變色背景設計<br>
+                    📊 互動式統計卡片<br>
+                    📦 一鍵下載按鈕<br>
+                    🆚 Polymarket 對比表<br>
+                    📱 響應式設計
+                </div>
+
+                <div class="feature-item">
+                    <strong>quickstart.html</strong>
+                    ⚡ 步驟化教學<br>
+                    💻 代碼高亮顯示<br>
+                    🎯 清晰的導航<br>
+                    📋 常用指令速查<br>
+                    ⚠️ 重要提醒警告框
+                </div>
+
+                <div class="feature-item">
+                    <strong>documentation.html</strong>
+                    📚 完整文件列表<br>
+                    📁 目錄結構展示<br>
+                    📊 專案統計數據<br>
+                    🗂️ 分類清晰<br>
+                    📥 直接下載功能
+                </div>
+
+                <div class="feature-item">
+                    <strong>how-to-use-html.html</strong>
+                    📖 使用說明（本頁面）<br>
+                    🎯 詳細教學<br>
+                    💡 提示技巧<br>
+                    🔗 頁面導航<br>
+                    ✨ 精美設計
+                </div>
+            </div>
+
+            <h2>📱 功能特色</h2>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <strong>✅ 精美設計</strong>
+                    漸變色、陰影、動畫效果
+                </div>
+                <div class="feature-item">
+                    <strong>✅ 響應式布局</strong>
+                    電腦、平板、手機都完美顯示
+                </div>
+                <div class="feature-item">
+                    <strong>✅ 導航系統</strong>
+                    頂部導航欄，輕鬆切換頁面
+                </div>
+                <div class="feature-item">
+                    <strong>✅ 直接下載</strong>
+                    每個文件都有下載按鈕
+                </div>
+                <div class="feature-item">
+                    <strong>✅ 代碼高亮</strong>
+                    命令和代碼清晰易讀
+                </div>
+                <div class="feature-item">
+                    <strong>✅ 離線可用</strong>
+                    下載後無需網路即可查看
+                </div>
+            </div>
+
+            <h2>🔗 頁面導航</h2>
+            <div class="nav-links">
+                <a href="index.html" class="nav-btn">首頁</a>
+                <a href="quickstart.html" class="nav-btn">快速開始</a>
+                <a href="documentation.html" class="nav-btn">完整文檔</a>
+                <a href="how-to-use-html.html" class="nav-btn">使用說明</a>
+            </div>
+
+            <h2>💡 使用建議</h2>
+            <ul class="workflow-steps">
+                <li><strong>【新手】</strong>先看 index.html 了解整個系統</li>
+                <li><strong>【快速上手】</strong>打開 quickstart.html 跟著步驟做</li>
+                <li><strong>【深入研究】</strong>查看 documentation.html 了解所有文件</li>
+                <li><strong>【實際使用】</strong>下載 taiwan-futures-arbitrage.tar.gz 開始</li>
+            </ul>
+
+            <h2>🎯 推薦工作流程</h2>
+            <div class="method-box">
+                <h3>Step 1: 瀏覽 HTML 頁面</h3>
+                <div class="code-command">
+→ 打開 index.html 了解專案
+→ 閱讀 quickstart.html 學習使用</div>
+
+                <h3>Step 2: 下載專案</h3>
+                <div class="code-command">
+→ 點擊 HTML 頁面上的下載按鈕
+→ 或直接下載 taiwan-futures-arbitrage.tar.gz</div>
+
+                <h3>Step 3: 解壓縮</h3>
+                <div class="code-command">$ tar -xzf taiwan-futures-arbitrage.tar.gz</div>
+
+                <h3>Step 4: 開始使用</h3>
+                <div class="code-command">
+$ cd taiwan-futures-arbitrage-final
+$ ./install.sh
+$ ./start.sh</div>
+            </div>
+
+            <h2>🌟 特別功能</h2>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <strong>✨ 動畫效果</strong>
+                    頁面載入時有淡入動畫，卡片懸停時會浮起
+                </div>
+                <div class="feature-item">
+                    <strong>✨ 互動元素</strong>
+                    按鈕懸停會改變顏色，點擊會有縮放效果
+                </div>
+                <div class="feature-item">
+                    <strong>✨ 響應式設計</strong>
+                    在手機上查看會自動調整佈局
+                </div>
+                <div class="feature-item">
+                    <strong>✨ 代碼高亮</strong>
+                    所有命令都有顏色標記，更容易閱讀
+                </div>
+            </div>
+
+            <h2>📱 移動設備使用</h2>
+            <div class="tip-box">
+                <h4>在手機或平板上使用 HTML 文件：</h4>
+                <ol>
+                    <li>將 HTML 文件傳送到設備</li>
+                    <li>使用文件管理器打開</li>
+                    <li>選擇瀏覽器應用打開</li>
+                    <li>所有功能完全可用</li>
+                    <li>佈局會自動調整適配屏幕</li>
+                </ol>
+            </div>
+
+            <h2>💡 提示與技巧</h2>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    💡 建議先用電腦瀏覽器打開，體驗最佳
+                </div>
+                <div class="feature-item">
+                    💡 可以將 HTML 文件加入書籤
+                </div>
+                <div class="feature-item">
+                    💡 分享給他人需要三個 HTML 文件一起提供
+                </div>
+                <div class="feature-item">
+                    💡 下載按鈕需要對應文件在同一目錄
+                </div>
+                <div class="feature-item">
+                    💡 可以用瀏覽器列印功能保存為 PDF
+                </div>
+            </div>
+
+            <h2>🎉 兩種方式查看文檔</h2>
+            <div class="comparison-grid">
+                <div class="comparison-box txt">
+                    <h3>📄 文字版（TXT）</h3>
+                    <ul>
+                        <li>✅ 簡潔明瞭</li>
+                        <li>✅ 體積小</li>
+                        <li>✅ 任何文字編輯器都能打開</li>
+                        <li>✅ 適合快速查閱</li>
+                    </ul>
+                </div>
+                <div class="comparison-box html">
+                    <h3>🌐 HTML 版（網頁）</h3>
+                    <ul>
+                        <li>✅ 視覺美觀</li>
+                        <li>✅ 互動性強</li>
+                        <li>✅ 導航方便</li>
+                        <li>✅ 直接下載</li>
+                    </ul>
+                </div>
+            </div>
+
+            <p style="text-align: center; font-size: 1.1em; margin: 30px 0;">
+                <strong>建議：</strong>先用 HTML 版本快速了解，需要時再查看 TXT 版詳細內容。
+            </p>
+
+            <div class="highlight-box">
+                <h2>🎊 立即開始探索！</h2>
+                <p style="font-size: 1.2em; margin: 20px 0;">
+                    雙擊任意 HTML 文件在瀏覽器中打開，開始您的量化交易之旅！
+                </p>
+            </div>
+
+            <div class="download-section">
+                <h2 style="color: white; margin-bottom: 20px; padding: 0; border: none; background: none;">
+                    📥 快速下載
+                </h2>
+                <p style="margin: 20px 0; font-size: 1.1em;">所有文件都可以從 HTML 頁面直接下載</p>
+                <a href="index.html" class="download-btn">🏠 前往主頁</a>
+                <a href="taiwan-futures-arbitrage.tar.gz" class="download-btn" download>📦 下載專案</a>
+            </div>
+
+            <div style="text-align: center; margin: 50px 0 30px 0;">
+                <p style="font-size: 1.3em; color: #667eea; font-weight: bold;">
+                    祝您使用愉快！💰📈
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

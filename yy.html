@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>易經64卦狀態機 - 以天風姤為例</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', 'Microsoft YaHei', monospace;
+            background: linear-gradient(135deg, #0f0f23, #1a1a3a);
+            color: #fff;
+            line-height: 1.8;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #00d4aa;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(0, 212, 170, 0.5);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #ffd700;
+            font-size: 1.2em;
+            margin-bottom: 40px;
+        }
+
+        .main-example {
+            background: linear-gradient(145deg, rgba(0, 212, 170, 0.1), rgba(255, 215, 0, 0.05));
+            border: 2px solid #00d4aa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0, 212, 170, 0.2);
+        }
+
+        .example-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .hexagram-title {
+            font-size: 2em;
+            color: #00d4aa;
+            margin-bottom: 10px;
+        }
+
+        .encoding-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #ffd700;
+        }
+
+        .info-label {
+            color: #ffd700;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .info-value {
+            font-size: 1.3em;
+            color: #fff;
+        }
+
+        .yao-visualization {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .yao-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 212, 170, 0.3);
+        }
+
+        .yao-line {
+            width: 120px;
+            height: 8px;
+            border-radius: 4px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .yao-line.yang {
+            background: linear-gradient(90deg, #00d4aa, #00b894);
+            box-shadow: 0 2px 8px rgba(0, 212, 170, 0.4);
+        }
+
+        .yao-line.yin {
+            background: linear-gradient(to right, 
+                #00d4aa 35%, 
+                transparent 35%, 
+                transparent 65%, 
+                #00d4aa 65%);
+            box-shadow: 0 2px 8px rgba(0, 212, 170, 0.4);
+        }
+
+        .yao-label {
+            position: absolute;
+            right: -80px;
+            color: #ffd700;
+            font-size: 0.9em;
+        }
+
+        .transformations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .transform-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 212, 170, 0.2);
+            border-radius: 12px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .transform-card:hover {
+            border-color: #00d4aa;
+            box-shadow: 0 5px 20px rgba(0, 212, 170, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .transform-title {
+            color: #ffd700;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .transform-formula {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            border-left: 3px solid #00d4aa;
+        }
+
+        .operations-section {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            color: #00d4aa;
+            font-size: 1.8em;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .operation-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        select, button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(15, 15, 35, 0.9);
+            color: #fff;
+            border: 1px solid #00d4aa;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        select:hover, button:hover {
+            background: rgba(0, 212, 170, 0.3);
+            box-shadow: 0 2px 10px rgba(0, 212, 170, 0.3);
+        }
+
+        select option {
+            background: rgba(15, 15, 35, 0.95);
+            color: #fff;
+            padding: 8px;
+            border: none;
+        }
+
+        select option:hover {
+            background: rgba(0, 212, 170, 0.2);
+        }
+
+        .operation-result {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .result-card {
+            background: linear-gradient(145deg, rgba(0, 212, 170, 0.05), rgba(255, 215, 0, 0.02));
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .result-title {
+            color: #ffd700;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .binary-display {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            color: #00d4aa;
+            text-align: center;
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+        }
+
+        .all-hexagrams {
+            margin-top: 40px;
+        }
+
+        .hexagram-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .mini-hexagram {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(0, 212, 170, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .mini-hexagram:hover {
+            border-color: #00d4aa;
+            background: rgba(0, 212, 170, 0.05);
+        }
+
+        .mini-hexagram.highlight {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .mini-yao {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin: 10px 0;
+            align-items: center;
+        }
+
+        .mini-yao-line {
+            width: 40px;
+            height: 3px;
+            border-radius: 2px;
+        }
+
+        .mini-yao-line.yang {
+            background: #00d4aa;
+        }
+
+        .mini-yao-line.yin {
+            background: linear-gradient(to right, #00d4aa 40%, transparent 40%, transparent 60%, #00d4aa 60%);
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(0, 212, 170, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(0, 212, 170, 0.8); }
+        }
+
+        .highlight {
+            animation: glow 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>易經64卦狀態機系統</h1>
+        <div class="subtitle">以天風姤（☰☴）為核心範例</div>
+        
+        <div class="main-example">
+            <div class="example-header">
+                <div class="hexagram-title">天風姤 ☰☴ (#62)</div>
+            </div>
+            
+            <div class="encoding-info">
+                <div class="info-card">
+                    <div class="info-label">上卦（上三爻）</div>
+                    <div class="info-value">乾☰ = 111 (天)</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">下卦（下三爻）</div>
+                    <div class="info-value">巽☴ = 110 (風)</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">完整二進制</div>
+                    <div class="info-value">111110₂</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">十進制數值</div>
+                    <div class="info-value">62₁₀</div>
+                </div>
+            </div>
+
+            <div class="yao-visualization">
+                <div class="yao-container">
+                    <div class="yao-line yang"><span class="yao-label">上爻: 1 (陽)</span></div>
+                    <div class="yao-line yang"><span class="yao-label">五爻: 1 (陽)</span></div>
+                    <div class="yao-line yang"><span class="yao-label">四爻: 1 (陽)</span></div>
+                    <div class="yao-line yang"><span class="yao-label">三爻: 1 (陽)</span></div>
+                    <div class="yao-line yang"><span class="yao-label">二爻: 1 (陽)</span></div>
+                    <div class="yao-line yin"><span class="yao-label">初爻: 0 (陰)</span></div>
+                </div>
+            </div>
+
+            <div class="transformations">
+                <div class="transform-card">
+                    <div class="transform-title">錯卦變換</div>
+                    <div class="transform-formula">
+                        原卦: 111110₂ = 62₁₀<br>
+                        錯卦: 000001₂ = 1₁₀<br>
+                        結果: 地雷復 ☷☳
+                    </div>
+                    <div>公式: ~binary & 0x3F (所有爻變反)</div>
+                </div>
+                
+                <div class="transform-card">
+                    <div class="transform-title">綜卦變換</div>
+                    <div class="transform-formula">
+                        原卦: 111110₂ = 62₁₀<br>
+                        綜卦: 011111₂ = 31₁₀<br>
+                        結果: 火天大有 ☲☰
+                    </div>
+                    <div>公式: reverse(binary) (六爻180度翻轉)</div>
+                </div>
+                
+                <div class="transform-card">
+                    <div class="transform-title">複卦關係</div>
+                    <div class="transform-formula">
+                        原卦: 天風姤 62₁₀<br>
+                        複卦: 火天大有 31₁₀<br>
+                        關係: 時間復歸循環
+                    </div>
+                    <div>通常與綜卦相同或相關</div>
+                </div>
+                
+                <div class="transform-card">
+                    <div class="transform-title">雜卦分析</div>
+                    <div class="transform-formula">
+                        互卦: 取中間四爻 1111<br>
+                        變化: 對比互補關係<br>
+                        意義: 內在結構分析
+                    </div>
+                    <div>六爻系統的內在變化</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="operations-section">
+            <div class="section-title">卦象間運算系統</div>
+            
+            <div class="operation-controls">
+                <select id="hexagram1">
+                    <option value="62">天風姤 (62)</option>
+                </select>
+                
+                <select id="operation">
+                    <option value="add">加法 (+)</option>
+                    <option value="subtract">減法 (-)</option>
+                    <option value="multiply">乘法 (×)</option>
+                    <option value="and">邏輯且 (AND)</option>
+                    <option value="or">邏輯或 (OR)</option>
+                    <option value="xor">異或 (XOR)</option>
+                    <option value="nand">反且 (NAND)</option>
+                    <option value="nor">反或 (NOR)</option>
+                </select>
+                
+                <select id="hexagram2">
+                    <option value="1">地雷復 (1)</option>
+                </select>
+                
+                <button onclick="calculateOperation()">執行運算</button>
+                <button onclick="generateAllHexagrams()">顯示全部64卦</button>
+            </div>
+
+            <div id="operationResult" class="operation-result"></div>
+        </div>
+
+        <div class="all-hexagrams">
+            <div class="section-title">64卦狀態空間</div>
+            <div id="hexagramGrid" class="hexagram-grid"></div>
+        </div>
+    </div>
+
+    <script>
+        // 八卦基礎資料
+        const TRIGRAMS = {
+            '000': { symbol: '☷', name: '坤', element: '地', number: 0 },
+            '001': { symbol: '☳', name: '震', element: '雷', number: 1 },
+            '010': { symbol: '☵', name: '坎', element: '水', number: 2 },
+            '011': { symbol: '☱', name: '兌', element: '澤', number: 3 },
+            '100': { symbol: '☶', name: '艮', element: '山', number: 4 },
+            '101': { symbol: '☲', name: '離', element: '火', number: 5 },
+            '110': { symbol: '☴', name: '巽', element: '風', number: 6 },
+            '111': { symbol: '☰', name: '乾', element: '天', number: 7 }
+        };
+
+        // 64卦名稱對應表
+        const HEXAGRAM_NAMES = [
+            "坤為地", "地雷復", "地水師", "地山謙", "地風升", "地火明夷", "地澤臨", "地天泰",
+            "雷地豫", "雷雷震", "雷水解", "雷山小過", "雷風恆", "雷火豐", "雷澤歸妹", "雷天大壯",
+            "水地比", "水雷屯", "水水坎", "水山蹇", "水風井", "水火既濟", "水澤節", "水天需",
+            "山地剝", "山雷頤", "山水蒙", "山山艮", "山風蠱", "山火賁", "山澤損", "山天大畜",
+            "風地觀", "風雷益", "風水渙", "風山漸", "風風巽", "風火家人", "風澤中孚", "風天小畜",
+            "火地晉", "火雷噬嗑", "火水未濟", "火山旅", "火風鼎", "火火離", "火澤睽", "火天大有",
+            "澤地萃", "澤雷隨", "澤水困", "澤山咸", "澤風大過", "澤火革", "澤澤兌", "澤天夬",
+            "天地否", "天雷無妄", "天水訟", "天山遯", "天風姤", "天火同人", "天澤履", "乾為天"
+        ];
+
+        class IChing64System {
+            constructor() {
+                this.initializeSelectors();
+                this.highlightMainExample();
+            }
+
+            // 獲取卦象資訊
+            getHexagramInfo(decimal) {
+                const binary = decimal.toString(2).padStart(6, '0');
+                const upperTrigram = binary.substring(0, 3);
+                const lowerTrigram = binary.substring(3, 6);
+                
+                return {
+                    decimal,
+                    binary,
+                    name: HEXAGRAM_NAMES[decimal],
+                    upperTrigram: TRIGRAMS[upperTrigram],
+                    lowerTrigram: TRIGRAMS[lowerTrigram],
+                    yaoLines: binary.split('').reverse(), // 從下到上
+                    cuoGua: this.calculateCuoGua(binary),
+                    zongGua: this.calculateZongGua(binary)
+                };
+            }
+
+            // 計算錯卦（所有爻變反）
+            calculateCuoGua(binary) {
+                const cuoBinary = binary.split('').map(bit => bit === '1' ? '0' : '1').join('');
+                const cuoDecimal = parseInt(cuoBinary, 2);
+                return {
+                    binary: cuoBinary,
+                    decimal: cuoDecimal,
+                    name: HEXAGRAM_NAMES[cuoDecimal]
+                };
+            }
+
+            // 計算綜卦（180度翻轉，六爻順序完全顛倒）
+            calculateZongGua(binary) {
+                // 將六位二進制字符串完全翻轉
+                const zongBinary = binary.split('').reverse().join('');
+                const zongDecimal = parseInt(zongBinary, 2);
+                return {
+                    binary: zongBinary,
+                    decimal: zongDecimal,
+                    name: HEXAGRAM_NAMES[zongDecimal] || `未知卦象(${zongDecimal})`
+                };
+            }
+
+            // 執行運算
+            performOperation(dec1, dec2, operation) {
+                let result, formula, binaryFormula;
+                const bin1 = dec1.toString(2).padStart(6, '0');
+                const bin2 = dec2.toString(2).padStart(6, '0');
+                
+                switch (operation) {
+                    case 'add':
+                        result = (dec1 + dec2) % 64;
+                        formula = `${dec1} + ${dec2} = ${result} (mod 64)`;
+                        break;
+                    case 'subtract':
+                        result = (dec1 - dec2 + 64) % 64;
+                        formula = `${dec1} - ${dec2} = ${result} (mod 64)`;
+                        break;
+                    case 'multiply':
+                        result = (dec1 * dec2) % 64;
+                        formula = `${dec1} × ${dec2} = ${result} (mod 64)`;
+                        break;
+                    case 'and':
+                        result = dec1 & dec2;
+                        formula = `${dec1} AND ${dec2} = ${result}`;
+                        break;
+                    case 'or':
+                        result = dec1 | dec2;
+                        formula = `${dec1} OR ${dec2} = ${result}`;
+                        break;
+                    case 'xor':
+                        result = dec1 ^ dec2;
+                        formula = `${dec1} XOR ${dec2} = ${result}`;
+                        break;
+                    case 'nand':
+                        result = (~(dec1 & dec2)) & 0x3F;
+                        formula = `${dec1} NAND ${dec2} = ${result}`;
+                        break;
+                    case 'nor':
+                        result = (~(dec1 | dec2)) & 0x3F;
+                        formula = `${dec1} NOR ${dec2} = ${result}`;
+                        break;
+                    default:
+                        result = 0;
+                        formula = '無效運算';
+                }
+
+                const resultBin = result.toString(2).padStart(6, '0');
+                binaryFormula = `${bin1} ${this.getOperationSymbol(operation)} ${bin2} = ${resultBin}`;
+                
+                return { result, formula, binaryFormula };
+            }
+
+            getOperationSymbol(operation) {
+                const symbols = {
+                    'add': '+',
+                    'subtract': '-', 
+                    'multiply': '×',
+                    'and': '&',
+                    'or': '|',
+                    'xor': '^',
+                    'nand': '~&',
+                    'nor': '~|'
+                };
+                return symbols[operation] || '?';
+            }
+
+            // 初始化選擇器
+            initializeSelectors() {
+                const selectors = ['hexagram1', 'hexagram2'];
+                selectors.forEach(selectorId => {
+                    const selector = document.getElementById(selectorId);
+                    selector.innerHTML = '';
+                    for (let i = 0; i < 64; i++) {
+                        const option = document.createElement('option');
+                        option.value = i;
+                        option.textContent = `${HEXAGRAM_NAMES[i]} (${i})`;
+                        selector.appendChild(option);
+                    }
+                });
+                
+                // 設定預設值
+                document.getElementById('hexagram1').value = '62'; // 天風姤
+                document.getElementById('hexagram2').value = '1';  // 地雷復
+            }
+
+            // 高亮主要範例
+            highlightMainExample() {
+                // 可以添加特殊效果
+            }
+
+            // 渲染小卦象
+            renderMiniHexagram(hexInfo, isHighlight = false) {
+                const yaoLines = hexInfo.yaoLines.map(bit => 
+                    `<div class="mini-yao-line ${bit === '1' ? 'yang' : 'yin'}"></div>`
+                ).reverse().join('');
+
+                return `
+                    <div class="mini-hexagram ${isHighlight ? 'highlight' : ''}" onclick="selectHexagram(${hexInfo.decimal})">
+                        <div><strong>#${hexInfo.decimal}</strong></div>
+                        <div>${hexInfo.name}</div>
+                        <div class="mini-yao">${yaoLines}</div>
+                        <div class="binary-display">${hexInfo.binary}</div>
+                        <div style="font-size: 0.9em; color: #ffd700;">
+                            ${hexInfo.upperTrigram.symbol}${hexInfo.lowerTrigram.symbol}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // 全域系統實例
+        const system = new IChing64System();
+
+        // 執行運算
+        function calculateOperation() {
+            try {
+                const hex1 = parseInt(document.getElementById('hexagram1').value);
+                const hex2 = parseInt(document.getElementById('hexagram2').value);
+                const operation = document.getElementById('operation').value;
+
+                // 驗證輸入
+                if (isNaN(hex1) || isNaN(hex2) || hex1 < 0 || hex1 > 63 || hex2 < 0 || hex2 > 63) {
+                    document.getElementById('operationResult').innerHTML = '<div class="result-card">錯誤：無效的卦象編號</div>';
+                    return;
+                }
+
+                const hex1Info = system.getHexagramInfo(hex1);
+                const hex2Info = system.getHexagramInfo(hex2);
+                const calc = system.performOperation(hex1, hex2, operation);
+                const resultInfo = system.getHexagramInfo(calc.result);
+
+                document.getElementById('operationResult').innerHTML = `
+                    <div class="result-card">
+                        <div class="result-title">運算式</div>
+                        <div class="binary-display">${calc.formula}</div>
+                        <div class="binary-display">${calc.binaryFormula}</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-title">運算元 A: ${hex1Info.name}</div>
+                        <div class="binary-display">${hex1Info.binary} (${hex1Info.decimal})</div>
+                        <div style="font-size: 1.5em;">${hex1Info.upperTrigram.symbol}${hex1Info.lowerTrigram.symbol}</div>
+                        <div style="color: #ffd700; margin-top: 10px;">
+                            錯卦: ${hex1Info.cuoGua.name} (${hex1Info.cuoGua.decimal})<br>
+                            綜卦: ${hex1Info.zongGua.name} (${hex1Info.zongGua.decimal})
+                        </div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-title">運算元 B: ${hex2Info.name}</div>
+                        <div class="binary-display">${hex2Info.binary} (${hex2Info.decimal})</div>
+                        <div style="font-size: 1.5em;">${hex2Info.upperTrigram.symbol}${hex2Info.lowerTrigram.symbol}</div>
+                        <div style="color: #ffd700; margin-top: 10px;">
+                            錯卦: ${hex2Info.cuoGua.name} (${hex2Info.cuoGua.decimal})<br>
+                            綜卦: ${hex2Info.zongGua.name} (${hex2Info.zongGua.decimal})
+                        </div>
+                    </div>
+                    <div class="result-card highlight">
+                        <div class="result-title">結果: ${resultInfo.name}</div>
+                        <div class="binary-display">${resultInfo.binary} (${resultInfo.decimal})</div>
+                        <div style="font-size: 2em; margin: 10px 0;">${resultInfo.upperTrigram.symbol}${resultInfo.lowerTrigram.symbol}</div>
+                        <div style="color: #ffd700;">
+                            錯卦: ${resultInfo.cuoGua.name} (${resultInfo.cuoGua.decimal})<br>
+                            綜卦: ${resultInfo.zongGua.name} (${resultInfo.zongGua.decimal})
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('運算錯誤:', error);
+                document.getElementById('operationResult').innerHTML = '<div class="result-card">運算發生錯誤，請重試</div>';
+            }
+        }
+
+        // 生成全部64卦
+        function generateAllHexagrams() {
+            const grid = document.getElementById('hexagramGrid');
+            let html = '';
+            
+            for (let i = 0; i < 64; i++) {
+                const hexInfo = system.getHexagramInfo(i);
+                const isSpecial = (i === 62 || i === 1 || i === 31); // 天風姤、地雷復、火天大有
+                html += system.renderMiniHexagram(hexInfo, isSpecial);
+            }
+            
+            grid.innerHTML = html;
+        }
+
+        // 選擇卦象
+        function selectHexagram(decimal) {
+            document.getElementById('hexagram2').value = decimal;
+            calculateOperation();
+        }
+
+        // 初始化時執行一次運算和顯示
+        calculateOperation();
+        generateAllHexagrams();
+    </script>
+</body>
+</html>

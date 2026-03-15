@@ -1,0 +1,57 @@
+{
+  "shioaji": {
+    "simulation": true,
+    "api_key": "",
+    "secret_key": "",
+    "ca_path": "",
+    "ca_password": ""
+  },
+  "trading": {
+    "max_positions": 10,
+    "max_position_size": 5,
+    "daily_loss_limit": 10000,
+    "enable_auto_trading": false,
+    "order_type": "limit"
+  },
+  "strategies": {
+    "basis_arbitrage": {
+      "enabled": true,
+      "min_spread": 150,
+      "max_spread": 300,
+      "contracts": ["TXF", "TE", "TF"],
+      "exit_spread": 30
+    },
+    "calendar_spread": {
+      "enabled": true,
+      "threshold": -30,
+      "target_spread": 35,
+      "contracts": ["TXF1", "TXF2"]
+    },
+    "triangle_arbitrage": {
+      "enabled": false,
+      "contracts": ["TXF", "TE", "TF"],
+      "threshold": 50
+    }
+  },
+  "risk_management": {
+    "max_drawdown_percent": 5,
+    "position_sizing": "fixed",
+    "stop_loss_points": 100,
+    "take_profit_points": 200,
+    "margin_buffer_percent": 20
+  },
+  "notifications": {
+    "telegram_enabled": false,
+    "telegram_bot_token": "",
+    "telegram_chat_id": "",
+    "alert_on_trade": true,
+    "alert_on_opportunity": true,
+    "alert_on_error": true
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "data/logs/arbitrage.log",
+    "rotation": "daily",
+    "retention_days": 30
+  }
+}

@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>六十四卦 × 胺基酸密碼子 × 干支五行 — 增強版互動計算器</title>
+  <style>
+    body{font-family: system-ui, -apple-system, "微軟正黑體", "Noto Sans TC", Arial; margin:12px; background:#f7f7fb; color:#111}
+    h1{font-size:18px;margin:6px 0;color:#1e40af}
+    .layout{display:flex;gap:12px;flex-wrap:wrap}
+    .panel{background:white;padding:10px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.06);flex:1;min-width:300px}
+    .grid{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
+    .node{background:linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);border-radius:8px;padding:6px;text-align:center;cursor:pointer;border:1px solid rgba(12,34,99,0.06);transition:all 0.2s ease}
+    .node:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(12,34,99,0.12);background:linear-gradient(135deg, #dfe8ff 0%, #c7d2fe 100%)}
+    .node.active{background:linear-gradient(135deg, #c7d2fe 0%, #a5b4fc 100%);border:2px solid #6366f1;transform:translateY(-2px)}
+    .hexagram-name{font-size:10px;font-weight:600;color:#1e40af;margin-bottom:2px;line-height:1.2}
+    .codon-info{font-size:11px;color:#374151;margin:1px 0}
+    .binary{font-size:9px;color:#6b7280;font-family:monospace}
+    label{display:block;margin-top:6px;font-size:13px;font-weight:500}
+    input[type=range]{width:100%;accent-color:#6366f1}
+    .kv{display:flex;justify-content:space-between;font-size:13px;margin:4px 0}
+    .kv strong{color:#1e40af}
+    pre{background:#0f172a;color:#e2e8f0;padding:12px;border-radius:8px;overflow:auto;font-size:12px;line-height:1.4}
+    .small{font-size:12px;color:#6b7280;line-height:1.4}
+    button{background:linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);color:white;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:500;transition:all 0.2s ease}
+    button:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(59,130,246,0.3)}
+    button:active{transform:translateY(0px)}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    select{padding:6px 8px;border-radius:6px;border:1px solid #d1d5db;font-size:12px}
+    .fortune{padding:8px 12px;border-radius:8px;font-weight:600;text-align:center;margin:8px 0}
+    .fortune.大吉{background:#dcfce7;color:#166534;border:1px solid #86efac}
+    .fortune.小吉{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+    .fortune.平{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+    .fortune.小凶{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+    .fortune.大凶{background:#fecaca;color:#7f1d1d;border:1px solid #f87171}
+    .wuxing-chart{display:flex;gap:4px;margin:8px 0;height:24px;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb}
+    .wuxing-bar{display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,0.3);transition:all 0.3s ease}
+    .wuxing-bar:hover{transform:scaleY(1.2);z-index:10}
+    .wuxing-legend{display:flex;gap:8px;margin:4px 0;font-size:11px}
+    .wuxing-item{display:flex;align-items:center;gap:3px}
+    hr{border:none;height:1px;background:#e5e7eb;margin:10px 0}
+  </style>
+</head>
+<body>
+  <h1>六十四卦 × 胺基酸密碼子 × 干支五行 — 增強版互動計算器</h1>
+  <div class="layout">
+    <div class="panel" style="flex:0 1 580px">
+      <div class="small">說明：點選一個六十四卦節點，每卦對應一個RNA密碼子。系統會結合「今日干支 → 五行向量」與所選密碼子的數值，通過遞迴公式計算運勢分數。卦序採用文王六十四卦序。</div>
+      <hr />
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="panel" style="flex:0 1 420px">
+      <div id="info">
+        <div class="kv"><strong>選中卦象：</strong><span id="selName">—</span></div>
+        <div class="kv"><strong>二進位碼：</strong><span id="selBinary">—</span></div>
+        <div class="kv"><strong>對應密碼子：</strong><span id="selCodon">—</span></div>
+        <div class="kv"><strong>胺基酸：</strong><span id="selAA">—</span></div>
+        <div class="kv"><strong>密碼子值（未縮放）：</strong><span id="selVal">—</span></div>
+        <div class="kv"><strong>S_t（初始分數 0–100）：</strong><span id="stVal">—</span></div>
+        <hr />
+        <div class="kv"><strong>今日公曆：</strong><span id="todayDate">—</span></div>
+        <div class="kv"><strong>今日干支：</strong><span id="ganzhi">—</span></div>
+        <div class="kv"><strong>天干五行：</strong><span id="stemWu">—</span></div>
+        <div class="kv"><strong>地支五行：</strong><span id="branchWu">—</span></div>
+        <div class="kv"><strong>綜合五行向量 V_t：</strong><span id="vwx">—</span></div>
+        <div id="wuxingChart" style="margin: 8px 0;"></div>
+      </div>
+
+      <hr />
+      <div>
+        <label>α（生扶放大係數） <span id="alphaVal">1.2</span></label>
+        <input id="alpha" type="range" min="0" max="3" step="0.01" value="1.2" />
+        <label>β（剋制放大係數） <span id="betaVal">0.8</span></label>
+        <input id="beta" type="range" min="0" max="3" step="0.01" value="0.8" />
+        <label>δ 權重模式</label>
+        <div class="row"><select id="deltaMode"><option value="exp">2^{i-1}（指數遞增）</option><option value="equal">等權重</option><option value="fib">費氏數列</option></select><button id="normBtn">正規化 δ</button></div>
+        <label>投影函數 P</label>
+        <div class="row"><select id="pMode"><option value="clamp">限制範圍 [0,100]</option><option value="sigmoid">Sigmoid 映射</option><option value="tanh">Tanh 映射</option><option value="identity">無變換</option></select></div>
+      </div>
+
+      <hr />
+      <div>
+        <button id="calcBtn">🔮 計算運勢 S_{t+1}</button>
+        <div style="height:8px"></div>
+        <div class="kv"><strong>運勢分數：</strong><span id="st1">—</span></div>
+        <div class="fortune" id="luckDisplay" style="display:none">—</div>
+      </div>
+
+      <hr />
+      <div>
+        <label>參數控制</label>
+        <div class="row">
+          <button id="resetBtn">🔄 恢復預設</button>
+          <button id="randomBtn">🎲 隨機參數</button>
+          <button id="exportBtn">📤 匯出設定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr />
+  <div class="panel">
+    <strong>🔍 計算過程詳解</strong>
+    <pre id="trace">請選擇一個卦象並點擊「計算運勢」開始分析。</pre>
+  </div>
+
+<script>
+// 64卦名（文王卦序）
+const guaNames = [
+  "乾為天", "澤天夬", "火天大有", "雷天大壯", "風天小畜", "水天需", "山天大畜", "地天泰",
+  "天澤履", "兌為澤", "火澤睽", "雷澤歸妹", "風澤中孚", "水澤節", "山澤損", "地澤臨",
+  "天火同人", "澤火革", "離為火", "雷火豐", "風火家人", "水火既濟", "山火賁", "地火明夷",
+  "天雷無妄", "澤雷隨", "火雷噬嗑", "震為雷", "風雷益", "水雷屯", "山雷頤", "地雷復",
+  "天風姤", "澤風大過", "火風鼎", "雷風恆", "巽為風", "水風井", "山風蠱", "地風升",
+  "天水訟", "澤水困", "火水未濟", "雷水解", "風水渙", "坎為水", "山水蒙", "地水師",
+  "天山遯", "澤山咸", "火山旅", "雷山小過", "風山漸", "水山蹇", "艮為山", "地山謙",
+  "天地否", "澤地萃", "火地晉", "雷地豫", "風地觀", "水地比", "山地剝", "坤為地"
+];
+
+// 二進位代碼（文王卦序）
+const kingwenBits = [
+  "111111","111110","111101","111100","111011","111010","111001","111000",
+  "110111","110110","110101","110100","110011","110010","110001","110000",
+  "101111","101110","101101","101100","101011","101010","101001","101000",
+  "100111","100110","100101","100100","100011","100010","100001","100000",
+  "011111","011110","011101","011100","011011","011010","011001","011000",
+  "010111","010110","010101","010100","010011","010010","010001","010000",
+  "001111","001110","001101","001100","001011","001010","001001","001000",
+  "000111","000110","000101","000100","000011","000010","000001","000000"
+];
+
+// 64 個 RNA 密碼子
+const codonList = [
+  'TTT','TTC','TTA','TTG','TCT','TCC','TCA','TCG',
+  'TAT','TAC','TAA','TAG','TGT','TGC','TGA','TGG',
+  'CTT','CTC','CTA','CTG','CCT','CCC','CCA','CCG',
+  'CAT','CAC','CAA','CAG','CGT','CGC','CGA','CGG',
+  'ATT','ATC','ATA','ATG','ACT','ACC','ACA','ACG',
+  'AAT','AAC','AAA','AAG','AGT','AGC','AGA','AGG',
+  'GTT','GTC','GTA','GTG','GCT','GCC','GCA','GCG',
+  'GAT','GAC','GAA','GAG','GGT','GGC','GGA','GGG'
+];
+
+// 胺基酸對應表
+const codonToAA = {
+  TTT:'Phe',TTC:'Phe',TTA:'LeT',TTG:'LeT',TCT:'Ser',TCC:'Ser',TCA:'Ser',TCG:'Ser',
+  TAT:'Tyr',TAC:'Tyr',TAA:'Stop',TAG:'Stop',TGT:'Cys',TGC:'Cys',TGA:'Stop',TGG:'Trp',
+  CTT:'LeT',CTC:'LeT',CTA:'LeT',CTG:'LeT',CCT:'Pro',CCC:'Pro',CCA:'Pro',CCG:'Pro',
+  CAT:'His',CAC:'His',CAA:'Gln',CAG:'Gln',CGT:'Arg',CGC:'Arg',CGA:'Arg',CGG:'Arg',
+  ATT:'Ile',ATC:'Ile',ATA:'Ile',ATG:'Met',ACT:'Thr',ACC:'Thr',ACA:'Thr',ACG:'Thr',
+  AAT:'Asn',AAC:'Asn',AAA:'Lys',AAG:'Lys',AGT:'Ser',AGC:'Ser',AGA:'Arg',AGG:'Arg',
+  GTT:'Val',GTC:'Val',GTA:'Val',GTG:'Val',GCT:'Ala',GCC:'Ala',GCA:'Ala',GCG:'Ala',
+  GAT:'Asp',GAC:'Asp',GAA:'GlT',GAG:'GlT',GGT:'Gly',GGC:'Gly',GGA:'Gly',GGG:'Gly'
+};
+
+// 密碼子數值計算
+const baseVal = {T:1,C:2,A:3,G:4};
+function codonValue(codon){
+  return codon.split('').reduce((s,ch)=>s + (baseVal[ch]||0),0);
+}
+function scaleTo100(v){ return v * (100/12); }
+
+// 干支與五行系統
+const stems = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const branches = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const stemToWu = { '甲':'木','乙':'木','丙':'火','丁':'火','戊':'土','己':'土','庚':'金','辛':'金','壬':'水','癸':'水' };
+const branchToWu = { 
+  '子':'水','丑':'土','寅':'木','卯':'木','辰':'土','巳':'火',
+  '午':'火','未':'土','申':'金','酉':'金','戌':'土','亥':'水' 
+};
+const wuIndex = { '木':0,'火':1,'土':2,'金':3,'水':4 };
+const wuNames = ['木','火','土','金','水'];
+const wuColors = ['#22c55e','#ef4444','#64748b','#f59e0b','#3b82f6'];
+const wuxingColors = wuColors; // 別名，保持兼容性
+
+function stemToVector(stem){ 
+  const v = [0,0,0,0,0]; 
+  v[wuIndex[stemToWu[stem]]] = 1; 
+  return v; 
+}
+
+function branchToVector(branch){ 
+  const v = [0,0,0,0,0]; 
+  v[wuIndex[branchToWu[branch]]] = 1; 
+  return v; 
+}
+
+function combineVectors(stemVec, branchVec, stemWeight = 0.6, branchWeight = 0.4) {
+  return stemVec.map((s, i) => s * stemWeight + branchVec[i] * branchWeight);
+}
+
+// 計算干支日期
+function daysBetween(a,b){
+  const _MS = 24*3600*1000;
+  return Math.floor((Date.UTC(b.getFullYear(),b.getMonth(),b.getDate()) - Date.UTC(a.getFullYear(),a.getMonth(),a.getDate()))/_MS);
+}
+const refDate = new Date(Date.UTC(1984,1,2)); // 1984-02-02 甲子日
+
+function getGanZhiForDate(d){
+  const days = daysBetween(refDate, d);
+  const idx = ((days % 60) + 60) % 60;
+  const stem = stems[idx % 10];
+  const branch = branches[idx % 12];
+  return {stem, branch, idx};
+}
+
+// 初始化 M 矩陣（生扶與剋制）
+let Msheng = [];
+let Mke = [];
+for(let i=0;i<6;i++){
+  // 更精緻的權重分配
+  const baseSheng = Array(5).fill(0).map((_,j)=>{
+    const phase = (i*0.7 + j*1.3) % (2*Math.PI);
+    return (Math.sin(phase) + 1.2) / 2.2 * 0.15 + 0.05;
+  });
+  Msheng.push(baseSheng);
+  
+  const baseKe = Array(5).fill(0).map((_,j)=>{
+    const phase = (i*1.1 + j*0.9 + Math.PI/3) % (2*Math.PI);
+    return (Math.cos(phase) + 1.1) / 2.1 * 0.12 + 0.03;
+  });
+  Mke.push(baseKe);
+}
+
+// δ 權重系統
+let delta = [1,2,4,8,16,32]; // 預設指數權重
+function updateDelta(){
+  const mode = document.getElementById('deltaMode').value;
+  if(mode === 'equal'){
+    delta = Array(6).fill(1);
+  } else if(mode === 'fib'){
+    delta = [1,1,2,3,5,8];
+  } else {
+    delta = [1,2,4,8,16,32];
+  }
+  normalizeDelta();
+}
+
+function normalizeDelta(){ 
+  const s = delta.reduce((a,b)=>a+b,0); 
+  delta = delta.map(x=>x/s); 
+}
+
+// 建立網格介面
+const grid = document.getElementById('grid');
+codonList.forEach((c, idx)=>{
+  const el = document.createElement('div');
+  el.className = 'node';
+  el.dataset.codon = c;
+  el.dataset.idx = idx;
+  el.innerHTML = `
+    <div class="hexagram-name">${guaNames[idx]}</div>
+    <div class="codon-info">${c} → ${codonToAA[c]||''}</div>
+    <div class="binary">${kingwenBits[idx]}</div>
+  `;
+  el.addEventListener('click', ()=>selectNode(el));
+  grid.appendChild(el);
+});
+
+let currentEl = null;
+function selectNode(el){ 
+  if(currentEl) currentEl.classList.remove('active'); 
+  currentEl = el; 
+  el.classList.add('active');
+  
+  const idx = parseInt(el.dataset.idx);
+  const c = el.dataset.codon; 
+  const aa = codonToAA[c]||''; 
+  const val = codonValue(c); 
+  const scaled = Math.round(scaleTo100(val)*100)/100;
+  
+  document.getElementById('selName').innerText = guaNames[idx];
+  document.getElementById('selBinary').innerText = kingwenBits[idx];
+  document.getElementById('selCodon').innerText = c; 
+  document.getElementById('selAA').innerText = aa; 
+  document.getElementById('selVal').innerText = val;
+  document.getElementById('stVal').innerText = scaled;
+}
+
+// 顯示今日信息
+function showToday(){ 
+  const d = new Date(); 
+  document.getElementById('todayDate').innerText = d.toLocaleDateString('zh-TW'); 
+  const gz = getGanZhiForDate(d); 
+  document.getElementById('ganzhi').innerText = gz.stem + gz.branch + ` (第${gz.idx+1}日)`; 
+  
+  // 顯示天干地支五行
+  const stemWu = stemToWu[gz.stem];
+  const branchWu = branchToWu[gz.branch];
+  document.getElementById('stemWu').innerText = `${gz.stem} → ${stemWu}`;
+  document.getElementById('branchWu').innerText = `${gz.branch} → ${branchWu}`;
+  
+  // 計算綜合五行向量
+  const stemVec = stemToVector(gz.stem);
+  const branchVec = branchToVector(gz.branch);
+  const combinedVec = combineVectors(stemVec, branchVec);
+  
+  document.getElementById('vwx').innerText = `[${combinedVec.map(x=>x.toFixed(2)).join(', ')}]`;
+  
+  // 繪製五行分佈圖表
+  drawWuxingChart(combinedVec);
+}
+
+function drawWuxingChart(wuxingVec) {
+  const chartEl = document.getElementById('wuxingChart');
+  const maxVal = Math.max(...wuxingVec);
+  const minWidth = 20; // 最小寬度
+  
+  let chartHTML = '<div class="wuxing-chart">';
+  wuxingVec.forEach((val, i) => {
+    const percentage = maxVal > 0 ? Math.max((val / maxVal * 80), minWidth) : minWidth;
+    chartHTML += `<div class="wuxing-bar" style="flex:${percentage}; background:${wuxingColors[i]}" title="${wuNames[i]}: ${val.toFixed(3)}">${wuNames[i]}</div>`;
+  });
+  chartHTML += '</div>';
+  
+  // 添加圖例
+  chartHTML += '<div class="wuxing-legend">';
+  wuNames.forEach((name, i) => {
+    chartHTML += `<div class="wuxing-item"><div class="wuxing-color" style="background:${wuxingColors[i]}"></div></div>`;
+  });
+  chartHTML += '</div>';
+  
+  chartEl.innerHTML = chartHTML;
+}
+showToday();
+
+// 控制項事件
+const alphaEl = document.getElementById('alpha'); 
+const betaEl = document.getElementById('beta');
+alphaEl.addEventListener('input', ()=>document.getElementById('alphaVal').innerText = alphaEl.value);
+betaEl.addEventListener('input', ()=>document.getElementById('betaVal').innerText = betaEl.value);
+document.getElementById('deltaMode').addEventListener('change', updateDelta);
+
+// 計算函數
+function dotVec(a,b){ return a.reduce((s,x,i)=>s + x*(b[i]||0),0); }
+
+function applyP(x, mode){ 
+  if(mode==='clamp') return Math.max(0,Math.min(100,x)); 
+  if(mode==='sigmoid'){ 
+    const y = 1/(1+Math.exp(-(x-50)/15)); 
+    return y*100; 
+  }
+  if(mode==='tanh'){
+    const y = Math.tanh((x-50)/20);
+    return (y+1)*50;
+  }
+  return x; 
+}
+
+function compute(){ 
+  if(!currentEl){ 
+    alert('請先選擇一個卦象！'); 
+    return; 
+  }
+  
+  const idx = parseInt(currentEl.dataset.idx);
+  const codon = currentEl.dataset.codon; 
+  const val = codonValue(codon); 
+  const St = scaleTo100(val);
+  
+  // 獲取今日干支五行
+  const d = new Date(); 
+  const gz = getGanZhiForDate(d); 
+  const stemVec = stemToVector(gz.stem);
+  const branchVec = branchToVector(gz.branch);
+  const V5 = combineVectors(stemVec, branchVec); // 使用綜合五行向量
+  
+  // 參數
+  const alpha = parseFloat(alphaEl.value); 
+  const beta = parseFloat(betaEl.value);
+  
+  let sumSheng = 0; 
+  let sumKe = 0; 
+  let trace = [];
+  trace.push(`=== ${guaNames[idx]} (${kingwenBits[idx]}) 運勢分析 ===`);
+  trace.push(`密碼子: ${codon} → ${codonToAA[codon]} (數值=${val}, 縮放=${St.toFixed(3)})`);
+  trace.push(`今日干支: ${gz.stem}${gz.branch}（天干${gz.stem} → ${stemToWu[gz.stem]} | 地支${gz.branch} → ${branchToWu[gz.branch]})`);
+  trace.push(`綜合五行向量 V_t: [${V5.map(x=>x.toFixed(3)).join(', ')}]`);
+  trace.push(`參數: α=${alpha}, β=${beta}`);
+  trace.push('');
+  trace.push('各維度計算:');
+  
+  for(let i=0;i<6;i++){
+    const mS = dotVec(Msheng[i], V5); 
+    const mK = dotVec(Mke[i], V5);
+    const termS = mS * delta[i]; 
+    const termK = mK * delta[i];
+    sumSheng += termS; 
+    sumKe += termK;
+    trace.push(`維度${i+1}: 生扶=${mS.toFixed(4)}×${delta[i].toFixed(4)}=${termS.toFixed(6)}, 剋制=${mK.toFixed(4)}×${delta[i].toFixed(4)}=${termK.toFixed(6)}`);
+  }
+  
+  trace.push('');
+  trace.push(`總生扶力 = ${sumSheng.toFixed(6)}`);
+  trace.push(`總剋制力 = ${sumKe.toFixed(6)}`);
+  
+  const raw = St + alpha*sumSheng - beta*sumKe;
+  const pmode = document.getElementById('pMode').value; 
+  const sNext = applyP(raw, pmode);
+  
+  let luck = '';
+  let luckClass = '';
+  if(sNext>=85) { luck='大吉'; luckClass='大吉'; }
+  else if(sNext>=65) { luck='小吉'; luckClass='小吉'; }
+  else if(sNext>=35) { luck='平'; luckClass='平'; }
+  else if(sNext>=15) { luck='小凶'; luckClass='小凶'; }
+  else { luck='大凶'; luckClass='大凶'; }
+
+  trace.push('');
+  trace.push(`原始分數 = ${St.toFixed(3)} + ${alpha}×${sumSheng.toFixed(6)} - ${beta}×${sumKe.toFixed(6)} = ${raw.toFixed(6)}`);
+  trace.push(`經${pmode}函數處理 → ${sNext.toFixed(3)}`);
+  trace.push(`運勢判定: ${luck} ✨`);
+
+  document.getElementById('st1').innerText = sNext.toFixed(2);
+  const luckEl = document.getElementById('luckDisplay');
+  luckEl.innerText = luck;
+  luckEl.className = `fortune ${luckClass}`;
+  luckEl.style.display = 'block';
+  
+  document.getElementById('trace').innerText = trace.join('\n');
+}
+
+// 按鈕事件
+document.getElementById('calcBtn').addEventListener('click', compute);
+
+document.getElementById('normBtn').addEventListener('click', ()=>{
+  normalizeDelta(); 
+  alert(`δ權重已正規化！\n新權重: [${delta.map(x=>x.toFixed(4)).join(', ')}]`); 
+});
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  alphaEl.value = 1.2;
+  betaEl.value = 0.8;
+  document.getElementById('alphaVal').innerText = '1.2';
+  document.getElementById('betaVal').innerText = '0.8';
+  document.getElementById('deltaMode').value = 'exp';
+  document.getElementById('pMode').value = 'clamp';
+  updateDelta();
+  alert('參數已重置為預設值！'); 
+});
+
+document.getElementById('randomBtn').addEventListener('click', ()=>{
+  const newAlpha = (Math.random() * 2 + 0.5).toFixed(2);
+  const newBeta = (Math.random() * 2 + 0.5).toFixed(2);
+  alphaEl.value = newAlpha;
+  betaEl.value = newBeta;
+  document.getElementById('alphaVal').innerText = newAlpha;
+  document.getElementById('betaVal').innerText = newBeta;
+  
+  const modes = ['exp', 'equal', 'fib'];
+  const randomMode = modes[Math.floor(Math.random() * modes.length)];
+  document.getElementById('deltaMode').value = randomMode;
+  updateDelta();
+  
+  alert('參數已隨機化！試試新的組合吧 🎲'); 
+});
+
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const data = {
+    alpha: parseFloat(alphaEl.value),
+    beta: parseFloat(betaEl.value),
+    deltaMode: document.getElementById('deltaMode').value,
+    pMode: document.getElementById('pMode').value,
+    delta,
+    Msheng,
+    Mke,
+    timestamp: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); 
+  a.href = url; 
+  a.download = `iching-params-${Date.now()}.json`; 
+  a.click(); 
+  URL.revokeObjectURL(url);
+});
+
+// 初始化
+updateDelta();
+selectNode(document.querySelector('.node'));
+</script>
+</body>
+</html>

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>完整文檔 - Taiwan Futures Arbitrage</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Microsoft JhengHei', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f7fa;
+        }
+
+        .nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav h1 {
+            color: white;
+            font-size: 1.5em;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .nav a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            margin: 20px 0;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #667eea;
+            margin: 30px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .file-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            border-radius: 12px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .file-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .file-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .file-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .file-size {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+
+        .download-btn:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+
+        .category {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 30px 0;
+        }
+
+        .category h3 {
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-box .number {
+            font-size: 2.5em;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .stat-box .label {
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .tree {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 25px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .tree pre {
+            margin: 0;
+            white-space: pre;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #fdcb6e;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <div class="container">
+            <h1>🚀 Taiwan Futures Arbitrage</h1>
+            <div>
+                <a href="index.html">首頁</a>
+                <a href="quickstart.html">快速開始</a>
+                <a href="documentation.html">完整文檔</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h1 style="text-align: center; color: #667eea; margin-bottom: 30px;">
+                📚 完整文檔與下載
+            </h1>
+
+            <div class="highlight">
+                <h3>📦 一鍵下載</h3>
+                <p style="margin: 15px 0;">完整專案包含所有 29 個文件，3,734 行代碼</p>
+                <a href="taiwan-futures-arbitrage.tar.gz" class="download-btn" download style="background: white; color: #667eea; font-weight: bold;">
+                    📥 下載完整專案 (49KB)
+                </a>
+            </div>
+
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="number">29</div>
+                    <div class="label">總文件數</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number">3,734</div>
+                    <div class="label">代碼行數</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number">7</div>
+                    <div class="label">文檔文件</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number">49KB</div>
+                    <div class="label">壓縮大小</div>
+                </div>
+            </div>
+
+            <h2>📖 說明文檔（優先閱讀）</h2>
+            <div class="file-grid">
+                <div class="file-card">
+                    <div class="file-icon">📘</div>
+                    <h3>README-FIRST.txt</h3>
+                    <p>快速開始指南，建議最先閱讀</p>
+                    <div class="file-size">大小：~8KB</div>
+                    <a href="README-FIRST.txt" class="download-btn" download>下載</a>
+                </div>
+
+                <div class="file-card">
+                    <div class="file-icon">📋</div>
+                    <h3>00-PROJECT-OVERVIEW.txt</h3>
+                    <p>專案完整總覽與功能清單</p>
+                    <div class="file-size">大小：~15KB</div>
+                    <a href="00-PROJECT-OVERVIEW.txt" class="download-btn" download>下載</a>
+                </div>
+
+                <div class="file-card">
+                    <div class="file-icon">📄</div>
+                    <h3>FILE-LIST.txt</h3>
+                    <p>完整文件清單與說明</p>
+                    <div class="file-size">大小：~10KB</div>
+                    <a href="FILE-LIST.txt" class="download-btn" download>下載</a>
+                </div>
+            </div>
+
+            <h2>📦 專案檔案</h2>
+            <div class="file-grid">
+                <div class="file-card">
+                    <div class="file-icon">🗜️</div>
+                    <h3>taiwan-futures-arbitrage.tar.gz</h3>
+                    <p>完整專案壓縮檔，包含所有文件</p>
+                    <div class="file-size">大小：49KB</div>
+                    <a href="taiwan-futures-arbitrage.tar.gz" class="download-btn" download>下載</a>
+                </div>
+            </div>
+
+            <h2>📁 專案結構</h2>
+            <p style="margin: 20px 0;">解壓縮後的完整目錄結構：</p>
+            
+            <div class="tree">
+<pre>taiwan-futures-arbitrage-final/
+│
+├── 📄 核心文檔（6個）
+│   ├── SKILL.md                 ✅ OpenClaw 技能定義
+│   ├── README.md                ✅ 完整使用手冊（7.4KB）
+│   ├── QUICKSTART.md            ✅ 5分鐘快速開始（4.6KB）
+│   ├── DEPLOYMENT.md            ✅ 詳細部署指南（11.8KB）
+│   ├── PROJECT_SUMMARY.md       ✅ 技術總結（12KB）
+│   └── 00-PROJECT-OVERVIEW.txt  ✅ 專案總覽
+│
+├── ⚙️  配置文件（2個）
+│   └── config/
+│       ├── settings.json        ✅ 系統配置
+│       └── settings.example.json ✅ 配置範本
+│
+├── 📚 核心函式庫（5個 Python 文件，1,348 行）
+│   └── lib/
+│       ├── __init__.py              ✅ Python 包初始化
+│       ├── shioaji_client.py        ✅ 永豐 API 封裝（434行）
+│       ├── spread_calculator.py     ✅ 價差計算引擎（373行）
+│       ├── risk_manager.py          ✅ 風險管理系統（313行）
+│       └── telegram_notifier.py     ✅ Telegram 通知（228行）
+│
+├── 🎮 執行腳本（9個 Python 文件，2,386 行）
+│   └── scripts/
+│       ├── __init__.py          ✅ 包初始化
+│       ├── setup.py             ✅ 初始化設定（160行）
+│       ├── scanner.py           ✅ 套利掃描器（335行）
+│       ├── trader.py            ✅ 交易執行器（291行）
+│       ├── autotrader.py        ✅ 24/7 自動交易（383行）
+│       ├── monitor.py           ✅ 實時監控（343行）
+│       ├── report.py            ✅ 績效報告（341行）
+│       ├── backtest.py          ✅ 策略回測（383行）
+│       └── examples.py          ✅ 使用範例（292行）
+│
+├── 📊 數據目錄（3個文件）
+│   └── data/
+│       ├── README.md            ✅ 目錄說明
+│       ├── logs/                ✅ 日誌目錄（空）
+│       └── trades.json          ✅ 交易記錄（初始化）
+│
+└── 🛠️  輔助工具（4個文件）
+    ├── install.sh               ✅ 自動安裝腳本
+    ├── start.sh                 ✅ 快速啟動選單
+    ├── .gitignore               ✅ Git 忽略配置
+    ├── LICENSE                  ✅ MIT 授權
+    └── requirements.txt         ✅ Python 依賴清單</pre>
+            </div>
+
+            <div class="category">
+                <h3>📚 文檔內容概覽</h3>
+                <p style="margin-top: 15px;"><strong>SKILL.md (4.6KB)</strong> - OpenClaw Skill 定義、可用指令、Telegram 整合說明、系統架構圖</p>
+                <p style="margin-top: 10px;"><strong>README.md (7.4KB)</strong> - 專案介紹、功能特性、完整使用方法、支援的策略、常見問題</p>
+                <p style="margin-top: 10px;"><strong>QUICKSTART.md (4.6KB)</strong> - 5分鐘快速開始、安裝步驟、基本使用範例、常用指令速查</p>
+                <p style="margin-top: 10px;"><strong>DEPLOYMENT.md (11.8KB)</strong> - 環境準備、API 申請流程、詳細部署步驟、監控與維護、常見問題排查</p>
+                <p style="margin-top: 10px;"><strong>PROJECT_SUMMARY.md (12KB)</strong> - 專案概述、技術架構、已實現功能、預期績效、未來路線圖</p>
+            </div>
+
+            <h2>🎯 核心功能模組</h2>
+            <div class="file-grid">
+                <div class="file-card">
+                    <div class="file-icon">🔌</div>
+                    <h3>shioaji_client.py</h3>
+                    <p>永豐 Shioaji API 完整封裝</p>
+                    <div class="file-size">434 行</div>
+                </div>
+
+                <div class="file-card">
+                    <div class="file-icon">📊</div>
+                    <h3>spread_calculator.py</h3>
+                    <p>價差計算引擎，支援 3 種策略</p>
+                    <div class="file-size">373 行</div>
+                </div>
+
+                <div class="file-card">
+                    <div class="file-icon">🛡️</div>
+                    <h3>risk_manager.py</h3>
+                    <p>風險管理系統，多層保護</p>
+                    <div class="file-size">313 行</div>
+                </div>
+
+                <div class="file-card">
+                    <div class="file-icon">📱</div>
+                    <h3>telegram_notifier.py</h3>
+                    <p>Telegram 通知整合</p>
+                    <div class="file-size">228 行</div>
+                </div>
+            </div>
+
+            <h2>🎮 執行腳本</h2>
+            <div class="file-grid">
+                <div class="file-card">
+                    <div class="file-icon">🔍</div>
+                    <h3>scanner.py</h3>
+                    <p>套利機會掃描器</p>
+                    <div class="file-size">335 行</div>
+                </div>
+
+                <div class="file-card">
+                    <div class="file-icon">💼</div>
+                    <h3>trader.py</h3>
+                    <p>交易執行器</p>
+                    <div class="file-size">291 行</div>
+                </div>
+
+                <div class="file-card">
+                    <div class="file-icon">🤖</div>
+                    <h3>autotrader.py</h3>
+                    <p>24/7 自動交易引擎</p>
+                    <div class="file-size">383 行</div>
+                </div>
+
+                <div class="file-card">
+                    <div class="file-icon">📈</div>
+                    <h3>monitor.py</h3>
+                    <p>實時監控儀表板</p>
+                    <div class="file-size">343 行</div>
+                </div>
+
+                <div class="file-card">
+                    <div class="file-icon">📄</div>
+                    <h3>report.py</h3>
+                    <p>績效報告生成</p>
+                    <div class="file-size">341 行</div>
+                </div>
+
+                <div class="file-card">
+                    <div class="file-icon">🧪</div>
+                    <h3>backtest.py</h3>
+                    <p>策略回測系統</p>
+                    <div class="file-size">383 行</div>
+                </div>
+
+                <div class="file-card">
+                    <div class="file-icon">📚</div>
+                    <h3>examples.py</h3>
+                    <p>完整使用範例</p>
+                    <div class="file-size">292 行</div>
+                </div>
+
+                <div class="file-card">
+                    <div class="file-icon">⚙️</div>
+                    <h3>setup.py</h3>
+                    <p>互動式初始化設定</p>
+                    <div class="file-size">160 行</div>
+                </div>
+            </div>
+
+            <h2>📖 建議閱讀順序</h2>
+            <ol style="font-size: 1.1em; line-height: 2; margin: 20px 0;">
+                <li><strong>README-FIRST.txt</strong> ⭐ - 快速開始指南（必讀）</li>
+                <li><strong>00-PROJECT-OVERVIEW.txt</strong> - 專案完整總覽</li>
+                <li>解壓縮專案並閱讀 <strong>QUICKSTART.md</strong></li>
+                <li>遇到問題查看 <strong>DEPLOYMENT.md</strong></li>
+                <li>深入了解請閱讀 <strong>PROJECT_SUMMARY.md</strong></li>
+            </ol>
+
+            <div style="text-align: center; margin: 50px 0;">
+                <h2>🎉 立即下載</h2>
+                <p style="font-size: 1.2em; margin: 20px 0;">
+                    完整專案已準備就緒，立即開始您的量化交易之旅！
+                </p>
+                <a href="taiwan-futures-arbitrage.tar.gz" class="download-btn" download style="font-size: 1.2em; padding: 15px 40px;">
+                    📥 下載完整專案
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <footer style="text-align: center; padding: 40px; color: #666;">
+        <p>Taiwan Futures Arbitrage v1.0.0 | MIT License</p>
+        <p style="margin-top: 10px;">祝您交易順利，財源廣進！💰💰💰</p>
+    </footer>
+</body>
+</html>
