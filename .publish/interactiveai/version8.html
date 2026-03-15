@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>💻 TypeScript 神經網路教學</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;overflow-x:hidden}
+body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:12px}
+
+h1{color:#fff;text-align:center;font-size:clamp(1.3rem,6vw,2rem);text-shadow:0 2px 8px rgba(0,0,0,0.25);margin-bottom:3px}
+.subtitle{color:rgba(255,255,255,0.9);text-align:center;font-size:clamp(0.78rem,3.5vw,1rem);margin-bottom:14px}
+
+.card{background:#fff;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,0.13);padding:14px;margin-bottom:12px}
+h2{color:#667eea;font-size:clamp(0.95rem,4.5vw,1.25rem);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+h3{color:#764ba2;font-size:clamp(0.85rem,3.5vw,1rem);margin-bottom:8px}
+
+/* 問題選擇 */
+.problems{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.pbtn{padding:12px 4px;border:2px solid #eee;border-radius:12px;background:#fafafa;cursor:pointer;text-align:center;transition:all .2s;font-size:clamp(0.7rem,3vw,0.9rem);color:#555;font-weight:600;touch-action:manipulation}
+.pbtn .emo{font-size:clamp(1.4rem,5vw,1.8rem);display:block;margin-bottom:4px}
+.pbtn:active{transform:scale(.94)}
+.pbtn.active{border-color:#667eea;background:linear-gradient(135deg,#e8eaff,#d8d0f8);color:#667eea;font-weight:700}
+
+/* Canvas */
+#nn-canvas{width:100%;display:block;border-radius:12px;background:#0d1117}
+
+/* 訓練資料表格 */
+.truth-table{width:100%;border-collapse:collapse;font-size:clamp(0.72rem,3vw,0.92rem)}
+.truth-table th{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:8px 6px;text-align:center;font-weight:600}
+.truth-table td{padding:8px 6px;text-align:center;border-bottom:1px solid #f0e6ff}
+.truth-table tr:last-child td{border-bottom:none}
+.truth-table tr:nth-child(even) td{background:#f8f6ff}
+.val-0{color:#e53935;font-weight:700;font-size:1.1em}
+.val-1{color:#2e7d32;font-weight:700;font-size:1.1em}
+
+/* 訓練控制 */
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.btn{padding:13px 6px;border:none;border-radius:10px;cursor:pointer;font-weight:700;font-size:clamp(0.82rem,3.5vw,1rem);transition:all .2s;color:#fff;touch-action:manipulation}
+.btn:active{transform:scale(.96)}
+.btn-one{background:linear-gradient(135deg,#667eea,#764ba2)}
+.btn-auto{background:linear-gradient(135deg,#f093fb,#f5576c)}
+.btn-reset{background:linear-gradient(135deg,#a18cd1,#fbc2eb);color:#fff;grid-column:1/-1}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat-box{background:linear-gradient(135deg,#e8eaff,#d8d0f8);border-radius:10px;padding:10px;text-align:center}
+.stat-lbl{font-size:clamp(0.65rem,2.5vw,0.8rem);color:#aaa;margin-bottom:3px}
+.stat-val{font-size:clamp(1.1rem,5vw,1.6rem);font-weight:900;color:#667eea}
+
+/* 進度條 */
+.progress-wrap{margin-top:10px}
+.progress-lbl{display:flex;justify-content:space-between;font-size:clamp(0.72rem,3vw,0.88rem);color:#888;margin-bottom:4px}
+.progress-bar{height:10px;background:#e8eaff;border-radius:6px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:6px;transition:width .3s;width:0%}
+
+/* 測試區 */
+.test-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.input-box{background:#f8f6ff;border-radius:10px;padding:12px;text-align:center;cursor:pointer;border:2px solid #e0d8f8;transition:all .2s;touch-action:manipulation}
+.input-box:active{transform:scale(.96)}
+.input-box.on{background:linear-gradient(135deg,#667eea,#764ba2);border-color:#667eea}
+.input-box .inp-lbl{font-size:clamp(0.72rem,3vw,0.9rem);color:#888;margin-bottom:6px}
+.input-box.on .inp-lbl{color:rgba(255,255,255,.8)}
+.input-box .inp-val{font-size:clamp(1.4rem,6vw,2rem);font-weight:900;color:#667eea}
+.input-box.on .inp-val{color:#fff}
+.predict-btn{width:100%;padding:15px;border:none;border-radius:12px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:700;font-size:clamp(1rem,4.5vw,1.2rem);cursor:pointer;box-shadow:0 4px 15px rgba(102,126,234,0.4);touch-action:manipulation;transition:all .2s}
+.predict-btn:active{transform:scale(.97)}
+
+/* 結果顯示 */
+.result-box{border-radius:12px;padding:16px;text-align:center;margin-top:12px;display:none;border:2px solid transparent;animation:pop .3s ease}
+.result-box.show{display:block}
+.r-emo{font-size:clamp(2rem,10vw,3rem);margin-bottom:6px}
+.r-text{font-size:clamp(1.1rem,5vw,1.5rem);font-weight:700;margin-bottom:5px}
+.r-pct{font-size:clamp(1.3rem,6vw,1.8rem);font-weight:900;margin-bottom:8px}
+.r-detail{font-size:clamp(0.75rem,3vw,0.9rem);line-height:1.7;background:rgba(255,255,255,.75);border-radius:8px;padding:10px;color:#555;text-align:left}
+
+/* 程式碼區塊 */
+.code-tabs{display:flex;gap:4px;margin-bottom:8px;overflow-x:auto;padding-bottom:2px}
+.ctab{padding:7px 14px;border:none;border-radius:8px 8px 0 0;background:#e8eaff;color:#667eea;font-weight:600;cursor:pointer;font-size:clamp(0.72rem,3vw,0.88rem);white-space:nowrap;touch-action:manipulation;transition:all .2s}
+.ctab.active{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+.code-block{display:none;background:#0d1117;border-radius:0 8px 8px 8px;padding:14px;overflow-x:auto}
+.code-block.show{display:block}
+pre{font-family:'Courier New',monospace;font-size:clamp(0.65rem,2.5vw,0.82rem);line-height:1.7;color:#e6edf3;tab-size:2}
+/* 語法高亮 */
+.kw{color:#ff7b72}
+.tp{color:#ffa657}
+.fn{color:#d2a8ff}
+.cm{color:#8b949e;font-style:italic}
+.st{color:#a5d6ff}
+.nm{color:#79c0ff}
+.op{color:#ff7b72}
+
+/* 說明步驟 */
+.steps{display:grid;gap:10px}
+.step{display:flex;gap:10px;align-items:flex-start;padding:10px;background:#f8f6ff;border-radius:10px;border-left:3px solid #667eea}
+.step-num{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:900;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0}
+.step-text h4{color:#333;font-weight:700;margin-bottom:3px;font-size:clamp(0.85rem,3.5vw,1rem)}
+.step-text p{color:#888;font-size:clamp(0.72rem,2.8vw,0.88rem);line-height:1.5}
+.formula{background:#1a1a2e;color:#79c0ff;border-radius:8px;padding:8px 12px;font-family:'Courier New',monospace;font-size:clamp(0.65rem,2.5vw,0.82rem);margin-top:6px;overflow-x:auto;white-space:nowrap}
+
+@keyframes pop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.pulsing{animation:pulse 1s infinite}
+</style>
+</head>
+<body>
+
+<h1>💻 TypeScript 神經網路</h1>
+<p class="subtitle">最小化實作：2 輸入 → 4 隱藏 → 1 輸出</p>
+
+<!-- 問題選擇 -->
+<div class="card">
+  <h2>🎯 選擇邏輯問題</h2>
+  <div class="problems" id="problems"></div>
+  <p id="prob-desc" style="margin-top:10px;color:#888;font-size:clamp(0.75rem,3vw,0.9rem);line-height:1.6"></p>
+</div>
+
+<!-- 神經網路視覺化 -->
+<div class="card">
+  <h2>🧠 神經網路結構（即時）</h2>
+  <canvas id="nn-canvas"></canvas>
+</div>
+
+<!-- 真值表 -->
+<div class="card">
+  <h2 id="table-title">📊 真值表</h2>
+  <table class="truth-table" id="truth-table"></table>
+</div>
+
+<!-- 訓練 -->
+<div class="card">
+  <h2>🎮 訓練神經網路</h2>
+  <div class="btn-row">
+    <button class="btn btn-one" onclick="trainOnce()">📚 學習一輪</button>
+    <button class="btn btn-auto" id="auto-btn" onclick="toggleAuto()">🚀 快速訓練</button>
+    <button class="btn btn-reset" onclick="resetNN()">🔄 重置網路</button>
+  </div>
+  <div class="stats">
+    <div class="stat-box"><div class="stat-lbl">訓練輪數</div><div class="stat-val" id="epoch-val">0</div></div>
+    <div class="stat-box"><div class="stat-lbl">平均誤差</div><div class="stat-val" id="err-val">-.--</div></div>
+    <div class="stat-box"><div class="stat-lbl">準確度</div><div class="stat-val" id="acc-val">0%</div></div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-lbl"><span>學習進度</span><span id="prog-txt">0%</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+  </div>
+</div>
+
+<!-- 測試 -->
+<div class="card">
+  <h2>🧪 測試預測</h2>
+  <p style="color:#888;font-size:clamp(0.75rem,3vw,0.9rem);margin-bottom:10px">點擊切換 0 / 1</p>
+  <div class="test-grid">
+    <div class="input-box" id="inp-a" onclick="toggleInput('a')">
+      <div class="inp-lbl" id="lbl-a">輸入 A</div>
+      <div class="inp-val" id="val-a">0</div>
+    </div>
+    <div class="input-box" id="inp-b" onclick="toggleInput('b')">
+      <div class="inp-lbl" id="lbl-b">輸入 B</div>
+      <div class="inp-val" id="val-b">0</div>
+    </div>
+  </div>
+  <button class="predict-btn" onclick="predict()">🔍 AI 預測結果</button>
+  <div class="result-box" id="result-box">
+    <div class="r-emo" id="r-emo"></div>
+    <div class="r-text" id="r-text"></div>
+    <div class="r-pct" id="r-pct"></div>
+    <div class="r-detail" id="r-detail"></div>
+  </div>
+</div>
+
+<!-- 程式碼 -->
+<div class="card">
+  <h2>📝 TypeScript 核心程式碼</h2>
+  <div class="code-tabs">
+    <button class="ctab active" onclick="showCode(0)">類別定義</button>
+    <button class="ctab" onclick="showCode(1)">前向傳播</button>
+    <button class="ctab" onclick="showCode(2)">反向傳播</button>
+    <button class="ctab" onclick="showCode(3)">完整訓練</button>
+  </div>
+  <div class="code-block show" id="code-0"><pre id="pre-0"></pre></div>
+  <div class="code-block" id="code-1"><pre id="pre-1"></pre></div>
+  <div class="code-block" id="code-2"><pre id="pre-2"></pre></div>
+  <div class="code-block" id="code-3"><pre id="pre-3"></pre></div>
+</div>
+
+<!-- 學習步驟 -->
+<div class="card">
+  <h2>📖 神經網路學習原理</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-text">
+        <h4>前向傳播 Forward Pass</h4>
+        <p>輸入資料從左到右流過網路，每個神經元計算加權總和後通過 Sigmoid 函數</p>
+        <div class="formula">output = sigmoid( Σ(weight × input) + bias )</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-text">
+        <h4>計算損失 Loss</h4>
+        <p>比較預測值和真實答案的差距，誤差越小代表學得越好</p>
+        <div class="formula">error = target - output</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-text">
+        <h4>反向傳播 Backpropagation</h4>
+        <p>誤差從右到左傳回，計算每個權重對誤差的貢獻（梯度）</p>
+        <div class="formula">delta = error × sigmoid'(output)</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-text">
+        <h4>更新權重 Update Weights</h4>
+        <p>根據梯度調整所有權重，學習率控制每次調整的幅度</p>
+        <div class="formula">weight += learningRate × delta × input</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-text">
+        <h4>重複迭代 Iterate</h4>
+        <p>不斷重複 1-4 步驟，直到誤差足夠小，網路就「學會了」</p>
+        <div class="formula">repeat until error &lt; threshold</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// TypeScript 風格的神經網路（編譯成 JS 執行）
+// 這就是 TypeScript 程式碼實際運作的樣子！
+// ============================================================
+
+// --- 類別定義（對應 TypeScript class）---
+class NeuralNetwork {
+  constructor(inputSize, hiddenSize, outputSize, learningRate = 0.5) {
+    this.lr = learningRate;
+    // number[][] 二維矩陣
+    this.w1 = this.randMatrix(inputSize, hiddenSize);
+    this.w2 = this.randMatrix(hiddenSize, outputSize);
+    // number[] 偏差向量
+    this.b1 = this.randArray(hiddenSize);
+    this.b2 = this.randArray(outputSize);
+    // 暫存前向傳播結果
+    this.H = new Array(hiddenSize).fill(0);
+    this.O = new Array(outputSize).fill(0);
+  }
+
+  // 初始化隨機矩陣 (-1 ~ 1)
+  randMatrix(rows, cols) {
+    return Array.from({length: rows}, () =>
+      Array.from({length: cols}, () => Math.random() * 2 - 1)
+    );
+  }
+
+  // 初始化隨機陣列
+  randArray(size) {
+    return Array.from({length: size}, () => Math.random() * 2 - 1);
+  }
+
+  // Sigmoid 激活函數：把任意數壓縮到 0~1
+  sigmoid(x) { return 1 / (1 + Math.exp(-x)); }
+
+  // Sigmoid 導數：用於反向傳播
+  sigmoidDerivative(x) { return x * (1 - x); }
+
+  // 前向傳播：input → hidden → output
+  forward(input) {
+    // 計算隱藏層：每個隱藏神經元 = sigmoid(加權總和 + 偏差)
+    this.H = this.b1.map((bias, i) => {
+      const sum = input.reduce((acc, val, j) => acc + val * this.w1[j][i], bias);
+      return this.sigmoid(sum);
+    });
+    // 計算輸出層
+    this.O = this.b2.map((bias, i) => {
+      const sum = this.H.reduce((acc, val, j) => acc + val * this.w2[j][i], bias);
+      return this.sigmoid(sum);
+    });
+    return this.O;
+  }
+
+  // 反向傳播：計算梯度並更新權重
+  train(input, target) {
+    const output = this.forward(input);
+
+    // 1. 輸出層誤差和 delta
+    const outErr = output.map((o, i) => target[i] - o);
+    const outDelta = output.map((o, i) => outErr[i] * this.sigmoidDerivative(o));
+
+    // 2. 隱藏層誤差和 delta（由輸出層反傳）
+    const hidErr = this.H.map((_, i) =>
+      outDelta.reduce((acc, d, j) => acc + d * this.w2[i][j], 0)
+    );
+    const hidDelta = this.H.map((h, i) => hidErr[i] * this.sigmoidDerivative(h));
+
+    // 3. 更新輸出層權重: w += lr × delta × hidden_value
+    this.w2.forEach((row, i) =>
+      row.forEach((_, j) => { this.w2[i][j] += this.lr * outDelta[j] * this.H[i]; })
+    );
+    // 4. 更新隱藏層權重: w += lr × delta × input_value
+    this.w1.forEach((row, i) =>
+      row.forEach((_, j) => { this.w1[i][j] += this.lr * hidDelta[j] * input[i]; })
+    );
+    // 5. 更新偏差
+    this.b2 = this.b2.map((b, i) => b + this.lr * outDelta[i]);
+    this.b1 = this.b1.map((b, i) => b + this.lr * hidDelta[i]);
+
+    return Math.abs(outErr[0]);
+  }
+
+  predict(input) { return this.forward(input)[0]; }
+}
+
+// ============ 問題定義 ============
+const PROBLEMS = [
+  {
+    id:'xor', emoji:'⚡', name:'XOR',
+    desc:'「異或」問題：兩個輸入不同時輸出1，相同時輸出0。這是神經網路最經典的測試——線性模型無法解決，必須靠隱藏層！',
+    lblA:'輸入 A', lblB:'輸入 B',
+    data:[{a:0,b:0,y:0},{a:0,b:1,y:1},{a:1,b:0,y:1},{a:1,b:1,y:0}]
+  },
+  {
+    id:'and', emoji:'🔗', name:'AND',
+    desc:'「且」問題：兩個輸入都是1時才輸出1，否則輸出0。就像「有錢且有時間才去旅遊」。',
+    lblA:'輸入 A', lblB:'輸入 B',
+    data:[{a:0,b:0,y:0},{a:0,b:1,y:0},{a:1,b:0,y:0},{a:1,b:1,y:1}]
+  },
+  {
+    id:'or', emoji:'🔀', name:'OR',
+    desc:'「或」問題：兩個輸入至少有一個是1時輸出1。就像「有錢或有時間就去旅遊」。',
+    lblA:'輸入 A', lblB:'輸入 B',
+    data:[{a:0,b:0,y:0},{a:0,b:1,y:1},{a:1,b:0,y:1},{a:1,b:1,y:1}]
+  }
+];
+
+// ============ 狀態 ============
+let nn = new NeuralNetwork(2, 4, 1, 0.5);
+let probIdx = 0, epoch = 0, autoTimer = null, isAuto = false;
+let inputA = 0, inputB = 0;
+
+const cvs = document.getElementById('nn-canvas');
+const cx = cvs.getContext('2d');
+
+// ============ 畫布 ============
+function resizeCanvas() {
+  cvs.width = cvs.parentElement.clientWidth - 28;
+  cvs.height = Math.max(260, Math.round(cvs.width * 0.52));
+  redraw();
+}
+
+function redraw() {
+  nn.forward([inputA, inputB]);
+  drawNN([inputA, inputB], nn.H, nn.O);
+  updateTruthTable();
+}
+
+function drawNN(inp, hid, out) {
+  const W = cvs.width, H = cvs.height;
+  cx.clearRect(0, 0, W, H);
+  cx.fillStyle = '#0d1117';
+  cx.fillRect(0, 0, W, H);
+
+  const layerX = [W*.1, W*.37, W*.63, W*.9];
+  const sizes = [2, 4, 4, 1];
+  const clrs = ['#79c0ff','#d2a8ff','#ffa657','#56d364'];
+  const vals = [inp, hid.slice(0,4), hid.slice(0,4), out];
+  const topPad = H*.18, botPad = H*.15;
+  const usable = H - topPad - botPad;
+
+  function ny(li, ni) {
+    const gap = usable / sizes[li];
+    return topPad + gap * ni + gap / 2;
+  }
+
+  const R = Math.max(8, Math.min(16, W*.028));
+  const fs = Math.max(8, Math.min(11, W*.022));
+
+  // 連線
+  for (let li = 0; li < 3; li++) {
+    for (let i = 0; i < sizes[li]; i++) {
+      for (let j = 0; j < sizes[li+1]; j++) {
+        const v = vals[li][i] || 0;
+        const w2val = li === 1 ? (nn.w2[i] ? nn.w2[i][0] : 0) : 0;
+        const bright = li === 1 ? Math.abs(w2val) * .4 : v * .45;
+        cx.beginPath();
+        cx.moveTo(layerX[li], ny(li,i));
+        cx.lineTo(layerX[li+1], ny(li+1,j));
+        cx.strokeStyle = li === 1
+          ? `rgba(210,168,255,${.06 + bright})`
+          : `rgba(121,192,255,${.06 + v*.4})`;
+        cx.lineWidth = .5 + v * 1.5;
+        cx.stroke();
+      }
+    }
+  }
+
+  // 節點
+  for (let li = 0; li < 4; li++) {
+    for (let ni = 0; ni < sizes[li]; ni++) {
+      const x = layerX[li], y = ny(li,ni);
+      const v = vals[li][ni] || 0;
+      const r = R + v * 3;
+      const g = cx.createRadialGradient(x,y,0,x,y,r);
+      g.addColorStop(0, 'white');
+      g.addColorStop(.5, clrs[li]);
+      g.addColorStop(1, 'transparent');
+      cx.beginPath(); cx.arc(x,y,r,0,Math.PI*2);
+      cx.fillStyle = g;
+      if (v > .5) { cx.shadowBlur = 14; cx.shadowColor = clrs[li]; }
+      cx.fill(); cx.shadowBlur = 0;
+      cx.strokeStyle = clrs[li]; cx.lineWidth = 1.5; cx.stroke();
+
+      // 節點數值
+      cx.fillStyle = 'rgba(255,255,255,.85)';
+      cx.font = `bold ${fs}px monospace`;
+      cx.textAlign = 'center';
+      cx.fillText(v.toFixed(1), x, y + 4);
+    }
+  }
+
+  // 層標籤（上方）
+  const layerNames = ['輸入層','隱藏層1','隱藏層2','輸出層'];
+  layerNames.forEach((nm, li) => {
+    cx.font = `bold ${fs}px Arial`;
+    cx.fillStyle = clrs[li];
+    cx.textAlign = 'center';
+    cx.fillText(nm, layerX[li], H*.09);
+    cx.font = `${Math.max(7,fs-2)}px Arial`;
+    cx.fillStyle = 'rgba(255,255,255,.4)';
+    cx.fillText(`(${sizes[li]}個)`, layerX[li], H*.09 + fs + 2);
+  });
+
+  // 輸入標籤（底部）
+  const p = PROBLEMS[probIdx];
+  [[p.lblA, 0], [p.lblB, 1]].forEach(([lbl, ni]) => {
+    const x = layerX[0], y = ny(0, ni);
+    const r = R + (vals[0][ni]||0)*3;
+    let txt = lbl.replace(/[\u{1F000}-\u{1FFFF}]/gu,'').trim();
+    cx.font = `${fs-1}px Arial`;
+    cx.fillStyle = 'rgba(255,255,255,.8)';
+    cx.textAlign = 'center';
+    cx.fillText(txt, x, y + r + fs + 3);
+  });
+
+  // 輸出標籤
+  const oy = ny(3, 0), ov = out[0] || 0, or2 = R + ov*3;
+  cx.font = `${fs-1}px Arial`;
+  cx.fillStyle = 'rgba(255,255,255,.8)';
+  cx.textAlign = 'center';
+  cx.fillText('輸出', layerX[3], oy + or2 + fs + 3);
+}
+
+// ============ 問題 ============
+function loadProblem(idx) {
+  probIdx = idx;
+  const p = PROBLEMS[idx];
+  document.querySelectorAll('.pbtn').forEach((b,i) => b.classList.toggle('active', i===idx));
+  document.getElementById('prob-desc').textContent = p.desc;
+  document.getElementById('table-title').textContent = '📊 ' + p.name + ' 真值表';
+  document.getElementById('lbl-a').textContent = p.lblA;
+  document.getElementById('lbl-b').textContent = p.lblB;
+  updateTruthTable();
+  resetNN();
+}
+
+function updateTruthTable() {
+  const p = PROBLEMS[probIdx];
+  const rows = p.data.map(d => {
+    const pred = nn.predict([d.a, d.b]);
+    const correct = Math.round(pred) === d.y;
+    return `<tr>
+      <td class="val-${d.a}">${d.a}</td>
+      <td class="val-${d.b}">${d.b}</td>
+      <td class="val-${d.y}">${d.y}</td>
+      <td style="color:${correct?'#2e7d32':'#e53935'};font-weight:700">${pred.toFixed(3)}</td>
+      <td>${correct ? '✅' : '❌'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('truth-table').innerHTML = `
+    <thead><tr>
+      <th>${p.lblA}</th><th>${p.lblB}</th>
+      <th>正確答案</th><th>AI預測</th><th>對嗎</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>`;
+}
+
+function buildProbBtns() {
+  document.getElementById('problems').innerHTML = PROBLEMS.map((p,i) => `
+    <button class="pbtn ${i===0?'active':''}" onclick="loadProblem(${i})">
+      <span class="emo">${p.emoji}</span>${p.name}
+    </button>`).join('');
+}
+
+// ============ 訓練 ============
+function getData() { return PROBLEMS[probIdx].data.map(d => ({inp:[d.a,d.b], tgt:[d.y]})); }
+
+function updateStats(err) {
+  epoch++;
+  const acc = PROBLEMS[probIdx].data.filter(d => Math.round(nn.predict([d.a,d.b])) === d.y).length
+    / PROBLEMS[probIdx].data.length * 100;
+  document.getElementById('epoch-val').textContent = epoch;
+  document.getElementById('err-val').textContent = err.toFixed(3);
+  document.getElementById('acc-val').textContent = acc.toFixed(0) + '%';
+  const pct = Math.min(100, (1-err)*100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-txt').textContent = pct.toFixed(0) + '%';
+}
+
+function trainOnce() {
+  const data = getData(); let err = 0;
+  data.forEach(d => { err += nn.train(d.inp, d.tgt); });
+  updateStats(err / data.length);
+  redraw();
+}
+
+function toggleAuto() {
+  isAuto = !isAuto;
+  const btn = document.getElementById('auto-btn');
+  if (isAuto) {
+    btn.textContent = '⏹ 停止';
+    btn.classList.add('pulsing');
+    autoTimer = setInterval(() => {
+      const data = getData(); let err = 0;
+      data.forEach(d => { err += nn.train(d.inp, d.tgt); });
+      updateStats(err / data.length);
+      redraw();
+      if (err / data.length < 0.02) toggleAuto();
+    }, 20);
+  } else {
+    clearInterval(autoTimer);
+    btn.textContent = '🚀 快速訓練';
+    btn.classList.remove('pulsing');
+  }
+}
+
+function resetNN() {
+  if (isAuto) toggleAuto();
+  nn = new NeuralNetwork(2, 4, 1, 0.5);
+  epoch = 0;
+  document.getElementById('epoch-val').textContent = '0';
+  document.getElementById('err-val').textContent = '-.--';
+  document.getElementById('acc-val').textContent = '0%';
+  document.getElementById('prog-fill').style.width = '0%';
+  document.getElementById('prog-txt').textContent = '0%';
+  document.getElementById('result-box').classList.remove('show');
+  redraw();
+}
+
+// ============ 測試 ============
+function toggleInput(which) {
+  if (which === 'a') {
+    inputA = inputA === 0 ? 1 : 0;
+    document.getElementById('val-a').textContent = inputA;
+    document.getElementById('inp-a').classList.toggle('on', inputA === 1);
+  } else {
+    inputB = inputB === 0 ? 1 : 0;
+    document.getElementById('val-b').textContent = inputB;
+    document.getElementById('inp-b').classList.toggle('on', inputB === 1);
+  }
+  document.getElementById('result-box').classList.remove('show');
+  redraw();
+}
+
+function predict() {
+  const v = nn.predict([inputA, inputB]);
+  const ans = Math.round(v);
+  const p = PROBLEMS[probIdx];
+  const correct = p.data.find(d => d.a === inputA && d.b === inputB);
+  const isRight = correct && Math.round(v) === correct.y;
+  const box = document.getElementById('result-box');
+  box.style.background = ans === 1 ? '#e8f5e9' : '#fce4ec';
+  box.style.borderColor = ans === 1 ? '#81c784' : '#f48fb1';
+  document.getElementById('r-emo').textContent = ans === 1 ? '✅' : '❌';
+  document.getElementById('r-text').textContent = `預測結果：${ans}`;
+  document.getElementById('r-text').style.color = ans === 1 ? '#2e7d32' : '#c62828';
+  document.getElementById('r-pct').textContent = `信心值：${(v*100).toFixed(1)}%`;
+  document.getElementById('r-pct').style.color = ans === 1 ? '#2e7d32' : '#c62828';
+  document.getElementById('r-detail').innerHTML =
+    `<b>輸入：</b> A=${inputA}，B=${inputB}<br>
+     <b>原始輸出：</b> ${v.toFixed(4)}（&gt;0.5 判為 1）<br>
+     <b>正確答案：</b> ${correct ? correct.y : '?'}<br>
+     <b>判斷：</b> ${isRight ? '🎉 答對了！' : '😅 答錯了，繼續訓練試試'}`;
+  box.classList.add('show');
+  redraw();
+}
+
+// ============ 程式碼展示 ============
+const CODES = [
+  // 類別定義
+  `<span class="cm">// TypeScript 類別定義</span>
+<span class="kw">class</span> <span class="tp">NeuralNetwork</span> {
+  <span class="kw">private</span> w1<span class="op">:</span> <span class="tp">number</span>[][]  <span class="cm">// 輸入→隱藏 權重</span>
+  <span class="kw">private</span> w2<span class="op">:</span> <span class="tp">number</span>[][]  <span class="cm">// 隱藏→輸出 權重</span>
+  <span class="kw">private</span> b1<span class="op">:</span> <span class="tp">number</span>[]   <span class="cm">// 隱藏層偏差</span>
+  <span class="kw">private</span> b2<span class="op">:</span> <span class="tp">number</span>[]   <span class="cm">// 輸出層偏差</span>
+
+  <span class="fn">constructor</span>(
+    inputSize<span class="op">:</span> <span class="tp">number</span>,
+    hiddenSize<span class="op">:</span> <span class="tp">number</span>,
+    outputSize<span class="op">:</span> <span class="tp">number</span>,
+    learningRate<span class="op">:</span> <span class="tp">number</span> <span class="op">=</span> <span class="nm">0.5</span>
+  ) {
+    <span class="cm">// 隨機初始化 -1 ~ 1</span>
+    <span class="kw">this</span>.w1 <span class="op">=</span> <span class="kw">this</span>.<span class="fn">randMatrix</span>(inputSize, hiddenSize)
+    <span class="kw">this</span>.w2 <span class="op">=</span> <span class="kw">this</span>.<span class="fn">randMatrix</span>(hiddenSize, outputSize)
+    <span class="kw">this</span>.b1 <span class="op">=</span> <span class="kw">this</span>.<span class="fn">randArray</span>(hiddenSize)
+    <span class="kw">this</span>.b2 <span class="op">=</span> <span class="kw">this</span>.<span class="fn">randArray</span>(outputSize)
+  }
+
+  <span class="cm">// Sigmoid：壓縮到 0~1</span>
+  <span class="kw">private</span> <span class="fn">sigmoid</span>(x<span class="op">:</span> <span class="tp">number</span>)<span class="op">:</span> <span class="tp">number</span> {
+    <span class="kw">return</span> <span class="nm">1</span> <span class="op">/</span> (<span class="nm">1</span> <span class="op">+</span> Math.<span class="fn">exp</span>(<span class="op">-</span>x))
+  }
+}`,
+  // 前向傳播
+  `<span class="cm">// 前向傳播：計算預測值</span>
+<span class="fn">forward</span>(input<span class="op">:</span> <span class="tp">number</span>[])<span class="op">:</span> {
+  hidden<span class="op">:</span> <span class="tp">number</span>[],
+  output<span class="op">:</span> <span class="tp">number</span>[]
+} {
+  <span class="cm">// 計算隱藏層</span>
+  <span class="kw">const</span> hidden <span class="op">=</span> <span class="kw">this</span>.b1.<span class="fn">map</span>((bias, i) <span class="op">=&gt;</span> {
+    <span class="cm">// 加權總和 + 偏差</span>
+    <span class="kw">const</span> sum <span class="op">=</span> input.<span class="fn">reduce</span>(
+      (acc, val, j) <span class="op">=&gt;</span>
+        acc <span class="op">+</span> val <span class="op">*</span> <span class="kw">this</span>.w1[j][i],
+      bias
+    )
+    <span class="kw">return</span> <span class="kw">this</span>.<span class="fn">sigmoid</span>(sum)
+  })
+
+  <span class="cm">// 計算輸出層（同理）</span>
+  <span class="kw">const</span> output <span class="op">=</span> <span class="kw">this</span>.b2.<span class="fn">map</span>((bias, i) <span class="op">=&gt;</span> {
+    <span class="kw">const</span> sum <span class="op">=</span> hidden.<span class="fn">reduce</span>(
+      (acc, val, j) <span class="op">=&gt;</span>
+        acc <span class="op">+</span> val <span class="op">*</span> <span class="kw">this</span>.w2[j][i],
+      bias
+    )
+    <span class="kw">return</span> <span class="kw">this</span>.<span class="fn">sigmoid</span>(sum)
+  })
+
+  <span class="kw">return</span> { hidden, output }
+}`,
+  // 反向傳播
+  `<span class="cm">// 反向傳播：計算梯度</span>
+<span class="fn">backpropagate</span>(
+  input<span class="op">:</span> <span class="tp">number</span>[],
+  hidden<span class="op">:</span> <span class="tp">number</span>[],
+  output<span class="op">:</span> <span class="tp">number</span>[],
+  target<span class="op">:</span> <span class="tp">number</span>[]
+) {
+  <span class="cm">// 輸出層誤差</span>
+  <span class="kw">const</span> outErr <span class="op">=</span> output.<span class="fn">map</span>(
+    (o, i) <span class="op">=&gt;</span> target[i] <span class="op">-</span> o
+  )
+  <span class="cm">// 輸出層 delta</span>
+  <span class="kw">const</span> outDelta <span class="op">=</span> output.<span class="fn">map</span>(
+    (o, i) <span class="op">=&gt;</span> outErr[i] <span class="op">*</span> o <span class="op">*</span> (<span class="nm">1</span> <span class="op">-</span> o)
+  )
+  <span class="cm">// 隱藏層誤差（反向傳遞）</span>
+  <span class="kw">const</span> hidErr <span class="op">=</span> hidden.<span class="fn">map</span>((_, i) <span class="op">=&gt;</span>
+    outDelta.<span class="fn">reduce</span>(
+      (acc, d, j) <span class="op">=&gt;</span>
+        acc <span class="op">+</span> d <span class="op">*</span> <span class="kw">this</span>.w2[i][j],
+      <span class="nm">0</span>
+    )
+  )
+  <span class="cm">// 隱藏層 delta</span>
+  <span class="kw">const</span> hidDelta <span class="op">=</span> hidden.<span class="fn">map</span>(
+    (h, i) <span class="op">=&gt;</span> hidErr[i] <span class="op">*</span> h <span class="op">*</span> (<span class="nm">1</span> <span class="op">-</span> h)
+  )
+  <span class="kw">return</span> { outDelta, hidDelta }
+}`,
+  // 完整訓練
+  `<span class="cm">// 一次完整訓練步驟</span>
+<span class="fn">train</span>(
+  input<span class="op">:</span> <span class="tp">number</span>[],
+  target<span class="op">:</span> <span class="tp">number</span>[]
+)<span class="op">:</span> <span class="tp">number</span> {
+  <span class="cm">// 1. 前向傳播</span>
+  <span class="kw">const</span> { hidden, output } <span class="op">=</span>
+    <span class="kw">this</span>.<span class="fn">forward</span>(input)
+
+  <span class="cm">// 2. 反向傳播</span>
+  <span class="kw">const</span> { outDelta, hidDelta } <span class="op">=</span>
+    <span class="kw">this</span>.<span class="fn">backpropagate</span>(
+      input, hidden, output, target
+    )
+
+  <span class="cm">// 3. 更新輸出層權重</span>
+  <span class="kw">this</span>.w2.<span class="fn">forEach</span>((row, i) <span class="op">=&gt;</span>
+    row.<span class="fn">forEach</span>((_, j) <span class="op">=&gt;</span> {
+      <span class="kw">this</span>.w2[i][j] <span class="op">+=</span>
+        <span class="kw">this</span>.lr <span class="op">*</span> outDelta[j] <span class="op">*</span> hidden[i]
+    })
+  )
+  <span class="cm">// 4. 更新隱藏層權重</span>
+  <span class="kw">this</span>.w1.<span class="fn">forEach</span>((row, i) <span class="op">=&gt;</span>
+    row.<span class="fn">forEach</span>((_, j) <span class="op">=&gt;</span> {
+      <span class="kw">this</span>.w1[i][j] <span class="op">+=</span>
+        <span class="kw">this</span>.lr <span class="op">*</span> hidDelta[j] <span class="op">*</span> input[i]
+    })
+  )
+  <span class="cm">// 5. 更新偏差</span>
+  <span class="kw">this</span>.b2 <span class="op">=</span> <span class="kw">this</span>.b2.<span class="fn">map</span>(
+    (b, i) <span class="op">=&gt;</span> b <span class="op">+</span> <span class="kw">this</span>.lr <span class="op">*</span> outDelta[i]
+  )
+  <span class="kw">this</span>.b1 <span class="op">=</span> <span class="kw">this</span>.b1.<span class="fn">map</span>(
+    (b, i) <span class="op">=&gt;</span> b <span class="op">+</span> <span class="kw">this</span>.lr <span class="op">*</span> hidDelta[i]
+  )
+  <span class="cm">// 回傳誤差</span>
+  <span class="kw">return</span> Math.<span class="fn">abs</span>(target[<span class="nm">0</span>] <span class="op">-</span> output[<span class="nm">0</span>])
+}`
+];
+
+function showCode(idx) {
+  document.querySelectorAll('.ctab').forEach((t,i) => t.classList.toggle('active', i===idx));
+  document.querySelectorAll('.code-block').forEach((b,i) => b.classList.toggle('show', i===idx));
+}
+
+// 注入程式碼
+CODES.forEach((c,i) => { document.getElementById('pre-'+i).innerHTML = c; });
+
+// ============ 初始化 ============
+window.addEventListener('load', () => {
+  buildProbBtns();
+  loadProblem(0);
+  resizeCanvas();
+});
+window.addEventListener('resize', resizeCanvas);
+</script>
+</body>
+</html>

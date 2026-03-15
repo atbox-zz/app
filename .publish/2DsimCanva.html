@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二維平面運動模擬器</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: white;
+            min-height: 100vh;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .simulation-panel {
+            flex: 3;
+            min-width: 300px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .controls-panel {
+            flex: 1;
+            min-width: 280px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        
+        .canvas-container {
+            background: rgba(0, 10, 20, 0.7);
+            border-radius: 10px;
+            overflow: hidden;
+            flex: 1;
+            position: relative;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 400px;
+            background: #0a1929;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #4fc3f7;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: #4fc3f7;
+            border-bottom: 2px solid #4fc3f7;
+            padding-bottom: 5px;
+        }
+        
+        .param-control {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #37474f;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4fc3f7;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .value-display {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #2196f3;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:hover {
+            background: #42a5f5;
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        button.reset {
+            background: #f44336;
+        }
+        
+        button.reset:hover {
+            background: #ef5350;
+        }
+        
+        .motion-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .motion-option {
+            padding: 12px;
+            background: rgba(33, 150, 243, 0.2);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .motion-option:hover {
+            background: rgba(33, 150, 243, 0.3);
+        }
+        
+        .motion-option.active {
+            background: rgba(33, 150, 243, 0.5);
+            border-color: #4fc3f7;
+            transform: scale(1.03);
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 10px;
+            border-radius: 3px;
+        }
+        
+        .projectile .legend-color {
+            background: #ff5252;
+        }
+        
+        .pendulum .legend-color {
+            background: #69f0ae;
+        }
+        
+        .spring .legend-color {
+            background: #ffd740;
+        }
+        
+        .orbit .legend-color {
+            background: #7c4dff;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .motion-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>二維平面運動模擬器</h1>
+            <p class="subtitle">探索拋體運動、擺動、彈簧振動與行星軌道的物理原理</p>
+        </header>
+        
+        <div class="content">
+            <div class="simulation-panel">
+                <div class="canvas-container">
+                    <canvas id="simulationCanvas"></canvas>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <div>最高點</div>
+                        <div class="stat-value" id="maxHeight">0 m</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>射程</div>
+                        <div class="stat-value" id="range">0 m</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>時間</div>
+                        <div class="stat-value" id="time">0.0 s</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>速度</div>
+                        <div class="stat-value" id="speed">0 m/s</div>
+                    </div>
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-item projectile">
+                        <div class="legend-color"></div>
+                        <div>拋體運動</div>
+                    </div>
+                    <div class="legend-item pendulum">
+                        <div class="legend-color"></div>
+                        <div>擺動運動</div>
+                    </div>
+                    <div class="legend-item spring">
+                        <div class="legend-color"></div>
+                        <div>彈簧振動</div>
+                    </div>
+                    <div class="legend-item orbit">
+                        <div class="legend-color"></div>
+                        <div>行星軌道</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls-panel">
+                <div class="control-group">
+                    <h2>運動模式</h2>
+                    <div class="motion-selector">
+                        <div class="motion-option active" data-motion="projectile">拋體運動</div>
+                        <div class="motion-option" data-motion="pendulum">擺動運動</div>
+                        <div class="motion-option" data-motion="spring">彈簧振動</div>
+                        <div class="motion-option" data-motion="orbit">行星軌道</div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h2>物理參數</h2>
+                    <div class="param-control">
+                        <label for="initialVelocity">初速度 (m/s): <span id="v0Value">30</span></label>
+                        <input type="range" id="initialVelocity" min="5" max="50" value="30" step="1">
+                    </div>
+                    
+                    <div class="param-control">
+                        <label for="angle">發射角度 (°): <span id="angleValue">45</span></label>
+                        <input type="range" id="angle" min="10" max="80" value="45" step="1">
+                    </div>
+                    
+                    <div class="param-control">
+                        <label for="gravity">重力加速度 (m/s²): <span id="gValue">9.8</span></label>
+                        <input type="range" id="gravity" min="1" max="20" value="9.8" step="0.1">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h2>顯示選項</h2>
+                    <div class="param-control">
+                        <label>
+                            <input type="checkbox" id="showVelocity" checked> 顯示速度向量
+                        </label>
+                    </div>
+                    <div class="param-control">
+                        <label>
+                            <input type="checkbox" id="showTrail" checked> 顯示軌跡
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button id="startBtn">開始模擬</button>
+                    <button id="pauseBtn">暫停</button>
+                    <button id="resetBtn" class="reset">重置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM 元素
+        const canvas = document.getElementById('simulationCanvas');
+        const ctx = canvas.getContext('2d');
+        const v0Slider = document.getElementById('initialVelocity');
+        const angleSlider = document.getElementById('angle');
+        const gravitySlider = document.getElementById('gravity');
+        const v0Value = document.getElementById('v0Value');
+        const angleValue = document.getElementById('angleValue');
+        const gValue = document.getElementById('gValue');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const showVelocity = document.getElementById('showVelocity');
+        const showTrail = document.getElementById('showTrail');
+        const motionOptions = document.querySelectorAll('.motion-option');
+        const maxHeightEl = document.getElementById('maxHeight');
+        const rangeEl = document.getElementById('range');
+        const timeEl = document.getElementById('time');
+        const speedEl = document.getElementById('speed');
+
+        // 設置畫布大小
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = Math.min(400, window.innerHeight * 0.5);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // 運動參數
+        let params = {
+            v0: 30,
+            angle: 45,
+            g: 9.8,
+            motionType: 'projectile',
+            showVelocityVector: true,
+            showTrail: true
+        };
+
+        // 運動狀態
+        let state = {
+            time: 0,
+            isRunning: false,
+            maxHeight: 0,
+            range: 0,
+            projectiles: [],
+            pendulums: [],
+            springs: [],
+            orbits: []
+        };
+
+        // 事件監聽器
+        v0Slider.addEventListener('input', () => {
+            params.v0 = parseFloat(v0Slider.value);
+            v0Value.textContent = params.v0.toFixed(1);
+        });
+
+        angleSlider.addEventListener('input', () => {
+            params.angle = parseFloat(angleSlider.value);
+            angleValue.textContent = params.angle;
+        });
+
+        gravitySlider.addEventListener('input', () => {
+            params.g = parseFloat(gravitySlider.value);
+            gValue.textContent = params.g.toFixed(1);
+        });
+
+        showVelocity.addEventListener('change', () => {
+            params.showVelocityVector = showVelocity.checked;
+        });
+
+        showTrail.addEventListener('change', () => {
+            params.showTrail = showTrail.checked;
+        });
+
+        motionOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                motionOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                params.motionType = option.dataset.motion;
+                resetSimulation();
+            });
+        });
+
+        startBtn.addEventListener('click', () => {
+            state.isRunning = true;
+        });
+
+        pauseBtn.addEventListener('click', () => {
+            state.isRunning = false;
+        });
+
+        resetBtn.addEventListener('click', resetSimulation);
+
+        // 重置模擬
+        function resetSimulation() {
+            state.time = 0;
+            state.maxHeight = 0;
+            state.range = 0;
+            state.projectiles = [];
+            state.pendulums = [];
+            state.springs = [];
+            state.orbits = [];
+            
+            // 初始化運動對象
+            switch(params.motionType) {
+                case 'projectile':
+                    state.projectiles.push(createProjectile());
+                    break;
+                case 'pendulum':
+                    state.pendulums.push(createPendulum());
+                    break;
+                case 'spring':
+                    state.springs.push(createSpring());
+                    break;
+                case 'orbit':
+                    state.orbits.push(createOrbit());
+                    break;
+            }
+            
+            updateStats();
+        }
+
+        // 創建拋體運動對象
+        function createProjectile() {
+            const angleRad = params.angle * Math.PI / 180;
+            return {
+                x: 50,
+                y: canvas.height - 50,
+                vx: params.v0 * Math.cos(angleRad),
+                vy: -params.v0 * Math.sin(angleRad),
+                trail: [],
+                maxHeight: 0
+            };
+        }
+
+        // 創建擺動運動對象
+        function createPendulum() {
+            return {
+                length: 150,
+                angle: Math.PI / 4,
+                angularVelocity: 0,
+                pivotX: canvas.width / 2,
+                pivotY: 100,
+                trail: []
+            };
+        }
+
+        // 創建彈簧振動對象
+        function createSpring() {
+            return {
+                amplitude: 100,
+                frequency: 0.05,
+                phase: 0,
+                equilibriumY: canvas.height / 2,
+                massY: canvas.height / 2,
+                trail: [],
+                velocity: 0
+            };
+        }
+
+        // 創建行星軌道對象
+        function createOrbit() {
+            const semiMajor = 120;
+            const semiMinor = 80;
+            return {
+                a: semiMajor,
+                b: semiMinor,
+                centerX: canvas.width / 2,
+                centerY: canvas.height / 2,
+                angle: 0,
+                angularVelocity: 0.02,
+                trail: []
+            };
+        }
+
+        // 更新統計信息
+        function updateStats() {
+            maxHeightEl.textContent = state.maxHeight.toFixed(1) + ' m';
+            rangeEl.textContent = state.range.toFixed(1) + ' m';
+            timeEl.textContent = state.time.toFixed(1) + ' s';
+            
+            // 顯示當前物體的速度
+            let speed = 0;
+            if (state.projectiles.length > 0) {
+                const p = state.projectiles[0];
+                speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+            } else if (state.pendulums.length > 0) {
+                const p = state.pendulums[0];
+                speed = Math.abs(p.angularVelocity * p.length);
+            } else if (state.springs.length > 0) {
+                speed = Math.abs(state.springs[0].velocity);
+            } else if (state.orbits.length > 0) {
+                speed = state.orbits[0].angularVelocity * state.orbits[0].a;
+            }
+            speedEl.textContent = speed.toFixed(1) + ' m/s';
+        }
+
+        // 更新拋體運動
+        function updateProjectile(p, dt) {
+            // 更新位置
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            
+            // 更新速度 (重力影響)
+            p.vy += params.g * dt;
+            
+            // 記錄軌跡
+            if (params.showTrail) {
+                p.trail.push({x: p.x, y: p.y});
+                if (p.trail.length > 200) p.trail.shift();
+            }
+            
+            // 更新最高點
+            const currentHeight = canvas.height - 50 - p.y;
+            if (currentHeight > p.maxHeight) {
+                p.maxHeight = currentHeight;
+            }
+            
+            // 更新全局最高點
+            if (currentHeight > state.maxHeight) {
+                state.maxHeight = currentHeight;
+            }
+            
+            // 更新射程
+            const currentRange = p.x - 50;
+            if (currentRange > state.range) {
+                state.range = currentRange;
+            }
+            
+            // 檢查是否落地
+            if (p.y > canvas.height - 50) {
+                p.y = canvas.height - 50;
+                state.isRunning = false;
+            }
+        }
+
+        // 更新擺動運動
+        function updatePendulum(p, dt) {
+            // 簡化的擺動方程 (小角度近似)
+            const gravity = params.g;
+            const acceleration = -(gravity / p.length) * Math.sin(p.angle);
+            p.angularVelocity += acceleration * dt;
+            p.angle += p.angularVelocity * dt;
+            
+            // 計算擺錘位置
+            const x = p.pivotX + p.length * Math.sin(p.angle);
+            const y = p.pivotY + p.length * Math.cos(p.angle);
+            
+            // 記錄軌跡
+            if (params.showTrail) {
+                p.trail.push({x, y});
+                if (p.trail.length > 200) p.trail.shift();
+            }
+        }
+
+        // 更新彈簧振動
+        function updateSpring(s, dt) {
+            // 簡諧振動方程
+            s.phase += s.frequency * dt * 2 * Math.PI;
+            s.massY = s.equilibriumY + s.amplitude * Math.sin(s.phase);
+            s.velocity = s.amplitude * s.frequency * 2 * Math.PI * Math.cos(s.phase);
+            
+            // 記錄軌跡
+            if (params.showTrail) {
+                s.trail.push({x: canvas.width / 2, y: s.massY});
+                if (s.trail.length > 200) s.trail.shift();
+            }
+        }
+
+        // 更新行星軌道
+        function updateOrbit(o, dt) {
+            o.angle += o.angularVelocity * dt;
+            
+            // 橢圓軌道位置計算
+            const x = o.centerX + o.a * Math.cos(o.angle);
+            const y = o.centerY + o.b * Math.sin(o.angle);
+            
+            // 記錄軌跡
+            if (params.showTrail) {
+                o.trail.push({x, y});
+                if (o.trail.length > 500) o.trail.shift();
+            }
+        }
+
+        // 繪製拋體運動
+        function drawProjectile(p) {
+            // 繪製軌跡
+            if (params.showTrail && p.trail.length > 1) {
+                ctx.beginPath();
+                ctx.moveTo(p.trail[0].x, p.trail[0].y);
+                for (let i = 1; i < p.trail.length; i++) {
+                    ctx.lineTo(p.trail[i].x, p.trail[i].y);
+                }
+                ctx.strokeStyle = 'rgba(255, 82, 82, 0.6)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            
+            // 繪製物體
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 10, 0, Math.PI * 2);
+            ctx.fillStyle = '#ff5252';
+            ctx.fill();
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 繪製速度向量
+            if (params.showVelocityVector) {
+                const scale = 5;
+                const endX = p.x + p.vx * scale;
+                const endY = p.y + p.vy * scale;
+                
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(endX, endY);
+                ctx.strokeStyle = '#4fc3f7';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // 箭頭
+                const angle = Math.atan2(endY - p.y, endX - p.x);
+                ctx.beginPath();
+                ctx.moveTo(endX, endY);
+                ctx.lineTo(
+                    endX - 10 * Math.cos(angle - Math.PI/6),
+                    endY - 10 * Math.sin(angle - Math.PI/6)
+                );
+                ctx.lineTo(
+                    endX - 10 * Math.cos(angle + Math.PI/6),
+                    endY - 10 * Math.sin(angle + Math.PI/6)
+                );
+                ctx.closePath();
+                ctx.fillStyle = '#4fc3f7';
+                ctx.fill();
+            }
+        }
+
+        // 繪製擺動運動
+        function drawPendulum(p) {
+            // 繪製軌跡
+            if (params.showTrail && p.trail.length > 1) {
+                ctx.beginPath();
+                ctx.moveTo(p.trail[0].x, p.trail[0].y);
+                for (let i = 1; i < p.trail.length; i++) {
+                    ctx.lineTo(p.trail[i].x, p.trail[i].y);
+                }
+                ctx.strokeStyle = 'rgba(105, 240, 174, 0.6)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            
+            // 繪製懸掛點
+            ctx.beginPath();
+            ctx.arc(p.pivotX, p.pivotY, 8, 0, Math.PI * 2);
+            ctx.fillStyle = '#212121';
+            ctx.fill();
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 繪製擺桿
+            const bobX = p.pivotX + p.length * Math.sin(p.angle);
+            const bobY = p.pivotY + p.length * Math.cos(p.angle);
+            
+            ctx.beginPath();
+            ctx.moveTo(p.pivotX, p.pivotY);
+            ctx.lineTo(bobX, bobY);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // 繪製擺錘
+            ctx.beginPath();
+            ctx.arc(bobX, bobY, 15, 0, Math.PI * 2);
+            ctx.fillStyle = '#69f0ae';
+            ctx.fill();
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 繪製速度向量
+            if (params.showVelocityVector) {
+                const velocity = p.angularVelocity * p.length;
+                const velocityX = velocity * Math.cos(p.angle + Math.PI/2);
+                const velocityY = velocity * Math.sin(p.angle + Math.PI/2);
+                
+                const scale = 3;
+                const endX = bobX + velocityX * scale;
+                const endY = bobY + velocityY * scale;
+                
+                ctx.beginPath();
+                ctx.moveTo(bobX, bobY);
+                ctx.lineTo(endX, endY);
+                ctx.strokeStyle = '#4fc3f7';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // 箭頭
+                const angle = Math.atan2(endY - bobY, endX - bobX);
+                ctx.beginPath();
+                ctx.moveTo(endX, endY);
+                ctx.lineTo(
+                    endX - 10 * Math.cos(angle - Math.PI/6),
+                    endY - 10 * Math.sin(angle - Math.PI/6)
+                );
+                ctx.lineTo(
+                    endX - 10 * Math.cos(angle + Math.PI/6),
+                    endY - 10 * Math.sin(angle + Math.PI/6)
+                );
+                ctx.closePath();
+                ctx.fillStyle = '#4fc3f7';
+                ctx.fill();
+            }
+        }
+
+        // 繪製彈簧振動
+        function drawSpring(s) {
+            // 繪製軌跡
+            if (params.showTrail && s.trail.length > 1) {
+                ctx.beginPath();
+                ctx.moveTo(s.trail[0].x, s.trail[0].y);
+                for (let i = 1; i < s.trail.length; i++) {
+                    ctx.lineTo(s.trail[i].x, s.trail[i].y);
+                }
+                ctx.strokeStyle = 'rgba(255, 215, 64, 0.6)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            
+            // 繪製彈簧
+            const coils = 10;
+            const coilWidth = 20;
+            const startX = canvas.width / 2 - 50;
+            const endX = canvas.width / 2 + 50;
+            const centerY = s.equilibriumY;
+            
+            ctx.beginPath();
+            ctx.moveTo(startX, centerY);
+            
+            for (let i = 0; i <= coils; i++) {
+                const x = startX + (endX - startX) * i / coils;
+                const y = centerY + (i % 2 === 0 ? -coilWidth : coilWidth);
+                ctx.lineTo(x, y);
+            }
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // 繪製質量塊
+            ctx.beginPath();
+            ctx.rect(canvas.width/2 - 25, s.massY - 15, 50, 30);
+            ctx.fillStyle = '#ffd740';
+            ctx.fill();
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 繪製速度向量
+            if (params.showVelocityVector) {
+                const scale = 3;
+                const endY = s.massY + s.velocity * scale;
+                
+                ctx.beginPath();
+                ctx.moveTo(canvas.width/2, s.massY);
+                ctx.lineTo(canvas.width/2, endY);
+                ctx.strokeStyle = '#4fc3f7';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // 箭頭
+                const angle = Math.atan2(endY - s.massY, canvas.width/2 - canvas.width/2);
+                ctx.beginPath();
+                ctx.moveTo(canvas.width/2, endY);
+                ctx.lineTo(
+                    canvas.width/2 - 10 * Math.cos(angle - Math.PI/6),
+                    endY - 10 * Math.sin(angle - Math.PI/6)
+                );
+                ctx.lineTo(
+                    canvas.width/2 - 10 * Math.cos(angle + Math.PI/6),
+                    endY - 10 * Math.sin(angle + Math.PI/6)
+                );
+                ctx.closePath();
+                ctx.fillStyle = '#4fc3f7';
+                ctx.fill();
+            }
+        }
+
+        // 繪製行星軌道
+        function drawOrbit(o) {
+            // 繪製軌跡
+            if (params.showTrail && o.trail.length > 1) {
+                ctx.beginPath();
+                ctx.moveTo(o.trail[0].x, o.trail[0].y);
+                for (let i = 1; i < o.trail.length; i++) {
+                    ctx.lineTo(o.trail[i].x, o.trail[i].y);
+                }
+                ctx.strokeStyle = 'rgba(124, 77, 255, 0.6)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            
+            // 繪製橢圓軌道
+            ctx.beginPath();
+            ctx.ellipse(o.centerX, o.centerY, o.a, o.b, 0, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            // 繪製行星
+            const x = o.centerX + o.a * Math.cos(o.angle);
+            const y = o.centerY + o.b * Math.sin(o.angle);
+            
+            ctx.beginPath();
+            ctx.arc(x, y, 12, 0, Math.PI * 2);
+            ctx.fillStyle = '#7c4dff';
+            ctx.fill();
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 繪製太陽
+            ctx.beginPath();
+            ctx.arc(o.centerX, o.centerY, 20, 0, Math.PI * 2);
+            const gradient = ctx.createRadialGradient(
+                o.centerX, o.centerY, 5,
+                o.centerX, o.centerY, 20
+            );
+            gradient.addColorStop(0, '#ffff00');
+            gradient.addColorStop(1, '#ff9800');
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 繪製速度向量
+            if (params.showVelocityVector) {
+                // 計算橢圓上某點的切線方向
+                const dx = -o.a * Math.sin(o.angle);
+                const dy = o.b * Math.cos(o.angle);
+                const magnitude = Math.sqrt(dx*dx + dy*dy);
+                const unitX = dx / magnitude;
+                const unitY = dy / magnitude;
+                
+                const scale = 20;
+                const endX = x + unitX * scale;
+                const endY = y + unitY * scale;
+                
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(endX, endY);
+                ctx.strokeStyle = '#4fc3f7';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // 箭頭
+                const angle = Math.atan2(endY - y, endX - x);
+                ctx.beginPath();
+                ctx.moveTo(endX, endY);
+                ctx.lineTo(
+                    endX - 10 * Math.cos(angle - Math.PI/6),
+                    endY - 10 * Math.sin(angle - Math.PI/6)
+                );
+                ctx.lineTo(
+                    endX - 10 * Math.cos(angle + Math.PI/6),
+                    endY - 10 * Math.sin(angle + Math.PI/6)
+                );
+                ctx.closePath();
+                ctx.fillStyle = '#4fc3f7';
+                ctx.fill();
+            }
+        }
+
+        // 主動畫循環
+        function animate() {
+            // 清除畫布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 繪製網格背景
+            drawGrid();
+            
+            // 更新和繪製運動對象
+            if (state.isRunning) {
+                state.time += 0.05;
+                
+                state.projectiles.forEach(p => updateProjectile(p, 0.05));
+                state.pendulums.forEach(p => updatePendulum(p, 0.05));
+                state.springs.forEach(s => updateSpring(s, 0.05));
+                state.orbits.forEach(o => updateOrbit(o, 0.05));
+            }
+            
+            state.projectiles.forEach(drawProjectile);
+            state.pendulums.forEach(drawPendulum);
+            state.springs.forEach(drawSpring);
+            state.orbits.forEach(drawOrbit);
+            
+            updateStats();
+            requestAnimationFrame(animate);
+        }
+
+        // 繪製網格背景
+        function drawGrid() {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            
+            // 垂直線
+            for (let x = 0; x < canvas.width; x += 40) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            // 水平線
+            for (let y = 0; y < canvas.height; y += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+
+        // 初始化
+        resetSimulation();
+        animate();
+    </script>
+</body>
+</html>

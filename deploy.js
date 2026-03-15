@@ -13,7 +13,7 @@ try {
 
   // Create a temporary git worktree
   console.log('\n2️⃣ Setting up deployment branch...');
-  const distPath = path.resolve('build');
+  const distPath = path.resolve('dist-react');
   const worktreePath = path.resolve('.publish');
 
   // Remove old worktree if exists
@@ -24,18 +24,59 @@ try {
   // Create worktree for gh-pages branch
   execSync(`git worktree add ${worktreePath} gh-pages`, { stdio: 'inherit' });
 
-  // Copy dist contents to worktree
-  console.log('\n3️⃣ Copying build files...');
+  // Copy build files and selectively copy public assets
+  console.log('\n3️⃣ Copying build and public files...');
   if (fs.existsSync(worktreePath)) {
     fs.rmSync(worktreePath, { recursive: true, force: true });
   }
   fs.mkdirSync(worktreePath, { recursive: true });
 
+  // Copy Vite build output (React app only)
   execSync(`xcopy "${distPath}" "${worktreePath}" /E /I /Y /Q`, {
     stdio: 'inherit',
     shell: true
   });
 
+  // Function to copy directory recursively with filters
+  const copyDir = (src, dest, skipDirs = []) => {
+    if (!fs.existsSync(src)) return;
+    fs.mkdirSync(dest, { recursive: true });
+
+    const entries = fs.readdirSync(src, { withFileTypes: true });
+    for (const entry of entries) {
+      const srcPath = path.join(src, entry.name);
+      const destPath = path.join(dest, entry.name);
+
+      // Skip specified directories
+      if (entry.isDirectory()) {
+        if (skipDirs.includes(entry.name)) {
+          continue;
+        }
+        copyDir(srcPath, destPath, skipDirs);
+      } else {
+        fs.copyFileSync(srcPath, destPath);
+      }
+    }
+  };
+
+  // Copy public folder (excluding subproject dependencies)
+  const publicPath = path.resolve('public');
+  if (fs.existsSync(publicPath)) {
+    copyDir(publicPath, worktreePath, ['node_modules', 'target', '.mvn', 'nest', '.nest']);
+    console.log('✅ Public files copied (subproject dependencies excluded)');
+  }
+
+  // Create .gitignore to exclude any remaining unwanted files
+  const gitignorePath = path.join(worktreePath, '.gitignore');
+  const gitignoreContent = `node_modules/
+target/
+.mvn/
+pnpm-lock.yaml
+.nest/
+.DS_Store
+.gitkeep
+`;
+  fs.writeFileSync(gitignorePath, gitignoreContent);
   // Commit and push
   console.log('\n4️⃣ Committing and pushing...');
   process.chdir(worktreePath);

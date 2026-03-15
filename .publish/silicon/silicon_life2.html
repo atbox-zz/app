@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>矽基生命演化模擬 - ASAL 交互增強版</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #0a0a0a; color: white; }
+        canvas { display: block; }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            z-index: 100;
+        }
+        #stage-title { font-weight: bold; margin-bottom: 5px; }
+        #chemical-formula { color: #ADD8E6; margin: 10px 0; font-size: 1.1em; } 
+        .param-value { color: #f0e68c; } 
+    </style>
+</head>
+<body>
+    <div id="info">
+        <div id="chemical-formula"></div>
+        <div id="stage-title">當前階段: 準備啟動</div>
+        <div id="life-count">生命體數量: <span id="life-count-value" class="param-value">0</span></div>
+        <div id="energy-level">環境能量: <span id="energy-level-value" class="param-value">低</span></div>
+        <div id="si-p-ratio">Si/P 活性比: <span id="si-p-ratio-value" class="param-value">低</span></div>
+        <div id="elapsed-time">運行時間: <span id="elapsed-time-value" class="param-value">0.00 秒</span></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // **********************************************
+        // Three.js 矽基生命演化模擬核心腳本 (最終 ASAL 交互增強版)
+        // **********************************************
+
+        // --- 全域變數 ---
+        let scene, camera, renderer, clock, light;
+        let lifeForms = []; 
+        let evolutionStage = 1; 
+        const STAGE_DURATION = 25; 
+        const MAX_LIFE_FORMS = 500; 
+
+        // --- 階段一控制變數 ---
+        const INITIAL_HOLD_TIME = 3; // 初始保持靜止的時間 (秒)
+        let expansionStarted = false; // 生命擴張是否已開始
+        let isExpanding = false; // 正在進行擴張的旗標
+
+        // --- DOM 元素變數 ---
+        let stageTitleElement, lifeCountValueElement, elapsedTimeValueElement, energyLevelValueElement, siPRatioValueElement, chemicalFormulaElement;
+        
+        // 環境參數 
+        let environmentEnergy = 0.2; 
+        let siPRatio = 0.1; 
+
+        // --- 矽基生命粒子類別 ---
+        class SiliconLife {
+            constructor(id, position, genes = Math.random()) {
+                this.id = id;
+                this.genes = genes; 
+                this.mesh = this.createMesh(position);
+                this.age = 0; 
+                this.health = 1.0; 
+                this.type = 'Silane'; 
+                this.target = new THREE.Vector3().copy(position); 
+                this.isPredator = this.genes > 0.6; 
+            }
+
+            createMesh(position) {
+                const geometry = new THREE.DodecahedronGeometry(0.5, 0); 
+                const material = new THREE.MeshPhongMaterial({
+                    color: 0x4444FF, 
+                    emissive: 0x000000, 
+                    shininess: 100, 
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.copy(position);
+                scene.add(mesh);
+                return mesh;
+            }
+
+            interact(delta) {
+                // 1. 基本代謝與衰減
+                const baseDecay = 0.005 / evolutionStage;
+                const decayRate = this.isPredator && evolutionStage === 4 ? baseDecay * 2 : baseDecay;
+                
+                if (evolutionStage === 1 && !expansionStarted) {
+                     this.health = 1.0; 
+                } else {
+                    this.health -= decayRate * delta;
+                }
+                
+                // 2. 隨機目標 (階段一，或沒有鄰居時的後備)
+                if (evolutionStage <= 1 || (Math.random() < 0.01 && this.target.distanceTo(this.mesh.position) < 1)) {
+                    this.target.set(
+                       (Math.random() - 0.5) * 35,
+                       (Math.random() - 0.5) * 35,
+                       (Math.random() - 0.5) * 35
+                   );
+                }
+
+                // 3. **ASAL 群體交互邏輯 (階段 2 啟動)**
+                if (evolutionStage >= 2 && lifeForms.length > 1) {
+                    this.applyBoidsRules();
+                }
+
+                // 4. 階段 4 掠食行為 (檢查碰撞)
+                if (evolutionStage === 4 && this.isPredator) {
+                    const preyIndex = lifeForms.findIndex(l => 
+                        !l.isPredator && l !== this && this.mesh.position.distanceTo(l.mesh.position) < 1.5
+                    );
+                    if (preyIndex !== -1) {
+                        const prey = lifeForms[preyIndex];
+                        this.health = Math.min(1.0, this.health + 0.5); 
+                        prey.die();
+                    }
+                }
+            }
+
+            // 實作 Boids (群聚) 規則
+            applyBoidsRules() {
+                const neighbors = lifeForms.filter(l => 
+                    l !== this && this.mesh.position.distanceTo(l.mesh.position) < 8 // 8個單位內視為鄰居
+                );
+
+                if (neighbors.length === 0) return;
+                
+                let separation = new THREE.Vector3();
+                let alignment = new THREE.Vector3();
+                let cohesion = new THREE.Vector3();
+                
+                neighbors.forEach(neighbor => {
+                    const distance = this.mesh.position.distanceTo(neighbor.mesh.position);
+                    
+                    // 分離 (避免擁擠)
+                    if (distance < 2) {
+                        separation.sub(neighbor.mesh.position.clone().sub(this.mesh.position).normalize().divideScalar(distance * distance));
+                    }
+                    
+                    // 凝聚 (聚集到鄰居中心)
+                    cohesion.add(neighbor.mesh.position);
+
+                    // 對齊/競爭 (階段 4：追逐與逃跑)
+                    if (evolutionStage === 4) {
+                        if (this.isPredator && !neighbor.isPredator) {
+                            // 掠食者被被掠食者吸引 (覓食)
+                            alignment.add(neighbor.mesh.position.clone().sub(this.mesh.position).multiplyScalar(0.5));
+                        } else if (!this.isPredator && neighbor.isPredator) {
+                            // 被掠食者被掠食者排斥 (逃跑)
+                            separation.sub(neighbor.mesh.position.clone().sub(this.mesh.position).multiplyScalar(3));
+                        }
+                    } else if (evolutionStage === 3) {
+                         // 階段 3：晶格樹，傾向於聚集
+                         cohesion.add(neighbor.mesh.position.clone().multiplyScalar(0.5));
+                    }
+                });
+                
+                // 計算 Boids 規則帶來的目標改變
+                cohesion.divideScalar(neighbors.length).sub(this.mesh.position).multiplyScalar(0.005);
+                alignment.divideScalar(neighbors.length).sub(this.mesh.position).multiplyScalar(0.01);
+                
+                // 將這些力應用於當前目標位置
+                this.target.add(separation.multiplyScalar(0.1));
+                this.target.add(cohesion.multiplyScalar(0.1));
+                this.target.add(alignment.multiplyScalar(0.1));
+
+                // 限制目標範圍
+                this.target.clampScalar(-30, 30);
+            }
+
+
+            update(delta) {
+                this.age += delta;
+                this.interact(delta);
+                
+                // 階段一靜止期，不移動
+                if (evolutionStage === 1 && !expansionStarted) {
+                    // 保持靜止
+                } else {
+                    this.mesh.position.lerp(this.target, 0.015); // 移動速度微增
+                }
+                
+                if (this.health <= 0) {
+                    this.die();
+                    return;
+                }
+                this.evolveAppearance();
+            }
+            
+            // ASAL 視覺增強：發光動態
+            evolveAppearance() {
+                const material = this.mesh.material;
+                
+                // **ASAL 視覺增強：發光動態**
+                material.emissiveIntensity = 1 + Math.sin(this.age * 5) * 0.5 * this.health;
+                
+                if (evolutionStage === 1) {
+                    this.type = 'Silane';
+                    material.color.setHex(0x4444FF); 
+                    material.opacity = 0.4 + this.health * 0.6; 
+                    const state = expansionStarted ? '進行化學擴張...' : `靜止期 (${Math.max(0, INITIAL_HOLD_TIME - clock.getElapsedTime()).toFixed(1)}s)`;
+                    stageTitleElement.innerHTML = `<span style="color:#4444FF;">當前階段: 1. 🧪 原矽囊與矽烷合成 (${state})</span>`;
+                } else if (evolutionStage === 2) {
+                    this.type = 'Siloxane';
+                    material.color.setHex(0xFF4500); 
+                    material.emissive.setHex(0xAA00AA); 
+                    material.shininess = 300; 
+                    material.opacity = 1.0; 
+                    if (!(this.mesh.geometry instanceof THREE.BoxGeometry)) {
+                        this.mesh.geometry.dispose();
+                        this.mesh.geometry = new THREE.BoxGeometry(1.2, 1.2, 1.2);
+                    }
+                    stageTitleElement.innerHTML = `<span style="color:#FF4500;">當前階段: 2. 💡 輻射矽菌 (群體湧現啟動)</span>`;
+                } else if (evolutionStage === 3) {
+                    this.type = 'Borosilicate';
+                    material.color.setHex(0x00FFC0); 
+                    material.emissive.setHex(0x004040); 
+                    material.shininess = 1000; 
+                    if (!(this.mesh.geometry instanceof THREE.CylinderGeometry)) {
+                        this.mesh.geometry.dispose();
+                        this.mesh.geometry = new THREE.CylinderGeometry(0.5, 0.8, 2, 8); 
+                    }
+                    stageTitleElement.innerHTML = `<span style="color:#00FFC0;">當前階段: 3. 🦠 多細胞化與晶格樹 (結構聚合)</span>`;
+                } else if (evolutionStage === 4) {
+                    this.type = 'Phage';
+                    material.color.setHex(this.isPredator ? 0x8A2BE2 : 0x00FF00); 
+                    material.emissive.setHex(this.isPredator ? 0x800080 : 0x000000); 
+                    this.mesh.scale.set(this.isPredator ? 1.0 : 0.8, this.isPredator ? 1.0 : 0.8, this.isPredator ? 1.0 : 0.8);
+                    stageTitleElement.innerHTML = `<span style="color:#8A2BE2;">當前階段: 4. 🚀 矽基生命大爆發 (競爭/掠食)</span>`;
+                }
+            }
+            
+            reproduce() {
+                const newGenes = Math.max(0.01, Math.min(0.99, this.genes + (Math.random() - 0.5) * 0.1)); 
+                let newPosition;
+
+                if (evolutionStage === 3) {
+                    // **階段三：晶格樹聚合**
+                    newPosition = this.mesh.position.clone().add(
+                        new THREE.Vector3((Math.random() - 0.5) * 1.5, (Math.random() - 0.5) * 1.5, (Math.random() - 0.5) * 1.5)
+                    );
+                } else {
+                    newPosition = this.mesh.position.clone().add(
+                        new THREE.Vector3((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4)
+                    );
+                }
+
+                const newLife = new SiliconLife(lifeForms.length, newPosition, newGenes);
+                newLife.health = 0.5; 
+                return newLife;
+            }
+
+            die() {
+                this.mesh.material.color.setHex(0x555555);
+                this.mesh.scale.set(0.1, 0.1, 0.1);
+                this.health = -100; 
+            }
+        }
+
+
+        // --- 核心初始化函式 ---
+        function init() {
+            stageTitleElement = document.getElementById('stage-title');
+            lifeCountValueElement = document.getElementById('life-count-value');
+            elapsedTimeValueElement = document.getElementById('elapsed-time-value');
+            energyLevelValueElement = document.getElementById('energy-level-value');
+            siPRatioValueElement = document.getElementById('si-p-ratio-value');
+            chemicalFormulaElement = document.getElementById('chemical-formula');
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a0a); 
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 50;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            light = new THREE.PointLight(0xFF4500, 2, 100); 
+            light.position.set(0, 10, 0);
+            scene.add(light);
+            scene.add(new THREE.AmbientLight(0x404040));
+
+            clock = new THREE.Clock();
+
+            for (let i = 0; i < 30; i++) {
+                const position = new THREE.Vector3(
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20
+                );
+                lifeForms.push(new SiliconLife(i, position));
+            }
+            
+            displayChemicalFormula(1);
+
+            animate();
+        }
+        
+        // 顯示化學式
+        function displayChemicalFormula(stage) {
+            if (stage === 1) {
+                chemicalFormulaElement.innerHTML = 
+                    `**階段一化學式 (矽烷合成):**<br>
+                    nSiO₂ + 2nCH₄ + 2nH₂ → SiₙH₂ₙ₊₂ (液態矽烷) + 2nCO₂<br>
+                    *催化劑: Fe/Ni 礦物晶格*`;
+            } else {
+                chemicalFormulaElement.innerHTML = '';
+            }
+        }
+
+        // --- 演化邏輯控制 ---
+        function checkEvolution() {
+            const elapsed = clock.getElapsedTime();
+            
+            // 階段一的特殊處理 (靜止 -> 擴張 -> 等待 -> 階段二)
+            if (evolutionStage === 1) {
+                if (elapsed >= INITIAL_HOLD_TIME && !expansionStarted) {
+                    expansionStarted = true;
+                    isExpanding = true;
+                }
+                
+                // 擴張期，達到一定數量後停止擴張，進入等待期
+                if (isExpanding && lifeForms.length >= MAX_LIFE_FORMS / 5) {
+                    isExpanding = false; 
+                }
+
+                // 只有當擴張完成，且經過了足夠的階段時間，才進入階段二
+                if (!isExpanding && elapsed >= INITIAL_HOLD_TIME + STAGE_DURATION) {
+                    evolutionStage = 2;
+                    triggerStageEvent(2);
+                    displayChemicalFormula(2); 
+                }
+            } else {
+                 // 階段二、三、四的標準跳轉
+                const newStage = Math.floor((elapsed - INITIAL_HOLD_TIME - STAGE_DURATION) / STAGE_DURATION) + 2;
+                if (newStage > evolutionStage && newStage <= 4) {
+                    evolutionStage = newStage;
+                    triggerStageEvent(evolutionStage);
+                    displayChemicalFormula(evolutionStage);
+                }
+            }
+        }
+
+        // 階段性環境和生命規則變化
+        function triggerStageEvent(stage) {
+            if (stage === 2) {
+                scene.background.setHex(0x1a052b); // 輻射場域
+                environmentEnergy = 0.8; 
+                siPRatio = 0.5; 
+            } else if (stage === 3) {
+                scene.background.setHex(0x202020); 
+                // 擴張複製，但因為有新的群聚邏輯，看起來會更有序
+                for (let i = 0; i < 80; i++) { 
+                    const newLife = lifeForms.length > 0 ? lifeForms[Math.floor(Math.random() * lifeForms.length)].reproduce() : null;
+                    if (newLife && lifeForms.length < MAX_LIFE_FORMS) {
+                        lifeForms.push(newLife);
+                    }
+                }
+                environmentEnergy = 0.5;
+                siPRatio = 0.8;
+            } else if (stage === 4) {
+                scene.background.setHex(0x103010);
+                environmentEnergy = 0.3;
+                siPRatio = 1.0;
+            }
+        }
+
+        // --- GUI 更新函式 ---
+        function updateGUI() {
+            const elapsed = clock.getElapsedTime();
+            
+            lifeCountValueElement.textContent = lifeForms.length;
+            elapsedTimeValueElement.textContent = elapsed.toFixed(2) + " 秒";
+            
+            let energyText;
+            if (environmentEnergy < 0.4) {
+                energyText = '低 (競爭激烈)';
+            } else if (environmentEnergy < 0.7) {
+                energyText = '中 (穩定)';
+            } else {
+                energyText = '高 (豐富)';
+            }
+            energyLevelValueElement.textContent = energyText;
+            siPRatioValueElement.textContent = siPRatio.toFixed(1) + (siPRatio > 0.8 ? ' (高度複雜)' : '');
+        }
+
+        // --- 渲染/動畫迴圈 ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const delta = clock.getDelta();
+
+            checkEvolution();
+
+            let newLifeForms = [];
+            lifeForms.forEach(life => {
+                life.update(delta);
+                
+                if (life.health > -100) {
+                    newLifeForms.push(life);
+                    
+                    let reproductionChance = 0;
+                    if (evolutionStage === 1 && isExpanding) {
+                        reproductionChance = 0.05; 
+                    } else if (evolutionStage > 1) {
+                        const baseReproductionChance = 0.001;
+                        reproductionChance = baseReproductionChance * evolutionStage; 
+                    }
+                    
+                    if (Math.random() < reproductionChance && lifeForms.length < MAX_LIFE_FORMS) {
+                        newLifeForms.push(life.reproduce());
+                    }
+                } else {
+                    scene.remove(life.mesh);
+                }
+            });
+
+            lifeForms = newLifeForms.filter(life => life.health > -100); 
+            
+            updateGUI();
+
+            camera.position.x = 50 * Math.cos(clock.getElapsedTime() * 0.03);
+            camera.position.z = 50 * Math.sin(clock.getElapsedTime() * 0.03);
+            camera.lookAt(scene.position);
+
+            renderer.render(scene, camera);
+        }
+
+        // 視窗調整大小處理
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        window.onload = init;
+    </script>
+</body>
+</html>

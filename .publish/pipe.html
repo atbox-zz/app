@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js Pipe Labyrinth</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #050505; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- Scene Setup ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0a0f);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        camera.position.z = 15;
+
+        // --- Lighting ---
+        const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambient);
+        const pointLight = new THREE.PointLight(0xffffff, 400);
+        pointLight.position.set(10, 10, 10);
+        scene.add(pointLight);
+
+        // --- Pipe Generation Logic ---
+        const colors = [0xff4d4d, 0xffd166, 0x06d6a0, 0x118ab2, 0xef476f];
+        
+        function createPipe() {
+            const points = [];
+            let cur = new THREE.Vector3(
+                (Math.random() - 0.5) * 20,
+                (Math.random() - 0.5) * 20,
+                (Math.random() - 0.5) * 10
+            );
+
+            // Generate 90-degree pathing
+            for (let i = 0; i < 12; i++) {
+                points.push(cur.clone());
+                const axis = ['x', 'y', 'z'][Math.floor(Math.random() * 3)];
+                const direction = Math.random() > 0.5 ? 2 : -2;
+                cur[axis] += direction;
+            }
+
+            // TubeGeometry needs a curve
+            const curve = new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0); 
+            const geometry = new THREE.TubeGeometry(curve, 128, 0.15, 8, false);
+            const material = new THREE.MeshStandardMaterial({ 
+                color: colors[Math.floor(Math.random() * colors.length)],
+                roughness: 0.3,
+                metalness: 0.2
+            });
+
+            return new THREE.Mesh(geometry, material);
+        }
+
+        // Add 60 pipes to the scene
+        for (let i = 0; i < 60; i++) {
+            scene.add(createPipe());
+        }
+
+        // --- Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+            // Subtle rotation for a cinematic feel
+            scene.rotation.y += 0.002;
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>

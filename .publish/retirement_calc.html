@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>勞保退休萬事通</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333; 
+            min-height: 100vh;
+        }
+        header { 
+            background: rgba(255, 255, 255, 0.95); 
+            color: #667eea; 
+            padding: 30px 20px; 
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        header h1 { margin: 0 0 10px 0; font-size: 2em; }
+        header p { margin: 0; color: #666; font-size: 0.95em; }
+        nav { 
+            background: rgba(255, 255, 255, 0.9); 
+            padding: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        nav ul { 
+            list-style: none; 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        nav li { margin: 0; }
+        nav a { 
+            color: #667eea; 
+            text-decoration: none; 
+            font-weight: 600; 
+            cursor: pointer;
+            padding: 15px 25px;
+            display: block;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+        nav a:hover { 
+            background: rgba(102, 126, 234, 0.1);
+            border-bottom-color: #667eea;
+        }
+        nav a.active {
+            background: rgba(102, 126, 234, 0.15);
+            border-bottom-color: #667eea;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        section { 
+            padding: 30px; 
+            background: white; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h1, h2, h3 { color: #667eea; }
+        h2 { margin-top: 0; font-size: 1.8em; border-bottom: 3px solid #667eea; padding-bottom: 10px; }
+        h3 { font-size: 1.3em; margin-top: 25px; }
+        .form-group { margin-bottom: 20px; }
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 600;
+            color: #555;
+        }
+        input { 
+            width: 100%; 
+            padding: 12px 15px; 
+            border: 2px solid #e0e0e0; 
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; 
+            padding: 14px 30px; 
+            border: none; 
+            cursor: pointer; 
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .result-box { 
+            margin-top: 30px; 
+            padding: 25px; 
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            border-left: 5px solid #667eea;
+        }
+        .result-box h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        .result-item {
+            background: white;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .result-label {
+            font-weight: 600;
+            color: #555;
+        }
+        .result-value {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #667eea;
+        }
+        .result-total {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 1.1em;
+        }
+        .result-total .result-label,
+        .result-total .result-value {
+            color: white;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        th, td { 
+            border: 1px solid #e0e0e0; 
+            padding: 12px; 
+            text-align: left; 
+        }
+        th { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .info-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        .info-card h3 {
+            margin-top: 0;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            color: #856404;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) { 
+            nav ul { flex-direction: column; }
+            nav a { padding: 12px 20px; }
+            section { padding: 20px; }
+            .two-column { grid-template-columns: 1fr; }
+            header h1 { font-size: 1.5em; }
+            .result-item { flex-direction: column; gap: 10px; text-align: center; }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <h1>💼 勞保退休萬事通</h1>
+        <p>一站式勞保與勞退退休資訊平台，提供精準計算、公式解釋與常見問題解答</p>
+    </header>
+    <nav>
+        <ul>
+            <li><a class="nav-link active" data-section="home">首頁</a></li>
+            <li><a class="nav-link" data-section="calculator">退休金計算器</a></li>
+            <li><a class="nav-link" data-section="formula">勞保公式解釋</a></li>
+            <li><a class="nav-link" data-section="faq">常見問題</a></li>
+            <li><a class="nav-link" data-section="news">最新政策</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <section id="home" class="active-section">
+            <h2>🏠 歡迎來到勞保退休萬事通</h2>
+            <p>本網站提供台灣勞工保險（勞保）與勞工退休金（勞退）的完整資訊，包括退休金計算工具、公式詳細解釋、常見問題解答，以及最新政策更新。<span style="font-size: 0.7em; color: #999; margin-left: 5px;">免責聲明：本網站資訊僅供參考，實際金額以勞動部勞工保險局官方公告為準。</span></p>
+            
+            <div class="info-card">
+                <h3>📊 主要功能</h3>
+                <ul>
+                    <li><strong>退休金計算器：</strong>精準計算勞保年金與勞退金額</li>
+                    <li><strong>公式解釋：</strong>深入淺出說明計算邏輯</li>
+                    <li><strong>常見問題：</strong>解答最常遇到的疑惑</li>
+                    <li><strong>政策更新：</strong>掌握最新改革資訊</li>
+                </ul>
+            </div>
+
+
+
+            <div class="info-card">
+                <h3>🎯 預設參數說明</h3>
+                <p>計算器預設值：勞保平均投保薪資 45,800 元、投保年資 20 年、當前月薪 60,000 元、勞退自提 6%、雇主提撥 6%、預估年利率 3.5%、預計領取年數 20 年。</p>
+            </div>
+        </section>
+
+        <section id="calculator" style="display: none;">
+            <h2>💰 勞保與勞退退休金計算器</h2>
+            <form id="calcForm">
+                <div class="form-group">
+                    <label>勞保老年給付領取方式：</label>
+                    <select id="paymentType" style="width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px;">
+                        <option value="monthly">月領年金（推薦）</option>
+                        <option value="lumpsum">一次請領</option>
+                    </select>
+                </div>
+
+                <div class="two-column">
+                    <div class="form-group">
+                        <label>勞保平均月投保薪資 (元)：</label>
+                        <input type="number" id="avgSalary" value="45800" min="0" step="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label>投保年資 (年)：</label>
+                        <input type="number" id="years" value="20" min="1" max="50">
+                    </div>
+
+                    <div class="form-group" id="age60BeforeGroup" style="display: none;">
+                        <label>60歲前投保年資 (年)：</label>
+                        <input type="number" id="yearsBefore60" value="20" min="0" max="50">
+                    </div>
+
+                    <div class="form-group" id="age60AfterGroup" style="display: none;">
+                        <label>60歲後投保年資 (年)：</label>
+                        <input type="number" id="yearsAfter60" value="0" min="0" max="5">
+                    </div>
+
+                    <div class="form-group">
+                        <label>當前月薪資 (元)：</label>
+                        <input type="number" id="currentSalary" value="60000" min="0" step="1000">
+                    </div>
+
+                    <div class="form-group">
+                        <label>勞退自提比例 (%)：</label>
+                        <input type="number" id="selfRate" value="6" min="0" max="6" step="0.5">
+                    </div>
+
+                    <div class="form-group">
+                        <label>勞退雇主提撥比例 (%)：</label>
+                        <input type="number" id="companyRate" value="6" min="6" max="6" step="0.5">
+                    </div>
+
+                    <div class="form-group">
+                        <label>預估年化報酬率 (%)：</label>
+                        <input type="number" id="annualRate" value="3.5" min="0" max="10" step="0.1">
+                    </div>
+
+                    <div class="form-group" id="payoutYearsGroup">
+                        <label>預計領取年數 (年)：</label>
+                        <input type="number" id="payoutYears" value="20" min="10" max="30">
+                    </div>
+
+                    <div class="form-group">
+                        <label>預計退休年齡 (歲)：</label>
+                        <input type="number" id="retireAge" value="65" min="55" max="70">
+                    </div>
+                </div>
+
+                <button type="button" onclick="calculate()">🔍 計算退休金</button>
+            </form>
+            <div id="result"></div>
+        </section>
+
+        <section id="formula" style="display: none;">
+            <h2>📐 勞保公式詳細解釋</h2>
+            <p>以下是台灣勞保老年年金（2025年最新版）的完整、詳細公式與計算邏輯。</p>
+            
+            <div class="info-card">
+                <h3>1. 勞保老年年金有兩種請領公式（兩者擇優計算）</h3>
+                <ul>
+                    <li><strong>A式：</strong>平均月投保薪資 × 年資 × 1.55%</li>
+                    <li><strong>B式：</strong>平均月投保薪資 × 年資 × 0.775% + 3,000元</li>
+                </ul>
+                <p>💡 勞保局會自動選擇「金額較高」的公式給付。</p>
+            </div>
+
+            <div class="info-card">
+                <h3>2. 實際上目前幾乎 99% 的人都是用 A式</h3>
+                <p>因為當平均月投保薪資超過約 43,000 元時，A式計算結果永遠比 B式高（2025年仍維持此情況）。所以大部分案例直接用 <strong>A式</strong> 計算即可。</p>
+                <p><strong>完整公式：</strong>每月勞保年金 = 平均月投保薪資 × 年資 × 1.55%</p>
+                <p><strong>💡 重要：</strong>老年年金（月領）的年資<strong>沒有上限</strong>，投保年資越長，每月領取金額越高！</p>
+            </div>
+
+            <h3>3. 範例計算（投保薪資 45,800元、年資 20年）</h3>
+            <table>
+                <tr><th>項目</th><th>數值</th><th>說明</th></tr>
+                <tr><td>平均月投保薪資</td><td>45,800元</td><td>依最高 60 個月平均計算</td></tr>
+                <tr><td>投保年資</td><td>20年</td><td>實際投保期間</td></tr>
+                <tr><td>計算公式</td><td>A式</td><td>45,800 × 20 × 1.55%</td></tr>
+                <tr><td>年資乘積</td><td>20 × 0.0155 = 0.31</td><td>31% 的所得替代率</td></tr>
+                <tr><td>計算結果</td><td>45,800 × 0.31 = 14,198元</td><td>每月可領金額</td></tr>
+                <tr><td>每月勞保老年年金</td><td><strong>14,198元</strong></td><td>實際領取金額</td></tr>
+            </table>
+
+            <div class="info-card">
+                <h3>4. 公式背後的邏輯</h3>
+                <p>勞保年金的設計理念是「所得替代」，也就是用你工作期間的平均投保薪資，乘以一個替代率（1.55% × 年資），來決定退休後每月可以領多少錢。年資越長，替代率越高，退休金也越多。</p>
+            </div>
+
+            <h3>5. 不同年資快速對照表（投保薪資 45,800元）</h3>
+            <table>
+                <tr><th>投保年資</th><th>所得替代率</th><th>每月勞保年金（約）</th></tr>
+                <tr><td>15年</td><td>23.25%</td><td>10,649元</td></tr>
+                <tr><td>20年</td><td>31.00%</td><td>14,198元</td></tr>
+                <tr><td>25年</td><td>38.75%</td><td>17,748元</td></tr>
+                <tr><td>30年</td><td>46.50%</td><td>21,297元</td></tr>
+                <tr><td>35年</td><td>54.25%</td><td>24,847元</td></tr>
+                <tr><td>40年</td><td>62.00%</td><td>28,396元</td></tr>
+            </table>
+
+            <div class="info-card warning">
+                <h3>6. 常見迷思澄清</h3>
+                <table>
+                    <tr><th>迷思</th><th>正確觀念</th></tr>
+                    <tr><td>勞保只有 1.55% 取代率很低？</td><td>❌ 錯誤！1.55% 是「每年」累積，20年就是 31%，而且是基於投保薪資計算</td></tr>
+                    <tr><td>20年年資只能領 31% 薪水？</td><td>✅ 正確！但這是基於「投保薪資」而非實際薪資，且還有勞退加持</td></tr>
+                    <tr><td>投保薪資越高領越多？</td><td>✅ 正確！勞保年金與平均投保薪資成正比</td></tr>
+                    <tr><td>晚投保會領比較少？</td><td>✅ 正確！年資少，累積的替代率就少</td></tr>
+                </table>
+            </div>
+        </section>
+
+        <section id="faq" style="display: none;">
+            <h2>❓ 常見問題解答</h2>
+            
+            <div class="info-card">
+                <h3>1. 勞保與勞退有什麼差別？</h3>
+                <p><strong>勞保（勞工保險）：</strong>政府強制性社會保險，提供老年、殘廢、死亡、傷病等給付，採隨收隨付制，由政府、雇主、勞工三方共同負擔保費。</p>
+                <p><strong>勞退（勞工退休金）：</strong>個人帳戶制，雇主每月提撥至少 6% 薪資至個人退休金專戶，勞工可自願提撥 0-6%，累積的本金與收益完全歸屬個人。</p>
+                <p><strong>💡 補充：</strong>勞保老年給付有「一次領」和「月領（年金）」兩種方式，一次領有年資上限（最多50個月），但月領年金沒有年資上限，年資越長領越多。</p>
+            </div>
+
+            <div class="info-card">
+                <h3>2. 什麼時候可以請領勞保老年年金？</h3>
+                <p>需同時符合以下條件之一：</p>
+                <ul>
+                    <li>年資滿 15 年，年滿 65 歲（目前逐步調整中）</li>
+                    <li>年資滿 15 年，年滿 60 歲（減額年金，每提前一年減 4%）</li>
+                    <li>年資滿 15 年，年滿 63 歲起（2025年標準）</li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h3>3. 勞退金如何計算與領取？</h3>
+                <p><strong>累積方式：</strong>個人專戶本金 + 投資收益（由勞動基金運用局統一運用）</p>
+                <p><strong>領取方式：</strong></p>
+                <ul>
+                    <li><strong>一次領：</strong>年滿 60 歲，工作年資滿 15 年以上可選擇一次領取</li>
+                    <li><strong>月領：</strong>年滿 60 歲，工作年資滿 15 年以上可選擇按月領取（年金化）</li>
+                    <li><strong>混合領：</strong>部分一次領 + 部分月領</li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h3>4. 如果薪資變動，平均投保薪資怎麼算？</h3>
+                <p>勞保局會取以下兩種方式計算，並採用「較高者」：</p>
+                <ul>
+                    <li><strong>方式一：</strong>加保期間最高 60 個月投保薪資平均</li>
+                    <li><strong>方式二：</strong>整個加保期間投保薪資平均</li>
+                </ul>
+                <p>💡 因此維持較高的投保薪資對退休金有直接影響。</p>
+            </div>
+
+            <div class="info-card">
+                <h3>5. 勞退自提有什麼好處？</h3>
+                <p><strong>三大優勢：</strong></p>
+                <ul>
+                    <li>✅ <strong>節稅：</strong>自提金額可從當年度綜合所得總額中全數扣除</li>
+                    <li>✅ <strong>收益免稅：</strong>退休金帳戶投資收益不課稅</li>
+                    <li>✅ <strong>複利累積：</strong>長期投資累積，退休金更豐厚</li>
+                </ul>
+                <p>💡 對於所得稅率 20% 以上的高收入者特別划算！</p>
+            </div>
+
+            <div class="info-card">
+                <h3>6. 勞保會破產嗎？我的退休金有保障嗎？</h3>
+                <p><strong>勞保：</strong>雖然財務確實面臨壓力，但政府已承諾負最終給付責任，會透過改革與撥補確保給付。建議持續關注政策發展。</p>
+                <p><strong>勞退：</strong>採個人專戶制，帳戶內的錢完全屬於個人，不會有破產問題，保障性較高。</p>
+            </div>
+        </section>
+
+        <section id="news" style="display: none;">
+            <h2>📰 最新政策更新</h2>
+            
+            <div class="info-card">
+                <h3>2025年勞保改革重點</h3>
+                <ul>
+                    <li>🔹 <strong>請領年齡調整：</strong>老年年金法定請領年齡逐步延至 65 歲（2026年為63歲、2028年64歲、2030年65歲）</li>
+                    <li>🔹 <strong>保費率調整：</strong>2025年勞保普通事故保險費率為 11.5%，預計2026年調升至 12%</li>
+                    <li>🔹 <strong>投保薪資上限：</strong>2025年最高投保薪資為 45,800 元（維持不變）</li>
+                    <li>🔹 <strong>政府撥補：</strong>持續編列預算撥補勞保基金，確保財務穩健</li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h3>2025年勞退最新資訊</h3>
+                <ul>
+                    <li>🔹 <strong>基金績效：</strong>勞退基金 2024 年收益率約 3.8%，持續穩健運作</li>
+                    <li>🔹 <strong>提撥率：</strong>雇主法定提撥 6% 維持不變，勞工自提上限仍為 6%</li>
+                    <li>🔹 <strong>月退金級距：</strong>年金化請領金額依專戶餘額與平均餘命計算</li>
+                    <li>🔹 <strong>線上查詢：</strong>可透過勞保局網站或「勞保局行動服務」APP 查詢個人專戶</li>
+                </ul>
+            </div>
+
+            <div class="info-card warning">
+                <h3>⚠️ 重要提醒</h3>
+                <p>政策可能隨時調整，建議定期關注以下官方資訊來源：</p>
+                <ul>
+                    <li>📱 勞動部勞工保險局官網：<a href="https://www.bli.gov.tw" target="_blank">https://www.bli.gov.tw</a></li>
+                    <li>📱 勞保局e化服務系統：線上查詢個人投保資料</li>
+                    <li>📱 勞保局行動服務APP：隨時掌握最新資訊</li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h3>🎯 退休規劃建議</h3>
+                <ul>
+                    <li>✅ 定期檢視個人投保薪資是否足額</li>
+                    <li>✅ 評估是否進行勞退自提以節稅並增加退休金</li>
+                    <li>✅ 建立多元退休金來源（勞保+勞退+個人儲蓄+投資）</li>
+                    <li>✅ 提早規劃，善用時間複利效果</li>
+                    <li>✅ 關注政策變動，適時調整退休計畫</li>
+                </ul>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer: &copy; 2025 勞保退休萬事通 -->
+
+    <script>
+        // 導航功能
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('section');
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                const targetId = this.dataset.section;
+                
+                // 更新導航樣式
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 顯示對應section
+                sections.forEach(sec => {
+                    sec.style.display = sec.id === targetId ? 'block' : 'none';
+                });
+
+                // 平滑滾動到頂部
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+
+        // 監聽領取方式變更
+        document.getElementById('paymentType').addEventListener('change', function() {
+            const isLumpsum = this.value === 'lumpsum';
+            document.getElementById('age60BeforeGroup').style.display = isLumpsum ? 'block' : 'none';
+            document.getElementById('age60AfterGroup').style.display = isLumpsum ? 'block' : 'none';
+            document.getElementById('payoutYearsGroup').style.display = isLumpsum ? 'none' : 'block';
+        });
+
+        // 退休金計算功能
+        function calculate() {
+            const paymentType = document.getElementById('paymentType').value;
+            const avgSalary = parseFloat(document.getElementById('avgSalary').value) || 0;
+            const years = parseInt(document.getElementById('years').value) || 0;
+            const currentSalary = parseFloat(document.getElementById('currentSalary').value) || 0;
+            const selfRate = parseFloat(document.getElementById('selfRate').value) / 100 || 0;
+            const companyRate = parseFloat(document.getElementById('companyRate').value) / 100 || 0;
+            const annualRate = parseFloat(document.getElementById('annualRate').value) / 100 || 0;
+            const payoutYears = parseInt(document.getElementById('payoutYears').value) || 20;
+            const retireAge = parseInt(document.getElementById('retireAge').value) || 65;
+
+            let resultHTML = '';
+
+            if (paymentType === 'monthly') {
+                // 月領年金計算
+                const laoBaoMonthly = avgSalary * years * 0.0155;
+                const laoBaoYearly = laoBaoMonthly * 12;
+
+                // 勞退計算
+                const monthlyTotal = currentSalary * (selfRate + companyRate);
+                const monthlyRate = annualRate / 12;
+                const totalMonths = years * 12;
+                
+                let futureValue = 0;
+                if (monthlyRate > 0) {
+                    futureValue = monthlyTotal * ((Math.pow(1 + monthlyRate, totalMonths) - 1) / monthlyRate);
+                } else {
+                    futureValue = monthlyTotal * totalMonths;
+                }
+
+                const payoutMonths = payoutYears * 12;
+                let laoTuiMonthly = 0;
+                if (monthlyRate > 0) {
+                    laoTuiMonthly = futureValue * (monthlyRate * Math.pow(1 + monthlyRate, payoutMonths)) / 
+                                   (Math.pow(1 + monthlyRate, payoutMonths) - 1);
+                } else {
+                    laoTuiMonthly = futureValue / payoutMonths;
+                }
+
+                const totalMonthly = laoBaoMonthly + laoTuiMonthly;
+                const totalYearly = totalMonthly * 12;
+                const replacementRate = (totalMonthly / currentSalary * 100).toFixed(1);
+
+                resultHTML = `
+                    <div class="result-box">
+                        <h3>💰 計算結果（月領年金）</h3>
+                        
+                        <div class="result-item">
+                            <span class="result-label">勞保每月老年年金</span>
+                            <span class="result-value">${laoBaoMonthly.toLocaleString('zh-TW', {maximumFractionDigits: 0})} 元</span>
+                        </div>
+
+                        <div class="result-item">
+                            <span class="result-label">勞保每年金額</span>
+                            <span class="result-value">${laoBaoYearly.toLocaleString('zh-TW', {maximumFractionDigits: 0})} 元</span>
+                        </div>
+
+                        <div class="result-item">
+                            <span class="result-label">勞退專戶累積總額</span>
+                            <span class="result-value">${futureValue.toLocaleString('zh-TW', {maximumFractionDigits: 0})} 元</span>
+                        </div>
+
+                        <div class="result-item">
+                            <span class="result-label">勞退每月年金</span>
+                            <span class="result-value">${laoTuiMonthly.toLocaleString('zh-TW', {maximumFractionDigits: 0})} 元</span>
+                        </div>
+
+                        <div class="result-item result-total">
+                            <span class="result-label">💎 總每月退休金</span>
+                            <span class="result-value">${totalMonthly.toLocaleString('zh-TW', {maximumFractionDigits: 0})} 元</span>
+                        </div>
+
+                        <div class="result-item result-total">
+                            <span class="result-label">📅 總每年退休金</span>
+                            <span class="result-value">${totalYearly.toLocaleString('zh-TW', {maximumFractionDigits: 0})} 元</span>
+                        </div>
+
+                        <div class="result-item">
+                            <span class="result-label">📊 所得替代率</span>
+                            <span class="result-value">${replacementRate}%</span>
+                        </div>
+
+                        <div class="info-card warning" style="margin-top: 20px;">
+                            <h3>📌 計算說明（月領年金）</h3>
+                            <ul>
+                                <li><strong>勞保年金：</strong>採 A式公式計算（平均投保薪資 × 年資 × 1.55%）</li>
+                                <li><strong>年資無上限：</strong>月領年金的年資沒有上限，投保 ${years} 年全部計入</li>
+                                <li><strong>勞退金額：</strong>假設每月提撥固定金額，以年化報酬率 ${(annualRate * 100).toFixed(1)}% 複利累積 ${years} 年</li>
+                                <li><strong>月退金額：</strong>將累積總額平均分配於 ${payoutYears} 年領取</li>
+                            </ul>
+                        </div>
+
+                        <div class="info-card" style="margin-top: 15px;">
+                            <h3>🎯 退休規劃建議</h3>
+                            <p><strong>根據您的計算結果：</strong></p>
+                            ${replacementRate < 70 ? 
+                                '<p style="color: #dc3545;">⚠️ 您的所得替代率低於 70%，建議增加退休儲蓄或考慮延後退休年齡。</p>' : 
+                                '<p style="color: #28a745;">✅ 您的所得替代率達到理想水平，但仍建議持續檢視規劃。</p>'
+                            }
+                        </div>
+                    </div>
+                `;
+            } else {
+                // 一次請領計算
+                const yearsBefore60 = parseFloat(document.getElementById('yearsBefore60').value) || years;
+                const yearsAfter60 = parseFloat(document.getElementById('yearsAfter60').value) || 0;
+                
+                // 計算60歲前的給付月數
+                let monthsBefore60 = 0;
+                if (yearsBefore60 <= 15) {
+                    monthsBefore60 = yearsBefore60;
+                } else {
+                    monthsBefore60 = 15 + (yearsBefore60 - 15) * 2;
+                }
+                // 最高45個月
+                monthsBefore60 = Math.min(monthsBefore60, 45);
+
+                // 計算60歲後的給付月數（最多5年）
+                const yearsAfter60Capped = Math.min(yearsAfter60, 5);
+                let monthsAfter60 = 0;
+                if (yearsAfter60Capped <= 15) {
+                    monthsAfter60 = yearsAfter60Capped;
+                } else {
+                    monthsAfter60 = 15 + (yearsAfter60Capped - 15) * 2;
+                }
+
+                // 總給付月數（最高50個月）
+                const totalMonths = Math.min(monthsBefore60 + monthsAfter60, 50);
+                const lumpsumAmount = avgSalary * totalMonths;
+
+                // 勞退計算（與月領相同）
+                const monthlyTotal = currentSalary * (selfRate + companyRate);
+                const monthlyRate = annualRate / 12;
+                const totalMonthsLabor = years * 12;
+                
+                let futureValue = 0;
+                if (monthlyRate > 0) {
+                    futureValue = monthlyTotal * ((Math.pow(1 + monthlyRate, totalMonthsLabor) - 1) / monthlyRate);
+                } else {
+                    futureValue = monthlyTotal * totalMonthsLabor;
+                }
+
+                const grandTotal = lumpsumAmount + futureValue;
+
+                resultHTML = `
+                    <div class="result-box">
+                        <h3>💰 計算結果（一次請領）</h3>
+                        
+                        <div class="result-item">
+                            <span class="result-label">60歲前給付月數</span>
+                            <span class="result-value">${monthsBefore60.toFixed(1)} 個月</span>
+                        </div>
+
+                        <div class="result-item">
+                            <span class="result-label">60歲後給付月數</span>
+                            <span class="result-value">${monthsAfter60.toFixed(1)} 個月</span>
+                        </div>
+
+                        <div class="result-item">
+                            <span class="result-label">總給付月數</span>
+                            <span class="result-value">${totalMonths.toFixed(1)} 個月</span>
+                        </div>
+
+                        <div class="result-item result-total">
+                            <span class="result-label">💎 勞保一次請領金額</span>
+                            <span class="result-value">${lumpsumAmount.toLocaleString('zh-TW', {maximumFractionDigits: 0})} 元</span>
+                        </div>
+
+                        <div class="result-item">
+                            <span class="result-label">勞退專戶累積總額</span>
+                            <span class="result-value">${futureValue.toLocaleString('zh-TW', {maximumFractionDigits: 0})} 元</span>
+                        </div>
+
+                        <div class="result-item result-total">
+                            <span class="result-label">📅 勞保+勞退總金額</span>
+                            <span class="result-value">${grandTotal.toLocaleString('zh-TW', {maximumFractionDigits: 0})} 元</span>
+                        </div>
+
+                        <div class="info-card warning" style="margin-top: 20px;">
+                            <h3>📌 計算說明（一次請領）</h3>
+                            <ul>
+                                <li><strong>60歲前年資：</strong>前15年每年1個月，超過部分每年2個月，最高45個月</li>
+                                <li><strong>60歲後年資：</strong>最多計算5年，合併最高50個月</li>
+                                <li><strong>您的年資：</strong>60歲前 ${yearsBefore60} 年 + 60歲後 ${yearsAfter60} 年</li>
+                                <li><strong>給付計算：</strong>平均月投保薪資 ${avgSalary.toLocaleString()} 元 × ${totalMonths.toFixed(1)} 個月</li>
+                            </ul>
+                            ${totalMonths >= 50 ? '<p style="color: #dc3545;"><strong>⚠️ 已達給付上限50個月</strong></p>' : ''}
+                        </div>
+
+                        <div class="info-card" style="margin-top: 15px;">
+                            <h3>💡 月領 vs 一次領比較</h3>
+                            <p>建議您也計算「月領年金」方式進行比較：</p>
+                            <ul>
+                                <li><strong>一次領優點：</strong>立即取得大筆資金，可自由運用投資</li>
+                                <li><strong>月領優點：</strong>穩定現金流、年資無上限、活越久領越多</li>
+                                <li><strong>建議：</strong>若身體健康、預期壽命長，月領通常較有利</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('result').innerHTML = resultHTML;
+            document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // 表單輸入驗證
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('input', function() {
+                const min = parseFloat(this.min);
+                const max = parseFloat(this.max);
+                const value = parseFloat(this.value);
+
+                if (max && value > max) {
+                    this.value = max;
+                }
+                if (min !== undefined && value < min) {
+                    this.value = min;
+                }
+            });
+        });
+
+        // 頁面載入時的動畫效果
+        window.addEventListener('load', function() {
+            document.querySelector('header').style.animation = 'fadeIn 0.8s';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>即時基因加密 App</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f0f2f5; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h2 { text-align: center; color: #333; margin-bottom: 30px; }
+        
+        .section { margin-bottom: 25px; padding: 15px; border-radius: 10px; }
+        
+        /* 編碼區：紅色 */
+        .encode-section { border: 2px solid #ff4d4f; background-color: #fff1f0; }
+        .encode-section label { color: #cf1322; font-weight: bold; }
+        .encode-section textarea { border: 1px solid #ffa39e; }
+        .encode-result { color: #cf1322; font-family: monospace; font-weight: bold; }
+
+        /* 解碼區：藍色 */
+        .decode-section { border: 2px solid #1890ff; background-color: #e6f7ff; }
+        .decode-section label { color: #096dd9; font-weight: bold; }
+        .decode-section textarea { border: 1px solid #91d5ff; }
+        .decode-result { color: #096dd9; font-family: monospace; font-weight: bold; }
+
+        textarea { width: 100%; height: 80px; margin-top: 10px; padding: 10px; box-sizing: border-box; border-radius: 5px; font-size: 16px; resize: vertical; }
+        .result-box { margin-top: 10px; padding: 10px; background: white; border-radius: 5px; min-height: 40px; word-break: break-all; border: 1px solid #ddd; }
+        
+        .hint { font-size: 12px; color: #666; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🧬 基因加密 App (即時轉換)</h2>
+
+    <div class="section encode-section">
+        <label>🔴 文字轉 DNA (編碼) </label>
+        <textarea id="encodeInput" placeholder="在此輸入一般文字...  例如：我喜歡你"></textarea>
+        <div class="hint">輸入後自動轉換為 DNA 序列</div>
+        <div id="encodeResult" class="result-box encode-result"></div>
+    </div>
+
+    <div class="section decode-section">
+        <label>🔵 DNA 轉文字 (解碼) </label>
+        <textarea id="decodeInput" placeholder="在此輸入 DNA 序列 (A, T, C, G)..."></textarea>
+        <div class="hint">輸入後自動還原為原始文字</div>
+        <div id="decodeResult" class="result-box decode-result"></div>
+    </div>
+    <h4>🧬 由@jc_livermore 創建 </h4> 
+</div>
+
+<script>
+    const map = { '00': 'A', '01': 'T', '10': 'C', '11': 'G' };
+    const reverseMap = { 'A': '00', 'T': '01', 'C': '10', 'G': '11' };
+
+    // --- 即時編碼監聽 ---
+    document.getElementById('encodeInput').addEventListener('input', function() {
+        const text = this.value;
+        const resultDiv = document.getElementById('encodeResult');
+        
+        if (!text) {
+            resultDiv.innerText = "";
+            return;
+        }
+
+        try {
+            const encoder = new TextEncoder();
+            const bytes = encoder.encode(text);
+            let dna = "";
+            bytes.forEach(byte => {
+                let bin = byte.toString(2).padStart(8, '0');
+                for (let i = 0; i < bin.length; i += 2) {
+                    dna += map[bin.substring(i, i + 2)];
+                }
+            });
+            resultDiv.innerText = dna;
+        } catch (e) {
+            resultDiv.innerText = "編碼發生錯誤";
+        }
+    });
+
+    // --- 即時解碼監聽 ---
+    document.getElementById('decodeInput').addEventListener('input', function() {
+        let dna = this.value.toUpperCase().replace(/[^ATCG]/g, '');
+        const resultDiv = document.getElementById('decodeResult');
+
+        if (!dna) {
+            resultDiv.innerText = "";
+            return;
+        }
+
+        // DNA 必須是 4 的倍數 (因為 1 byte = 8 bits = 4 bases)
+        if (dna.length % 4 !== 0) {
+            resultDiv.innerText = "等待輸入完整的 DNA 序列...";
+            return;
+        }
+
+        try {
+            let bin = "";
+            for (let char of dna) {
+                bin += reverseMap[char];
+            }
+
+            let bytes = new Uint8Array(bin.length / 8);
+            for (let i = 0; i < bin.length; i += 8) {
+                bytes[i / 8] = parseInt(bin.substring(i, i + 8), 2);
+            }
+
+            const decoder = new TextDecoder();
+            resultDiv.innerText = decoder.decode(bytes);
+        } catch (e) {
+            resultDiv.innerText = "無效的 DNA 序列";
+        }
+    });
+</script>
+
+</body>
+</html>

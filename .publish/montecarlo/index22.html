@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 全台大選：蒙特卡洛終極模擬器</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --blue: #000095; --green: #1b9431; --white: #28c8c8; --grey: #7f8c8d; --dark: #2c3e50; --bg: #f0f2f5; }
+        body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        header { background: var(--dark); color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .layout { display: grid; grid-template-columns: 350px 1fr 300px; gap: 15px; padding: 15px; flex: 1; overflow: hidden; }
+        .column { display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-right: 5px; }
+        .card { background: white; border-radius: 10px; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        
+        /* 縣市選擇器 */
+        .city-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .btn-city { padding: 8px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 0.85rem; background: white; }
+        .btn-city.active { background: var(--dark); color: white; border-color: var(--dark); }
+        
+        /* 席次統計 */
+        .seat-counter { display: flex; justify-content: space-around; text-align: center; margin-bottom: 15px; }
+        .seat-box { padding: 10px; border-radius: 8px; width: 30%; color: white; }
+        .bg-blue { background: var(--blue); } .bg-green { background: var(--green); } .bg-white { background: var(--white); }
+
+        /* 圖表高度調整 */
+        .chart-box { height: 250px; position: relative; }
+        .btn-run { background: #e67e22; color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1.1rem; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #eee; }
+        .win-tag { padding: 2px 6px; border-radius: 4px; color: white; font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <h2 style="margin:0;">🗳️ 2026 全台選戰指揮中心</h2>
+        <small>當前時間：2026年1月13日 | 距投票日：319 天</small>
+    </div>
+    <button class="btn-run" style="width:auto; padding: 10px 30px;" onclick="simulateAllCounties()">🌀 執行全台總體演化</button>
+</header>
+
+<div class="layout">
+    <div class="column">
+        <div class="card">
+            <h3>📍 縣市切換</h3>
+            <div class="city-grid" id="citySelector"></div>
+        </div>
+        
+        <div class="card" id="eventBox">
+            <h3>📢 區域隨機事件</h3>
+            <p id="eventText" style="font-size:0.9rem; color:#666;">點擊右上方執行鍵觸發隨機選情震盪</p>
+        </div>
+
+        <div class="card">
+            <h3>👤 候選人戰力 (當前縣市)</h3>
+            <div id="candidateList"></div>
+        </div>
+    </div>
+
+    <div class="column">
+        <div class="card">
+            <h3>📈 選前演化趨勢 (Time-Series)</h3>
+            <div class="chart-box" style="height:300px;"><canvas id="timeLineChart"></canvas></div>
+        </div>
+        <div class="card">
+            <h3>🎯 蒙特卡洛勝選機率</h3>
+            <div style="display:flex; gap:10px;">
+                <div style="flex:1; height:200px;"><canvas id="radarChart"></canvas></div>
+                <div style="flex:1; height:200px;"><canvas id="winChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="column">
+        <div class="card">
+            <h3>🏛️ 全台席次預測 (22 縣市)</h3>
+            <div class="seat-counter">
+                <div class="seat-box bg-blue">藍<br><b id="seat-blue">0</b></div>
+                <div class="seat-box bg-green">綠<br><b id="seat-green">0</b></div>
+                <div class="seat-box bg-white">白/他<br><b id="seat-white">0</b></div>
+            </div>
+            <div style="overflow-y:auto; height: 500px;">
+                <table id="mapTable">
+                    <thead><tr><th>縣市</th><th>領先</th><th>勝率</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 1. 定義全台 22 縣市初始模型 (2026.01 真實政經概況)
+const counties = [
+    { id: 'TP', name: "台北市", mean: [42, 35, 18], sd: 3, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["蔣萬安", "綠營挑戰者", "白營挑戰者"] },
+    { id: 'NTP', name: "新北市", mean: [40, 36, 12], sd: 3, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["李四川/洪孟楷", "蘇巧慧", "黃國昌"] },
+    { id: 'TY', name: "桃園市", mean: [45, 38, 10], sd: 3, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["張善政", "綠營挑戰者", "白營挑戰者"] },
+    { id: 'TC', name: "台中市", mean: [43, 37, 12], sd: 3, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["江啟臣", "何欣純/王義川", "白營挑戰者"] },
+    { id: 'TN', name: "台南市", mean: [32, 55, 5], sd: 4, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["謝龍介", "陳亭妃/林俊憲", "白營挑戰者"] },
+    { id: 'KH', name: "高雄市", mean: [38, 45, 5], sd: 4, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["柯志恩", "賴瑞隆/許智傑", "白營挑戰者"] },
+    { id: 'KL', name: "基隆市", mean: [40, 42, 8], sd: 5, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["謝國樑", "綠營挑戰者", "白營挑戰者"] },
+    { id: 'HC', name: "新竹市", mean: [30, 25, 35], sd: 6, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["藍營挑戰者", "綠營挑戰者", "代理/白營"] },
+    { id: 'HCC', name: "新竹縣", mean: [55, 25, 15], sd: 3, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["藍營候選人", "綠營挑戰者", "白營挑戰者"] },
+    { id: 'ML', name: "苗栗縣", mean: [50, 20, 25], sd: 4, colors: ["#000095", "#1b9431", "#7f8c8d"], names: ["鍾東錦/藍", "綠營挑戰者", "他"] },
+    { id: 'CH', name: "彰化縣", mean: [42, 40, 10], sd: 4, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["藍營候選人", "綠營候選人", "白營挑戰者"] },
+    { id: 'NT', name: "南投縣", mean: [52, 38, 5], sd: 3, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["許淑華", "綠營挑戰者", "白營挑戰者"] },
+    { id: 'YL', name: "雲林縣", mean: [45, 43, 5], sd: 4, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["藍營候選人", "綠營候選人", "白營挑戰者"] },
+    { id: 'CY', name: "嘉義市", mean: [48, 40, 5], sd: 4, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["黃敏惠/藍", "綠營挑戰者", "白營挑戰者"] },
+    { id: 'CYC', name: "嘉義縣", mean: [30, 58, 5], sd: 3, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["藍營挑戰者", "綠營候選人", "白營挑戰者"] },
+    { id: 'PT', name: "屏東縣", mean: [38, 52, 5], sd: 3, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["藍營挑戰者", "周春米", "白營挑戰者"] },
+    { id: 'IL', name: "宜蘭縣", mean: [40, 45, 10], sd: 5, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["藍營挑戰者", "綠營候選人", "白營挑戰者"] },
+    { id: 'HL', name: "花蓮縣", mean: [60, 25, 10], sd: 3, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["藍營候選人", "綠營挑戰者", "白營挑戰者"] },
+    { id: 'TT', name: "台東縣", mean: [58, 30, 5], sd: 3, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["饒慶鈴/藍", "綠營挑戰者", "白營挑戰者"] },
+    { id: 'PH', name: "澎湖縣", mean: [42, 45, 5], sd: 6, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["藍營挑戰者", "陳光復", "白營挑戰者"] },
+    { id: 'KM', name: "金門縣", mean: [65, 5, 25], sd: 4, colors: ["#000095", "#1b9431", "#28c8c8"], names: ["陳福海/他", "綠營", "藍營"] },
+    { id: 'LC', name: "連江縣", mean: [75, 5, 15], sd: 3, colors: ["#000095", "#1b9431", "#7f8c8d"], names: ["藍營候選人", "綠營", "他"] }
+];
+
+let selectedCityId = 'NTP';
+let charts = {};
+
+// 2. 初始化介面
+function init() {
+    const selector = document.getElementById('citySelector');
+    counties.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = `btn-city ${c.id === selectedCityId ? 'active' : ''}`;
+        btn.innerText = c.name;
+        btn.onclick = () => {
+            selectedCityId = c.id;
+            document.querySelectorAll('.btn-city').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            simulateCurrentCity();
+        };
+        selector.appendChild(btn);
+    });
+    simulateAllCounties();
+}
+
+function randn_bm() {
+    let u = 0, v = 0;
+    while(u === 0) u = Math.random();
+    while(v === 0) v = Math.random();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
+// 3. 全台總體模擬 (蒙特卡洛 1,000 次 x 22 縣市)
+function simulateAllCounties() {
+    let seats = { blue: 0, green: 0, white: 0 };
+    const tableBody = document.querySelector('#mapTable tbody');
+    tableBody.innerHTML = '';
+
+    counties.forEach(county => {
+        let wins = [0, 0, 0];
+        for (let i = 0; i < 500; i++) {
+            let s = county.mean.map((m, idx) => m + randn_bm() * county.sd);
+            let winnerIdx = s.indexOf(Math.max(...s));
+            wins[winnerIdx]++;
+        }
+        
+        let maxWinIdx = wins.indexOf(Math.max(...wins));
+        let prob = (wins[maxWinIdx] / 500 * 100).toFixed(0);
+        
+        if (maxWinIdx === 0) seats.blue++;
+        else if (maxWinIdx === 1) seats.green++;
+        else seats.white++;
+
+        const row = `<tr>
+            <td>${county.name}</td>
+            <td><span class="win-tag" style="background:${county.colors[maxWinIdx]}">${county.names[maxWinIdx].split('/')[0]}</span></td>
+            <td>${prob}%</td>
+        </tr>`;
+        tableBody.innerHTML += row;
+    });
+
+    document.getElementById('seat-blue').innerText = seats.blue;
+    document.getElementById('seat-green').innerText = seats.green;
+    document.getElementById('seat-white').innerText = seats.white;
+    
+    simulateCurrentCity();
+}
+
+// 4. 當前縣市深入分析
+function simulateCurrentCity() {
+    const c = counties.find(i => i.id === selectedCityId);
+    renderCandidateCards(c);
+    
+    // 時間軸模擬
+    const days = 100;
+    const labels = Array.from({length: days}, (_, i) => i);
+    const datasets = c.names.map((name, idx) => {
+        let val = c.mean[idx];
+        let data = [];
+        for(let d=0; d<days; d++) {
+            val += randn_bm() * (c.sd/3);
+            data.push(val.toFixed(2));
+        }
+        return { label: name, data: data, borderColor: c.colors[idx], fill: false, pointRadius: 0 };
+    });
+
+    if (charts.time) charts.time.destroy();
+    charts.time = new Chart(document.getElementById('timeLineChart'), {
+        type: 'line',
+        data: { labels, datasets },
+        options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+
+    // 勝率圓餅圖
+    if (charts.win) charts.win.destroy();
+    charts.win = new Chart(document.getElementById('winChart'), {
+        type: 'doughnut',
+        data: {
+            labels: c.names,
+            datasets: [{ data: c.mean, backgroundColor: c.colors }]
+        },
+        options: { maintainAspectRatio: false }
+    });
+}
+
+function renderCandidateCards(c) {
+    const container = document.getElementById('candidateList');
+    container.innerHTML = c.names.map((name, i) => `
+        <div style="border-left:4px solid ${c.colors[i]}; padding:5px 10px; margin-bottom:5px; background:#f9f9f9;">
+            <b style="font-size:0.9rem">${name}</b><br>
+            <small>期望值: ${c.mean[i]}% | 波動率: ±${c.sd}%</small>
+        </div>
+    `).join('');
+}
+
+window.onload = init;
+</script>
+</body>
+</html>

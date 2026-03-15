@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>演化軌跡 - 矽基生命探索中心</title>
+    <style>
+        /* (複製 index.html 中的 :root 和 body 樣式) */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+TC:wght@400;700&display=swap');
+        :root { --bg-color: #0a0a0f; --surface-color: #1a1a2e; --text-color: #e0e0e0; --border-color: #2a2a3e; --primary-color: #00ffff; --secondary-color: #ff00ff; --accent-color: #ffaa00; }
+        body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Noto Sans TC', 'Orbitron', sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        .simulator-container { background-color: var(--surface-color); border: 2px solid var(--primary-color); border-radius: 15px; padding: 20px; box-shadow: 0 0 25px rgba(0, 255, 255, 0.3); width: 100%; max-width: 900px; text-align: center; }
+        h1, h2 { font-family: 'Orbitron', sans-serif; text-align: center; color: var(--primary-color); text-shadow: 0 0 10px var(--primary-color); }
+        h1 { font-size: 2.5em; font-weight: 900; margin-bottom: 0; }
+        h2 { font-size: 1.5em; font-weight: 700; margin-top: 0; color: var(--secondary-color); }
+        .placeholder-icon { font-size: 8em; color: #444; margin: 20px 0; }
+        p { font-size: 1.2em; line-height: 1.8; max-width: 800px; margin: 20px auto; }
+        .timeline { margin-top: 40px; position: relative; padding: 20px 0; }
+        .timeline::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: var(--border-color); }
+        .timeline-item { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; margin-bottom: 20px; width: 45%; position: relative; }
+        .timeline-item:nth-child(odd) { left: 0; }
+        .timeline-item:nth-child(even) { left: 55%; }
+        .timeline-item h3 { color: var(--accent-color); margin-top: 0; }
+        .back-link { margin-top: 40px; }
+        .back-link a { color: var(--primary-color); text-decoration: none; font-family: 'Orbitron', sans-serif; }
+        .back-link a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <div class="simulator-container">
+        <h1>演化軌跡</h1>
+        <h2>矽基生命的宏大歷程</h2>
+        <div class="placeholder-icon">🧬</div>
+        <p>這片空間將用於探索矽基生命從簡單分子到複雜生態系統的宏大演化歷程。從第一個自我複製的矽鏈，到不同物種間的競爭與共生，再到智慧文明的萌芽。</p>
+        <p>未來的更新將包括：</p>
+        <div class="timeline">
+            <div class="timeline-item">
+                <h3>前生物化學時代</h3>
+                <p>模擬矽基分子在原始環境中的偶然形成與聚合。</p>
+            </div>
+            <div class="timeline-item">
+                <h3>單細胞生命起源</h3>
+                <p>探索第一個具有細胞膜和代謝功能的矽基細胞的誕生。</p>
+            </div>
+            <div class="timeline-item">
+                <h3>多樣化大爆發</h3>
+                <p>可視化不同環境下，矽基生命如何演化出千奇百怪的形態。</p>
+            </div>
+            <div class="timeline-item">
+                <h3>生態網絡</h3>
+                <p>繪製完整的矽基生態系統食物網和能量流動圖。</p>
+            </div>
+        </div>
+        <div class="back-link">
+            <a href="siliconindex.html">← 返回首頁</a>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,313 @@
+```
+##💻 矽基生命演化模擬：`si_life.html`。
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>矽基生命演化模擬 - Three.js 單檔案版</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #0a0a0a; color: white; }
+        canvas { display: block; }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            z-index: 100;
+        }
+        #stage-title {
+            font-weight: bold;
+            color: #4CAF50; /* 綠色，突出顯示 */
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        <div id="stage-title">當前階段: 準備啟動</div>
+        <div id="life-count">生命體數量: 0</div>
+        <div id="elapsed-time">運行時間: 0.00 秒</div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // **********************************************
+        // Three.js 矽基生命演化模擬核心腳本 (si_life.html)
+        // **********************************************
+
+        // --- 全域變數 ---
+        let scene, camera, renderer, clock;
+        let lifeForms = []; // 存儲所有矽基生命粒子
+        let evolutionStage = 1; // 當前演化階段
+        const STAGE_DURATION = 25; // 每個階段持續時間 (秒)
+        const MAX_LIFE_FORMS = 500; // 最大生命體數量限制
+
+        // --- DOM 元素 ---
+        const stageTitleElement = document.getElementById('stage-title');
+        const lifeCountElement = document.getElementById('life-count');
+        const elapsedTimeElement = document.getElementById('elapsed-time');
+
+        // --- 矽基生命粒子類別 ---
+        class SiliconLife {
+            constructor(id, position) {
+                this.id = id;
+                this.mesh = this.createMesh(position);
+                this.age = 0; // 年齡
+                this.health = 1.0; // 健康度/穩定性
+                this.type = 'Silane'; // 骨架類型
+                this.genes = Math.random(); // 基因 (影響顏色/行為)
+                this.target = new THREE.Vector3().copy(position); // 移動目標
+            }
+
+            // 創建生命的可視化網格 (Mesh)
+            createMesh(position) {
+                // 初始形態: 矽烷（A1）- 簡單的十二面體代表晶體結構
+                const geometry = new THREE.DodecahedronGeometry(0.5, 0); 
+                const material = new THREE.MeshPhongMaterial({
+                    color: 0x4444FF, // 初始藍色（低溫）
+                    emissive: 0x000000,
+                    shininess: 100,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.copy(position);
+                scene.add(mesh);
+                return mesh;
+            }
+
+            // 粒子行為和代謝模擬
+            update(delta) {
+                this.age += delta;
+                
+                // 1. 行為：緩慢移動到目標位置
+                this.mesh.position.lerp(this.target, 0.01); 
+                
+                // 2. 代謝與穩定性：健康度衰減 (階段越高，衰減越慢)
+                const decayRate = 0.005 / evolutionStage;
+                this.health -= decayRate * delta;
+                
+                if (this.health <= 0) {
+                    this.die();
+                    return;
+                }
+
+                // 3. 顏色/形態進化
+                this.evolveAppearance();
+            }
+            
+            // 演化外觀（根據當前階段和類型）
+            evolveAppearance() {
+                const material = this.mesh.material;
+                
+                if (evolutionStage === 1) {
+                    // 階段一：原矽囊 (Silane) - 低穩定性，油狀
+                    material.color.setHex(0x4444FF); 
+                    material.opacity = 0.4 + this.health * 0.6; // 透明度變化
+                    stageTitleElement.innerHTML = `當前階段: 1. 🧪 原矽囊與矽烷合成`;
+                } else if (evolutionStage === 2) {
+                    // 階段二：輻射矽菌 (Siloxanes) - 高溫穩定，顏色變紅
+                    this.type = 'Siloxane';
+                    material.color.setHex(0xFF4500); // 橙紅色（高溫熱液環境）
+                    material.shininess = 200; 
+                    material.opacity = 1.0; // 穩定化
+                    stageTitleElement.innerHTML = `當前階段: 2. 💡 輻射自營與遺傳確立`;
+
+                    // 形態變化：從球體變為多面體/立方體
+                    if (!(this.mesh.geometry instanceof THREE.BoxGeometry)) {
+                        this.mesh.geometry.dispose();
+                        this.mesh.geometry = new THREE.BoxGeometry(1.2, 1.2, 1.2);
+                    }
+                } else if (evolutionStage === 3) {
+                     // 階段三：晶格樹 (Borosilicates) - 結構複雜
+                    this.type = 'Borosilicate';
+                    material.color.setHex(0x00FFC0); // 青色/礦物色
+                    
+                    // 形態變化：柱狀（樹幹/晶格）
+                    if (!(this.mesh.geometry instanceof THREE.CylinderGeometry)) {
+                        this.mesh.geometry.dispose();
+                        this.mesh.geometry = new THREE.CylinderGeometry(0.5, 0.8, 2, 8); 
+                    }
+                     stageTitleElement.innerHTML = `當前階段: 3. 🦠 多細胞化與晶格樹`;
+                } else if (evolutionStage === 4) {
+                    // 階段四：生命大爆發 (掠食者與被掠食者)
+                    this.type = 'Phage';
+                    // 顏色根據基因分化：模擬掠食者與被掠食者
+                    material.color.setHex(this.genes > 0.6 ? 0x8A2BE2 : 0x00FF00); // 紫色 vs 綠色
+                    
+                    // 大爆發形態：更小的、更活躍的個體
+                    this.mesh.scale.set(0.8, 0.8, 0.8);
+
+                    stageTitleElement.innerHTML = `當前階段: 4. 🚀 矽基生命大爆發`;
+                }
+            }
+            
+            // 繁殖（突變）
+            reproduce() {
+                // 基因突變
+                const newGenes = Math.max(0.01, Math.min(0.99, this.genes + (Math.random() - 0.5) * 0.1)); 
+                const newPosition = this.mesh.position.clone().add(
+                    new THREE.Vector3((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4)
+                );
+                const newLife = new SiliconLife(lifeForms.length, newPosition);
+                newLife.genes = newGenes; // 繼承突變後的基因
+                return newLife;
+            }
+
+            // 死亡並分解
+            die() {
+                this.mesh.material.color.setHex(0x555555);
+                this.mesh.scale.set(0.1, 0.1, 0.1);
+                this.health = -100; // 標記為死亡
+            }
+        }
+
+
+        // --- 核心初始化函式 ---
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a0a); 
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 50;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // 燈光設置
+            const light = new THREE.PointLight(0xFF4500, 2, 100); 
+            light.position.set(0, 10, 0);
+            scene.add(light);
+            scene.add(new THREE.AmbientLight(0x404040));
+
+            clock = new THREE.Clock();
+
+            // 初始生成少量生命型式 (階段一：原矽囊)
+            for (let i = 0; i < 30; i++) {
+                const position = new THREE.Vector3(
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20
+                );
+                lifeForms.push(new SiliconLife(i, position));
+            }
+
+            animate();
+        }
+
+        // --- 演化邏輯控制 ---
+        function checkEvolution() {
+            const elapsed = clock.getElapsedTime();
+            // 每 STAGE_DURATION 秒進入下一階段
+            const newStage = Math.floor(elapsed / STAGE_DURATION) + 1;
+            
+            if (newStage > evolutionStage && newStage <= 4) {
+                evolutionStage = newStage;
+                console.log(`--- 進入演化階段 ${evolutionStage} ---`);
+                triggerStageEvent(evolutionStage);
+            }
+        }
+
+        // 階段性環境和生命規則變化
+        function triggerStageEvent(stage) {
+            if (stage === 2) {
+                // 階段二：輻射自營確立 (背景變紫/輻射色)
+                scene.background.setHex(0x1a052b); 
+                // 提高環境光強度
+                scene.traverse(obj => {
+                    if (obj instanceof THREE.Mesh) {
+                        obj.material.emissive.setHex(0xAA00AA); 
+                    }
+                });
+            } else if (stage === 3) {
+                // 階段三：多細胞化與晶格樹 (大量繁殖擴張)
+                scene.background.setHex(0x202020); 
+                for (let i = 0; i < 80; i++) { // 額外繁殖 80 個
+                    const newLife = lifeForms.length > 0 ? lifeForms[Math.floor(Math.random() * lifeForms.length)].reproduce() : null;
+                    if (newLife && lifeForms.length < MAX_LIFE_FORMS) {
+                        lifeForms.push(newLife);
+                    }
+                }
+            } else if (stage === 4) {
+                // 階段四：生命大爆發 (競爭激烈)
+                scene.background.setHex(0x103010); // 地表生態
+                // 在此處可加入更複雜的競爭和淘汰邏輯
+            }
+        }
+
+        // --- 渲染/動畫迴圈 ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const delta = clock.getDelta();
+            const elapsed = clock.getElapsedTime();
+
+            checkEvolution();
+
+            // 更新生命體狀態
+            let newLifeForms = [];
+            lifeForms.forEach(life => {
+                life.update(delta);
+                
+                if (life.health > 0) {
+                    newLifeForms.push(life);
+                    
+                    // 隨機繁殖（機率隨階段提高）
+                    const baseReproductionChance = 0.001;
+                    const reproductionChance = baseReproductionChance * evolutionStage; // 階段越高，繁殖越快
+                    
+                    if (Math.random() < reproductionChance && lifeForms.length < MAX_LIFE_FORMS) {
+                        newLifeForms.push(life.reproduce());
+                    }
+
+                    // 隨機移動目標
+                    if (Math.random() < 0.05) {
+                         life.target.set(
+                            (Math.random() - 0.5) * 35,
+                            (Math.random() - 0.5) * 35,
+                            (Math.random() - 0.5) * 35
+                        );
+                    }
+                } else if (life.health === -100) {
+                    // 移除已死亡的粒子
+                    scene.remove(life.mesh);
+                }
+            });
+
+            lifeForms = newLifeForms.filter(life => life.health > -100); // 過濾掉已經死亡的
+            
+            // 更新資訊面板
+            lifeCountElement.innerHTML = `生命體數量: ${lifeForms.length}`;
+            elapsedTimeElement.innerHTML = `運行時間: ${elapsed.toFixed(2)} 秒`;
+
+
+            // 鏡頭緩慢旋轉
+            camera.position.x = 50 * Math.cos(elapsed * 0.03);
+            camera.position.z = 50 * Math.sin(elapsed * 0.03);
+            camera.lookAt(scene.position);
+
+
+            renderer.render(scene, camera);
+        }
+
+        // 視窗調整大小處理
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 啟動模擬
+        init();
+    </script>
+</body>
+</html>

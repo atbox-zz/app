@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>六根神經網絡</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        h1 {
+            color: white;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: clamp(18px, 5vw, 28px);
+            text-align: center;
+        }
+        
+        .stats {
+            color: white;
+            font-size: clamp(12px, 3vw, 14px);
+            margin-bottom: 10px;
+            text-align: center;
+            opacity: 0.9;
+        }
+        
+        .canvas-container {
+            width: 100%;
+            max-width: 1200px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+            touch-action: none;
+        }
+        
+        #canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            cursor: pointer;
+        }
+        
+        .controls {
+            margin-top: 15px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+            max-width: 400px;
+            padding: 0 10px;
+        }
+        
+        button {
+            padding: 15px 20px;
+            font-size: clamp(14px, 3.5vw, 16px);
+            background: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            font-weight: 600;
+            touch-action: manipulation;
+        }
+        
+        button:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .info {
+            color: white;
+            margin-top: 15px;
+            text-align: center;
+            font-size: clamp(12px, 3vw, 14px);
+            opacity: 0.9;
+            padding: 0 20px;
+            line-height: 1.5;
+        }
+        
+        #explanation {
+            max-width: 800px;
+            width: 100%;
+            margin-top: 20px;
+            padding: 0 10px;
+        }
+        
+        .explanation-content {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .explanation-content h2 {
+            color: #1e3c72;
+            font-size: clamp(18px, 4vw, 24px);
+            margin-bottom: 20px;
+            border-bottom: 3px solid #4ECDC4;
+            padding-bottom: 10px;
+        }
+        
+        .explanation-content h3 {
+            color: #2a5298;
+            font-size: clamp(16px, 3.5vw, 20px);
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .section {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .section p {
+            margin: 10px 0;
+            color: #333;
+            font-size: clamp(14px, 3vw, 16px);
+        }
+        
+        .section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .section li {
+            margin: 12px 0;
+            padding-left: 25px;
+            position: relative;
+            color: #444;
+            font-size: clamp(13px, 3vw, 15px);
+        }
+        
+        .section li:before {
+            content: "→";
+            position: absolute;
+            left: 5px;
+            color: #4ECDC4;
+            font-weight: bold;
+        }
+        
+        .try-it {
+            background: linear-gradient(135deg, #4ECDC4 0%, #45B7D1 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: clamp(14px, 3vw, 16px);
+            line-height: 1.6;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 5px;
+            }
+            
+            h1 {
+                margin-bottom: 10px;
+            }
+            
+            .controls {
+                gap: 8px;
+            }
+            
+            button {
+                padding: 12px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>六根入大腦神經網絡</h1>
+    <div class="stats">眼耳鼻舌身意 → 大腦處理中心</div>
+    <div class="canvas-container">
+        <canvas id="canvas"></canvas>
+    </div>
+    <div class="controls">
+        <button onclick="animateSignal()">由上而下發送</button>
+        <button onclick="continuousAnimation()">連續模式</button>
+        <button onclick="stopAnimation()">停止</button>
+        <button onclick="toggleExplanation()">教學說明</button>
+    </div>
+    <div class="info">一次一個感官，由上而下慢慢發送信號到大腦（含音效）</div>
+    
+    <div id="explanation" style="display: none;">
+        <div class="explanation-content">
+            <h2>🧠 六根與大腦的神經網絡</h2>
+            
+            <div class="section">
+                <h3>💡 什麼是「六根」？</h3>
+                <p>佛教和中醫都提到人有<strong>「六根」</strong>，也就是我們感知世界的六個管道：</p>
+                <ul>
+                    <li>👁️ <strong>眼</strong>：視覺，看見光線、顏色、形狀</li>
+                    <li>👂 <strong>耳</strong>：聽覺，聽見聲音、音樂、語言</li>
+                    <li>👃 <strong>鼻</strong>：嗅覺，聞到香味、臭味</li>
+                    <li>👅 <strong>舌</strong>：味覺，嚐到酸甜苦辣鹹</li>
+                    <li>✋ <strong>身</strong>：觸覺，感受溫度、痛覺、壓力</li>
+                    <li>🧘 <strong>意</strong>：意識，思考、記憶、情感</li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h3>⚡ 神經網絡如何運作？</h3>
+                <p><strong>第1步：感官接收</strong><br>
+                六根不斷接收外界的各種刺激，轉換成神經電信號</p>
+                
+                <p><strong>第2步：多層處理</strong><br>
+                信號經過三層神經網絡，逐步整合和分析：<br>
+                • 第一層：初步識別（這是什麼聲音？）<br>
+                • 第二層：特徵提取（是人聲還是音樂？）<br>
+                • 第三層：深度理解（是誰在說什麼話？）</p>
+                
+                <p><strong>第3步：大腦統整</strong><br>
+                所有處理過的信息最終都匯集到大腦，形成完整的認知和反應</p>
+            </div>
+            
+            <div class="section">
+                <h3>🌈 為什麼需要這樣的設計？</h3>
+                <p><strong>平行處理</strong>：六種感官同時工作，不會互相干擾<br>
+                例如：你可以一邊看書（眼）、一邊聽音樂（耳）、一邊吃零食（舌）</p>
+                
+                <p><strong>多層過濾</strong>：避免大腦被太多信息淹沒<br>
+                例如：你現在能感覺到椅子的壓力嗎？通常你不會注意，除非我提醒你</p>
+                
+                <p><strong>智能整合</strong>：大腦會綜合各種感官信息做決策<br>
+                例如：看到紅燈（眼）+聽到煞車聲（耳）→ 大腦判斷「危險！」</p>
+            </div>
+            
+            <div class="section">
+                <h3>🔬 科學實例</h3>
+                <ul>
+                    <li>🍓 <strong>味覺幻覺</strong>：感冒時鼻塞，會覺得食物沒味道。因為味覺70%來自嗅覺！</li>
+                    <li>🎬 <strong>視聽整合</strong>：看電影時，聲音和畫面同步，大腦會覺得更真實</li>
+                    <li>🎨 <strong>聯覺</strong>：有些人聽音樂會「看見」顏色，這是大腦區域的特殊連結</li>
+                    <li>🥶 <strong>幻肢痛</strong>：失去手臂的人仍感覺疼痛，因為大腦的「地圖」還在</li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 現代AI的應用</h3>
+                <p>模仿人類六根的AI系統：</p>
+                <ul>
+                    <li>🤖 <strong>自動駕駛</strong>：結合攝影機（眼）、雷達（觸覺）、麥克風（耳）</li>
+                    <li>📱 <strong>智慧型手機</strong>：Siri同時處理語音、觸控、視覺輸入</li>
+                    <li>🏠 <strong>智慧家居</strong>：整合溫度、聲音、影像感測器</li>
+                    <li>🎮 <strong>VR/AR</strong>：模擬視覺、聽覺、甚至觸覺回饋</li>
+                </ul>
+            </div>
+            
+            <div class="try-it">
+                <strong>💡 現在試試看：</strong><br>
+                點擊「由上而下發送」，觀察六根如何一個接一個發送信號，經過神經網絡層層處理，最後統整到大腦！<br><br>
+                注意聽：每個感官發送時都有獨特的音效 🔊
+            </div>
+            
+            <button onclick="toggleExplanation()" style="margin-top: 15px; width: 100%;">關閉說明</button>
+        </div>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 音效系統
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playTone(frequency, duration, type = 'sine') {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+        
+        let scale = 1;
+        let layers, neuronRadius, layerHeight;
+        
+        const sixSenses = [
+            { emoji: '👁️', name: '眼 (視覺)', color: '#FF6B6B', freq: 523.25 },      // C5
+            { emoji: '👂', name: '耳 (聽覺)', color: '#4ECDC4', freq: 587.33 },      // D5
+            { emoji: '👃', name: '鼻 (嗅覺)', color: '#45B7D1', freq: 659.25 },      // E5
+            { emoji: '👅', name: '舌 (味覺)', color: '#F7DC6F', freq: 698.46 },      // F5
+            { emoji: '✋', name: '身 (觸覺)', color: '#BB8FCE', freq: 783.99 },      // G5
+            { emoji: '🧘', name: '意 (意識)', color: '#F8B739', freq: 880.00 }       // A5
+        ];
+        
+        function initCanvas() {
+            const container = canvas.parentElement;
+            const width = container.clientWidth;
+            const height = Math.min(width * 0.7, window.innerHeight * 0.7);
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            scale = width / 1200;
+            neuronRadius = 25 * scale;
+            layerHeight = height * 0.8;
+            
+            layers = [
+                { name: '六根輸入', x: width * 0.1, neurons: 6, type: 'input' },
+                { name: '神經層 1', x: width * 0.33, neurons: 2000, type: 'hidden' },
+                { name: '神經層 2', x: width * 0.56, neurons: 2500, type: 'hidden' },
+                { name: '神經層 3', x: width * 0.79, neurons: 1500, type: 'hidden' },
+                { name: '大腦', x: width * 0.92, neurons: 1, type: 'output' }
+            ];
+        }
+        
+        let animating = false;
+        let continuousMode = false;
+        let currentSense = -1;
+        let signalProgress = 0;
+        let activeConnections = [];
+        let layerColors = new Map();
+        
+        function getNeuronY(layerIndex, neuronIndex) {
+            const layer = layers[layerIndex];
+            if (layer.type === 'input') {
+                const spacing = layerHeight / (layer.neurons + 1);
+                return canvas.height * 0.1 + spacing * (neuronIndex + 1);
+            } else if (layer.type === 'output') {
+                return canvas.height / 2;
+            } else {
+                const spacing = layerHeight / layer.neurons;
+                return canvas.height * 0.1 + spacing * neuronIndex + spacing / 2;
+            }
+        }
+        
+        function drawBrain(x, y, size, isActive, glowColor) {
+            ctx.save();
+            
+            ctx.beginPath();
+            ctx.ellipse(x, y, size * 1.2, size, 0, 0, Math.PI * 2);
+            
+            if (isActive) {
+                const gradient = ctx.createRadialGradient(x, y, 0, x, y, size * 1.2);
+                gradient.addColorStop(0, glowColor || '#FFB6C1');
+                gradient.addColorStop(0.5, '#FF69B4');
+                gradient.addColorStop(1, '#FF1493');
+                ctx.fillStyle = gradient;
+                ctx.shadowBlur = 25 * scale;
+                ctx.shadowColor = glowColor || '#FF69B4';
+            } else {
+                ctx.fillStyle = '#FFB6C1';
+            }
+            
+            ctx.fill();
+            ctx.strokeStyle = '#C71585';
+            ctx.lineWidth = 3 * scale;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            
+            ctx.strokeStyle = isActive ? '#FF1493' : '#C71585';
+            ctx.lineWidth = 2 * scale;
+            
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.arc(x - size * 0.3, y - size * 0.4 + i * size * 0.4, size * 0.3, 0.2, Math.PI - 0.2);
+                ctx.stroke();
+            }
+            
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.arc(x + size * 0.3, y - size * 0.4 + i * size * 0.4, size * 0.3, 0.2, Math.PI - 0.2);
+                ctx.stroke();
+            }
+            
+            ctx.restore();
+        }
+        
+        function drawNetwork() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 繪製連接線
+            activeConnections.forEach(conn => {
+                ctx.beginPath();
+                ctx.moveTo(conn.x1, conn.y1);
+                ctx.lineTo(conn.x2, conn.y2);
+                
+                const gradient = ctx.createLinearGradient(conn.x1, conn.y1, conn.x2, conn.y2);
+                gradient.addColorStop(0, conn.color);
+                gradient.addColorStop(1, conn.toColor || conn.color);
+                
+                ctx.strokeStyle = gradient;
+                ctx.globalAlpha = conn.alpha;
+                ctx.lineWidth = conn.width * scale;
+                ctx.stroke();
+            });
+            
+            ctx.globalAlpha = 1;
+            
+            // 繪製各層
+            layers.forEach((layer, layerIndex) => {
+                if (layer.type === 'input') {
+                    // 繪製六根
+                    for (let i = 0; i < layer.neurons; i++) {
+                        const x = layer.x;
+                        const y = getNeuronY(layerIndex, i);
+                        const sense = sixSenses[i];
+                        const isActive = currentSense === i;
+                        
+                        ctx.beginPath();
+                        ctx.arc(x, y, neuronRadius, 0, Math.PI * 2);
+                        ctx.fillStyle = isActive ? sense.color : '#E8E8E8';
+                        if (isActive) {
+                            ctx.shadowBlur = 20 * scale;
+                            ctx.shadowColor = sense.color;
+                        }
+                        ctx.fill();
+                        ctx.strokeStyle = '#333';
+                        ctx.lineWidth = 2 * scale;
+                        ctx.stroke();
+                        ctx.shadowBlur = 0;
+                        
+                        ctx.font = `${neuronRadius * 1.2}px Arial`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(sense.emoji, x, y);
+                        
+                        ctx.font = `${Math.max(10, 12 * scale)}px Arial`;
+                        ctx.fillStyle = '#333';
+                        ctx.fillText(sense.name, x, y + neuronRadius + 15 * scale);
+                    }
+                } else if (layer.type === 'output') {
+                    // 繪製大腦
+                    const x = layer.x;
+                    const y = getNeuronY(layerIndex, 0);
+                    const isActive = signalProgress >= 4;
+                    const glowColor = currentSense >= 0 ? sixSenses[currentSense].color : null;
+                    drawBrain(x, y, neuronRadius * 2, isActive, glowColor);
+                    
+                    ctx.font = `bold ${Math.max(12, 16 * scale)}px Arial`;
+                    ctx.fillStyle = '#333';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('🧠 大腦', x, y + neuronRadius * 2.5 + 15 * scale);
+                } else {
+                    // 隱藏層 - 顯示顏色變化
+                    const layerColor = layerColors.get(layerIndex);
+                    const isActive = layerColor && layerColor.alpha > 0;
+                    
+                    if (isActive) {
+                        // 繪製發光的神經元點
+                        for (let i = 0; i < 50; i++) {
+                            const y = getNeuronY(layerIndex, Math.random() * layer.neurons);
+                            ctx.beginPath();
+                            ctx.arc(layer.x, y, 2 * scale, 0, Math.PI * 2);
+                            ctx.fillStyle = layerColor.color;
+                            ctx.shadowBlur = 8 * scale;
+                            ctx.shadowColor = layerColor.color;
+                            ctx.globalAlpha = layerColor.alpha;
+                            ctx.fill();
+                        }
+                        ctx.shadowBlur = 0;
+                        ctx.globalAlpha = 1;
+                    }
+                    
+                    // 繪製基礎線條
+                    ctx.beginPath();
+                    ctx.moveTo(layer.x, getNeuronY(layerIndex, 0));
+                    
+                    for (let i = 0; i < Math.min(layer.neurons, 100); i++) {
+                        const y = getNeuronY(layerIndex, i * (layer.neurons / 100));
+                        ctx.lineTo(layer.x + (i % 2 === 0 ? -2 : 2) * scale, y);
+                    }
+                    
+                    ctx.strokeStyle = isActive ? layerColor.color : '#CCCCCC';
+                    ctx.lineWidth = isActive ? 3 * scale : 1.5 * scale;
+                    ctx.globalAlpha = isActive ? layerColor.alpha * 0.7 : 1;
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+                }
+            });
+            
+            // 繪製層標籤
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = `bold ${Math.max(10, 12 * scale)}px Arial`;
+            ctx.textAlign = 'center';
+            layers.forEach((layer, index) => {
+                if (layer.type !== 'input' && layer.type !== 'output') {
+                    ctx.fillText(layer.name, layer.x, canvas.height * 0.04);
+                }
+            });
+        }
+        
+        function animateSignal() {
+            if (animating && !continuousMode) return;
+            
+            animating = true;
+            currentSense = 0;
+            signalProgress = 0;
+            
+            function animateSingleSense() {
+                if (!animating && !continuousMode) return;
+                if (currentSense >= 6) {
+                    if (continuousMode) {
+                        currentSense = 0;
+                        setTimeout(animateSingleSense, 1000);
+                    } else {
+                        animating = false;
+                        setTimeout(() => {
+                            currentSense = -1;
+                            signalProgress = 0;
+                            activeConnections = [];
+                            layerColors.clear();
+                            drawNetwork();
+                        }, 2000);
+                    }
+                    return;
+                }
+                
+                // 播放該感官的音效
+                const sense = sixSenses[currentSense];
+                playTone(sense.freq, 0.3, 'sine');
+                
+                signalProgress = 0;
+                let step = 0;
+                const maxSteps = 50;
+                
+                function animateStep() {
+                    if (!animating && !continuousMode) return;
+                    
+                    const progress = step / maxSteps;
+                    signalProgress = progress * 4;
+                    const currentLayer = Math.floor(signalProgress);
+                    const layerProgress = signalProgress - currentLayer;
+                    
+                    activeConnections = [];
+                    layerColors.clear();
+                    
+                    // 更新隱藏層顏色
+                    for (let i = 1; i <= 3; i++) {
+                        if (currentLayer >= i) {
+                            const alpha = i === currentLayer ? layerProgress : 
+                                         (i < currentLayer ? Math.max(0, 1 - (currentLayer - i) * 0.3) : 0);
+                            if (alpha > 0) {
+                                layerColors.set(i, {
+                                    color: sense.color,
+                                    alpha: alpha
+                                });
+                            }
+                        }
+                    }
+                    
+                    // 創建連接線
+                    if (currentLayer < 4) {
+                        const fromLayer = currentLayer;
+                        const toLayer = currentLayer + 1;
+                        const numConnections = 80;
+                        
+                        for (let i = 0; i < numConnections; i++) {
+                            let x1, y1, x2, y2;
+                            
+                            if (fromLayer === 0) {
+                                x1 = layers[0].x;
+                                y1 = getNeuronY(0, currentSense);
+                            } else {
+                                x1 = layers[fromLayer].x;
+                                y1 = getNeuronY(fromLayer, Math.random() * layers[fromLayer].neurons);
+                            }
+                            
+                            if (toLayer === 4) {
+                                x2 = layers[4].x;
+                                y2 = getNeuronY(4, 0);
+                            } else {
+                                x2 = layers[toLayer].x;
+                                y2 = getNeuronY(toLayer, Math.random() * layers[toLayer].neurons);
+                            }
+                            
+                            activeConnections.push({
+                                x1, y1, x2, y2,
+                                color: sense.color,
+                                toColor: toLayer === 4 ? '#FF69B4' : sense.color,
+                                alpha: Math.min(1, layerProgress * 2) * (0.3 + Math.random() * 0.4),
+                                width: 1.5
+                            });
+                        }
+                    }
+                    
+                    drawNetwork();
+                    
+                    step++;
+                    if (step < maxSteps) {
+                        requestAnimationFrame(animateStep);
+                    } else {
+                        // 播放到達大腦的音效
+                        playTone(1046.5, 0.2, 'triangle');
+                        
+                        currentSense++;
+                        setTimeout(animateSingleSense, 800);
+                    }
+                }
+                
+                animateStep();
+            }
+            
+            animateSingleSense();
+        }
+        
+        function continuousAnimation() {
+            continuousMode = true;
+            if (!animating) {
+                animateSignal();
+            }
+        }
+        
+        function stopAnimation() {
+            continuousMode = false;
+            animating = false;
+            currentSense = -1;
+            signalProgress = 0;
+            activeConnections = [];
+            layerColors.clear();
+            drawNetwork();
+        }
+        
+        function toggleExplanation() {
+            const explanation = document.getElementById('explanation');
+            if (explanation.style.display === 'none') {
+                explanation.style.display = 'block';
+                explanation.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                explanation.style.display = 'none';
+            }
+        }
+        
+        // 初始化
+        initCanvas();
+        drawNetwork();
+        
+        // 響應式調整
+        window.addEventListener('resize', () => {
+            initCanvas();
+            drawNetwork();
+        });
+        
+        // 觸控支持
+        canvas.addEventListener('click', () => {
+            if (!continuousMode && !animating) {
+                animateSignal();
+            }
+        });
+        
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (!continuousMode && !animating) {
+                animateSignal();
+            }
+        });
+    </script>
+</body>
+</html>
