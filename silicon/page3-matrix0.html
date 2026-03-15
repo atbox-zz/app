@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>矽基生命矩陣：10x5 種可能的生物體</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+TC:wght@400;700&display=swap');
+
+        :root {
+            --bg-color: #0c0c1e;
+            --surface-color: #1a1a2e;
+            --primary-color: #00ffff;
+            --secondary-color: #ff00ff;
+            --text-color: #e0e0e0;
+            --border-color: #16213e;
+            --hover-bg: rgba(0, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Noto Sans TC', 'Orbitron', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            color: var(--primary-color);
+            text-align: center;
+            text-shadow: 0 0 15px var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+
+        .matrix-container {
+            width: 100%;
+            max-width: 1400px;
+            background-color: var(--surface-color);
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.3);
+            overflow-x: auto; /* 允許在小螢幕上水平滾動 */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9em;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px 8px;
+            text-align: center;
+            vertical-align: middle;
+            position: relative;
+        }
+
+        th {
+            background-color: rgba(0, 255, 255, 0.1);
+            color: var(--primary-color);
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        
+        th:first-child {
+            background-color: rgba(255, 0, 255, 0.1);
+            color: var(--secondary-color);
+        }
+
+        td {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        td:hover {
+            background-color: var(--hover-bg);
+            box-shadow: inset 0 0 10px var(--primary-color);
+            transform: scale(1.05);
+            z-index: 10;
+            border-color: var(--primary-color);
+        }
+
+        .cell-title {
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .cell-element {
+            font-size: 0.8em;
+            color: #888;
+        }
+
+        /* --- Modal Styles --- */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0, 0, 0, 0.8);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: var(--surface-color);
+            margin: 5% auto;
+            padding: 30px;
+            border: 2px solid var(--primary-color);
+            border-radius: 15px;
+            width: 80%;
+            max-width: 700px;
+            box-shadow: 0 0 30px var(--primary-color);
+            animation: slideIn 0.4s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: var(--primary-color);
+            text-shadow: 0 0 5px var(--primary-color);
+        }
+
+        .modal h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--secondary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .modal h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-color);
+            margin-top: 25px;
+        }
+
+        .modal p {
+            line-height: 1.7;
+        }
+
+        .chemical-equation {
+            background-color: #111;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #00ff00;
+            word-wrap: break-word;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>矽基生命矩陣</h1>
+    <p class="subtitle">10x5 種可能的生物體 | 點擊任一格探索詳情</p>
+
+    <div class="matrix-container">
+        <table id="life-form-matrix">
+            <thead>
+                <tr>
+                    <th>矽 + X / 功能</th>
+                    <th>A. 能量生產者</th>
+                    <th>B. 結構工程師</th>
+                    <th>C. 催化大師</th>
+                    <th>D. 廢物回收者</th>
+                    <th>E. 極端適應者</th>
+                </tr>
+            </thead>
+            <tbody id="matrix-body">
+                <!-- JavaScript will generate the rows here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- The Modal -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modal-title"></h2>
+            <h3>核心化學反應</h3>
+            <div id="modal-reaction" class="chemical-equation"></div>
+            <h3>生物功能描述</h3>
+            <p id="modal-function"></p>
+        </div>
+    </div>
+
+    <script>
+        // --- 數據定義 ---
+        const rowHeaders = ['矽 + 碳', '矽 + 硫', '矽 + 氟', '矽 + 氮', '矽 + 鐵', '矽 + 磷', '矽 + 硼', '矽 + 鍺', '矽 + 鎂', '矽 + 氯'];
+        const colHeaders = ['A', 'B', 'C', 'D', 'E'];
+
+        const lifeFormsData = {
+            '1_A': { name: '碳矽甲烷合成者', reaction: 'CH₄ + SiH₄ → (CH₂-SiH₂)n + 2H₂', function: '在地熱噴口聚合氣體，儲存能量於混合長鏈中。' },
+            '1_B': { name: '碳化矽甲殼獸', reaction: 'Si + C → SiC (沉澱)', function: '分泌超硬的碳化矽形成甲殼，用於防禦和攻擊。' },
+            '1_C': { name: '矽碳有機催化體', reaction: 'Si-C-H + 基質 → 產物', function: '體內的矽碳有機分子是高效的通用酶。' },
+            '1_D': { name: '矽酮分解者', reaction: '(Si(CH₃)₂-O)n + O₂ → SiO₂ + CO₂ + H₂O', function: '分解死亡的矽酮有機體，回收碳和矽。' },
+            '1_E': { name: '碳矽半導體菌', reaction: 'SiC + 光/熱差 → 電流', function: '體內形成碳化矽半導體結構，直接將地熱能轉化為生物電。' },
+            '2_A': { name: '硫矽噴氣者', reaction: 'H₂S + 2O₂ → H₂SO₄ + 能量', function: '氧化硫化物獲能，能量用於固定矽烷。' },
+            '2_B': { name: '硫化矽晶格蟲', reaction: 'Si + S → SiS₂ (晶體)', function: '建造柔韌的硫化矽晶格身體，適應高壓環境。' },
+            '2_C': { name: '硫矽還原酶', reaction: 'SiO₂ + 2H₂S → SiS₂ + 2H₂O', function: '催化二氧化矽的還原，在體內循環利用矽。' },
+            '2_D': { name: '硫酸矽中和者', reaction: 'H₂SO₄ + SiO₂ → Si(SO₄)₂ + H₂O', function: '中和環境中的強酸，生成可溶性矽酸鹽排出。' },
+            '2_E': { name: '硫矽儲能囊', reaction: 'SiS₂ + 能量 → Si + S₂', function: '在體內儲存單質硫，需要時氧化釋放巨大能量。' },
+            '3_A': { name: '氟矽能量爆發體', reaction: 'SiH₄ + 4F₂ → SiF₄ + 4HF + 能量', function: '短暫而劇烈地氧化矽烷，獲取脈衝式能量。' },
+            '3_B': { name: '氟矽玻璃殼', reaction: 'SiF₄ + 2H₂O → SiO₂ (玻璃) + 4HF', function: '分泌催化劑，將氟矽酸轉化為堅不可摧的石英玻璃外殼。' },
+            '3_C': { name: '氟矽酸催化劑', reaction: 'H₂SiF₆ + 基質 → 產物', function: '在強酸性體內，利用氟矽酸根離子作為超強酸催化中心。' },
+            '3_D': { name: '氟矽絡合循環者', reaction: 'SiO₂ + 6HF → H₂SiF₆ + 2H₂O', function: '將致命的固體廢物 SiO₂ 轉化為可溶的液態廢物 H₂SiF₆。' },
+            '3_E': { name: '氟化矽氣囊', reaction: 'Si + 2F₂ → SiF₄ (氣體)', function: '生成四氟化矽氣體充滿氣囊，在腐蝕性大氣中漂浮。' },
+            '4_A': { name: '氮矽化能合成者', reaction: 'SiH₄ + 2N₂ → Si₃N₄ + 4H₂ + 能量', function: '固氮並形成氮化矽，釋放的能量維持生命。' },
+            '4_B': { name: '氮化矽骨架者', reaction: '3Si + 2N₂ → Si₃N₄ (陶瓷)', function: '身體由極硬、耐高溫的氮化矽陶瓷構成。' },
+            '4_C': { name: '氮矽氨合成酶', reaction: 'Si₃N₄ + 6H₂O → 3SiO₂ + 4NH₃', function: '水解氮化矽，為其他生物提供氨源。' },
+            '4_D': { name: '氨矽廢物處理者', reaction: 'Si(NH₂)₄ → Si₃N₄ + NH₃', function: '將含氮的有機廢物轉化為穩定的氮化矽結構。' },
+            '4_E': { name: '氮矽超導體', reaction: 'Si₃N₄ (摻雜) → 超導態', function: '在極低溫下，體內的氮化矽結構變為超導體，用於神經信號傳導。' },
+            '5_A': { name: '鐵矽氧化者', reaction: 'Fe + SiO₂ → FeO + Si + 能量', function: '還原環境中的二氧化矽，獲取能量和純矽。' },
+            '5_B': { name: '鐵矽合金骨骼', reaction: 'Fe + Si → FeSi (合金)', function: '在體內生成鐵矽合金，構造堅固的內部支撐結構。' },
+            '5_C': { name: '鐵矽催化核心', reaction: 'Fe-Si + 基質 → 產物', function: '體內的鐵矽簇是類似於地球血紅蛋白的氧還反應中心。' },
+            '5_D': { name: '鐵矽沉澱回收者', reaction: 'Fe²⁺ + SiO₃²⁻ → FeSiO₃ (沉澱)', function: '從廢液中沉澱鐵矽酸鹽，回收鐵和矽。' },
+            '5_E': { name: '鐵矽磁場感應器', reaction: 'FeSi (晶體) + 磁場 → 電信號', function: '利用鐵矽晶體的磁性，感知行星磁場以導航。' },
+            '6_A': { name: '磷矽能量轉換者', reaction: 'SiH₄ + H₃PO₄ → Si-O-P + 能量', function: '形成高能的矽-磷鍵，類似於ATP的水解。' },
+            '6_B': { name: '磷灰石矽殼', reaction: '5Ca²⁺ + 3PO₄³⁻ + SiO₄⁴⁻ → Ca₅(PO₄)₃(SiO₄)', function: '形成含有矽酸的磷灰石外殼，堅硬且穩定。' },
+            '6_C': { name: '磷矽酸催化劑', reaction: 'H₃PO₄ + Si(OH)₄ → 催化複合體', function: '磷酸和矽酸結合，形成強力的酸性催化環境。' },
+            '6_D': { name: '磷矽酸鹽分解者', reaction: 'Ca₅(PO₄)₃(SiO₄) + H⁺ → Ca²⁺ + H₂PO₄⁻ + H₃SiO₄', function: '分解礦物化的廢物，釋放磷和矽。' },
+            '6_E': { name: '磷矽光儲存體', reaction: 'Si-P + 光 → Si-P* (激發態)', function: '利用矽-磷化合物捕捉光子，並以化學能形式儲存。' },
+            '7_A': { name: '硼矽氫反應者', reaction: 'B₂H₆ + SiH₄ → B₂SiH₈ + H₂ + 能量', function: '氫化物之間的反應釋放能量，驅動代謝。' },
+            '7_B': { name: '硼矽玻璃纖維', reaction: 'B₂O₃ + SiO₂ → B-Si-O 玻璃', function: '分泌輕質高強度的硼矽玻璃纖維，編織成身體。' },
+            '7_C': { name: '硼矽酸超強酸', reaction: 'BF₃ + SiO₂ + HF → HBSiF₆', function: '體內合成比氟磺酸更強的超強酸，催化極端反應。' },
+            '7_D': { name: '硼矽膠體回收者', reaction: 'B-Si-O (廢物) + 熱 → B₂O₃ + SiO₂', function: '將廢棄的硼矽玻璃高溫分解，回收原料。' },
+            '7_E': { name: '硼矽中子吸收體', reaction: '¹⁰B + n → ⁷Li + α', function: '在富中子環境中，利用硼元素吸收中子，保護遺傳物質。' },
+            '8_A': { name: '鍺矽熱電偶', reaction: 'Si/Ge 接面 + 溫差 → 電流', function: '體內的矽-鍺P-N結將地熱梯度直接轉化為生物電。' },
+            '8_B': { name: '鍺矽混合晶格', reaction: 'Si₁₋ₓGeₓ (晶體)', function: '身體由可調節能隙的鍺矽合金構成，適應不同光譜。' },
+            '8_C': { name: '鍺矽催化中心', reaction: 'Ge-Si + 基質 → 產物', function: '鍺矽簇的電子特性使其成為高效的氫化反應催化劑。' },
+            '8_D': { name: '鍺矽分餾者', reaction: 'Si₁₋ₓGeₓ (廢物) → Si + Ge', function: '從廢棄的混合晶體中分離並回收純矽和純鍺。' },
+            '8_E': { name: '鍺矽紅外感知者', reaction: 'Si₁₋ₓGeₓ + 紅外光 → 電信號', function: '利用對紅外光敏感的鍺矽材料，在黑暗中「視物」。' },
+            '9_A': { name: '鎂矽還原者', reaction: 'Mg + SiO₂ → MgO + Si + 能量', function: '利用活潑的鎂還原矽酸鹽，獲取能量和矽。' },
+            '9_B': { name: '鎂橄欖石骨骼', reaction: '2Mg²⁺ + SiO₄⁴⁻ → Mg₂SiO₄ (沉澱)', function: '在體內形成鎂橄欖石晶體，構造輕質高強度的骨骼。' },
+            '9_C': { name: '鎂矽葉綠素', reaction: 'Mg-Si-環 + 光 → 電荷分離', function: '鎂位於矽基卟啉環中心，是捕獲光能的關鍵。' },
+            '9_D': { name: '鎂矽酸鹽沉澱者', reaction: 'Mg²⁺ + H₃SiO₄⁻ → MgH₃SiO₄ (沉澱)', function: '將體內多餘的矽酸以鎂鹽形式固定並排出。' },
+            '9_E': { name: '鎂矽燃燒推進者', reaction: 'Mg + SiF₄ → MgF₂ + Si (劇烈放熱)', function: '瞬間反應產生高溫氣體，用於推進或逃跑。' },
+            '10_A': { name: '氯矽燃燒者', reaction: 'SiH₄ + 2Cl₂ → SiCl₄ + 4H₂ + 能量', function: '氧化矽烷，釋放氫氣和能量，氫氣可用於浮力。' },
+            '10_B': { name: '氯矽酸鹽結晶', reaction: 'SiCl₄ + 2H₂O → SiO₂ + 4HCl', function: '分泌鹽酸蝕刻岩石，並利用生成的二氧化矽建造巢穴。' },
+            '10_C': { name: '氯矽水解催化劑', reaction: 'SiCl₄ + H₂O → SiO₂ + HCl', function: '體內有高效的催化劑，能快速水解氯矽化合物。' },
+            '10_D': { name: '氯化氫中和者', reaction: 'HCl + SiO₃²⁻ → HSiO₃⁻ + Cl⁻', function: '吸收並中和環境中的廢氣氯化氫。' },
+            '10_E': { name: '氯矽化學防禦', reaction: 'Si + 2Cl₂ → SiCl₄ (噴射)', function: '受到威脅時，體內將矽和氯反應，噴射出腐蝕性極強的四氯化矽液體。' }
+        };
+
+        // --- DOM 元素 ---
+        const matrixBody = document.getElementById('matrix-body');
+        const modal = document.getElementById('detailModal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalReaction = document.getElementById('modal-reaction');
+        const modalFunction = document.getElementById('modal-function');
+        const closeBtn = document.getElementsByClassName('close')[0];
+
+        // --- 生成矩陣表格 ---
+        function generateMatrix() {
+            for (let i = 0; i < rowHeaders.length; i++) {
+                const row = document.createElement('tr');
+                
+                // Row Header
+                const rowHeaderCell = document.createElement('th');
+                rowHeaderCell.textContent = rowHeaders[i];
+                row.appendChild(rowHeaderCell);
+
+                // Data Cells
+                for (let j = 0; j < colHeaders.length; j++) {
+                    const cell = document.createElement('td');
+                    const key = `${i + 1}_${colHeaders[j]}`;
+                    const data = lifeFormsData[key];
+
+                    if (data) {
+                        cell.innerHTML = `
+                            <div class="cell-title">${data.name}</div>
+                            <div class="cell-element">${rowHeaders[i]} / ${colHeaders[j]}</div>
+                        `;
+                        cell.dataset.key = key; // Store key for click event
+                    }
+                    row.appendChild(cell);
+                }
+                matrixBody.appendChild(row);
+            }
+        }
+
+        // --- 事件監聽器 ---
+        matrixBody.addEventListener('click', function(event) {
+            const cell = event.target.closest('td');
+            if (cell && cell.dataset.key) {
+                const key = cell.dataset.key;
+                const data = lifeFormsData[key];
+                
+                modalTitle.textContent = data.name;
+                modalReaction.textContent = data.reaction;
+                modalFunction.textContent = data.function;
+                
+                modal.style.display = 'block';
+            }
+        });
+
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // --- 初始化 ---
+        generateMatrix();
+
+    </script>
+    <div class="back-link">
+        <a href="siliconindex.html">← 返回首頁</a>
+    </div>
+</body>
+</html>

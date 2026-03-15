@@ -1,0 +1,1 @@
+web: java -Dserver.port=$PORT -jar target/mahjong-online-2.0.0.jar

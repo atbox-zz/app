@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 蒙特卡洛 3.0 - 選戰事件壓力測試</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --primary: #2c3e50; --accent: #e67e22; --danger: #c0392b; --success: #27ae60; --bg: #f0f2f5; }
+        body { font-family: 'PingFang TC', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .main-container { max-width: 1200px; margin: auto; display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
+        .panel { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        
+        /* 事件觸發器樣式 */
+        .event-box { background: #fff3cd; border: 2px dashed #ffeeba; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+        .event-title { font-weight: bold; color: #856404; font-size: 1.1rem; margin-bottom: 5px; }
+        .event-desc { font-size: 0.85rem; color: #665214; line-height: 1.4; }
+        
+        .btn-event { background: var(--primary); color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; cursor: pointer; margin-bottom: 10px; font-weight: bold; }
+        .btn-event:hover { background: #34495e; }
+        .btn-run { background: var(--accent); color: white; border: none; padding: 15px; width: 100%; border-radius: 5px; cursor: pointer; font-size: 1.2rem; font-weight: bold; box-shadow: 0 4px 0 #d35400; }
+        .btn-run:active { transform: translateY(2px); box-shadow: none; }
+
+        .input-card { border-left: 5px solid #ccc; padding: 10px; margin-bottom: 10px; background: #fafafa; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .prob-badge { background: var(--danger); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <div class="panel">
+        <h2>🔥 2026 選戰指揮所</h2>
+        
+        <div class="event-box" id="eventDisplay">
+            <div class="event-title">🚩 目前無特殊事件</div>
+            <div class="event-desc">點擊下方按鈕觸發隨機選戰事件</div>
+        </div>
+
+        <button class="btn-event" onclick="triggerRandomEvent()">🎲 觸發隨機事件 (Random Event)</button>
+        
+        <div id="candidateInputs"></div>
+
+        <button class="btn-run" onclick="runSimulation()">🚀 啟動萬次模擬預測</button>
+        <p style="font-size: 0.75rem; color: #7f8c8d; margin-top: 10px;">* 模擬包含 Box-Muller 分佈與即時事件修正係數。</p>
+    </div>
+
+    <div class="panel">
+        <div class="stats-grid">
+            <div><canvas id="radarChart"></canvas></div>
+            <div><canvas id="winChart"></canvas></div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <h3>🏁 模擬結果分析</h3>
+            <table style="width:100%; border-collapse: collapse;" id="resultTable">
+                <thead style="background:#eee;">
+                    <tr><th style="padding:10px;">候選人</th><th>修正後平均</th><th>勝場</th><th>勝選機率</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// 1. 初始化候選人數據 (以 2026 新北市為預設背景)
+let candidates = [
+    { id: 0, name: "李四川 (藍)", mean: 41, sd: 3, air: 75, org: 92, img: 80, color: "rgba(0, 0, 149, 0.7)", eventMod: 0 },
+    { id: 1, name: "蘇巧慧 (綠)", mean: 34, sd: 3, air: 82, org: 85, img: 85, color: "rgba(27, 148, 49, 0.7)", eventMod: 0 },
+    { id: 2, name: "黃國昌 (白)", mean: 15, sd: 5, air: 95, org: 30, img: 75, color: "rgba(40, 200, 200, 0.7)", eventMod: 0 }
+];
+
+// 2. 定義隨機事件庫
+const electionEvents = [
+    { title: "📢 重大醜聞爆料", desc: "領先者被爆出論文或土地爭議。效果：藍營支持度 -5%，誤差波動度增加。", action: () => { candidates[0].eventMod = -5; candidates[0].sd += 2; } },
+    { title: "⛈️ 投票日強降雨", desc: "極端天氣影響出門意願。效果：年輕選民居多的白營支持度 -3%，整體投票率下降。", action: () => { candidates[2].eventMod = -3; } },
+    { title: "🌟 天王級大咖站台", desc: "黨內重量級人物現身力挺。效果：綠營組織票凝聚，支持度 +4%。", action: () => { candidates[1].eventMod = 4; candidates[1].org += 5; } },
+    { title: "🕊️ 兩岸局勢升溫", desc: "外部局勢引發支持者歸隊。效果：藍綠兩黨支持度各 +2%，白營被邊緣化 -2%。", action: () => { candidates[0].eventMod = 2; candidates[1].eventMod = 2; candidates[2].eventMod = -2; } },
+    { title: "🤝 成功整合在野", desc: "藍白達成初步合作共識。效果：藍營支持度 +6%，白營支持度轉化為藍營勝率。", action: () => { candidates[0].eventMod = 6; candidates[2].eventMod = -4; } }
+];
+
+let radarChart, winChart;
+
+function renderInputs() {
+    const container = document.getElementById('candidateInputs');
+    container.innerHTML = candidates.map((c, i) => `
+        <div class="input-card" style="border-left-color: ${c.color}">
+            <strong>${c.name}</strong> <br>
+            <small>基準: ${c.mean}% | 修正: <span id="mod-${i}">${c.eventMod > 0 ? '+' : ''}${c.eventMod}</span>%</small>
+        </div>
+    `).join('');
+    updateRadar();
+}
+
+function triggerRandomEvent() {
+    const event = electionEvents[Math.floor(Math.random() * electionEvents.length)];
+    // 重置所有修正
+    candidates.forEach(c => { c.eventMod = 0; });
+    // 執行事件效果
+    event.action();
+    
+    document.getElementById('eventDisplay').innerHTML = `
+        <div class="event-title">🔴 事件：${event.title}</div>
+        <div class="event-desc">${event.desc}</div>
+    `;
+    renderInputs();
+}
+
+function randn_bm() {
+    let u = 0, v = 0;
+    while(u === 0) u = Math.random();
+    while(v === 0) v = Math.random();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
+function runSimulation() {
+    const iterations = 10000;
+    const stats = candidates.map(c => ({ ...c, wins: 0, totalScore: 0 }));
+
+    for (let i = 0; i < iterations; i++) {
+        let scores = stats.map(c => {
+            // 公式：得票 = (基準+修正) + (常態隨機數 * 標準差)
+            let score = (c.mean + c.eventMod) + (randn_bm() * c.sd);
+            return { id: c.id, score: score };
+        });
+
+        let winner = scores.reduce((prev, curr) => (curr.score > prev.score) ? curr : prev);
+        stats[winner.id].wins++;
+        stats.forEach((c, idx) => c.totalScore += scores[idx].score);
+    }
+    updateCharts(stats, iterations);
+}
+
+function updateRadar() {
+    const ctx = document.getElementById('radarChart');
+    if (radarChart) radarChart.destroy();
+    radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['空戰', '組織', '形象'],
+            datasets: candidates.map(c => ({
+                label: c.name,
+                data: [c.air, c.org, c.img],
+                backgroundColor: c.color,
+                borderColor: c.color.replace('0.7', '1')
+            }))
+        },
+        options: { scales: { r: { min: 0, max: 100 } } }
+    });
+}
+
+function updateCharts(stats, total) {
+    // 更新表格
+    const tbody = document.querySelector('#resultTable tbody');
+    tbody.innerHTML = stats.sort((a,b) => b.wins - a.wins).map(c => `
+        <tr>
+            <td style="padding:10px; border-bottom:1px solid #eee;">${c.name}</td>
+            <td style="text-align:center;">${(c.totalScore/total).toFixed(2)}%</td>
+            <td style="text-align:center;">${c.wins}</td>
+            <td style="text-align:center;"><span class="prob-badge">${((c.wins/total)*100).toFixed(1)}%</span></td>
+        </tr>
+    `).join('');
+
+    // 更新勝率圖
+    const ctx = document.getElementById('winChart');
+    if (winChart) winChart.destroy();
+    winChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: stats.map(c => c.name),
+            datasets: [{
+                data: stats.map(c => c.wins),
+                backgroundColor: stats.map(c => c.color)
+            }]
+        }
+    });
+}
+
+// 初始化渲染
+renderInputs();
+</script>
+
+</body>
+</html>

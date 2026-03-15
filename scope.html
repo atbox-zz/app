@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 示波器 - 音訊分析工具</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ff88;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* 左側聊天區域 */
+        .chat-panel {
+            width: 35%;
+            background: rgba(0, 0, 0, 0.8);
+            border-right: 2px solid #00ff88;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+        }
+
+        .chat-header {
+            padding: 20px;
+            background: linear-gradient(90deg, #00ff88, #00cc70);
+            color: #000;
+            font-weight: bold;
+            font-size: 18px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 85%;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #00ff88, #00cc70);
+            color: #000;
+            align-self: flex-end;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .ai-message {
+            background: rgba(255, 255, 255, 0.1);
+            color: #00ff88;
+            align-self: flex-start;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        .chat-input {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            border-top: 1px solid #00ff88;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            color: #00ff88;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            border-color: #00cc70;
+        }
+
+        .input-group button {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #00ff88, #00cc70);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .input-group button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 136, 0.4);
+        }
+
+        /* 右側視覺化區域 */
+        .visualization-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: radial-gradient(circle at center, rgba(0, 255, 136, 0.05) 0%, transparent 70%);
+        }
+
+        .viz-header {
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #00ff88;
+        }
+
+        .viz-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .control-button {
+            padding: 8px 16px;
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            border-radius: 6px;
+            color: #00ff88;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .control-button:hover {
+            background: rgba(0, 255, 136, 0.3);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .control-button.active {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .control-button.start {
+            background: #f60606;
+            color: #f4f2f2;
+        }
+
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+        }
+
+        /* 動畫效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .recording {
+            animation: pulse 1s infinite;
+        }
+
+        /* 自訂滾動條 */
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #00ff88;
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #00cc70;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .chat-panel {
+                width: 100%;
+                height: 50%;
+            }
+            
+            .visualization-panel {
+                height: 50%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左側聊天區域 -->
+        <div class="chat-panel">
+            <div class="chat-header">
+                🤖 AI 示波器助手
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <div class="message ai-message">
+                    👋 你好！我是你的 AI 示波器助手。我可以幫你：
+                    <br>• 分析音訊波形特性
+                    <br>• 調整顯示參數
+                    <br>• 解釋頻譜分析結果
+                    <br>• 提供音訊處理建議
+                    <br><br>請允許麥克風權限開始分析，或問我任何問題！
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <div class="input-group">
+                    <input type="text" id="messageInput" placeholder="輸入你的問題...">
+                    <button onclick="sendMessage()">發送</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右側視覺化區域 -->
+        <div class="visualization-panel">
+            <div class="viz-header">
+                <div class="viz-title">🌊 即時音訊分析</div>
+                <div class="controls">
+                    <button class="control-button active" id="timeDomainBtn" onclick="setMode('time')">時域</button>
+                    <button class="control-button" id="frequencyBtn" onclick="setMode('frequency')">頻域</button>
+                    <button class="control-button" id="xyBtn" onclick="setMode('xy')">XY模式</button>
+                    <button class="control-button start" id="recordBtn" onclick="toggleRecording()">🎤 開始</button>
+                </div>
+            </div>
+            
+            <div class="canvas-container">
+                <canvas id="oscilloscope"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全域變數
+        let audioContext;
+        let analyser;
+        let microphone;
+        let dataArray;
+        let canvas;
+        let ctx;
+        let animationId;
+        let isRecording = false;
+        let currentMode = 'time'; // 'time', 'frequency', 'xy'
+        let bufferLength;
+
+        // AI 回應庫
+        const aiResponses = {
+            greeting: ['你好！有什麼我可以幫助你分析的嗎？', '嗨！準備開始音訊分析了嗎？'],
+            frequency: [
+                '頻域分析可以顯示音訊中各個頻率成分的強度。低頻在左側，高頻在右側。',
+                '透過 FFT 轉換，我們可以看到音訊的頻譜分布。峰值表示主要的頻率成分。',
+                '頻譜分析有助於識別音調、諧波和噪音特徵。'
+            ],
+            time: [
+                '時域顯示音訊信號隨時間的變化。振幅反映音量大小。',
+                '波形的形狀告訴我們音訊的特性：正弦波表示純音調，複雜波形表示豐富的諧波內容。',
+                '觀察波形可以幫助識別音訊的動態範圍和失真情況。'
+            ],
+            xy: [
+                'XY 模式創造美麗的李薩茹圖形，顯示左右聲道的相位關係。',
+                '圓形圖案表示單聲道信號，複雜圖形表示立體聲效果。',
+                'XY 模式常用於分析立體聲的寬度和相位一致性。'
+            ],
+            analysis: [
+                '我注意到你的音訊有有趣的特徵！需要我詳細分析嗎？',
+                '這個波形顯示了豐富的頻率內容。你想了解特定的頻段嗎？',
+                '音訊信號看起來很穩定。有特定的分析需求嗎？'
+            ]
+        };
+
+        // 初始化
+        function init() {
+            canvas = document.getElementById('oscilloscope');
+            ctx = canvas.getContext('2d');
+            
+            // 設置 canvas 尺寸
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // 鍵盤事件
+            document.getElementById('messageInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            // 開始繪製背景動畫
+            drawBackground();
+        }
+
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            canvas.style.width = rect.width + 'px';
+            canvas.style.height = rect.height + 'px';
+        }
+
+        // 音訊設置
+        async function setupAudio() {
+            try {
+                // 檢查瀏覽器支援
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    addMessage('ai', '❌ 你的瀏覽器不支援音訊錄製功能。請使用較新版本的 Chrome、Firefox 或 Safari。');
+                    return false;
+                }
+
+                // 請求麥克風權限
+                addMessage('ai', '🎤 正在請求麥克風權限，請點擊「允許」...');
+                
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        sampleRate: 44100
+                    } 
+                });
+                
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // 檢查 AudioContext 狀態
+                if (audioContext.state === 'suspended') {
+                    await audioContext.resume();
+                }
+                
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+                
+                analyser.fftSize = 2048;
+                analyser.smoothingTimeConstant = 0.8;
+                bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+                
+                microphone.connect(analyser);
+                
+                addMessage('ai', '✅ 麥克風連接成功！現在可以看到你的聲音波形了。試著說話或播放音樂吧！');
+                return true;
+                
+            } catch (err) {
+                console.error('音訊設置錯誤:', err);
+                
+                let errorMessage = '❌ ';
+                
+                switch(err.name) {
+                    case 'NotAllowedError':
+                        errorMessage += '麥克風權限被拒絕。解決方法：\n';
+                        errorMessage += '• 點擊地址欄左側的🔒圖標\n';
+                        errorMessage += '• 將麥克風設為「允許」\n';
+                        errorMessage += '• 重新整理頁面再試一次\n';
+                        errorMessage += '• 或使用 Chrome/Firefox/Safari 最新版本';
+                        break;
+                    case 'NotFoundError':
+                        errorMessage += '找不到麥克風設備。請確保：\n';
+                        errorMessage += '• 麥克風已正確連接\n';
+                        errorMessage += '• 系統音訊驅動程式正常\n';
+                        errorMessage += '• 嘗試重新插拔麥克風';
+                        break;
+                    case 'NotReadableError':
+                        errorMessage += '麥克風被其他應用程式占用。請：\n';
+                        errorMessage += '• 關閉其他使用麥克風的程式\n';
+                        errorMessage += '• 重新啟動瀏覽器';
+                        break;
+                    case 'OverconstrainedError':
+                        errorMessage += '麥克風不支援要求的設定。嘗試使用預設設定...';
+                        // 嘗試基本設定
+                        return await setupBasicAudio();
+                    default:
+                        errorMessage += `音訊設置失敗 (${err.name})。\n`;
+                        errorMessage += '請確保瀏覽器支援音訊錄製功能。';
+                }
+                
+                addMessage('ai', errorMessage);
+                
+                // 顯示示範模式選項
+                setTimeout(() => {
+                    addMessage('ai', '💡 你也可以試試「示範模式」，我會生成模擬音訊信號來展示各種波形！');
+                    showDemoOption();
+                }, 2000);
+                
+                return false;
+            }
+        }
+
+        // 基本音訊設置（備用方案）
+        async function setupBasicAudio() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+                
+                analyser.fftSize = 1024; // 降低 FFT 大小
+                bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+                
+                microphone.connect(analyser);
+                
+                addMessage('ai', '✅ 麥克風連接成功（基本模式）！');
+                return true;
+            } catch (err) {
+                return false;
+            }
+        }
+
+        // 錄製控制
+        async function toggleRecording() {
+            const btn = document.getElementById('recordBtn');
+            
+            if (!isRecording) {
+                const success = await setupAudio();
+                if (success) {
+                    isRecording = true;
+                    btn.textContent = '⏸️ 停止';
+                    btn.classList.add('recording');
+                    startVisualization();
+                    addMessage('ai', '🎙️ 開始錄製！現在可以看到即時音訊分析了。');
+                }
+            } else {
+                isRecording = false;
+                btn.textContent = '🎤 開始';
+                btn.classList.remove('recording');
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                }
+                if (audioContext) {
+                    audioContext.close();
+                }
+                drawBackground();
+                addMessage('ai', '⏹️ 錄製已停止。');
+            }
+        }
+
+        // 模式切換
+        function setMode(mode) {
+            currentMode = mode;
+            
+            // 更新按鈕狀態
+            document.querySelectorAll('.control-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(mode === 'time' ? 'timeDomainBtn' : 
+                                 mode === 'frequency' ? 'frequencyBtn' : 'xyBtn').classList.add('active');
+            
+            // AI 回應
+            if (aiResponses[mode]) {
+                const response = aiResponses[mode][Math.floor(Math.random() * aiResponses[mode].length)];
+                setTimeout(() => addMessage('ai', response), 500);
+            }
+        }
+
+        // 視覺化
+        function startVisualization() {
+            draw();
+        }
+
+        function draw() {
+            if (!isRecording) return;
+            
+            animationId = requestAnimationFrame(draw);
+            
+            const rect = canvas.getBoundingClientRect();
+            const width = rect.width;
+            const height = rect.height;
+            
+            // 清除畫布
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, width, height);
+            
+            if (currentMode === 'time') {
+                drawTimeDomain(width, height);
+            } else if (currentMode === 'frequency') {
+                drawFrequencyDomain(width, height);
+            } else if (currentMode === 'xy') {
+                drawXY(width, height);
+            }
+        }
+
+        function drawTimeDomain(width, height) {
+            analyser.getByteTimeDomainData(dataArray);
+            
+            ctx.strokeStyle = '#00ff88';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            const sliceWidth = width / bufferLength;
+            let x = 0;
+            
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 128.0;
+                const y = v * height / 2;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+                
+                x += sliceWidth;
+            }
+            
+            ctx.stroke();
+            
+            // 添加網格
+            drawGrid(width, height);
+        }
+
+        function drawFrequencyDomain(width, height) {
+            analyser.getByteFrequencyData(dataArray);
+            
+            const barWidth = width / bufferLength * 2;
+            let x = 0;
+            
+            // 創建漸變
+            const gradient = ctx.createLinearGradient(0, height, 0, 0);
+            gradient.addColorStop(0, '#00ff88');
+            gradient.addColorStop(0.5, '#00cc70');
+            gradient.addColorStop(1, '#ffffff');
+            
+            for (let i = 0; i < bufferLength / 2; i++) {
+                const barHeight = (dataArray[i] / 255) * height;
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(x, height - barHeight, barWidth - 1, barHeight);
+                
+                x += barWidth;
+            }
+            
+            // 頻率標籤
+            drawFrequencyLabels(width, height);
+        }
+
+        function drawXY(width, height) {
+            analyser.getByteTimeDomainData(dataArray);
+            
+            ctx.strokeStyle = '#00ff88';
+            ctx.lineWidth = 1;
+            ctx.globalCompositeOperation = 'lighter';
+            
+            ctx.beginPath();
+            
+            for (let i = 0; i < bufferLength - 1; i += 2) {
+                const x = (dataArray[i] / 255) * width;
+                const y = (dataArray[i + 1] / 255) * height;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            
+            ctx.stroke();
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
+        function drawBackground() {
+            if (isRecording) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const width = rect.width;
+            const height = rect.height;
+            
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, width, height);
+            
+            // 繪製待機動畫
+            const time = Date.now() * 0.002;
+            ctx.strokeStyle = 'rgba(0, 255, 136, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            for (let x = 0; x < width; x += 5) {
+                const y = height / 2 + Math.sin((x + time * 100) * 0.02) * 30;
+                if (x === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            
+            ctx.stroke();
+            
+            if (!isRecording) {
+                requestAnimationFrame(drawBackground);
+            }
+        }
+
+        function drawGrid(width, height) {
+            ctx.strokeStyle = 'rgba(0, 255, 136, 0.2)';
+            ctx.lineWidth = 1;
+            
+            // 水平線
+            for (let y = 0; y < height; y += height / 8) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+            
+            // 垂直線
+            for (let x = 0; x < width; x += width / 10) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+        }
+
+        function drawFrequencyLabels(width, height) {
+            ctx.fillStyle = '#00ff88';
+            ctx.font = '12px Microsoft JhengHei';
+            
+            const labels = ['20Hz', '200Hz', '2kHz', '20kHz'];
+            for (let i = 0; i < labels.length; i++) {
+                const x = (i / (labels.length - 1)) * width;
+                ctx.fillText(labels[i], x, height - 5);
+            }
+        }
+
+        // 聊天功能
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addMessage('user', message);
+                input.value = '';
+                
+                // AI 回應
+                setTimeout(() => {
+                    const response = generateAIResponse(message);
+                    addMessage('ai', response);
+                }, 1000);
+            }
+        }
+
+        function addMessage(type, content) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`;
+            messageDiv.innerHTML = content;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function generateAIResponse(message) {
+            const msg = message.toLowerCase();
+            
+            if (msg.includes('頻率') || msg.includes('頻域') || msg.includes('fft')) {
+                return aiResponses.frequency[Math.floor(Math.random() * aiResponses.frequency.length)];
+            } else if (msg.includes('時域') || msg.includes('波形') || msg.includes('時間')) {
+                return aiResponses.time[Math.floor(Math.random() * aiResponses.time.length)];
+            } else if (msg.includes('xy') || msg.includes('立體') || msg.includes('相位')) {
+                return aiResponses.xy[Math.floor(Math.random() * aiResponses.xy.length)];
+            } else if (msg.includes('分析') || msg.includes('怎麼')) {
+                return aiResponses.analysis[Math.floor(Math.random() * aiResponses.analysis.length)];
+            } else if (msg.includes('你好') || msg.includes('嗨')) {
+                return aiResponses.greeting[Math.floor(Math.random() * aiResponses.greeting.length)];
+            } else {
+                return '這是個很好的問題！' + (isRecording ? 
+                    '我可以看到你的音訊數據，' + (currentMode === 'time' ? '時域波形' : 
+                    currentMode === 'frequency' ? '頻譜分析' : 'XY模式圖形') + '顯示了有趣的特徵。' :
+                    '請先開始錄製以便我分析你的音訊。');
+            }
+        }
+
+        // 啟動應用
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

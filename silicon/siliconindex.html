@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>矽基生命探索中心</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+TC:wght@400;700&display=swap');
+
+        :root {
+            --bg-color: #0a0a0f;
+            --surface-color: #1a1a2e;
+            --text-color: #e0e0e0;
+            --primary-color: #00ffff;
+            --secondary-color: #ff00ff;
+            --accent-color: #ffaa00;
+            --border-color: #2a2a3e;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Noto Sans TC', 'Orbitron', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        header {
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            color: var(--primary-color);
+            text-shadow: 0 0 20px var(--primary-color);
+            font-size: 3.5em;
+            margin: 0;
+        }
+
+        .subtitle {
+            color: #aaa;
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+
+        .links-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            width: 90%;
+            max-width: 1000px;
+        }
+
+        .page-link {
+            background-color: var(--surface-color);
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            padding: 30px;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .page-link:hover {
+            transform: translateY(-10px) scale(1.03);
+            border-color: var(--primary-color);
+            box-shadow: 0 15px 30px rgba(0, 255, 255, 0.3);
+        }
+
+        .page-link h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--secondary-color);
+            margin: 15px 0 10px 0;
+        }
+
+        .page-link p {
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .page-link .icon {
+            font-size: 4em;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 5px currentColor);
+        }
+
+        .link-1 { color: #ffaa00; }
+        .link-2 { color: #00ff88; }
+        .link-3 { color: #ff00ff; }
+        .link-4 { color: #00ffff; }
+
+        footer {
+            position: absolute;
+            bottom: 20px;
+            color: #666;
+            font-size: 0.8em;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>矽基生命探索中心</h1>
+        <p class="subtitle">探索基於矽化學的潛在生命形式</p>
+    </header>
+
+    <main class="links-container">
+        <a href="page1-formula.html" class="page-link">
+            <div class="icon link-1">⚗️</div>
+            <h2>化學式生成器</h2>
+            <p>根據環境、分子類型和複雜度，生成獨特的矽基生命化學式。</p>
+        </a>
+
+        <a href="page2-metabolism.html" class="page-link">
+            <div class="icon link-2">⚗️</div>
+            <h2>代謝過程模擬器</h2>
+            <p>逐步模擬「矽晶菌」的能量獲取、合成與廢物處理過程。</p>
+        </a>
+
+        <a href="page3-matrix0.html" class="page-link">
+            <div class="icon link-3">🧬</div>
+            <h2>生命矩陣儀表板0</h2>
+            <p>探索 50 種與不同元素結合的矽基生命體。</p>
+        </a>
+
+        <a href="page3-matrix.html" class="page-link">
+            <div class="icon link-3">🧬</div>
+            <h2>生命矩陣儀表板</h2>
+            <p>以圖示化方式探索 10x5 = 50 種與不同元素結合的矽基生命體。</p>
+        </a>
+
+        <a href="page4-evolution.html" class="page-link">
+            <div class="icon link-4">🚀</div>
+            <h2>演化軌跡</h2>
+            <p>預留空間，未來用於展示矽基生命從起源到文明的宏大歷程。</p>
+        </a>
+        <a href="siliconReadMe.html" class="page-link">
+            <div class="icon link-4">說明</div>
+            <h4>矽基生命探索過程整合成一份完整的說明文件。</h4>
+        </a>
+        <a href="silicon_dialog.html" class="page-link">
+            <div class="icon link-4">記錄</div>
+            <h4>從概念到實現的完整對話記錄，包含您的每一個提問和我的詳細回應。</h4>
+        </a>
+        <a href="silicon_Auto.html" class="page-link">
+            <div class="icon link-4">記錄2</div>
+            <h4>自動化。</h4>
+        </a>
+        <a href="si50_life.jpg" class="page-link">
+            <div class="icon link-4"></div>
+            <h2>50種可能的矽生命體</h2>
+            <p>起源到文明。</p>
+        </a>
+    </main>
+    <!--
+    <footer>
+        <p>© 2025 矽基生命探索中心</p>
+    </footer>
+    -->
+</body>
+</html>

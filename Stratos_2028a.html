@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stratos 2028 | 戰略神經中樞系統完整說明文件</title>
+    <style>
+        :root {
+            --primary: #007bff;
+            --accent: #00d4ff;
+            --bg: #0a0e14;
+            --surface: #161b22;
+            --text: #c9d1d9;
+            --header-text: #ffffff;
+            --border: #30363d;
+        }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background-color: var(--bg); color: var(--text); line-height: 1.6; margin: 0; padding: 0; }
+        .container { max-width: 1000px; margin: auto; padding: 40px 20px; }
+        header { border-bottom: 2px solid var(--primary); padding-bottom: 20px; margin-bottom: 40px; text-align: center; }
+        h1 { color: var(--header-text); font-size: 2.5em; margin-bottom: 10px; }
+        h2 { color: var(--accent); border-left: 4px solid var(--primary); padding-left: 15px; margin-top: 50px; }
+        h3 { color: var(--header-text); margin-top: 30px; }
+        .module-box { background: var(--surface); border: 1px solid var(--border); padding: 25px; border-radius: 12px; margin-bottom: 30px; }
+        .highlight { color: var(--accent); font-weight: bold; }
+        .timeline { border-left: 2px solid var(--primary); padding-left: 20px; margin-left: 20px; }
+        .timeline-item { margin-bottom: 30px; position: relative; }
+        .timeline-item::before { content: ""; position: absolute; left: -31px; top: 5px; width: 20px; height: 20px; background: var(--primary); border-radius: 50%; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: var(--surface); }
+        th, td { padding: 12px; border: 1px solid var(--border); text-align: left; }
+        th { background: #1f242c; color: var(--accent); }
+        blockquote { border-left: 5px solid var(--primary); background: #1c2128; padding: 20px; font-style: italic; margin: 20px 0; }
+        footer { text-align: center; margin-top: 80px; padding: 20px; font-size: 0.9em; color: #8b949e; border-top: 1px solid var(--border); }
+        .tag { display: inline-block; background: var(--primary); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; margin-right: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Stratos 2028: 戰略神經中樞系統</h1>
+        <p>「讓對手在你的劇本裡打仗」— 全方位政權爭奪戰決策白皮書</p>
+    </header>
+
+    <section id="vision">
+        <h2>一、 核心願景與戰略方針</h2>
+        <p>Stratos 2028 是一套整合了 <strong>Palantir 數據邏輯</strong>、<strong>CMO (Command: Modern Operations) 實戰模擬</strong> 與 <strong>AI 輿情決策</strong> 的神經中樞系統。其目標是將選戰從傳統的體力對抗升級為「算力碾壓」，實現對敵方陣營的認知解構與敘事壟斷。</p>
+        <blockquote>戰略核心：不只是反應民意，而是製造民意；不只是觀察戰場，而是重塑戰場。</blockquote>
+    </section>
+
+    <section id="architecture">
+        <h2>二、 系統四層架構 (System Layers)</h2>
+        
+        <div class="module-box">
+            <h3>L1. 數據融合層 (Data Fusion Layer - Palantir Logic)</h3>
+            <p><span class="tag">底層</span> 任務：將雜亂訊號轉化為結構化物件。</p>
+            <ul>
+                <li><strong>多源情資：</strong> 整合 OSINT (社群、新聞)、SIGINT (地下賭盤、金流) 與封閉數據 (黨員名冊、歷年得票)。</li>
+                <li><strong>數位本體論：</strong> 定義選民價值觀、派系利益鏈與議題焦慮感。</li>
+            </ul>
+        </div>
+
+        <div class="module-box">
+            <h3>L2. 實戰模擬層 (Simulation & Analysis Layer - CMO Engine)</h3>
+            <p><span class="tag">中層</span> 任務：數位兵棋推演與壓力測試。</p>
+            <ul>
+                <li><strong>數位孿生：</strong> 模擬候選人在不同地理區與社會環境下的動員力與摩擦力。</li>
+                <li><strong>蒙地卡羅演習：</strong> 模擬萬次黑天鵝事件，計算 PI (當選指標) 的勝率分佈。</li>
+            </ul>
+        </div>
+
+        <div class="module-box">
+            <h3>L3. 戰略決策層 (Strategic Decision Layer - SNC Hub)</h3>
+            <p><span class="tag">核心</span> 任務：生成具體戰略指令與指標監控。</p>
+            <ul>
+                <li><strong>核心指標：</strong> 實時監測 PI (當選率)、KVI (敵脆弱度)、ACI (盟友凝聚力)。</li>
+                <li><strong>雙核指令：</strong> 自動分派「攻擊性任務」給主席，「建設性任務」給候選人。</li>
+            </ul>
+        </div>
+
+        <div class="module-box">
+            <h3>L4. 行動擴散層 (Action & Amplification Layer - Stratos UI)</h3>
+            <p><span class="tag">頂層</span> 任務：實現全網敘事壟斷與認知殺傷。</p>
+            <ul>
+                <li><strong>內容鑄造：</strong> AI 自動化生成多維度內容 (感性、理性、迷因)。</li>
+                <li><strong>飽和投放：</strong> 透過微網紅與數位部隊，在 2 小時內覆蓋全網討論區。</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="cognitive">
+        <h2>三、 核心對手認知解構路徑</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>對象</th>
+                    <th>核心心理基礎</th>
+                    <th>解構路徑 (Stratos 策略)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>高科技業/理科生</strong></td>
+                    <td>基於數據的穩定感</td>
+                    <td>解構「能源安全」。將執政黨定義為科技發展的絆腳石，強化未來缺電焦慮。</td>
+                </tr>
+                <tr>
+                    <td><strong>南部基層/基本盤</strong></td>
+                    <td>基於本土的情感寄託</td>
+                    <td>解構「階級公平」。強調權貴分贓與基層停滯，製造「被出賣的忠誠」感。</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section id="timeline">
+        <h2>四、 2027-2028 全年度戰略時間軸</h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <span class="highlight">2027 Q1-Q2：靜默偵測與弱點錨定</span>
+                <p>利用 Palantir 邏輯掃描民生痛點。啟動非政治性議題「慢火燉青蛙」，在不引起警覺的情況下植入懷疑種子。</p>
+            </div>
+            <div class="timeline-item">
+                <span class="highlight">2027 Q3：認知侵蝕與全網圍剿</span>
+                <p>SNC 下達總攻擊令。發動「認知殺傷鏈」，讓能源與弊案議題成為社會集體焦慮中心。</p>
+            </div>
+            <div class="timeline-item">
+                <span class="highlight">2027 Q4：戰略收割與形象轉場</span>
+                <p>蔣萬安「希望敘事」正式出場。利用敘事壟斷封鎖敵方澄清，完成 PI 指標的絕對壓制。</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>CONFIDENTIAL | Stratos 2028 戰略決策系統開發組 | 2025.12.25 存檔</p>
+    </footer>
+</div>
+
+</body>
+</html>

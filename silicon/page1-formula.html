@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>矽基生命化學式模擬器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #e60073; }
+            to { text-shadow: 0 0 20px #fff, 0 0 30px #ff4da6, 0 0 40px #ff4da6; }
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 968px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .simulation-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .simulation-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .card-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+
+        .card-title {
+            font-size: 1.5em;
+            color: #4a5568;
+        }
+
+        .organism {
+            position: relative;
+            height: 200px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .silicon-animal {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            position: relative;
+            animation: breathe 3s ease-in-out infinite;
+            box-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+        }
+
+        .silicon-plant {
+            width: 100px;
+            height: 150px;
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            border-radius: 50% 50% 0 0;
+            position: relative;
+            animation: sway 4s ease-in-out infinite;
+            box-shadow: 0 0 30px rgba(72, 187, 120, 0.5);
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes sway {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        .molecule {
+            position: absolute;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .molecule.inhale {
+            left: -100px;
+            background: #e6f3ff;
+            color: #0066cc;
+        }
+
+        .molecule.exhale {
+            right: -100px;
+            background: #ffe6e6;
+            color: #cc0000;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .reaction-formula {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            font-size: 1.1em;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .reaction-formula.active {
+            background: #edf2f7;
+            border-color: #667eea;
+            transform: scale(1.02);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.secondary {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+        }
+
+        .temperature-control {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 10px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            transition: opacity 0.2s;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.05);
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .info-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .info-section {
+            margin: 20px 0;
+        }
+
+        .info-section h3 {
+            color: #4a5568;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-section p {
+            line-height: 1.6;
+            color: #718096;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        @keyframes particle-float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧬 矽基生命化學式模擬器</h1>
+            <p class="subtitle">探索矽基生命的獨特代謝過程與化學反應</p>
+        </header>
+
+        <div class="main-content">
+            <!-- 矽基動物模擬 -->
+            <div class="simulation-card">
+                <div class="card-header">
+                    <span class="card-icon">🦎</span>
+                    <h2 class="card-title">矽基動物呼吸模擬</h2>
+                </div>
+
+                <div class="organism">
+                    <div class="silicon-animal"></div>
+                    <div class="molecule inhale" id="inhaleMolecule">F₂</div>
+                    <div class="molecule exhale" id="exhaleMolecule">SiF₄</div>
+                </div>
+
+                <div class="reaction-formula" id="animalFormula">
+                    Si + 2F₂ → SiF₄
+                </div>
+
+                <div class="controls">
+                    <button class="btn" onclick="startBreathing('fluorine')">氟氣呼吸</button>
+                    <button class="btn" onclick="startBreathing('hydrogen')">氫氣呼吸</button>
+                    <button class="btn secondary" onclick="startBreathing('hf')">氟化氫呼吸</button>
+                </div>
+
+                <div class="temperature-control">
+                    <label><strong>環境溫度控制</strong></label>
+                    <div class="slider-container">
+                        <span>0°C</span>
+                        <input type="range" class="slider" id="tempSlider" min="0" max="2000" value="25">
+                        <span id="tempValue">25°C</span>
+                    </div>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="breathRate">12</div>
+                        <div class="stat-label">呼吸頻率/分</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="energy">85%</div>
+                        <div class="stat-label">能量水平</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="efficiency">92%</div>
+                        <div class="stat-label">代謝效率</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 矽基植物模擬 -->
+            <div class="simulation-card">
+                <div class="card-header">
+                    <span class="card-icon">🌿</span>
+                    <h2 class="card-title">矽基植物光合作用</h2>
+                </div>
+
+                <div class="organism">
+                    <div class="silicon-plant"></div>
+                    <div class="molecule inhale" id="plantInhale">SiF₄ + H₂O</div>
+                    <div class="molecule exhale" id="plantExhale">HF</div>
+                </div>
+
+                <div class="reaction-formula" id="plantFormula">
+                    SiF₄ + 2H₂O + 光 → SiO₂ + 4HF
+                </div>
+
+                <div class="controls">
+                    <button class="btn" onclick="startPhotosynthesis()">開始光合作用</button>
+                    <button class="btn secondary" onclick="toggleLight()">
+                        <span id="lightStatus">☀️ 光照開啟</span>
+                    </button>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="sugarRate">45</div>
+                        <div class="stat-label">矽澱粉產量/時</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="waterUse">68%</div>
+                        <div class="stat-label">水分利用率</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="lightIntensity">75%</div>
+                        <div class="stat-label">光照強度</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 資訊面板 -->
+        <div class="info-panel">
+            <div class="info-section">
+                <h3>🔬 矽基生命特點</h3>
+                <p>矽基生命是一種假設的生命形式，使用矽（Si）作為基礎元素而非碳（C）。由於矽與氧的極強親和力，矽基生命演化出了獨特的代謝方式，避免產生固體的二氧化矽（SiO₂）。</p>
+            </div>
+
+            <div class="info-section">
+                <h3>🌡️ 溫度影響</h3>
+                <p>在低溫環境下，二氧化矽呈固態，會堵塞呼吸系統。當溫度超過1713°C時，二氧化矽開始熔化；超過2230°C時氣化，此時矽基生命可以像地球生物一樣呼吸。</p>
+            </div>
+
+            <div class="info-section">
+                <h3>⚗️ 化學反應原理</h3>
+                <p>矽基生命通過與氟（F）的強烈反應來獲取能量。氟是電負性最強的元素，能夠有效分解矽化合物，產生氣態的四氟化矽（SiF₄），解決了固體廢物的問題。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局變數
+        let isBreathing = false;
+        let isPhotosynthesizing = false;
+        let lightOn = true;
+        let currentBreathType = 'fluorine';
+        let breathInterval;
+        let photoInterval;
+
+        // 溫度滑塊事件
+        const tempSlider = document.getElementById('tempSlider');
+        const tempValue = document.getElementById('tempValue');
+        
+        tempSlider.addEventListener('input', function() {
+            const temp = this.value;
+            tempValue.textContent = temp + '°C';
+            updateTemperatureEffects(temp);
+        });
+
+        // 更新溫度影響
+        function updateTemperatureEffects(temp) {
+            const breathRate = document.getElementById('breathRate');
+            const efficiency = document.getElementById('efficiency');
+            
+            // 根據溫度調整呼吸頻率和效率
+            if (temp < 500) {
+                breathRate.textContent = Math.floor(12 + (500 - temp) / 50);
+                efficiency.textContent = Math.floor(92 - (500 - temp) / 25) + '%';
+            } else if (temp > 1500) {
+                breathRate.textContent = Math.floor(12 - (temp - 1500) / 100);
+                efficiency.textContent = Math.floor(92 + (temp - 1500) / 100) + '%';
+            } else {
+                breathRate.textContent = 12;
+                efficiency.textContent = '92%';
+            }
+
+            // 高溫效果
+            if (temp > 1700) {
+                document.querySelector('.silicon-animal').style.boxShadow = '0 0 50px rgba(255, 100, 0, 0.8)';
+            } else {
+                document.querySelector('.silicon-animal').style.boxShadow = '0 0 30px rgba(102, 126, 234, 0.5)';
+            }
+        }
+
+        // 開始呼吸
+        function startBreathing(type) {
+            if (isBreathing) {
+                clearInterval(breathInterval);
+                isBreathing = false;
+            }
+
+            currentBreathType = type;
+            isBreathing = true;
+            const formula = document.getElementById('animalFormula');
+            const inhaleMolecule = document.getElementById('inhaleMolecule');
+            const exhaleMolecule = document.getElementById('exhaleMolecule');
+
+            // 根據呼吸類型更新化學式
+            switch(type) {
+                case 'fluorine':
+                    formula.innerHTML = 'Si + 2F₂ → SiF₄';
+                    inhaleMolecule.textContent = 'F₂';
+                    exhaleMolecule.textContent = 'SiF₄';
+                    break;
+                case 'hydrogen':
+                    formula.innerHTML = 'Si + 2H₂ → SiH₄';
+                    inhaleMolecule.textContent = 'H₂';
+                    exhaleMolecule.textContent = 'SiH₄';
+                    break;
+                case 'hf':
+                    formula.innerHTML = 'SiO₂ + 4HF → SiF₄ + 2H₂O';
+                    inhaleMolecule.textContent = 'HF';
+                    exhaleMolecule.textContent = 'SiF₄';
+                    break;
+            }
+
+            // 動畫效果
+            formula.classList.add('active');
+            setTimeout(() => formula.classList.remove('active'), 500);
+
+            // 呼吸動畫
+            let inhale = true;
+            breathInterval = setInterval(() => {
+                if (inhale) {
+                    inhaleMolecule.style.animation = 'none';
+                    setTimeout(() => {
+                        inhaleMolecule.style.animation = 'float 1.5s ease-in-out';
+                        inhaleMolecule.style.left = '20px';
+                    }, 10);
+                } else {
+                    exhaleMolecule.style.animation = 'none';
+                    setTimeout(() => {
+                        exhaleMolecule.style.animation = 'float 1.5s ease-in-out';
+                        exhaleMolecule.style.right = '20px';
+                    }, 10);
+                }
+                inhale = !inhale;
+
+                // 更新能量
+                updateEnergy();
+            }, 1500);
+        }
+
+        // 開始光合作用
+        function startPhotosynthesis() {
+            if (isPhotosynthesizing) {
+                clearInterval(photoInterval);
+                isPhotosynthesizing = false;
+                return;
+            }
+
+            if (!lightOn) {
+                alert('需要光照才能進行光合作用！');
+                return;
+            }
+
+            isPhotosynthesizing = true;
+            const formula = document.getElementById('plantFormula');
+            const plantInhale = document.getElementById('plantInhale');
+            const plantExhale = document.getElementById('plantExhale');
+
+            formula.classList.add('active');
+            setTimeout(() => formula.classList.remove('active'), 500);
+
+            let inhale = true;
+            photoInterval = setInterval(() => {
+                if (inhale) {
+                    plantInhale.style.animation = 'none';
+                    setTimeout(() => {
+                        plantInhale.style.animation = 'float 2s ease-in-out';
+                        plantInhale.style.left = '20px';
+                    }, 10);
+                } else {
+                    plantExhale.style.animation = 'none';
+                    setTimeout(() => {
+                        plantExhale.style.animation = 'float 2s ease-in-out';
+                        plantExhale.style.right = '20px';
+                    }, 10);
+                }
+                inhale = !inhale;
+
+                // 更新矽澱粉產量
+                updateSugarProduction();
+            }, 2000);
+        }
+
+        // 切換光照
+        function toggleLight() {
+            lightOn = !lightOn;
+            const lightStatus = document.getElementById('lightStatus');
+            const lightIntensity = document.getElementById('lightIntensity');
+            
+            if (lightOn) {
+                lightStatus.textContent = '☀️ 光照開啟';
+                lightIntensity.textContent = '75%';
+                document.querySelector('.silicon-plant').style.filter = 'brightness(1.2)';
+            } else {
+                lightStatus.textContent = '🌙 光照關閉';
+                lightIntensity.textContent = '0%';
+                document.querySelector('.silicon-plant').style.filter = 'brightness(0.7)';
+                
+                if (isPhotosynthesizing) {
+                    clearInterval(photoInterval);
+                    isPhotosynthesizing = false;
+                }
+            }
+        }
+
+        // 更新能量水平
+        function updateEnergy() {
+            const energy = document.getElementById('energy');
+            let currentEnergy = parseInt(energy.textContent);
+            currentEnergy = Math.min(100, currentEnergy + Math.floor(Math.random() * 5) - 1);
+            energy.textContent = currentEnergy + '%';
+        }
+
+        // 更新矽澱粉產量
+        function updateSugarProduction() {
+            const sugarRate = document.getElementById('sugarRate');
+            const waterUse = document.getElementById('waterUse');
+            
+            let currentSugar = parseInt(sugarRate.textContent);
+            currentSugar = Math.min(99, currentSugar + Math.floor(Math.random() * 3));
+            sugarRate.textContent = currentSugar;
+            
+            let currentWater = parseInt(waterUse.textContent);
+            currentWater = Math.max(20, currentWater - Math.floor(Math.random() * 2));
+            waterUse.textContent = currentWater + '%';
+        }
+
+        // 創建背景粒子效果
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * window.innerWidth + 'px';
+            particle.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            particle.style.animation = 'particle-float 5s linear';
+            document.body.appendChild(particle);
+            
+            setTimeout(() => {
+                particle.remove();
+            }, 5000);
+        }
+
+        // 定期創建粒子
+        setInterval(createParticle, 500);
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化統計數據
+            updateTemperatureEffects(25);
+        });
+    </script>
+    <div class="back-link">
+        <a href="siliconindex.html">← 返回首頁</a>
+    </div>
+</body>
+</html>
