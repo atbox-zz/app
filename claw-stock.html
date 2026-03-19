@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ClawOS 股市播報</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkNsYXdPUyAn6IKh5biC6Kqe6Z+zIiwKICAic2hvcnRfbmFtZSI6ICLmoqHluILmkq3lo7EiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiI2Y0ZjZmOSIsCiAgInRoZW1lX2NvbG9yIjogIiMxYTU2ZGIiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucy1wbmcuZmxhdGljb24uY29tLzUxMi8yNDIyLzI0MjI3OTYucG5nIiwKICAgICAgInNpemVzIjogIjUxMng1MTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9wbmciCiAgICB9CiAgXQp9">
+    
+    <style>
+        /* 這裡放你原本所有的 CSS，並加上我幫你優化的手機版 Media Query 與 Offline 樣式 */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;600&display=swap');
+        
+        :root {
+            --bg: #f4f6f9; --surface: #ffffff; --accent: #1a56db;
+            --red-up: #e02020; --green-dn: #0a7a45; --text: #1a2030;
+        }
+
+        /* 基礎佈局 */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            background: var(--bg); font-family: 'Inter', 'Noto Sans TC', sans-serif; 
+            margin: 0; padding: 16px; display: flex; flex-direction: column; align-items: center;
+            overscroll-behavior-y: contain;
+        }
+        
+        .console { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 12px; }
+
+        /* Status Pill Offline */
+        .status-pill { 
+            display: flex; align-items: center; gap: 6px; padding: 5px 12px; 
+            border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+            background: #edf7f0; border: 1px solid #b3dfc4; color: #1a7a45;
+        }
+        .status-pill.offline { background: #f1f3f5; border-color: #d1d5db; color: #4b5563; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; }
+        .status-pill.offline .status-dot { background: #9ca3af; animation: none; }
+
+        /* 手機優化卡片 */
+        .stock-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .stock-grid.is-offline { opacity: 0.7; filter: grayscale(0.3); }
+        .stock-card { 
+            background: var(--surface); border: 1px solid #e2e6ed; border-radius: 12px; 
+            padding: 16px; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        /* 語音與控制區 */
+        .controls { background: var(--surface); padding: 16px; border-radius: 12px; display: flex; flex-direction: column; gap: 12px; }
+        .btn { 
+            padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
+            background: #eee; color: var(--text);
+        }
+        .btn.primary { background: var(--accent); color: white; }
+        
+        /* 隱藏移除按鈕在非 Hover 狀態，但在手機上保持可見度 */
+        .remove-btn { position: absolute; top: 10px; right: 10px; padding: 5px; background: #fff0f0; border: 1px solid #fcc; color: red; border-radius: 5px; }
+        
+        @media (min-width: 600px) { .stock-grid { grid-template-columns: 1fr 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="console">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h2 style="font-size:1.1rem; margin:0;">📊 ClawOS 股市播報</h2>
+        <div id="statusPill" class="status-pill"><span class="status-dot"></span>即時報價</div>
+    </div>
+
+    <div id="stockGrid" class="stock-grid">
+        </div>
+
+    <div class="controls">
+        <input type="text" id="stockInput" placeholder="輸入代號 (如 2330)" style="padding:12px; border-radius:8px; border:1px solid #ddd;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+            <button class="btn primary" onclick="addStock()">加入股票</button>
+            <button class="btn" onclick="refreshAll()">手動更新</button>
+        </div>
+    </div>
+
+    <button id="broadcastBtn" class="btn primary" style="padding:16px; font-size:1rem;" onclick="toggleBroadcast()">▶ 開始語音播報</button>
+
+    <div id="logPanel" style="font-size:0.7rem; color:#888; background:#eee; padding:10px; border-radius:8px; max-height:80px; overflow-y:auto;">
+        系統就緒...
+    </div>
+</div>
+
+<script>
+    // --- 核心變數 ---
+    let stocks = {};
+    let broadcasting = false;
+    let wakeLock = null;
+    let silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==');
+    silentAudio.loop = true;
+
+    // --- 網路狀態監控 ---
+    function updateOnlineStatus() {
+        const pill = document.getElementById('statusPill');
+        if (navigator.onLine) {
+            pill.classList.remove('offline');
+            pill.innerHTML = '<span class="status-dot"></span>即時報價';
+            logMsg("網路連線正常");
+        } else {
+            pill.classList.add('offline');
+            pill.innerHTML = '<span class="status-dot"></span>離線模式';
+            logMsg("進入離線快取模式");
+        }
+    }
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+
+    // --- 語音功能 ---
+    function speak(text) {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'zh-TW';
+        utter.rate = 0.9;
+        window.speechSynthesis.speak(utter);
+    }
+
+    // --- 廣播控制 ---
+    async function toggleBroadcast() {
+        if (!broadcasting) {
+            // 請求 WakeLock 阻止螢幕熄滅
+            if ('wakeLock' in navigator) {
+                try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e){}
+            }
+            // 播放無聲音樂誘騙後台
+            silentAudio.play().catch(()=>{});
+            
+            broadcasting = true;
+            document.getElementById('broadcastBtn').innerText = "■ 停止播報";
+            document.getElementById('broadcastBtn').style.background = "#e02020";
+            
+            speak("播報系統啟動");
+            startLoop();
+        } else {
+            stopBroadcast();
+        }
+    }
+
+    function stopBroadcast() {
+        broadcasting = false;
+        if (wakeLock) wakeLock.release();
+        silentAudio.pause();
+        window.speechSynthesis.cancel();
+        document.getElementById('broadcastBtn').innerText = "▶ 開始語音播報";
+        document.getElementById('broadcastBtn').style.background = "#1a56db";
+        logMsg("播報停止");
+    }
+
+    // --- 模擬數據與邏輯 (實際可用你原本的 Fetch) ---
+    function addStock() {
+        const input = document.getElementById('stockInput');
+        const code = input.value.trim();
+        if (!code) return;
+        stocks[code] = { price: 100 + Math.random()*10, change: Math.random() };
+        input.value = "";
+        render();
+    }
+
+    function render() {
+        const grid = document.getElementById('stockGrid');
+        grid.innerHTML = "";
+        for (let code in stocks) {
+            const s = stocks[code];
+            grid.innerHTML += `
+                <div class="stock-card">
+                    <button class="remove-btn" onclick="delete stocks['${code}']; render();">✕</button>
+                    <div style="font-weight:bold; color:#1a56db">${code}</div>
+                    <div style="font-size:1.8rem; font-family: 'JetBrains Mono'">${s.price.toFixed(2)}</div>
+                </div>
+            `;
+        }
+    }
+
+    function logMsg(m) {
+        const p = document.getElementById('logPanel');
+        p.innerHTML = `<div>[${new Date().toLocaleTimeString()}] ${m}</div>` + p.innerHTML;
+    }
+
+    // --- Service Worker 註冊 (Blob 內連版) ---
+    const swCode = `
+        self.addEventListener('fetch', (e) => {
+            e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+        });
+    `;
+    const blob = new Blob([swCode], {type: 'text/javascript'});
+    const swUrl = URL.createObjectURL(blob);
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register(swUrl);
+    }
+
+    updateOnlineStatus();
+</script>
+</body>
+</html>

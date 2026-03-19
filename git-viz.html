@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Gource — AI Agent Week</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body {
+    width:100%; height:100%;
+    background:#000; overflow:hidden;
+  }
+  canvas { display:block; width:100% !important; height:100% !important; }
+  #ui { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:10; }
+  #stats {
+    position:absolute;
+    top:max(16px, env(safe-area-inset-top, 16px));
+    right:max(16px, env(safe-area-inset-right, 16px));
+    color:rgba(255,255,255,.5);
+    font:clamp(10px,2.5vw,13px) 'Courier New',monospace;
+    line-height:2; text-align:right;
+  }
+  #viz-bar {
+    position:absolute;
+    bottom:max(20px, env(safe-area-inset-bottom, 20px));
+    right:max(20px, env(safe-area-inset-right, 20px));
+    display:flex; align-items:flex-end; gap:3px; height:26px; opacity:0; transition:opacity .4s;
+  }
+  #viz-bar.show { opacity:1; }
+  .vb { width:4px; border-radius:2px; background:rgba(0,255,180,.75); min-height:3px; }
+
+  /* Hint pill — bottom centre */
+  #hint {
+    position:absolute;
+    bottom:max(18px, env(safe-area-inset-bottom, 18px));
+    left:50%; transform:translateX(-50%);
+    color:rgba(255,255,255,.28);
+    font:11px 'Courier New',monospace; letter-spacing:2px;
+    pointer-events:none; white-space:nowrap;
+    transition:opacity .6s;
+  }
+</style>
+</head>
+<body>
+<div id="ui">
+  <div id="stats">
+    <div id="s-dirs">Dirs: 0</div>
+    <div id="s-files">Files: 0</div>
+    <div id="s-commits">Commits: 0</div>
+  </div>
+  <div id="viz-bar">
+    <div class="vb"></div><div class="vb"></div><div class="vb"></div>
+    <div class="vb"></div><div class="vb"></div><div class="vb"></div>
+    <div class="vb"></div><div class="vb"></div>
+  </div>
+  <div id="hint">tap · · double-tap node</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  SCENE SETUP
+// ═══════════════════════════════════════════════════════════════
+const renderer = new THREE.WebGLRenderer({ antialias:true, powerPreference:'high-performance' });
+const W0 = window.innerWidth, H0 = window.innerHeight;
+renderer.setSize(W0, H0);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+document.body.appendChild(renderer.domElement);
+
+const scene  = new THREE.Scene();
+scene.background = new THREE.Color(0x050510);
+
+const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+const FOV0 = isMobile && innerHeight > innerWidth ? 72 : 52;
+const camera = new THREE.PerspectiveCamera(FOV0, innerWidth/innerHeight, 0.1, 600);
+camera.position.set(0, 0, 110);
+
+// World group — everything (except stars) orbits as one unit
+const worldGroup = new THREE.Group();
+scene.add(worldGroup);
+
+// ═══════════════════════════════════════════════════════════════
+//  DIR PALETTE
+// ═══════════════════════════════════════════════════════════════
+const DIRS = [
+  { name:'Athena',    color:0xd4ff00 },  // wisdom & craft
+  { name:'Aphrodite', color:0xff69d4 },  // beauty
+  { name:'Artemis',   color:0x00ffcc },  // hunt & moon
+  { name:'Demeter',   color:0xff9900 },  // harvest
+  { name:'Hera',      color:0x88aaff },  // queen
+  { name:'Hestia',    color:0xff5533 },  // hearth
+  { name:'Persephone',color:0xcc44ff },  // underworld
+  { name:'Selene',    color:0x33aaff },  // moon light
+  { name:'Eos',       color:0x44ff88 },  // dawn
+  { name:'Tyche',     color:0xffdd55 },  // fortune
+  { name:'Iris',      color:0x00ddff },  // rainbow
+  { name:'Nike',      color:0xff2255 },  // victory
+];
+
+// ═══════════════════════════════════════════════════════════════
+//  GEOMETRIES
+// ═══════════════════════════════════════════════════════════════
+const rootGeo  = new THREE.SphereGeometry(1.5, 24, 24);
+const dirGeo   = new THREE.SphereGeometry(0.6, 14, 14);
+const fileGeo  = new THREE.SphereGeometry(0.15, 8, 8);
+const agentGeo = new THREE.SphereGeometry(0.45, 14, 14);
+
+// ═══════════════════════════════════════════════════════════════
+//  GLOW SPRITE FACTORY
+// ═══════════════════════════════════════════════════════════════
+const _glowCache = {};
+function glowTex(color) {
+  if (_glowCache[color]) return _glowCache[color];
+  const cv = document.createElement('canvas'); cv.width = cv.height = 64;
+  const ctx = cv.getContext('2d');
+  const c = '#'+new THREE.Color(color).getHexString();
+  const g = ctx.createRadialGradient(32,32,0,32,32,32);
+  g.addColorStop(0,c); g.addColorStop(0.4,c+'88'); g.addColorStop(1,'transparent');
+  ctx.fillStyle=g; ctx.fillRect(0,0,64,64);
+  return (_glowCache[color] = new THREE.CanvasTexture(cv));
+}
+function glow(color, size) {
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({
+    map:glowTex(color), transparent:true,
+    blending:THREE.AdditiveBlending, depthWrite:false
+  }));
+  s.scale.setScalar(size); return s;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  LABEL FACTORY
+// ═══════════════════════════════════════════════════════════════
+function makeLabel(text, color, fs=16, w=220, h=44) {
+  const cv = document.createElement('canvas'); cv.width=w; cv.height=h;
+  const ctx = cv.getContext('2d');
+  const c = '#'+new THREE.Color(color).getHexString();
+  ctx.font=`bold ${fs}px 'Courier New',monospace`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.shadowColor=c; ctx.shadowBlur=12;
+  ctx.fillStyle=c; ctx.fillText(text, w/2, h/2);
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({
+    map:new THREE.CanvasTexture(cv), transparent:true, depthWrite:false, opacity:0
+  }));
+  s.scale.set(5,1.1,1); return s;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ANIMATED DRAW-ON LINE
+// ═══════════════════════════════════════════════════════════════
+function makeLine(color, baseOpacity) {
+  const pos = new Float32Array(6);
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  const mat = new THREE.LineBasicMaterial({
+    color, transparent:true, opacity:0,
+    blending:THREE.AdditiveBlending, depthWrite:false
+  });
+  const line = new THREE.Line(geo, mat);
+  worldGroup.add(line);
+  return { geo, mat, line, baseOpacity, from:new THREE.Vector3(), to:new THREE.Vector3(), progress:0, settled:false };
+}
+function updateLine(L, ax,ay,az, bx,by,bz) {
+  const a = L.geo.attributes.position.array;
+  a[0]=ax;a[1]=ay;a[2]=az; a[3]=bx;a[4]=by;a[5]=bz;
+  L.geo.attributes.position.needsUpdate=true;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ROOT
+// ═══════════════════════════════════════════════════════════════
+const rootMesh = new THREE.Mesh(rootGeo, new THREE.MeshBasicMaterial({color:0xffffff}));
+worldGroup.add(rootMesh);
+const rootGlw = glow(0xffffff,16); worldGroup.add(rootGlw);
+// Root label — big Chinese
+const rootLblCv = document.createElement('canvas');
+rootLblCv.width = 256; rootLblCv.height = 128;
+const rootLblCtx = rootLblCv.getContext('2d');
+rootLblCtx.font = 'bold 96px serif';
+rootLblCtx.textAlign = 'center'; rootLblCtx.textBaseline = 'middle';
+rootLblCtx.shadowColor = '#ffffff'; rootLblCtx.shadowBlur = 32;
+rootLblCtx.fillStyle = '#ffffff';
+rootLblCtx.fillText('明明', 128, 64);
+const rootLbl = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: new THREE.CanvasTexture(rootLblCv),
+  transparent:true, depthWrite:false
+}));
+rootLbl.scale.set(10, 5, 1);
+rootLbl.position.set(0, 3.2, 0);
+worldGroup.add(rootLbl);
+
+// ═══════════════════════════════════════════════════════════════
+//  DATA STORES
+// ═══════════════════════════════════════════════════════════════
+const dirNodes  = [];
+const fileNodes = [];
+let commitCount = 0;
+
+// ── Max caps to keep performance stable ─────────────────────
+const MAX_FILES = 300;
+const MAX_DIRS  = 60;
+
+// Dispose and remove a file node
+function removeFile(f) {
+  if (f.mesh.parent) worldGroup.remove(f.mesh);
+  if (f.glw.parent)  worldGroup.remove(f.glw);
+  if (f.lbl && f.lbl.parent) worldGroup.remove(f.lbl);
+  if (f.branch && f.branch.line.parent) worldGroup.remove(f.branch.line);
+  f.mesh.geometry.dispose(); f.mesh.material.dispose();
+  f.glw.material.map && f.glw.material.map.dispose(); f.glw.material.dispose();
+  if (f.lbl) { f.lbl.material.map && f.lbl.material.map.dispose(); f.lbl.material.dispose(); }
+  if (f.branch) { f.branch.geo.dispose(); f.branch.mat.dispose(); }
+  const di = f.dir.files.indexOf(f);
+  if (di > -1) f.dir.files.splice(di, 1);
+  const fi = fileNodes.indexOf(f);
+  if (fi > -1) fileNodes.splice(fi, 1);
+}
+
+// Dispose and remove a dir node (and all its files)
+function removeDir(d) {
+  [...d.files].forEach(removeFile);
+  if (d.mesh.parent) worldGroup.remove(d.mesh);
+  if (d.glw.parent)  worldGroup.remove(d.glw);
+  if (d.lbl && d.lbl.parent) worldGroup.remove(d.lbl);
+  if (d.branch && d.branch.line.parent) worldGroup.remove(d.branch.line);
+  d.mesh.geometry.dispose(); d.mesh.material.dispose();
+  d.glw.material.map && d.glw.material.map.dispose(); d.glw.material.dispose();
+  if (d.lbl) { d.lbl.material.map && d.lbl.material.map.dispose(); d.lbl.material.dispose(); }
+  if (d.branch) { d.branch.geo.dispose(); d.branch.mat.dispose(); }
+  const di = dirNodes.indexOf(d);
+  if (di > -1) dirNodes.splice(di, 1);
+}
+
+// Prune oldest nodes when over cap
+function pruneNodes() {
+  // Remove oldest files first (they're at the start of the array)
+  while (fileNodes.length > MAX_FILES) removeFile(fileNodes[0]);
+  // Remove oldest dirs when over cap (skip first few — they're the inner ones)
+  while (dirNodes.length > MAX_DIRS) removeDir(dirNodes[0]);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SPAWN DIRECTORY
+// ═══════════════════════════════════════════════════════════════
+function spawnDir(cfg, angle) {
+  const { name, color } = cfg;
+  const mScale = (isMobile && innerHeight > innerWidth) ? 0.62 : 1.0;
+  const r   = (20 + Math.random()*6) * mScale;
+  const pos = new THREE.Vector3(Math.cos(angle)*r, Math.sin(angle)*r, 0);
+
+  const mesh = new THREE.Mesh(dirGeo, new THREE.MeshBasicMaterial({color,transparent:true,opacity:0}));
+  mesh.position.copy(pos); worldGroup.add(mesh);
+
+  const glw = glow(color,6); glw.position.copy(pos); glw.material.opacity=0; worldGroup.add(glw);
+
+  const lbl = makeLabel(name, color, 14);
+  lbl.position.set(pos.x, pos.y+1.6, pos.z); worldGroup.add(lbl);
+
+  // Root→dir branch line
+  const branch = makeLine(color, 0.45);
+  branch.from.set(0,0,0); branch.to.copy(pos);
+  updateLine(branch,0,0,0,0,0,0);
+
+  const d = { mesh,glw,lbl, color,angle,radius:r, pos:pos.clone(), name,
+    branch, files:[], age:0,
+    nextFile:0.7+Math.random()*0.4 };
+  dirNodes.push(d);
+  return d;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  FILE EXTENSIONS
+// ═══════════════════════════════════════════════════════════════
+const EXTS=['.js','.ts','.jsx','.tsx','.css','.md','.json','.yml','.test.js','.svg','.sh','.py'];
+
+// Minor goddesses / nymphs for file node labels
+const NYMPHS = [
+  'Aura','Calypso','Circe','Daphne','Echo','Eris','Gaia','Harmonia',
+  'Hecate','Hygieia','Iris','Lachesis','Lyssa','Maia','Medusa','Metis',
+  'Morphe','Nemesis','Nyx','Peitho','Pheme','Psyche','Rhea','Selene',
+  'Styx','Tethys','Thetis','Tyche','Urania','Zelus','Zoe','Alecto',
+  'Aglaea','Euphrosyne','Thalia','Clotho','Atropos','Eunomia','Dike',
+  'Eirene','Eudaimonia','Phoebe','Themis','Mneme','Aoede','Melete',
+];
+let _nymphIdx = 0;
+function nextNymph() { return NYMPHS[_nymphIdx++ % NYMPHS.length]; }
+
+// ═══════════════════════════════════════════════════════════════
+//  SPAWN FILE (leaf)
+// ═══════════════════════════════════════════════════════════════
+function spawnFile(d) {
+
+  const spread  = 0.9 + Math.random()*0.5;
+  const fAngle  = d.angle + (Math.random()-.5)*spread;
+  const fRadius = d.radius + (6 + Math.random()*8) * ((isMobile && innerHeight > innerWidth) ? 0.62 : 1.0);
+  const fz      = (Math.random()-.5)*5;
+  const fPos    = new THREE.Vector3(Math.cos(fAngle)*fRadius, Math.sin(fAngle)*fRadius, fz);
+
+  const mesh = new THREE.Mesh(fileGeo, new THREE.MeshBasicMaterial({color:d.color,transparent:true,opacity:0}));
+  mesh.position.copy(fPos); worldGroup.add(mesh);
+
+  const glw = glow(d.color,1.4); glw.position.copy(fPos); glw.material.opacity=0; worldGroup.add(glw);
+
+  // Dir→file branch line
+  const branch = makeLine(d.color, 0.35);
+  branch.from.copy(d.pos); branch.to.copy(fPos);
+  updateLine(branch,d.pos.x,d.pos.y,d.pos.z,d.pos.x,d.pos.y,d.pos.z);
+
+  const nymphName = nextNymph();
+  const flbl = makeLabel(nymphName, d.color, 22, 300, 52);
+  flbl.position.set(fPos.x, fPos.y + 0.9, fPos.z);
+  flbl.scale.set(7.0, 1.6, 1);
+  worldGroup.add(flbl);
+
+  const f = { mesh, glw, lbl:flbl, dir:d, pos:fPos.clone(), branch,
+    age:0, active:0, name:nymphName };
+  d.files.push(f);
+  fileNodes.push(f);
+  return f;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  AGENT (AI developer avatar)
+// ═══════════════════════════════════════════════════════════════
+const agentMesh = new THREE.Mesh(agentGeo, new THREE.MeshBasicMaterial({color:0xffffff}));
+agentMesh.position.set(0,0,3); worldGroup.add(agentMesh);
+const agentGlw = glow(0xffffff,5); agentGlw.position.copy(agentMesh.position); worldGroup.add(agentGlw);
+
+// Agent beam line (agent → file)
+const beamLine = makeLine(0xffffff, 0);
+let beamLife   = 0;
+let beamTarget = null;
+
+let agentTarget  = new THREE.Vector3(0,0,3);
+let agentNextAct = 1.5;
+
+function agentAct() {
+  if (fileNodes.length === 0) return;
+  const f = fileNodes[Math.floor(Math.random()*fileNodes.length)];
+  agentTarget  = f.pos.clone().add(new THREE.Vector3((Math.random()-.5)*2,(Math.random()-.5)*2,3));
+  beamTarget   = f;
+  beamLife     = 0.7;
+  beamLine.mat.color.set(f.dir.color);
+  f.active     = 1.0;
+  commitCount++;
+  commitSound(f.dir.color);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  BACKGROUND STARS
+// ═══════════════════════════════════════════════════════════════
+const sg = new THREE.BufferGeometry();
+const sp = new Float32Array(900*3);
+for(let i=0;i<900*3;i++) sp[i]=(Math.random()-.5)*400;
+sg.setAttribute('position',new THREE.BufferAttribute(sp,3));
+scene.add(new THREE.Points(sg, new THREE.PointsMaterial({color:0xffffff,size:0.1,transparent:true,opacity:0.28})));
+
+// ═══════════════════════════════════════════════════════════════
+//  CONTINUOUS GROWTH — dirs + files keep spawning forever
+// ═══════════════════════════════════════════════════════════════
+// No fixed initial dirs — grow freely from start
+const dirQueue = [];
+let dirQI = 0;
+let nextExtraDir = 0.6;   // start growing right away
+let totalDirCount = 0;    // for naming new dirs
+
+// Sub-dir pool — same goddess names recycled with numbers
+function nextDirCfg() {
+  const base = DIRS[Math.floor(Math.random() * DIRS.length)];
+  totalDirCount++;
+  return {
+    // New branch hangs off an existing dir (slightly offset angle)
+    name: base.name,
+    color: base.color
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DATE
+// ═══════════════════════════════════════════════════════════════
+const sDirs=document.getElementById('s-dirs');
+const sFiles=document.getElementById('s-files');
+const sCommits=document.getElementById('s-commits');
+
+// ═══════════════════════════════════════════════════════════════
+//  RENDER LOOP
+// ═══════════════════════════════════════════════════════════════
+const clock = new THREE.Clock();
+let elapsed = 0;
+let camAngle = 0;
+// Camera pan & zoom state
+let camZ      = 110;   // zoom distance
+let camPanX   = 0;     // world-space pan offset
+let camPanY   = 0;
+let autoOrbit = true;  // pauses when user interacts
+let orbitResume = 0;   // timestamp to resume orbit
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  elapsed += dt;
+
+  // ─ Spawn initial dirs ──────────────────────────────────────
+  if (dirQI < dirQueue.length && elapsed >= dirQueue[dirQI].spawnAt) {
+    spawnDir(dirQueue[dirQI].cfg, dirQueue[dirQI].angle);
+    dirQI++;
+  }
+
+  // ─ Continuously spawn new dirs off existing ones ────────────
+  if (elapsed >= nextExtraDir) {
+    // New dir: from center when small, from existing dir when larger
+    const cfg = nextDirCfg();
+    const fromCenter = dirNodes.length < 6;
+    const parent = fromCenter || dirNodes.length === 0 ? null : dirNodes[Math.floor(Math.random() * dirNodes.length)];
+    const baseAngle  = parent ? parent.angle : Math.random() * Math.PI * 2;
+    const newAngle   = baseAngle + (Math.random() - 0.5) * (fromCenter ? Math.PI*2 : 1.0);
+    const newRadius  = parent ? parent.radius + 10 + Math.random()*8 : 16 + Math.random()*8;
+    const pos = new THREE.Vector3(
+      Math.cos(newAngle) * newRadius,
+      Math.sin(newAngle) * newRadius,
+      (Math.random() - 0.5) * 6
+    );
+    // Manually create with fixed pos (override spawnDir's radius calc)
+    const d2 = spawnDir(cfg, newAngle);
+    if (d2) {
+      d2.radius = newRadius;
+      d2.pos.copy(pos);
+      d2.mesh.position.copy(pos);
+      d2.glw.position.copy(pos);
+      d2.lbl.position.set(pos.x, pos.y+1.6, pos.z);
+      // Update branch line to start from parent
+      if (parent) d2.branch.from.copy(parent.pos);
+      d2.branch.to.copy(pos);
+    }
+    nextExtraDir = elapsed + 2.0 + Math.random() * 3;
+  }
+
+  // tree grows freely — no auto-zoom
+
+  // ─ Update dirs ──────────────────────────────────────────────
+  dirNodes.forEach(d => {
+    d.age += dt;
+    const t = Math.min(1, d.age/0.7);
+
+    // Fade in dir node
+    d.mesh.material.opacity = t;
+    d.glw.material.opacity  = t*0.65;
+    d.lbl.material.opacity  = t*0.95;
+
+    // Animate root→dir branch draw-on
+    if (!d.branch.settled) {
+      d.branch.progress = Math.min(1, d.branch.progress + dt/0.5);
+      const p  = d.branch.progress;
+      const ex = 0+(d.pos.x)*p, ey = d.pos.y*p, ez = d.pos.z*p;
+      updateLine(d.branch, 0,0,0, ex,ey,ez);
+      d.branch.mat.opacity = p*0.85;
+      if (p>=1) { d.branch.settled=true; d.branch.mat.opacity=0.4; }
+    } else {
+      d.branch.mat.opacity = 0.3+0.12*Math.sin(elapsed*1.4+d.angle);
+    }
+
+    // Pulse dir glow
+    const pulse = 1+0.07*Math.sin(elapsed*2.2+d.angle);
+    d.glw.scale.setScalar(6*pulse);
+
+    // Spawn files
+    if (d.age > 0.9) {
+      d.nextFile -= dt;
+      if (d.nextFile <= 0) { spawnFile(d); d.nextFile=0.35+Math.random()*0.65; }
+    }
+  });
+
+  // ─ Update files ─────────────────────────────────────────────
+  fileNodes.forEach(f => {
+    f.age += dt;
+    const t = Math.min(1, f.age/0.4);
+    const flash = 1 + f.active*3;
+
+    f.mesh.material.opacity = t;
+    f.glw.material.opacity  = t*0.55*flash;
+    f.glw.scale.setScalar(1.4*flash);
+    if (f.lbl) {
+      f.lbl.material.opacity = t * 0.85;
+      f.lbl.position.set(f.pos.x, f.pos.y + 0.6, f.pos.z);
+    }
+
+    // Animate dir→file branch draw-on
+    if (!f.branch.settled) {
+      f.branch.progress = Math.min(1, f.branch.progress + dt/0.4);
+      const p  = f.branch.progress;
+      const dp = f.dir.pos, fp = f.pos;
+      const ex = dp.x+(fp.x-dp.x)*p, ey = dp.y+(fp.y-dp.y)*p, ez = dp.z+(fp.z-dp.z)*p;
+      updateLine(f.branch, dp.x,dp.y,dp.z, ex,ey,ez);
+      f.branch.mat.opacity = p*0.8;
+      if (p>=1) { f.branch.settled=true; f.branch.mat.opacity=0.32; }
+    } else {
+      f.branch.mat.opacity = 0.22+0.12*Math.sin(elapsed*1.8+f.age*3);
+    }
+
+    f.active = Math.max(0, f.active - dt*2.5);
+  });
+
+  // ─ Agent ────────────────────────────────────────────────────
+  agentNextAct -= dt;
+  if (agentNextAct <= 0 && fileNodes.length > 0) {
+    agentAct();
+    agentNextAct = 0.3 + Math.random()*0.6;
+  }
+
+  // Fast lerp when flying to human-tapped node, slow when auto-roaming
+  const lerpSpeed = agentNextAct > 1.5 ? 0.12 : 0.04;
+  agentMesh.position.lerp(agentTarget, lerpSpeed);
+  agentGlw.position.copy(agentMesh.position);
+
+  // Agent beam
+  if (beamTarget && beamLife > 0) {
+    beamLife = Math.max(0, beamLife-dt);
+    const ap=agentMesh.position, fp=beamTarget.pos;
+    updateLine(beamLine, ap.x,ap.y,ap.z, fp.x,fp.y,fp.z);
+    beamLine.mat.opacity = (beamLife/0.7)*0.95;
+  } else {
+    beamLine.mat.opacity = 0;
+  }
+
+  // ─ Root pulse ───────────────────────────────────────────────
+  const rp = 1+0.07*Math.sin(elapsed*1.8);
+  rootMesh.scale.setScalar(rp);
+  rootGlw.scale.setScalar(rp*12);
+
+  // ─ Date ─────────────────────────────────────────────────────
+  // ─ Prune old nodes for performance ─────────────────────────
+  if (Math.floor(elapsed) % 5 === 0 && Math.floor((elapsed-dt)) % 5 !== 0) pruneNodes();
+
+  // ─ Stats ────────────────────────────────────────────────────
+  sDirs.textContent   = `Dirs: ${dirNodes.length}`;
+  sFiles.textContent  = `Files: ${fileNodes.length}`;
+  sCommits.textContent= `Commits: ${commitCount}`;
+
+  // ─ Human interaction update ─────────────────────────────────
+  if (window._updateHumanBeam) window._updateHumanBeam(dt);
+
+  // ─ Camera: orbit + user pan/zoom ────────────────────────────
+  // Rotate the entire worldGroup slowly — visually obvious drift
+  if (autoOrbit && elapsed > orbitResume) {
+    worldGroup.rotation.z += dt * 0.04;   // slow spin
+    worldGroup.rotation.x = Math.sin(elapsed * 0.07) * 0.25; // gentle tilt
+  }
+
+  camera.position.x = camPanX;
+  camera.position.y = camPanY;
+  camera.position.z = camZ;
+  camera.lookAt(camPanX, camPanY, 0);
+
+  renderer.render(scene, camera);
+}
+animate();
+
+function onResize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  camera.aspect = w / h;
+  camera.fov = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) && h > w ? 72 : 52;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+}
+window.addEventListener('resize', onResize);
+window.addEventListener('orientationchange', () => setTimeout(onResize, 200));
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  SYNTH ENGINE v3 — 神祕隱士  Mystic Hermit
+//  Phrygian drone + wind + singing bowls + sparse flute + dark pad
+// ═══════════════════════════════════════════════════════════════
+let audioCtx = null;
+let musicOn  = false;
+const nodes  = [];
+
+// Phrygian mode on E (semitones from E1 = 41.2 Hz)
+const ROOT_HZ  = 41.20;
+const PHRYGIAN = [0,1,3,5,7,8,10,12,13,15,17];
+function note(s) { return ROOT_HZ * Math.pow(2, s/12); }
+
+// ── Deep earth drone ─────────────────────────────────────────
+function startDrone() {
+  [0,7,12].forEach((s,i) => {
+    const osc  = audioCtx.createOscillator();
+    const osc2 = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const filt = audioCtx.createBiquadFilter();
+    filt.type='lowpass'; filt.frequency.value=260+i*55; filt.Q.value=2;
+    osc.type='sawtooth';  osc.frequency.value=note(s);
+    osc2.type='sawtooth'; osc2.frequency.value=note(s)*1.003;
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.026-i*0.006, audioCtx.currentTime+5);
+    osc.connect(filt); osc2.connect(filt); filt.connect(gain); gain.connect(masterGain);
+    osc.start(); osc2.start();
+    nodes.push(osc,osc2,gain,filt);
+    const lfo=audioCtx.createOscillator(), lg=audioCtx.createGain();
+    lfo.frequency.value=0.06+i*0.025; lg.gain.value=0.007;
+    lfo.connect(lg); lg.connect(gain.gain); lfo.start();
+    nodes.push(lfo,lg);
+  });
+}
+
+// ── Dark pad (Phrygian chord, slow filter sweep) ─────────────
+function startPad() {
+  [0,8,15,20].forEach((s,i) => {
+    const osc  = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const filt = audioCtx.createBiquadFilter();
+    osc.type='sawtooth'; osc.frequency.value=note(s+12);
+    filt.type='lowpass'; filt.frequency.value=480+i*75; filt.Q.value=1.3;
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.020, audioCtx.currentTime+6+i);
+    osc.connect(filt); filt.connect(gain); gain.connect(masterGain);
+    osc.start(); nodes.push(osc,gain,filt);
+    const lfo=audioCtx.createOscillator(), lg=audioCtx.createGain();
+    lfo.frequency.value=0.04+i*0.018; lg.gain.value=160;
+    lfo.connect(lg); lg.connect(filt.frequency); lfo.start();
+    nodes.push(lfo,lg);
+  });
+}
+
+// ── Wind breath ──────────────────────────────────────────────
+let windTimer=null;
+function windBreath() {
+  if(!musicOn||!audioCtx) return;
+  const dur=3.5+Math.random()*4;
+  const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*dur,audioCtx.sampleRate);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+  const src=audioCtx.createBufferSource();
+  const bp=audioCtx.createBiquadFilter();
+  const env=audioCtx.createGain();
+  bp.type='bandpass'; bp.frequency.value=160+Math.random()*200; bp.Q.value=0.35;
+  src.buffer=buf;
+  const t=audioCtx.currentTime;
+  env.gain.setValueAtTime(0,t);
+  env.gain.linearRampToValueAtTime(0.048,t+dur*0.4);
+  env.gain.linearRampToValueAtTime(0,t+dur);
+  src.connect(bp); bp.connect(env); env.connect(masterGain);
+  src.start(t); src.stop(t+dur);
+  windTimer=setTimeout(windBreath,(dur*0.6+Math.random()*2)*1000);
+}
+
+// ── Singing bowl ─────────────────────────────────────────────
+let bellTimer=null;
+function bell() {
+  if(!musicOn||!audioCtx) return;
+  const t  =audioCtx.currentTime;
+  const hz =note(PHRYGIAN[Math.floor(Math.random()*PHRYGIAN.length)]+12+(Math.random()<0.25?12:0));
+  [1, 2.756, 5.404].forEach((ratio,i) => {
+    const osc=audioCtx.createOscillator(), env=audioCtx.createGain();
+    osc.type='sine'; osc.frequency.value=hz*ratio;
+    const vol=[0.20,0.07,0.025][i], dec=[4.8,2.5,1.2][i];
+    env.gain.setValueAtTime(vol,t);
+    env.gain.exponentialRampToValueAtTime(0.0001,t+dec);
+    osc.connect(env); env.connect(masterGain);
+    osc.start(t); osc.stop(t+dec+0.1);
+  });
+  bellTimer=setTimeout(bell,3000+Math.random()*5500);
+}
+
+// ── Flute melody (sparse, stepwise Phrygian) ─────────────────
+let fluteTimer=null, flutePrev=4;
+function flute() {
+  if(!musicOn||!audioCtx) return;
+  flutePrev=Math.max(0,Math.min(PHRYGIAN.length-1, flutePrev+Math.floor(Math.random()*5)-2));
+  const hz=note(PHRYGIAN[flutePrev]+24);
+  const t=audioCtx.currentTime, dur=0.55+Math.random()*1.3;
+  const osc=audioCtx.createOscillator(), env=audioCtx.createGain(), filt=audioCtx.createBiquadFilter();
+  osc.type='sine'; osc.frequency.value=hz;
+  filt.type='bandpass'; filt.frequency.value=hz*1.5; filt.Q.value=1.8;
+  const vib=audioCtx.createOscillator(), vg=audioCtx.createGain();
+  vib.frequency.value=4.5+Math.random(); vg.gain.value=hz*0.011;
+  vib.connect(vg); vg.connect(osc.frequency); vib.start(t); vib.stop(t+dur+0.05);
+  env.gain.setValueAtTime(0,t);
+  env.gain.linearRampToValueAtTime(0.14,t+0.07);
+  env.gain.setValueAtTime(0.14,t+dur-0.1);
+  env.gain.linearRampToValueAtTime(0,t+dur);
+  osc.connect(filt); filt.connect(env); env.connect(masterGain);
+  osc.start(t); osc.stop(t+dur+0.1);
+  fluteTimer=setTimeout(flute,(dur+0.5+Math.random()*2.2)*1000);
+}
+
+// ── Shimmer (distant stars) ───────────────────────────────────
+function shimmer() {
+  if(!musicOn||!audioCtx) return;
+  const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*0.1,audioCtx.sampleRate);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*0.14;
+  const src=audioCtx.createBufferSource(), filt=audioCtx.createBiquadFilter(), env=audioCtx.createGain();
+  filt.type='highpass'; filt.frequency.value=7500;
+  src.buffer=buf;
+  env.gain.setValueAtTime(0.035,audioCtx.currentTime);
+  env.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.14);
+  src.connect(filt); filt.connect(env); env.connect(masterGain); src.start();
+  setTimeout(shimmer,1400+Math.random()*2800);
+}
+
+// ── Commit sound — bell pluck keyed to file colour ───────────
+function commitSound(color) {
+  if(!musicOn||!audioCtx) return;
+  const t   = audioCtx.currentTime;
+  const c   = new THREE.Color(color);
+  const hsl = {}; c.getHSL(hsl);
+  const idx = Math.floor(hsl.h * PHRYGIAN.length) % PHRYGIAN.length;
+  const hz  = note(PHRYGIAN[idx] + 24 + (Math.random()<0.3 ? 12 : 0));
+  // Single sine tone with fast decay (like a finger-plucked string)
+  [1, 2.0].forEach((ratio, i) => {
+    const osc = audioCtx.createOscillator();
+    const env = audioCtx.createGain();
+    osc.type = 'sine'; osc.frequency.value = hz * ratio;
+    env.gain.setValueAtTime([0.14,0.04][i], t);
+    env.gain.exponentialRampToValueAtTime(0.0001, t + [1.2,0.6][i]);
+    osc.connect(env); env.connect(masterGain);
+    osc.start(t); osc.stop(t + 1.4);
+  });
+}
+
+// ── Reverb ────────────────────────────────────────────────────
+function makeReverb(ctx,duration=4,decay=1.8) {
+  const len=ctx.sampleRate*duration;
+  const buf=ctx.createBuffer(2,len,ctx.sampleRate);
+  for(let c=0;c<2;c++){const d=buf.getChannelData(c);for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,decay);}
+  const conv=ctx.createConvolver(); conv.buffer=buf; return conv;
+}
+
+// ── Master chain ─────────────────────────────────────────────
+let masterGain=null;
+
+function startMusic() {
+  if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  masterGain=audioCtx.createGain();
+  masterGain.gain.setValueAtTime(0,audioCtx.currentTime);
+  masterGain.gain.linearRampToValueAtTime(0.72,audioCtx.currentTime+3.5);
+  const reverb=makeReverb(audioCtx,4.5,1.7);
+  const rg=audioCtx.createGain(); rg.gain.value=0.7;
+  const dry=audioCtx.createGain(); dry.gain.value=0.55;
+  masterGain.connect(dry);    dry.connect(audioCtx.destination);
+  masterGain.connect(reverb); reverb.connect(rg); rg.connect(audioCtx.destination);
+  startDrone();
+  startPad();
+  setTimeout(windBreath,600);
+  setTimeout(bell,2000);
+  setTimeout(flute,3500);
+  setTimeout(shimmer,2500);
+}
+
+function stopMusic() {
+  if(!audioCtx) return;
+  clearTimeout(windTimer);
+  clearTimeout(bellTimer);
+  clearTimeout(fluteTimer);
+  if(masterGain) {
+    masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime+1.5);
+    setTimeout(()=>{ nodes.forEach(n=>{try{n.stop&&n.stop();n.disconnect&&n.disconnect();}catch(e){}}); nodes.length=0; }, 1600);
+  }
+}
+
+// Viz bar animation  ──────────────────────────────────────────
+const vbars = document.querySelectorAll('.vb');
+let vbAnimId = null;
+function animViz() {
+  vbars.forEach((b,i)=>{
+    const h = 4+Math.random()*20;
+    b.style.height = h+'px';
+  });
+  vbAnimId = setTimeout(animViz, 80+Math.random()*60);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  HUMAN INTERACTION — Raycast + special sound + ripple
+// ═══════════════════════════════════════════════════════════════
+const raycaster = new THREE.Raycaster();
+raycaster.params.Points.threshold = isMobile ? 1.5 : 0.5;
+raycaster.params.Line = { threshold: isMobile ? 1.5 : 0.5 };
+const mouse = new THREE.Vector2();
+
+// Ripple rings (human touch visual)
+const ripples = []; // { mesh, mat, age, maxAge }
+function spawnRipple(pos, color) {
+  const geo = new THREE.RingGeometry(0.3, 0.55, 32);
+  const mat = new THREE.MeshBasicMaterial({
+    color, transparent: true, opacity: 0.9,
+    side: THREE.DoubleSide, depthWrite: false,
+    blending: THREE.AdditiveBlending
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.copy(pos);
+  mesh.lookAt(camera.position);
+  worldGroup.add(mesh);
+  ripples.push({ mesh, mat, age: 0, maxAge: 1.2 });
+
+  // Second outer ring delayed
+  setTimeout(() => {
+    if (!mesh.parent) return;
+    const geo2 = new THREE.RingGeometry(0.2, 0.4, 32);
+    const mat2 = new THREE.MeshBasicMaterial({
+      color: 0xffffff, transparent: true, opacity: 0.6,
+      side: THREE.DoubleSide, depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+    const mesh2 = new THREE.Mesh(geo2, mat2);
+    mesh2.position.copy(pos);
+    mesh2.lookAt(camera.position);
+    worldGroup.add(mesh2);
+    ripples.push({ mesh: mesh2, mat: mat2, age: 0, maxAge: 1.0 });
+  }, 120);
+}
+
+function updateRipples(dt) {
+  for (let i = ripples.length - 1; i >= 0; i--) {
+    const r = ripples[i];
+    r.age += dt;
+    const t = r.age / r.maxAge;
+    r.mesh.scale.setScalar(1 + t * 5);
+    r.mat.opacity = (1 - t) * 0.85;
+    r.mesh.lookAt(camera.position);
+    if (r.age >= r.maxAge) {
+      worldGroup.remove(r.mesh);
+      ripples.splice(i, 1);
+    }
+  }
+}
+
+// Human commit sound — higher, more urgent, distinctly different from agent
+function humanSound(color) {
+  if (!audioCtx) return;
+  const t   = audioCtx.currentTime;
+  const c   = new THREE.Color(color);
+  const hsl = {}; c.getHSL(hsl);
+  const idx = Math.floor(hsl.h * PHRYGIAN.length) % PHRYGIAN.length;
+  const hz  = note(PHRYGIAN[idx] + 36); // 3 octaves up — distinctly bright
+
+  // Strike 1: sharp metallic ping (triangle wave + high harmonics)
+  [1, 3, 5].forEach((ratio, i) => {
+    const osc = audioCtx.createOscillator();
+    const env = audioCtx.createGain();
+    const flt = audioCtx.createBiquadFilter();
+    osc.type = 'triangle';
+    osc.frequency.value = hz * ratio;
+    flt.type = 'peaking'; flt.frequency.value = hz * ratio; flt.gain.value = 8; flt.Q.value = 3;
+    const vol = [0.22, 0.09, 0.04][i];
+    const dec = [0.9,  0.5,  0.28][i];
+    env.gain.setValueAtTime(vol, t);
+    env.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+    osc.connect(flt); flt.connect(env); env.connect(masterGain);
+    osc.start(t); osc.stop(t + dec + 0.05);
+  });
+
+  // Strike 2: short breath burst (human "touch" texture)
+  const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.06, audioCtx.sampleRate);
+  const d   = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1);
+  const src  = audioCtx.createBufferSource();
+  const filt = audioCtx.createBiquadFilter();
+  const env2 = audioCtx.createGain();
+  filt.type = 'bandpass'; filt.frequency.value = 3000; filt.Q.value = 1.2;
+  src.buffer = buf;
+  env2.gain.setValueAtTime(0.18, t);
+  env2.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+  src.connect(filt); filt.connect(env2); env2.connect(masterGain);
+  src.start(t);
+}
+
+// Human beam line (different colour: white → file colour)
+// ── Helper: update line geometry endpoints ───────────────────
+function setLinePoints(L, ax,ay,az, bx,by,bz) {
+  const a = L.geo.attributes.position.array;
+  a[0]=ax; a[1]=ay; a[2]=az;
+  a[3]=bx; a[4]=by; a[5]=bz;
+  L.geo.attributes.position.needsUpdate = true;
+}
+
+const humanBeamLine = makeLine(0xffffff, 0);
+let humanBeamLife = 0, humanBeamTarget = null;
+
+// Screen coords → normalised device
+function eventToNDC(e) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  const cx   = e.touches ? e.touches[0].clientX : e.clientX;
+  const cy   = e.touches ? e.touches[0].clientY : e.clientY;
+  return new THREE.Vector2(
+    ((cx - rect.left) / rect.width)  *  2 - 1,
+    ((cy - rect.top)  / rect.height) * -2 + 1
+  );
+}
+
+// Build raycast mesh list (all file + dir spheres)
+function getRaycastTargets() {
+  const targets = [];
+  fileNodes.forEach(f => targets.push({ mesh: f.mesh, ref: f, type: 'file' }));
+  dirNodes.forEach(d  => targets.push({ mesh: d.mesh, ref: d, type: 'dir'  }));
+  return targets;
+}
+
+let humanCommitCount = 0;
+function handleHumanTouch(e) {
+  const ndc = eventToNDC(e);
+  raycaster.setFromCamera(ndc, camera);
+
+  const targets = getRaycastTargets();
+  const meshes  = targets.map(t => t.mesh);
+  const hits    = raycaster.intersectObjects(meshes);
+
+  if (hits.length > 0) {
+    // Hit a node — human commit!
+    e.stopPropagation();
+    const hitMesh = hits[0].object;
+    const target  = targets.find(t => t.mesh === hitMesh);
+    if (!target) return;
+
+    const ref   = target.ref;
+    const color = ref.dir ? ref.dir.color : ref.color;
+    const pos   = ref.pos || ref.mesh.position;
+
+    // Visual: flash node, ripple, human beam
+    ref.active = 3.0; // brighter flash than agent (1.0)
+
+    // Beam from camera direction into node
+    const beamFrom = camera.position.clone()
+      .sub(worldGroup.position).multiplyScalar(0.3).add(pos);
+    humanBeamLine.mat.color.set(color);
+    humanBeamTarget = { pos: pos.clone(), from: beamFrom };
+    humanBeamLife   = 0.9;
+
+    spawnRipple(pos, color);
+
+    // Sound
+    humanSound(color);
+
+    humanCommitCount++;
+    commitCount++;
+    if (document.getElementById('s-commits'))
+      document.getElementById('s-commits').textContent = `Commits: ${commitCount}`;
+
+  } else {
+    // Missed — toggle music
+    toggleMusic();
+  }
+}
+
+// Update human beam in render loop (called from animate)
+window._updateHumanBeam = function(dt) {
+  updateRipples(dt);
+  if (humanBeamTarget && humanBeamLife > 0) {
+    humanBeamLife = Math.max(0, humanBeamLife - dt);
+    const fp = humanBeamTarget.pos;
+    const bf = humanBeamTarget.from;
+    setLinePoints(humanBeamLine, bf.x, bf.y, bf.z, fp.x, fp.y, fp.z);
+    humanBeamLine.mat.opacity = (humanBeamLife / 0.9) * 1.0;
+  } else {
+    humanBeamLine.mat.opacity = 0;
+  }
+};
+
+// ── Tap anywhere to toggle music / interact ──────────────────
+const vizBar  = document.getElementById('viz-bar');
+
+const hintEl = document.getElementById('hint');
+function toggleMusic() {
+  musicOn = !musicOn;
+  if (musicOn) {
+    startMusic();
+    vizBar.classList.add('show');
+    animViz();
+    if(hintEl) { hintEl.textContent='tap pause · double-tap node'; hintEl.style.opacity='1'; setTimeout(()=>hintEl.style.opacity='0',3000); }
+  } else {
+    stopMusic();
+    vizBar.classList.remove('show');
+    clearTimeout(vbAnimId);
+  }
+}
+
+// ── Single tap/click = music on/off
+//    Double tap/click  = human node interaction ─────────────
+function doHumanInteract(e) {
+  const ndc  = eventToNDC(e);
+  raycaster.setFromCamera(ndc, camera);
+  const targets = getRaycastTargets();
+  const hits    = raycaster.intersectObjects(targets.map(t => t.mesh));
+  if (hits.length === 0) return;
+  const target = targets.find(t => t.mesh === hits[0].object);
+  if (!target) return;
+  const ref   = target.ref;
+  const color = ref.dir ? ref.dir.color : ref.color;
+  const pos   = ref.pos || ref.mesh.position;
+  ref.active  = 3.0;
+  const beamFrom = camera.position.clone()
+    .sub(worldGroup.position).multiplyScalar(0.3).add(pos);
+  humanBeamLine.mat.color.set(color);
+  humanBeamTarget = { pos: pos.clone(), from: beamFrom };
+  humanBeamLife   = 0.9;
+  spawnRipple(pos, color);
+  humanSound(color);
+
+  // Agent flies to tapped node, stays 2 seconds then resumes
+  agentTarget = pos.clone().add(new THREE.Vector3(0, 0, 2));
+  agentNextAct = 3.0; // freeze auto-movement for 3 seconds
+
+  humanCommitCount++;
+  commitCount++;
+  const sc = document.getElementById('s-commits');
+  if (sc) sc.textContent = `Commits: ${commitCount}`;
+}
+
+// Desktop: single click = music, double click = interact
+let _dblTimer = null, _clickCount = 0;
+document.addEventListener('click', (e) => {
+  _clickCount++;
+  clearTimeout(_dblTimer);
+  _dblTimer = setTimeout(() => {
+    if (_clickCount === 1) toggleMusic();
+    _clickCount = 0;
+  }, 280);
+  if (_clickCount >= 2) {
+    clearTimeout(_dblTimer);
+    _clickCount = 0;
+    doHumanInteract(e);
+  }
+});
+
+// Touch: single tap = music, double tap = interact
+// ── Gesture state ────────────────────────────────────────────
+let _tapCount = 0, _tapTimer = null, _lastEvent = null;
+let _gesture = null; // { type:'pan'|'pinch', startX, startY, startDist, startCamZ, startPanX, startPanY }
+
+function getTouchMid(touches) {
+  const a = touches[0], b = touches[1];
+  return { x:(a.clientX+b.clientX)/2, y:(a.clientY+b.clientY)/2,
+           dist: Math.hypot(b.clientX-a.clientX, b.clientY-a.clientY) };
+}
+
+document.addEventListener('touchstart', e => {
+  if (e.touches.length === 2) {
+    // Two fingers — start pinch/pan gesture, cancel tap
+    clearTimeout(_tapTimer); _tapCount = 0;
+    const mid = getTouchMid(e.touches);
+    _gesture = { type:'pinch',
+      startX:mid.x, startY:mid.y, startDist:mid.dist,
+      startCamZ:camZ, startPanX:camPanX, startPanY:camPanY };
+    autoOrbit = false; orbitResume = 0;
+    e.preventDefault();
+    return;
+  }
+  // Single finger — tap logic
+  e.preventDefault();
+  _lastEvent = e;
+  _tapCount++;
+  clearTimeout(_tapTimer);
+  _tapTimer = setTimeout(() => {
+    if (_tapCount === 1) toggleMusic();
+    _tapCount = 0;
+  }, 300);
+  if (_tapCount >= 2) {
+    clearTimeout(_tapTimer); _tapCount = 0;
+    doHumanInteract(_lastEvent);
+  }
+  // Pan with single finger when not tapping
+  const t = e.touches[0];
+  _gesture = { type:'pan', startX:t.clientX, startY:t.clientY,
+               startPanX:camPanX, startPanY:camPanY };
+  autoOrbit = false; orbitResume = elapsed + 4;
+}, { passive:false });
+
+document.addEventListener('touchmove', e => {
+  if (!_gesture) return;
+  e.preventDefault();
+
+  if (_gesture.type === 'pinch' && e.touches.length === 2) {
+    const mid = getTouchMid(e.touches);
+    // Zoom
+    const scale = _gesture.startDist / mid.dist;
+    camZ = Math.max(20, Math.min(400, _gesture.startCamZ * scale));
+    // Pan (two-finger drag)
+    const dx = (mid.x - _gesture.startX) / innerWidth  * camZ * 0.9;
+    const dy = (mid.y - _gesture.startY) / innerHeight * camZ * 0.9;
+    camPanX = _gesture.startPanX - dx;
+    camPanY = _gesture.startPanY + dy;
+
+  } else if (_gesture.type === 'pan' && e.touches.length === 1) {
+    const t = e.touches[0];
+    const dx = (t.clientX - _gesture.startX) / innerWidth  * camZ * 0.7;
+    const dy = (t.clientY - _gesture.startY) / innerHeight * camZ * 0.7;
+    camPanX = _gesture.startPanX - dx;
+    camPanY = _gesture.startPanY + dy;
+  }
+}, { passive:false });
+
+document.addEventListener('touchend', e => {
+  if (e.touches.length === 0) _gesture = null;
+  else if (e.touches.length === 1 && _gesture?.type === 'pinch') {
+    // Transition pinch → pan
+    const t = e.touches[0];
+    _gesture = { type:'pan', startX:t.clientX, startY:t.clientY,
+                 startPanX:camPanX, startPanY:camPanY };
+  }
+  // Resume orbit after 4s idle
+  if (_gesture === null) orbitResume = elapsed + 4;
+}, { passive:false });
+
+// Mouse wheel zoom (desktop)
+document.addEventListener('wheel', e => {
+  e.preventDefault();
+  camZ = Math.max(20, Math.min(400, camZ + e.deltaY * 0.3));
+  autoOrbit = false; orbitResume = elapsed + 4;
+}, { passive:false });
+
+</script>
+</body>
+</html>
