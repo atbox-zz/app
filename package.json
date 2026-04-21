@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "b": "pnpm build",
     "p": "pnpm preview --open",
-    "g": "node deploy.js"
+    "g": "gh-pages -d dist"
   },
   "dependencies": {
     "lucide-react": "^0.525.0",

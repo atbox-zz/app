@@ -175,6 +175,7 @@ const MusicPlayer = () => {
         { text: "pop方程式", filename: "pop_music2.html", isEnglish: false, isGame: true },
         { text: "文字DNA編解碼", filename: "DNA_Cyper1.html", isEnglish: false, isGame: true },
         { text: "ClawOS", filename: "RELEASE_MANIFEST.html", isEnglish: false, isGame: true },
+        { text: "股市語音播報", filename: "claw-stock.html", isEnglish: false, isGame: true },
       ]
 
     },

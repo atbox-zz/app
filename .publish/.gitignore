@@ -1,7 +1,0 @@
-node_modules/
-target/
-.mvn/
-pnpm-lock.yaml
-.nest/
-.DS_Store
-.gitkeep

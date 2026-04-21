@@ -6,8 +6,7 @@ export default defineConfig({
   base: '/app/',
   plugins: [react()],
   build: {
-    outDir: 'dist-react',
+    outDir: 'dist',
     emptyOutDir: true,
-    copyPublicDir: false
   }
 })
