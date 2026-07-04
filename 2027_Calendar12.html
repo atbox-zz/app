@@ -297,7 +297,7 @@
 
                 <div class="section">
                     <h3>2. 標題設定</h3>
-                    <input type="text" id="customTitle" value="2027 民國115年 歲次丙午 馬年" placeholder="輸入標題">
+                    <input type="text" id="customTitle" value="2027 民國116年 歲次丁未 羊年" placeholder="輸入標題">
                     <div class="checkbox-group" style="margin-top: 10px;">
                         <input type="checkbox" id="showTitleOnAll" checked>
                         <label for="showTitleOnAll">每頁都顯示標題</label>
@@ -580,11 +580,11 @@
                 const images = [];
                 for (let i = 1; i <= 12; i++) {
                     const fileInput = document.getElementById(`img${i}`);
-                    //if (fileInput.files.length === 0) {
-                    //    alert(`請上傳第 ${i} 張圖片 (${i}月 ${MONTH_NAMES_EN[i]})`);
-                    //    output.innerHTML = '<div class="info"><p>👈 請上傳所有12張圖片</p></div>';
-                    //    return;
-                    //}
+                    if (fileInput.files.length === 0) {
+                        alert(`請上傳第 ${i} 張圖片 (${i}月 ${MONTH_NAMES_EN[i]})`);
+                        output.innerHTML = '<div class="info"><p>👈 請上傳所有12張圖片</p></div>';
+                        return;
+                    }
                     images.push(await loadImage(fileInput.files[0]));
                 }
 
