@@ -311,9 +311,9 @@
 </head>
 <body>
     <div class="container">
-        <div class="controls">
+        <div class="direction-tabs">
+        <!-- div class="controls"-->
             <div class="control-group">
-                <label for="citySelect">選擇城市</label>
                 <select id="citySelect">
                     <option value="NewTaipei">新北市</option>
                     <option value="Taipei">台北市</option>
@@ -322,23 +322,21 @@
             </div>
             
             <div class="control-group">
-                <label for="routeInput">路線號碼</label>
-                <input type="text" id="routeInput" placeholder="例：橘21" value="橘21">
+                <!-- input type="text" id="routeInput" placeholder="例：橘21" value="橘21" -->
+                <select id="routeInput">
+                    <option value="橘21">橘21</option>
+                    <option value="藍37">藍37</option>
+                    <option value="635">635</option>
+                </select>
             </div>
             
             <div class="control-group">
-                <label>&nbsp;</label>
                 <button id="searchBtn">🔍 搜尋路線</button>
             </div>
-        </div>
+        <!--/div-->
 
-        <div class="direction-tabs">
-            <button class="tab outbound active" id="outboundTab">
-                🔵 去程 (藍色)
-            </button>
-            <button class="tab inbound" id="inboundTab">
-                🟢 回程 (綠色)
-            </button>
+            <button class="tab outbound active" id="outboundTab">🔵 去程 (藍色)</button>
+            <button class="tab inbound" id="inboundTab">         🟢 回程 (綠色)</button>
             <button class="voice-btn" id="voiceToggle">🔊 語音播報: 開啟</button>
             <button class="voice-btn" id="testVoice">🎤 測試語音</button>
             <button class="voice-btn" id="autoUpdateToggle">🔄 自動更新: 開啟</button>
