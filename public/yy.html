@@ -1,701 +1,200 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>易經64卦狀態機 - 以天風姤為例</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Courier New', 'Microsoft YaHei', monospace;
-            background: linear-gradient(135deg, #0f0f23, #1a1a3a);
-            color: #fff;
-            line-height: 1.8;
-            padding: 20px;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-        }
-
-        h1 {
-            text-align: center;
-            color: #00d4aa;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 0 0 20px rgba(0, 212, 170, 0.5);
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #ffd700;
-            font-size: 1.2em;
-            margin-bottom: 40px;
-        }
-
-        .main-example {
-            background: linear-gradient(145deg, rgba(0, 212, 170, 0.1), rgba(255, 215, 0, 0.05));
-            border: 2px solid #00d4aa;
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 40px;
-            box-shadow: 0 10px 30px rgba(0, 212, 170, 0.2);
-        }
-
-        .example-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .hexagram-title {
-            font-size: 2em;
-            color: #00d4aa;
-            margin-bottom: 10px;
-        }
-
-        .encoding-info {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-
-        .info-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 20px;
-            border-left: 4px solid #ffd700;
-        }
-
-        .info-label {
-            color: #ffd700;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .info-value {
-            font-size: 1.3em;
-            color: #fff;
-        }
-
-        .yao-visualization {
-            display: flex;
-            justify-content: center;
-            margin: 30px 0;
-        }
-
-        .yao-container {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            border: 1px solid rgba(0, 212, 170, 0.3);
-        }
-
-        .yao-line {
-            width: 120px;
-            height: 8px;
-            border-radius: 4px;
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .yao-line.yang {
-            background: linear-gradient(90deg, #00d4aa, #00b894);
-            box-shadow: 0 2px 8px rgba(0, 212, 170, 0.4);
-        }
-
-        .yao-line.yin {
-            background: linear-gradient(to right, 
-                #00d4aa 35%, 
-                transparent 35%, 
-                transparent 65%, 
-                #00d4aa 65%);
-            box-shadow: 0 2px 8px rgba(0, 212, 170, 0.4);
-        }
-
-        .yao-label {
-            position: absolute;
-            right: -80px;
-            color: #ffd700;
-            font-size: 0.9em;
-        }
-
-        .transformations {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-
-        .transform-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(0, 212, 170, 0.2);
-            border-radius: 12px;
-            padding: 25px;
-            transition: all 0.3s ease;
-        }
-
-        .transform-card:hover {
-            border-color: #00d4aa;
-            box-shadow: 0 5px 20px rgba(0, 212, 170, 0.15);
-            transform: translateY(-2px);
-        }
-
-        .transform-title {
-            color: #ffd700;
-            font-size: 1.4em;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .transform-formula {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 15px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            margin: 15px 0;
-            border-left: 3px solid #00d4aa;
-        }
-
-        .operations-section {
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-        }
-
-        .section-title {
-            color: #00d4aa;
-            font-size: 1.8em;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .operation-controls {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        select, button {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            background: rgba(15, 15, 35, 0.9);
-            color: #fff;
-            border: 1px solid #00d4aa;
-            font-size: 1em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        select:hover, button:hover {
-            background: rgba(0, 212, 170, 0.3);
-            box-shadow: 0 2px 10px rgba(0, 212, 170, 0.3);
-        }
-
-        select option {
-            background: rgba(15, 15, 35, 0.95);
-            color: #fff;
-            padding: 8px;
-            border: none;
-        }
-
-        select option:hover {
-            background: rgba(0, 212, 170, 0.2);
-        }
-
-        .operation-result {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
-        }
-
-        .result-card {
-            background: linear-gradient(145deg, rgba(0, 212, 170, 0.05), rgba(255, 215, 0, 0.02));
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 10px;
-            padding: 20px;
-        }
-
-        .result-title {
-            color: #ffd700;
-            font-size: 1.2em;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .binary-display {
-            font-family: 'Courier New', monospace;
-            font-size: 1.2em;
-            color: #00d4aa;
-            text-align: center;
-            margin: 10px 0;
-            padding: 8px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 5px;
-        }
-
-        .all-hexagrams {
-            margin-top: 40px;
-        }
-
-        .hexagram-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .mini-hexagram {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(0, 212, 170, 0.1);
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .mini-hexagram:hover {
-            border-color: #00d4aa;
-            background: rgba(0, 212, 170, 0.05);
-        }
-
-        .mini-hexagram.highlight {
-            border-color: #ffd700;
-            background: rgba(255, 215, 0, 0.1);
-        }
-
-        .mini-yao {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            margin: 10px 0;
-            align-items: center;
-        }
-
-        .mini-yao-line {
-            width: 40px;
-            height: 3px;
-            border-radius: 2px;
-        }
-
-        .mini-yao-line.yang {
-            background: #00d4aa;
-        }
-
-        .mini-yao-line.yin {
-            background: linear-gradient(to right, #00d4aa 40%, transparent 40%, transparent 60%, #00d4aa 60%);
-        }
-
-        @keyframes glow {
-            0%, 100% { box-shadow: 0 0 5px rgba(0, 212, 170, 0.5); }
-            50% { box-shadow: 0 0 20px rgba(0, 212, 170, 0.8); }
-        }
-
-        .highlight {
-            animation: glow 2s ease-in-out infinite;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>易經64卦狀態機系統</h1>
-        <div class="subtitle">以天風姤（☰☴）為核心範例</div>
-        
-        <div class="main-example">
-            <div class="example-header">
-                <div class="hexagram-title">天風姤 ☰☴ (#62)</div>
-            </div>
-            
-            <div class="encoding-info">
-                <div class="info-card">
-                    <div class="info-label">上卦（上三爻）</div>
-                    <div class="info-value">乾☰ = 111 (天)</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">下卦（下三爻）</div>
-                    <div class="info-value">巽☴ = 110 (風)</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">完整二進制</div>
-                    <div class="info-value">111110₂</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">十進制數值</div>
-                    <div class="info-value">62₁₀</div>
-                </div>
-            </div>
-
-            <div class="yao-visualization">
-                <div class="yao-container">
-                    <div class="yao-line yang"><span class="yao-label">上爻: 1 (陽)</span></div>
-                    <div class="yao-line yang"><span class="yao-label">五爻: 1 (陽)</span></div>
-                    <div class="yao-line yang"><span class="yao-label">四爻: 1 (陽)</span></div>
-                    <div class="yao-line yang"><span class="yao-label">三爻: 1 (陽)</span></div>
-                    <div class="yao-line yang"><span class="yao-label">二爻: 1 (陽)</span></div>
-                    <div class="yao-line yin"><span class="yao-label">初爻: 0 (陰)</span></div>
-                </div>
-            </div>
-
-            <div class="transformations">
-                <div class="transform-card">
-                    <div class="transform-title">錯卦變換</div>
-                    <div class="transform-formula">
-                        原卦: 111110₂ = 62₁₀<br>
-                        錯卦: 000001₂ = 1₁₀<br>
-                        結果: 地雷復 ☷☳
-                    </div>
-                    <div>公式: ~binary & 0x3F (所有爻變反)</div>
-                </div>
-                
-                <div class="transform-card">
-                    <div class="transform-title">綜卦變換</div>
-                    <div class="transform-formula">
-                        原卦: 111110₂ = 62₁₀<br>
-                        綜卦: 011111₂ = 31₁₀<br>
-                        結果: 火天大有 ☲☰
-                    </div>
-                    <div>公式: reverse(binary) (六爻180度翻轉)</div>
-                </div>
-                
-                <div class="transform-card">
-                    <div class="transform-title">複卦關係</div>
-                    <div class="transform-formula">
-                        原卦: 天風姤 62₁₀<br>
-                        複卦: 火天大有 31₁₀<br>
-                        關係: 時間復歸循環
-                    </div>
-                    <div>通常與綜卦相同或相關</div>
-                </div>
-                
-                <div class="transform-card">
-                    <div class="transform-title">雜卦分析</div>
-                    <div class="transform-formula">
-                        互卦: 取中間四爻 1111<br>
-                        變化: 對比互補關係<br>
-                        意義: 內在結構分析
-                    </div>
-                    <div>六爻系統的內在變化</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="operations-section">
-            <div class="section-title">卦象間運算系統</div>
-            
-            <div class="operation-controls">
-                <select id="hexagram1">
-                    <option value="62">天風姤 (62)</option>
-                </select>
-                
-                <select id="operation">
-                    <option value="add">加法 (+)</option>
-                    <option value="subtract">減法 (-)</option>
-                    <option value="multiply">乘法 (×)</option>
-                    <option value="and">邏輯且 (AND)</option>
-                    <option value="or">邏輯或 (OR)</option>
-                    <option value="xor">異或 (XOR)</option>
-                    <option value="nand">反且 (NAND)</option>
-                    <option value="nor">反或 (NOR)</option>
-                </select>
-                
-                <select id="hexagram2">
-                    <option value="1">地雷復 (1)</option>
-                </select>
-                
-                <button onclick="calculateOperation()">執行運算</button>
-                <button onclick="generateAllHexagrams()">顯示全部64卦</button>
-            </div>
-
-            <div id="operationResult" class="operation-result"></div>
-        </div>
-
-        <div class="all-hexagrams">
-            <div class="section-title">64卦狀態空間</div>
-            <div id="hexagramGrid" class="hexagram-grid"></div>
-        </div>
+<html style="margin:0;padding:0;">
+<title>易經六十四卦機 — 變爻轉移 FSM 探索器</title>
+<div style="font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;max-width:1180px;margin:0 auto;padding:14px;color:#222;box-sizing:border-box;">
+<style>
+  body{margin:0} .wrap{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start}
+  h1{font-size:20px;margin:0 0 4px} .sub{font-size:13px;color:#666;margin:0 0 12px}
+  .search{margin:0 0 12px} .search input{width:230px;padding:7px 10px;font-size:14px;border:1px solid #bbb;border-radius:6px}
+  .legend{font-size:12px;margin:6px 0 0;color:#555;line-height:1.9}
+  .legend .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin:0 4px 0 10px}
+  #panel{flex:1;min-width:300px;max-width:520px}
+  .ph{padding:8px 12px;border-radius:8px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:8px}
+  .ph b{font-size:18px} .ph .v{margin-left:10px;font-family:monospace;color:#555}
+  .ph .g{margin-left:10px;font-size:12px;color:#888}
+  .pw{display:flex;gap:14px;background:#fff;border-radius:8px;padding:10px 12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:8px}
+  .lines{font-family:monospace;font-size:16px;line-height:1.45;color:#333}
+  .lines .l{height:20px} .meta{font-size:13px;color:#555;line-height:2}
+  table.tr{width:100%;border-collapse:collapse;font-size:13px;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  table.tr th{background:#eee;text-align:left;padding:6px 8px;font-size:12px}
+  table.tr td{padding:6px 8px;border-top:1px solid #eee;vertical-align:top}
+  table.tr td.y{white-space:nowrap;font-weight:bold} table.tr td.i{width:34px;text-align:center}
+  table.tr td.d{white-space:nowrap;color:#c0392b;font-weight:bold;cursor:pointer}
+  table.tr tr:hover td{background:#fdf3e7} .hint{font-size:12px;color:#999;margin-top:6px}
+  .cell rect{cursor:pointer} .cell text{pointer-events:none;user-select:none}
+  .cell.sel rect{stroke-width:3;fill-opacity:.35} .cell.tgt rect{stroke-width:2.5;stroke-dasharray:4 2}
+  details{margin-top:16px;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  details summary{cursor:pointer;padding:10px 12px;font-weight:bold;font-size:14px}
+  .filt{margin:0 12px 8px} .filt input{width:220px;padding:5px 8px;font-size:13px;border:1px solid #bbb;border-radius:5px}
+  table.all{width:100%;border-collapse:collapse;font-size:12px}
+  table.all th,table.all td{border:1px solid #eee;padding:4px 6px;text-align:left}
+  table.all th{background:#f5f2ea;position:sticky;top:0}
+  .tbox{max-height:340px;overflow:auto}
+</style>
+<h1>易經六十四卦機：變爻轉移 FSM</h1>
+<p class="sub">64 態（六爻卦） × 6 動爻事件 ＝ 384 條轉移規則，一一對應《周易》384 爻辭。
+δ(q, i) = q ⊕ 2<sup>i-1</sup>；同宮轉移 128 條、跨宮 256 條，圖連通。點選任一方格檢視其 6 條轉移。</p>
+<div class="search"><input id="q" placeholder="輸入卦名（如 泰 / 地天泰 / 63）" onkeydown="window.__search && (event.key==='Enter') && window.__search(this.value)"/>
+<button onclick="window.__search && window.__search(document.getElementById('q').value)" style="padding:7px 12px;border-radius:6px;border:1px solid #bbb;background:#fff;cursor:pointer">跳轉</button></div>
+<div class="wrap">
+  <div>
+    <div class="legend">
+      <span>八宮：</span><span class="sw" style="background:#c0392b"></span>乾<span class="sw" style="background:#d35400"></span>兌<span class="sw" style="background:#f39c12"></span>離<span class="sw" style="background:#27ae60"></span>震<span class="sw" style="background:#16a085"></span>巽<span class="sw" style="background:#2980b9"></span>坎<span class="sw" style="background:#7f8c8d"></span>艮<span class="sw" style="background:#8e6e4e"></span>坤
+      <br><span>動爻位顏色：</span><span class="sw" style="background:#e74c3c"></span>1<span class="sw" style="background:#e67e22"></span>2<span class="sw" style="background:#d4ac0d"></span>3<span class="sw" style="background:#27ae60"></span>4<span class="sw" style="background:#2e86c1"></span>5<span class="sw" style="background:#7f8c8d"></span>6
     </div>
-
-    <script>
-        // 八卦基礎資料
-        const TRIGRAMS = {
-            '000': { symbol: '☷', name: '坤', element: '地', number: 0 },
-            '001': { symbol: '☳', name: '震', element: '雷', number: 1 },
-            '010': { symbol: '☵', name: '坎', element: '水', number: 2 },
-            '011': { symbol: '☱', name: '兌', element: '澤', number: 3 },
-            '100': { symbol: '☶', name: '艮', element: '山', number: 4 },
-            '101': { symbol: '☲', name: '離', element: '火', number: 5 },
-            '110': { symbol: '☴', name: '巽', element: '風', number: 6 },
-            '111': { symbol: '☰', name: '乾', element: '天', number: 7 }
-        };
-
-        // 64卦名稱對應表
-        const HEXAGRAM_NAMES = [
-            "坤為地", "地雷復", "地水師", "地山謙", "地風升", "地火明夷", "地澤臨", "地天泰",
-            "雷地豫", "雷雷震", "雷水解", "雷山小過", "雷風恆", "雷火豐", "雷澤歸妹", "雷天大壯",
-            "水地比", "水雷屯", "水水坎", "水山蹇", "水風井", "水火既濟", "水澤節", "水天需",
-            "山地剝", "山雷頤", "山水蒙", "山山艮", "山風蠱", "山火賁", "山澤損", "山天大畜",
-            "風地觀", "風雷益", "風水渙", "風山漸", "風風巽", "風火家人", "風澤中孚", "風天小畜",
-            "火地晉", "火雷噬嗑", "火水未濟", "火山旅", "火風鼎", "火火離", "火澤睽", "火天大有",
-            "澤地萃", "澤雷隨", "澤水困", "澤山咸", "澤風大過", "澤火革", "澤澤兌", "澤天夬",
-            "天地否", "天雷無妄", "天水訟", "天山遯", "天風姤", "天火同人", "天澤履", "乾為天"
-        ];
-
-        class IChing64System {
-            constructor() {
-                this.initializeSelectors();
-                this.highlightMainExample();
-            }
-
-            // 獲取卦象資訊
-            getHexagramInfo(decimal) {
-                const binary = decimal.toString(2).padStart(6, '0');
-                const upperTrigram = binary.substring(0, 3);
-                const lowerTrigram = binary.substring(3, 6);
-                
-                return {
-                    decimal,
-                    binary,
-                    name: HEXAGRAM_NAMES[decimal],
-                    upperTrigram: TRIGRAMS[upperTrigram],
-                    lowerTrigram: TRIGRAMS[lowerTrigram],
-                    yaoLines: binary.split('').reverse(), // 從下到上
-                    cuoGua: this.calculateCuoGua(binary),
-                    zongGua: this.calculateZongGua(binary)
-                };
-            }
-
-            // 計算錯卦（所有爻變反）
-            calculateCuoGua(binary) {
-                const cuoBinary = binary.split('').map(bit => bit === '1' ? '0' : '1').join('');
-                const cuoDecimal = parseInt(cuoBinary, 2);
-                return {
-                    binary: cuoBinary,
-                    decimal: cuoDecimal,
-                    name: HEXAGRAM_NAMES[cuoDecimal]
-                };
-            }
-
-            // 計算綜卦（180度翻轉，六爻順序完全顛倒）
-            calculateZongGua(binary) {
-                // 將六位二進制字符串完全翻轉
-                const zongBinary = binary.split('').reverse().join('');
-                const zongDecimal = parseInt(zongBinary, 2);
-                return {
-                    binary: zongBinary,
-                    decimal: zongDecimal,
-                    name: HEXAGRAM_NAMES[zongDecimal] || `未知卦象(${zongDecimal})`
-                };
-            }
-
-            // 執行運算
-            performOperation(dec1, dec2, operation) {
-                let result, formula, binaryFormula;
-                const bin1 = dec1.toString(2).padStart(6, '0');
-                const bin2 = dec2.toString(2).padStart(6, '0');
-                
-                switch (operation) {
-                    case 'add':
-                        result = (dec1 + dec2) % 64;
-                        formula = `${dec1} + ${dec2} = ${result} (mod 64)`;
-                        break;
-                    case 'subtract':
-                        result = (dec1 - dec2 + 64) % 64;
-                        formula = `${dec1} - ${dec2} = ${result} (mod 64)`;
-                        break;
-                    case 'multiply':
-                        result = (dec1 * dec2) % 64;
-                        formula = `${dec1} × ${dec2} = ${result} (mod 64)`;
-                        break;
-                    case 'and':
-                        result = dec1 & dec2;
-                        formula = `${dec1} AND ${dec2} = ${result}`;
-                        break;
-                    case 'or':
-                        result = dec1 | dec2;
-                        formula = `${dec1} OR ${dec2} = ${result}`;
-                        break;
-                    case 'xor':
-                        result = dec1 ^ dec2;
-                        formula = `${dec1} XOR ${dec2} = ${result}`;
-                        break;
-                    case 'nand':
-                        result = (~(dec1 & dec2)) & 0x3F;
-                        formula = `${dec1} NAND ${dec2} = ${result}`;
-                        break;
-                    case 'nor':
-                        result = (~(dec1 | dec2)) & 0x3F;
-                        formula = `${dec1} NOR ${dec2} = ${result}`;
-                        break;
-                    default:
-                        result = 0;
-                        formula = '無效運算';
-                }
-
-                const resultBin = result.toString(2).padStart(6, '0');
-                binaryFormula = `${bin1} ${this.getOperationSymbol(operation)} ${bin2} = ${resultBin}`;
-                
-                return { result, formula, binaryFormula };
-            }
-
-            getOperationSymbol(operation) {
-                const symbols = {
-                    'add': '+',
-                    'subtract': '-', 
-                    'multiply': '×',
-                    'and': '&',
-                    'or': '|',
-                    'xor': '^',
-                    'nand': '~&',
-                    'nor': '~|'
-                };
-                return symbols[operation] || '?';
-            }
-
-            // 初始化選擇器
-            initializeSelectors() {
-                const selectors = ['hexagram1', 'hexagram2'];
-                selectors.forEach(selectorId => {
-                    const selector = document.getElementById(selectorId);
-                    selector.innerHTML = '';
-                    for (let i = 0; i < 64; i++) {
-                        const option = document.createElement('option');
-                        option.value = i;
-                        option.textContent = `${HEXAGRAM_NAMES[i]} (${i})`;
-                        selector.appendChild(option);
-                    }
-                });
-                
-                // 設定預設值
-                document.getElementById('hexagram1').value = '62'; // 天風姤
-                document.getElementById('hexagram2').value = '1';  // 地雷復
-            }
-
-            // 高亮主要範例
-            highlightMainExample() {
-                // 可以添加特殊效果
-            }
-
-            // 渲染小卦象
-            renderMiniHexagram(hexInfo, isHighlight = false) {
-                const yaoLines = hexInfo.yaoLines.map(bit => 
-                    `<div class="mini-yao-line ${bit === '1' ? 'yang' : 'yin'}"></div>`
-                ).reverse().join('');
-
-                return `
-                    <div class="mini-hexagram ${isHighlight ? 'highlight' : ''}" onclick="selectHexagram(${hexInfo.decimal})">
-                        <div><strong>#${hexInfo.decimal}</strong></div>
-                        <div>${hexInfo.name}</div>
-                        <div class="mini-yao">${yaoLines}</div>
-                        <div class="binary-display">${hexInfo.binary}</div>
-                        <div style="font-size: 0.9em; color: #ffd700;">
-                            ${hexInfo.upperTrigram.symbol}${hexInfo.lowerTrigram.symbol}
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        // 全域系統實例
-        const system = new IChing64System();
-
-        // 執行運算
-        function calculateOperation() {
-            try {
-                const hex1 = parseInt(document.getElementById('hexagram1').value);
-                const hex2 = parseInt(document.getElementById('hexagram2').value);
-                const operation = document.getElementById('operation').value;
-
-                // 驗證輸入
-                if (isNaN(hex1) || isNaN(hex2) || hex1 < 0 || hex1 > 63 || hex2 < 0 || hex2 > 63) {
-                    document.getElementById('operationResult').innerHTML = '<div class="result-card">錯誤：無效的卦象編號</div>';
-                    return;
-                }
-
-                const hex1Info = system.getHexagramInfo(hex1);
-                const hex2Info = system.getHexagramInfo(hex2);
-                const calc = system.performOperation(hex1, hex2, operation);
-                const resultInfo = system.getHexagramInfo(calc.result);
-
-                document.getElementById('operationResult').innerHTML = `
-                    <div class="result-card">
-                        <div class="result-title">運算式</div>
-                        <div class="binary-display">${calc.formula}</div>
-                        <div class="binary-display">${calc.binaryFormula}</div>
-                    </div>
-                    <div class="result-card">
-                        <div class="result-title">運算元 A: ${hex1Info.name}</div>
-                        <div class="binary-display">${hex1Info.binary} (${hex1Info.decimal})</div>
-                        <div style="font-size: 1.5em;">${hex1Info.upperTrigram.symbol}${hex1Info.lowerTrigram.symbol}</div>
-                        <div style="color: #ffd700; margin-top: 10px;">
-                            錯卦: ${hex1Info.cuoGua.name} (${hex1Info.cuoGua.decimal})<br>
-                            綜卦: ${hex1Info.zongGua.name} (${hex1Info.zongGua.decimal})
-                        </div>
-                    </div>
-                    <div class="result-card">
-                        <div class="result-title">運算元 B: ${hex2Info.name}</div>
-                        <div class="binary-display">${hex2Info.binary} (${hex2Info.decimal})</div>
-                        <div style="font-size: 1.5em;">${hex2Info.upperTrigram.symbol}${hex2Info.lowerTrigram.symbol}</div>
-                        <div style="color: #ffd700; margin-top: 10px;">
-                            錯卦: ${hex2Info.cuoGua.name} (${hex2Info.cuoGua.decimal})<br>
-                            綜卦: ${hex2Info.zongGua.name} (${hex2Info.zongGua.decimal})
-                        </div>
-                    </div>
-                    <div class="result-card highlight">
-                        <div class="result-title">結果: ${resultInfo.name}</div>
-                        <div class="binary-display">${resultInfo.binary} (${resultInfo.decimal})</div>
-                        <div style="font-size: 2em; margin: 10px 0;">${resultInfo.upperTrigram.symbol}${resultInfo.lowerTrigram.symbol}</div>
-                        <div style="color: #ffd700;">
-                            錯卦: ${resultInfo.cuoGua.name} (${resultInfo.cuoGua.decimal})<br>
-                            綜卦: ${resultInfo.zongGua.name} (${resultInfo.zongGua.decimal})
-                        </div>
-                    </div>
-                `;
-            } catch (error) {
-                console.error('運算錯誤:', error);
-                document.getElementById('operationResult').innerHTML = '<div class="result-card">運算發生錯誤，請重試</div>';
-            }
-        }
-
-        // 生成全部64卦
-        function generateAllHexagrams() {
-            const grid = document.getElementById('hexagramGrid');
-            let html = '';
-            
-            for (let i = 0; i < 64; i++) {
-                const hexInfo = system.getHexagramInfo(i);
-                const isSpecial = (i === 62 || i === 1 || i === 31); // 天風姤、地雷復、火天大有
-                html += system.renderMiniHexagram(hexInfo, isSpecial);
-            }
-            
-            grid.innerHTML = html;
-        }
-
-        // 選擇卦象
-        function selectHexagram(decimal) {
-            document.getElementById('hexagram2').value = decimal;
-            calculateOperation();
-        }
-
-        // 初始化時執行一次運算和顯示
-        calculateOperation();
-        generateAllHexagrams();
-    </script>
-</body>
+    <svg id="fsm" width="660" height="522" viewBox="0 0 660 522">
+  <defs>
+    <marker id="arw#e74c3c" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e74c3c"/></marker>
+    <marker id="arw#d4ac0d" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#d4ac0d"/></marker>
+    <marker id="arw#27ae60" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#27ae60"/></marker>
+    <marker id="arw#7f8c8d" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7f8c8d"/></marker>
+    <marker id="arw#e67e22" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e67e22"/></marker>
+    <marker id="arw#2e86c1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#2e86c1"/></marker>
+  </defs>
+  <rect x="0" y="0" width="660" height="522" fill="#fbfaf6" rx="10"/>
+  <text x="133" y="30" font-size="13" font-weight="bold" text-anchor="middle" fill="#c0392b">乾宮</text>
+  <text x="199" y="30" font-size="13" font-weight="bold" text-anchor="middle" fill="#d35400">兌宮</text>
+  <text x="265" y="30" font-size="13" font-weight="bold" text-anchor="middle" fill="#f39c12">離宮</text>
+  <text x="331" y="30" font-size="13" font-weight="bold" text-anchor="middle" fill="#27ae60">震宮</text>
+  <text x="397" y="30" font-size="13" font-weight="bold" text-anchor="middle" fill="#16a085">巽宮</text>
+  <text x="463" y="30" font-size="13" font-weight="bold" text-anchor="middle" fill="#2980b9">坎宮</text>
+  <text x="529" y="30" font-size="13" font-weight="bold" text-anchor="middle" fill="#7f8c8d">艮宮</text>
+  <text x="595" y="30" font-size="13" font-weight="bold" text-anchor="middle" fill="#8e6e4e">坤宮</text>
+  <text x="90" y="80" font-size="12" text-anchor="end" fill="#666">本宮</text>
+  <text x="90" y="138" font-size="12" text-anchor="end" fill="#666">一世</text>
+  <text x="90" y="196" font-size="12" text-anchor="end" fill="#666">二世</text>
+  <text x="90" y="254" font-size="12" text-anchor="end" fill="#666">三世</text>
+  <text x="90" y="312" font-size="12" text-anchor="end" fill="#666">四世</text>
+  <text x="90" y="370" font-size="12" text-anchor="end" fill="#666">五世</text>
+  <text x="90" y="428" font-size="12" text-anchor="end" fill="#666">遊魂</text>
+  <text x="90" y="486" font-size="12" text-anchor="end" fill="#666">歸魂</text>
+  <g id="edges"><path d="M 133 75 Q 113.0 104.0 133 133" fill="none" stroke="#e74c3c" stroke-width="2" opacity=".85" marker-end="url(#arw#e74c3c)"/>
+<text x="133" y="104" font-size="12" fill="#e74c3c" text-anchor="middle" font-weight="bold">初九</text>
+<path d="M 133 75 Q 223.7 270.0 265 481" fill="none" stroke="#e67e22" stroke-width="2" opacity=".85" marker-end="url(#arw#e67e22)"/>
+<text x="199" y="278" font-size="12" fill="#e67e22" text-anchor="middle" font-weight="bold">九二</text>
+<path d="M 133 75 Q 322.7 231.3 529 365" fill="none" stroke="#d4ac0d" stroke-width="2" opacity=".85" marker-end="url(#arw#d4ac0d)"/>
+<text x="331" y="220" font-size="12" fill="#d4ac0d" text-anchor="middle" font-weight="bold">九三</text>
+<path d="M 133 75 Q 269.3 84.5 397 133" fill="none" stroke="#27ae60" stroke-width="2" opacity=".85" marker-end="url(#arw#27ae60)"/>
+<text x="265" y="104" font-size="12" fill="#27ae60" text-anchor="middle" font-weight="bold">九四</text>
+<path d="M 133 75 Q 107.0 278.0 133 481" fill="none" stroke="#2e86c1" stroke-width="2" opacity=".85" marker-end="url(#arw#2e86c1)"/>
+<text x="133" y="278" font-size="12" fill="#2e86c1" text-anchor="middle" font-weight="bold">九五</text>
+<path d="M 133 75 Q 371.4 208.1 595 365" fill="none" stroke="#7f8c8d" stroke-width="2" opacity=".85" marker-end="url(#arw#7f8c8d)"/>
+<text x="364" y="220" font-size="12" fill="#7f8c8d" text-anchor="middle" font-weight="bold">上九</text></g>
+  <g class="cell" data-q="63"><rect x="100" y="46" width="66" height="58" rx="5" fill="#c0392b" fill-opacity=".14" stroke="#c0392b" stroke-width="1" title="乾為天 111111"/>
+    <text x="133" y="80" font-size="14" fill="#c0392b" text-anchor="middle">乾</text></g><g class="cell" data-q="62"><rect x="100" y="104" width="66" height="58" rx="5" fill="#c0392b" fill-opacity=".14" stroke="#c0392b" stroke-width="1" title="天風姤 111110"/>
+    <text x="133" y="138" font-size="14" fill="#c0392b" text-anchor="middle">姤</text></g><g class="cell" data-q="60"><rect x="100" y="162" width="66" height="58" rx="5" fill="#c0392b" fill-opacity=".14" stroke="#c0392b" stroke-width="1" title="天山遯 111100"/>
+    <text x="133" y="196" font-size="14" fill="#c0392b" text-anchor="middle">遯</text></g><g class="cell" data-q="56"><rect x="100" y="220" width="66" height="58" rx="5" fill="#c0392b" fill-opacity=".14" stroke="#c0392b" stroke-width="1" title="天地否 111000"/>
+    <text x="133" y="254" font-size="14" fill="#c0392b" text-anchor="middle">否</text></g><g class="cell" data-q="48"><rect x="100" y="278" width="66" height="58" rx="5" fill="#c0392b" fill-opacity=".14" stroke="#c0392b" stroke-width="1" title="風地觀 110000"/>
+    <text x="133" y="312" font-size="14" fill="#c0392b" text-anchor="middle">觀</text></g><g class="cell" data-q="32"><rect x="100" y="336" width="66" height="58" rx="5" fill="#c0392b" fill-opacity=".14" stroke="#c0392b" stroke-width="1" title="山地剝 100000"/>
+    <text x="133" y="370" font-size="14" fill="#c0392b" text-anchor="middle">剝</text></g><g class="cell" data-q="40"><rect x="100" y="394" width="66" height="58" rx="5" fill="#c0392b" fill-opacity=".14" stroke="#c0392b" stroke-width="1" title="火地晉 101000"/>
+    <text x="133" y="428" font-size="14" fill="#c0392b" text-anchor="middle">晉</text></g><g class="cell" data-q="47"><rect x="100" y="452" width="66" height="58" rx="5" fill="#c0392b" fill-opacity=".14" stroke="#c0392b" stroke-width="1" title="火天大有 101111"/>
+    <text x="133" y="486" font-size="14" fill="#c0392b" text-anchor="middle">大有</text></g><g class="cell" data-q="27"><rect x="166" y="46" width="66" height="58" rx="5" fill="#d35400" fill-opacity=".14" stroke="#d35400" stroke-width="1" title="兌為澤 011011"/>
+    <text x="199" y="80" font-size="14" fill="#d35400" text-anchor="middle">兌</text></g><g class="cell" data-q="26"><rect x="166" y="104" width="66" height="58" rx="5" fill="#d35400" fill-opacity=".14" stroke="#d35400" stroke-width="1" title="澤水困 011010"/>
+    <text x="199" y="138" font-size="14" fill="#d35400" text-anchor="middle">困</text></g><g class="cell" data-q="24"><rect x="166" y="162" width="66" height="58" rx="5" fill="#d35400" fill-opacity=".14" stroke="#d35400" stroke-width="1" title="澤地萃 011000"/>
+    <text x="199" y="196" font-size="14" fill="#d35400" text-anchor="middle">萃</text></g><g class="cell" data-q="28"><rect x="166" y="220" width="66" height="58" rx="5" fill="#d35400" fill-opacity=".14" stroke="#d35400" stroke-width="1" title="澤山咸 011100"/>
+    <text x="199" y="254" font-size="14" fill="#d35400" text-anchor="middle">咸</text></g><g class="cell" data-q="20"><rect x="166" y="278" width="66" height="58" rx="5" fill="#d35400" fill-opacity=".14" stroke="#d35400" stroke-width="1" title="水山蹇 010100"/>
+    <text x="199" y="312" font-size="14" fill="#d35400" text-anchor="middle">蹇</text></g><g class="cell" data-q="4"><rect x="166" y="336" width="66" height="58" rx="5" fill="#d35400" fill-opacity=".14" stroke="#d35400" stroke-width="1" title="地山謙 000100"/>
+    <text x="199" y="370" font-size="14" fill="#d35400" text-anchor="middle">謙</text></g><g class="cell" data-q="12"><rect x="166" y="394" width="66" height="58" rx="5" fill="#d35400" fill-opacity=".14" stroke="#d35400" stroke-width="1" title="雷山小過 001100"/>
+    <text x="199" y="428" font-size="14" fill="#d35400" text-anchor="middle">小過</text></g><g class="cell" data-q="11"><rect x="166" y="452" width="66" height="58" rx="5" fill="#d35400" fill-opacity=".14" stroke="#d35400" stroke-width="1" title="雷澤歸妹 001011"/>
+    <text x="199" y="486" font-size="14" fill="#d35400" text-anchor="middle">歸妹</text></g><g class="cell" data-q="45"><rect x="232" y="46" width="66" height="58" rx="5" fill="#f39c12" fill-opacity=".14" stroke="#f39c12" stroke-width="1" title="離為火 101101"/><text x="265" y="80" font-size="14" fill="#f39c12" text-anchor="middle">離</text></g><g class="cell" data-q="44"><rect x="232" y="104" width="66" height="58" rx="5" fill="#f39c12" fill-opacity=".14" stroke="#f39c12" stroke-width="1" title="火山旅 101100"/><text x="265" y="138" font-size="14" fill="#f39c12" text-anchor="middle">旅</text></g><g class="cell" data-q="46"><rect x="232" y="162" width="66" height="58" rx="5" fill="#f39c12" fill-opacity=".14" stroke="#f39c12" stroke-width="1" title="火風鼎 101110"/><text x="265" y="196" font-size="14" fill="#f39c12" text-anchor="middle">鼎</text></g><g class="cell" data-q="42"><rect x="232" y="220" width="66" height="58" rx="5" fill="#f39c12" fill-opacity=".14" stroke="#f39c12" stroke-width="1" title="火水未濟 101010"/><text x="265" y="254" font-size="14" fill="#f39c12" text-anchor="middle">未濟</text></g><g class="cell" data-q="34"><rect x="232" y="278" width="66" height="58" rx="5" fill="#f39c12" fill-opacity=".14" stroke="#f39c12" stroke-width="1" title="山水蒙 100010"/><text x="265" y="312" font-size="14" fill="#f39c12" text-anchor="middle">蒙</text></g><g class="cell" data-q="50"><rect x="232" y="336" width="66" height="58" rx="5" fill="#f39c12" fill-opacity=".14" stroke="#f39c12" stroke-width="1" title="風水渙 110010"/><text x="265" y="370" font-size="14" fill="#f39c12" text-anchor="middle">渙</text></g><g class="cell" data-q="58"><rect x="232" y="394" width="66" height="58" rx="5" fill="#f39c12" fill-opacity=".14" stroke="#f39c12" stroke-width="1" title="天水訟 111010"/><text x="265" y="428" font-size="14" fill="#f39c12" text-anchor="middle">訟</text></g><g class="cell" data-q="61"><rect x="232" y="452" width="66" height="58" rx="5" fill="#f39c12" fill-opacity=".14" stroke="#f39c12" stroke-width="1" title="天火同人 111101"/><text x="265" y="486" font-size="14" fill="#f39c12" text-anchor="middle">同人</text></g><g class="cell" data-q="9"><rect x="298" y="46" width="66" height="58" rx="5" fill="#27ae60" fill-opacity=".14" stroke="#27ae60" stroke-width="1" title="震為雷 001001"/><text x="331" y="80" font-size="14" fill="#27ae60" text-anchor="middle">震</text></g><g class="cell" data-q="8"><rect x="298" y="104" width="66" height="58" rx="5" fill="#27ae60" fill-opacity=".14" stroke="#27ae60" stroke-width="1" title="雷地豫 001000"/><text x="331" y="138" font-size="14" fill="#27ae60" text-anchor="middle">豫</text></g><g class="cell" data-q="10"><rect x="298" y="162" width="66" height="58" rx="5" fill="#27ae60" fill-opacity=".14" stroke="#27ae60" stroke-width="1" title="雷水解 001010"/><text x="331" y="196" font-size="14" fill="#27ae60" text-anchor="middle">解</text></g><g class="cell" data-q="14"><rect x="298" y="220" width="66" height="58" rx="5" fill="#27ae60" fill-opacity=".14" stroke="#27ae60" stroke-width="1" title="雷風恆 001110"/><text x="331" y="254" font-size="14" fill="#27ae60" text-anchor="middle">恆</text></g><g class="cell" data-q="6"><rect x="298" y="278" width="66" height="58" rx="5" fill="#27ae60" fill-opacity=".14" stroke="#27ae60" stroke-width="1" title="地風升 000110"/><text x="331" y="312" font-size="14" fill="#27ae60" text-anchor="middle">升</text></g><g class="cell" data-q="22"><rect x="298" y="336" width="66" height="58" rx="5" fill="#27ae60" fill-opacity=".14" stroke="#27ae60" stroke-width="1" title="水風井 010110"/><text x="331" y="370" font-size="14" fill="#27ae60" text-anchor="middle">井</text></g><g class="cell" data-q="30"><rect x="298" y="394" width="66" height="58" rx="5" fill="#27ae60" fill-opacity=".14" stroke="#27ae60" stroke-width="1" title="澤風大過 011110"/><text x="331" y="428" font-size="14" fill="#27ae60" text-anchor="middle">大過</text></g><g class="cell" data-q="25"><rect x="298" y="452" width="66" height="58" rx="5" fill="#27ae60" fill-opacity=".14" stroke="#27ae60" stroke-width="1" title="澤雷隨 011001"/><text x="331" y="486" font-size="14" fill="#27ae60" text-anchor="middle">隨</text></g><g class="cell" data-q="54"><rect x="364" y="46" width="66" height="58" rx="5" fill="#16a085" fill-opacity=".14" stroke="#16a085" stroke-width="1" title="巽為風 110110"/><text x="397" y="80" font-size="14" fill="#16a085" text-anchor="middle">巽</text></g><g class="cell" data-q="55"><rect x="364" y="104" width="66" height="58" rx="5" fill="#16a085" fill-opacity=".14" stroke="#16a085" stroke-width="1" title="風天小畜 110111"/><text x="397" y="138" font-size="14" fill="#16a085" text-anchor="middle">小畜</text></g><g class="cell" data-q="53"><rect x="364" y="162" width="66" height="58" rx="5" fill="#16a085" fill-opacity=".14" stroke="#16a085" stroke-width="1" title="風火家人 110101"/><text x="397" y="196" font-size="14" fill="#16a085" text-anchor="middle">家人</text></g><g class="cell" data-q="49"><rect x="364" y="220" width="66" height="58" rx="5" fill="#16a085" fill-opacity=".14" stroke="#16a085" stroke-width="1" title="風雷益 110001"/><text x="397" y="254" font-size="14" fill="#16a085" text-anchor="middle">益</text></g><g class="cell" data-q="57"><rect x="364" y="278" width="66" height="58" rx="5" fill="#16a085" fill-opacity=".14" stroke="#16a085" stroke-width="1" title="天雷無妄 111001"/><text x="397" y="312" font-size="14" fill="#16a085" text-anchor="middle">無妄</text></g><g class="cell" data-q="41"><rect x="364" y="336" width="66" height="58" rx="5" fill="#16a085" fill-opacity=".14" stroke="#16a085" stroke-width="1" title="火雷噬嗑 101001"/><text x="397" y="370" font-size="14" fill="#16a085" text-anchor="middle">噬嗑</text></g><g class="cell" data-q="33"><rect x="364" y="394" width="66" height="58" rx="5" fill="#16a085" fill-opacity=".14" stroke="#16a085" stroke-width="1" title="山雷頤 100001"/><text x="397" y="428" font-size="14" fill="#16a085" text-anchor="middle">頤</text></g><g class="cell" data-q="38"><rect x="364" y="452" width="66" height="58" rx="5" fill="#16a085" fill-opacity=".14" stroke="#16a085" stroke-width="1" title="山風蠱 100110"/><text x="397" y="486" font-size="14" fill="#16a085" text-anchor="middle">蠱</text></g><g class="cell" data-q="18"><rect x="430" y="46" width="66" height="58" rx="5" fill="#2980b9" fill-opacity=".14" stroke="#2980b9" stroke-width="1" title="坎為水 010010"/><text x="463" y="80" font-size="14" fill="#2980b9" text-anchor="middle">坎</text></g><g class="cell" data-q="19"><rect x="430" y="104" width="66" height="58" rx="5" fill="#2980b9" fill-opacity=".14" stroke="#2980b9" stroke-width="1" title="水澤節 010011"/><text x="463" y="138" font-size="14" fill="#2980b9" text-anchor="middle">節</text></g><g class="cell" data-q="17"><rect x="430" y="162" width="66" height="58" rx="5" fill="#2980b9" fill-opacity=".14" stroke="#2980b9" stroke-width="1" title="水雷屯 010001"/><text x="463" y="196" font-size="14" fill="#2980b9" text-anchor="middle">屯</text></g><g class="cell" data-q="21"><rect x="430" y="220" width="66" height="58" rx="5" fill="#2980b9" fill-opacity=".14" stroke="#2980b9" stroke-width="1" title="水火既濟 010101"/><text x="463" y="254" font-size="14" fill="#2980b9" text-anchor="middle">既濟</text></g><g class="cell" data-q="29"><rect x="430" y="278" width="66" height="58" rx="5" fill="#2980b9" fill-opacity=".14" stroke="#2980b9" stroke-width="1" title="澤火革 011101"/><text x="463" y="312" font-size="14" fill="#2980b9" text-anchor="middle">革</text></g><g class="cell" data-q="13"><rect x="430" y="336" width="66" height="58" rx="5" fill="#2980b9" fill-opacity=".14" stroke="#2980b9" stroke-width="1" title="雷火豐 001101"/><text x="463" y="370" font-size="14" fill="#2980b9" text-anchor="middle">豐</text></g><g class="cell" data-q="5"><rect x="430" y="394" width="66" height="58" rx="5" fill="#2980b9" fill-opacity=".14" stroke="#2980b9" stroke-width="1" title="地火明夷 000101"/><text x="463" y="428" font-size="14" fill="#2980b9" text-anchor="middle">明夷</text></g><g class="cell" data-q="2"><rect x="430" y="452" width="66" height="58" rx="5" fill="#2980b9" fill-opacity=".14" stroke="#2980b9" stroke-width="1" title="地水師 000010"/><text x="463" y="486" font-size="14" fill="#2980b9" text-anchor="middle">師</text></g><g class="cell" data-q="36"><rect x="496" y="46" width="66" height="58" rx="5" fill="#7f8c8d" fill-opacity=".14" stroke="#7f8c8d" stroke-width="1" title="艮為山 100100"/><text x="529" y="80" font-size="14" fill="#7f8c8d" text-anchor="middle">艮</text></g><g class="cell" data-q="37"><rect x="496" y="104" width="66" height="58" rx="5" fill="#7f8c8d" fill-opacity=".14" stroke="#7f8c8d" stroke-width="1" title="山火賁 100101"/><text x="529" y="138" font-size="14" fill="#7f8c8d" text-anchor="middle">賁</text></g><g class="cell" data-q="39"><rect x="496" y="162" width="66" height="58" rx="5" fill="#7f8c8d" fill-opacity=".14" stroke="#7f8c8d" stroke-width="1" title="山天大畜 100111"/><text x="529" y="196" font-size="14" fill="#7f8c8d" text-anchor="middle">大畜</text></g><g class="cell" data-q="35"><rect x="496" y="220" width="66" height="58" rx="5" fill="#7f8c8d" fill-opacity=".14" stroke="#7f8c8d" stroke-width="1" title="山澤損 100011"/><text x="529" y="254" font-size="14" fill="#7f8c8d" text-anchor="middle">損</text></g><g class="cell" data-q="43"><rect x="496" y="278" width="66" height="58" rx="5" fill="#7f8c8d" fill-opacity=".14" stroke="#7f8c8d" stroke-width="1" title="火澤睽 101011"/><text x="529" y="312" font-size="14" fill="#7f8c8d" text-anchor="middle">睽</text></g><g class="cell" data-q="59"><rect x="496" y="336" width="66" height="58" rx="5" fill="#7f8c8d" fill-opacity=".14" stroke="#7f8c8d" stroke-width="1" title="天澤履 111011"/><text x="529" y="370" font-size="14" fill="#7f8c8d" text-anchor="middle">履</text></g><g class="cell" data-q="51"><rect x="496" y="394" width="66" height="58" rx="5" fill="#7f8c8d" fill-opacity=".14" stroke="#7f8c8d" stroke-width="1" title="風澤中孚 110011"/><text x="529" y="428" font-size="14" fill="#7f8c8d" text-anchor="middle">中孚</text></g><g class="cell" data-q="52"><rect x="496" y="452" width="66" height="58" rx="5" fill="#7f8c8d" fill-opacity=".14" stroke="#7f8c8d" stroke-width="1" title="風山漸 110100"/><text x="529" y="486" font-size="14" fill="#7f8c8d" text-anchor="middle">漸</text></g><g class="cell" data-q="0"><rect x="562" y="46" width="66" height="58" rx="5" fill="#8e6e4e" fill-opacity=".14" stroke="#8e6e4e" stroke-width="1" title="坤為地 000000"/><text x="595" y="80" font-size="14" fill="#8e6e4e" text-anchor="middle">坤</text></g><g class="cell" data-q="1"><rect x="562" y="104" width="66" height="58" rx="5" fill="#8e6e4e" fill-opacity=".14" stroke="#8e6e4e" stroke-width="1" title="地雷復 000001"/><text x="595" y="138" font-size="14" fill="#8e6e4e" text-anchor="middle">復</text></g><g class="cell" data-q="3"><rect x="562" y="162" width="66" height="58" rx="5" fill="#8e6e4e" fill-opacity=".14" stroke="#8e6e4e" stroke-width="1" title="地澤臨 000011"/><text x="595" y="196" font-size="14" fill="#8e6e4e" text-anchor="middle">臨</text></g><g class="cell" data-q="7"><rect x="562" y="220" width="66" height="58" rx="5" fill="#8e6e4e" fill-opacity=".14" stroke="#8e6e4e" stroke-width="1" title="地天泰 000111"/><text x="595" y="254" font-size="14" fill="#8e6e4e" text-anchor="middle">泰</text></g><g class="cell" data-q="15"><rect x="562" y="278" width="66" height="58" rx="5" fill="#8e6e4e" fill-opacity=".14" stroke="#8e6e4e" stroke-width="1" title="雷天大壯 001111"/><text x="595" y="312" font-size="14" fill="#8e6e4e" text-anchor="middle">大壯</text></g><g class="cell" data-q="31"><rect x="562" y="336" width="66" height="58" rx="5" fill="#8e6e4e" fill-opacity=".14" stroke="#8e6e4e" stroke-width="1" title="澤天夬 011111"/><text x="595" y="370" font-size="14" fill="#8e6e4e" text-anchor="middle">夬</text></g><g class="cell" data-q="23"><rect x="562" y="394" width="66" height="58" rx="5" fill="#8e6e4e" fill-opacity=".14" stroke="#8e6e4e" stroke-width="1" title="水天需 010111"/><text x="595" y="428" font-size="14" fill="#8e6e4e" text-anchor="middle">需</text></g><g class="cell" data-q="16"><rect x="562" y="452" width="66" height="58" rx="5" fill="#8e6e4e" fill-opacity=".14" stroke="#8e6e4e" stroke-width="1" title="水地比 010000"/><text x="595" y="486" font-size="14" fill="#8e6e4e" text-anchor="middle">比</text></g>
+  <g id="tmarks"></g>
+</svg>
+  </div>
+  <div id="panel">
+    <div class="ph" style="border-left:6px solid #c0392b">
+      <b>乾為天</b>
+      <span class="v">111111 = 63</span>
+      <span class="g">第 1 卦 · 爻辭源 Project Gutenberg #25501《易經》（繁體全文），爻辭擷取</span>
+    </div>
+    <div class="pw">
+      <div class="lines"><div class="l">━━━</div>
+<div class="l">━━━</div>
+<div class="l">━━━</div>
+<div class="l">━━━</div>
+<div class="l">━━━</div>
+<div class="l">━━━</div></div>
+      <div class="meta">屬 乾宮 · 本宮卦 · 世爻6 · 應爻3</div>
+    </div>
+    <table class="tr">
+      <tr><th>動爻</th><th>爻名</th><th>爻辭</th><th>之卦</th></tr>
+      <tr data-i="1" onclick="window.__sel && window.__sel(62)"><td class="i">1</td><td class="y">初九</td><td class="t">潛龍，勿用</td><td class="d">姤</td></tr><tr data-i="2" onclick="window.__sel && window.__sel(61)"><td class="i">2</td><td class="y">九二</td><td class="t">見龍在田，利見大人</td><td class="d">同人</td></tr><tr data-i="3" onclick="window.__sel && window.__sel(59)"><td class="i">3</td><td class="y">九三</td><td class="t">君子終日乾乾，夕惕，若厲，無咎</td><td class="d">履</td></tr><tr data-i="4" onclick="window.__sel && window.__sel(55)"><td class="i">4</td><td class="y">九四</td><td class="t">或躍在淵，無咎</td><td class="d">小畜</td></tr><tr data-i="5" onclick="window.__sel && window.__sel(47)"><td class="i">5</td><td class="y">九五</td><td class="t">飛龍在天，利見大人</td><td class="d">大有</td></tr><tr data-i="6" onclick="window.__sel && window.__sel(31)"><td class="i">6</td><td class="y">上九</td><td class="t">亢龍有悔</td><td class="d">夬</td></tr>
+    </table>
+    <div class="hint">點擊表格列可跳到之卦；點擊格狀圖任一卦即可切換。</div></div>
+</div>
+<details><summary>全部 384 條轉移規則表（64 卦 × 6 動爻）</summary>
+  <div class="filt"><input id="ft" placeholder="過濾：本卦名 / 爻辭 / 之卦名" onkeyup="window.__filt && window.__filt(this.value)"/></div><div class="tbox"><table class="all" id="all"><tr><th>卦序</th><th>本卦</th><th>動爻</th><th>爻名</th><th>爻辭</th><th>之卦</th></tr><tbody id="allb"></tbody></table></div>
+</details>
+<script>
+(function(){
+  try{
+    var DATA = [{"xu": 1, "name": "乾為天", "short": "乾", "value": 63, "lines": [{"pos": 1, "yao": "初九", "text": "潛龍，勿用", "target": 62}, {"pos": 2, "yao": "九二", "text": "見龍在田，利見大人", "target": 61}, {"pos": 3, "yao": "九三", "text": "君子終日乾乾，夕惕，若厲，無咎", "target": 59}, {"pos": 4, "yao": "九四", "text": "或躍在淵，無咎", "target": 55}, {"pos": 5, "yao": "九五", "text": "飛龍在天，利見大人", "target": 47}, {"pos": 6, "yao": "上九", "text": "亢龍有悔", "target": 31}]}, {"xu": 2, "name": "坤為地", "short": "坤", "value": 0, "lines": [{"pos": 1, "yao": "初六", "text": "履霜，堅冰至", "target": 1}, {"pos": 2, "yao": "六二", "text": "直，方，大，不習無不利", "target": 2}, {"pos": 3, "yao": "六三", "text": "含章可貞。或從王事，無成有終", "target": 4}, {"pos": 4, "yao": "六四", "text": "括囊；無咎，無譽", "target": 8}, {"pos": 5, "yao": "六五", "text": "黃裳，元吉", "target": 16}, {"pos": 6, "yao": "上六", "text": "戰龍於野，其血玄黃", "target": 32}]}, {"xu": 3, "name": "水雷屯", "short": "屯", "value": 17, "lines": [{"pos": 1, "yao": "初九", "text": "磐桓；利居貞，利建侯", "target": 16}, {"pos": 2, "yao": "六二", "text": "屯如邅如，乘馬班如。匪寇婚媾，女子貞不字，十年乃字", "target": 19}, {"pos": 3, "yao": "六三", "text": "既鹿無虞，惟入于林中，君子幾不如舍，往吝", "target": 21}, {"pos": 4, "yao": "六四", "text": "乘馬班如，求婚媾，往吉，無不利", "target": 25}, {"pos": 5, "yao": "九五", "text": "屯其膏，小貞吉，大貞凶", "target": 1}, {"pos": 6, "yao": "上六", "text": "乘馬班如，泣血漣如", "target": 49}]}, {"xu": 4, "name": "山水蒙", "short": "蒙", "value": 34, "lines": [{"pos": 1, "yao": "初六", "text": "發蒙，利用刑人，用說桎梏，以往吝", "target": 35}, {"pos": 2, "yao": "九二", "text": "包蒙，吉；納婦，吉；子克家", "target": 32}, {"pos": 3, "yao": "六三", "text": "勿用娶女；見金夫，不有躬，無攸利", "target": 38}, {"pos": 4, "yao": "六四", "text": "困蒙，吝", "target": 42}, {"pos": 5, "yao": "六五", "text": "童蒙，吉", "target": 50}, {"pos": 6, "yao": "上九", "text": "擊蒙；不利為寇，利御寇", "target": 2}]}, {"xu": 5, "name": "水天需", "short": "需", "value": 23, "lines": [{"pos": 1, "yao": "初九", "text": "需于郊。利用恆，無咎", "target": 22}, {"pos": 2, "yao": "九二", "text": "需于沙。小有言，終吉", "target": 21}, {"pos": 3, "yao": "九三", "text": "需于泥，致寇至", "target": 19}, {"pos": 4, "yao": "六四", "text": "需于血，出自穴", "target": 31}, {"pos": 5, "yao": "九五", "text": "需于酒食，貞吉", "target": 7}, {"pos": 6, "yao": "上六", "text": "入于穴，有不速之客三人來，敬之終吉", "target": 55}]}, {"xu": 6, "name": "天水訟", "short": "訟", "value": 58, "lines": [{"pos": 1, "yao": "初六", "text": "不永所事，小有言，終吉", "target": 59}, {"pos": 2, "yao": "九二", "text": "不克訟，歸而逋，其邑人三百戶，無眚", "target": 56}, {"pos": 3, "yao": "六三", "text": "食舊德，貞厲，終吉，或從王事，無成", "target": 62}, {"pos": 4, "yao": "九四", "text": "不克訟，復即命，渝安貞，吉", "target": 50}, {"pos": 5, "yao": "九五", "text": "訟元吉", "target": 42}, {"pos": 6, "yao": "上九", "text": "或錫之鞶帶，終朝三褫之", "target": 26}]}, {"xu": 7, "name": "地水師", "short": "師", "value": 2, "lines": [{"pos": 1, "yao": "初六", "text": "師出以律，否臧凶", "target": 3}, {"pos": 2, "yao": "九二", "text": "在師中，吉無咎，王三錫命", "target": 0}, {"pos": 3, "yao": "六三", "text": "師或輿尸，凶", "target": 6}, {"pos": 4, "yao": "六四", "text": "師左次，無咎", "target": 10}, {"pos": 5, "yao": "六五", "text": "田有禽，利執言，無咎。長子帥師，弟子輿尸，貞凶", "target": 18}, {"pos": 6, "yao": "上六", "text": "大君有命，開國承家，小人勿用", "target": 34}]}, {"xu": 8, "name": "水地比", "short": "比", "value": 16, "lines": [{"pos": 1, "yao": "初六", "text": "有孚比之，無咎。有孚盈缶，終來有他，吉", "target": 17}, {"pos": 2, "yao": "六二", "text": "比之自內，貞吉", "target": 18}, {"pos": 3, "yao": "六三", "text": "比之匪人", "target": 20}, {"pos": 4, "yao": "六四", "text": "外比之，貞吉", "target": 24}, {"pos": 5, "yao": "九五", "text": "顯比，王用三驅，失前禽。邑人不誡，吉", "target": 0}, {"pos": 6, "yao": "上六", "text": "比之無首，凶", "target": 48}]}, {"xu": 9, "name": "風天小畜", "short": "小畜", "value": 55, "lines": [{"pos": 1, "yao": "初九", "text": "復自道，何其咎，吉", "target": 54}, {"pos": 2, "yao": "九二", "text": "牽復，吉", "target": 53}, {"pos": 3, "yao": "九三", "text": "輿說輻，夫妻反目", "target": 51}, {"pos": 4, "yao": "六四", "text": "有孚，血去。惕出，無咎", "target": 63}, {"pos": 5, "yao": "九五", "text": "有孚攣如，富以其鄰", "target": 39}, {"pos": 6, "yao": "上九", "text": "既雨既處，尚德載婦，貞厲。月幾望，君子征凶", "target": 23}]}, {"xu": 10, "name": "天澤履", "short": "履", "value": 59, "lines": [{"pos": 1, "yao": "初九", "text": "素履，往無咎", "target": 58}, {"pos": 2, "yao": "九二", "text": "履道坦坦，幽人貞吉", "target": 57}, {"pos": 3, "yao": "六三", "text": "眇能視，跛能履，履虎尾，咥人，凶。武人為于大君", "target": 63}, {"pos": 4, "yao": "九四", "text": "履虎尾，愬愬，終吉", "target": 51}, {"pos": 5, "yao": "九五", "text": "夬履，貞厲", "target": 43}, {"pos": 6, "yao": "上九", "text": "視履考祥，其旋元吉", "target": 27}]}, {"xu": 11, "name": "地天泰", "short": "泰", "value": 7, "lines": [{"pos": 1, "yao": "初九", "text": "拔茅茹，以其彙，征吉", "target": 6}, {"pos": 2, "yao": "九二", "text": "包荒，用馮河，不遐遺，朋亡，得尚于中行", "target": 5}, {"pos": 3, "yao": "九三", "text": "無平不陂，無往不復，艱貞無咎。勿恤其孚，于食有福", "target": 3}, {"pos": 4, "yao": "六四", "text": "翩翩不富，以其鄰，不戒以孚", "target": 15}, {"pos": 5, "yao": "六五", "text": "帝乙歸妹，以祉元吉", "target": 23}, {"pos": 6, "yao": "上六", "text": "城復于隍，勿用師。自邑告命，貞吝", "target": 39}]}, {"xu": 12, "name": "天地否", "short": "否", "value": 56, "lines": [{"pos": 1, "yao": "初六", "text": "拔茅茹，以其彙，貞吉亨", "target": 57}, {"pos": 2, "yao": "六二", "text": "包承。小人吉，大人否亨", "target": 58}, {"pos": 3, "yao": "六三", "text": "包羞", "target": 60}, {"pos": 4, "yao": "九四", "text": "有命無咎，疇離祉", "target": 48}, {"pos": 5, "yao": "九五", "text": "休否，大人吉。其亡其亡，繫于苞桑", "target": 40}, {"pos": 6, "yao": "上九", "text": "傾否，先否後喜", "target": 24}]}, {"xu": 13, "name": "天火同人", "short": "同人", "value": 61, "lines": [{"pos": 1, "yao": "初九", "text": "同人于門，無咎", "target": 60}, {"pos": 2, "yao": "六二", "text": "同人于宗，吝", "target": 63}, {"pos": 3, "yao": "九三", "text": "伏戎于莽，升其高陵，三歲不興", "target": 57}, {"pos": 4, "yao": "九四", "text": "乘其墉，弗克攻，吉", "target": 53}, {"pos": 5, "yao": "九五", "text": "同人，先號咷而後笑。大師克相遇", "target": 45}, {"pos": 6, "yao": "上九", "text": "同人于郊，無悔", "target": 29}]}, {"xu": 14, "name": "火天大有", "short": "大有", "value": 47, "lines": [{"pos": 1, "yao": "初九", "text": "無交害，匪咎，艱則無咎", "target": 46}, {"pos": 2, "yao": "九二", "text": "大車以載，有攸往，無咎", "target": 45}, {"pos": 3, "yao": "九三", "text": "公用亨于天子，小人弗克", "target": 43}, {"pos": 4, "yao": "九四", "text": "匪其彭，無咎", "target": 39}, {"pos": 5, "yao": "六五", "text": "厥孚交如，威如；吉", "target": 63}, {"pos": 6, "yao": "上九", "text": "自天佑之，吉無不利", "target": 15}]}, {"xu": 15, "name": "地山謙", "short": "謙", "value": 4, "lines": [{"pos": 1, "yao": "初六", "text": "謙謙君子，用涉大川，吉", "target": 5}, {"pos": 2, "yao": "六二", "text": "鳴謙，貞吉", "target": 6}, {"pos": 3, "yao": "九三", "text": "勞謙君子，有終吉", "target": 0}, {"pos": 4, "yao": "六四", "text": "無不利，撝謙", "target": 12}, {"pos": 5, "yao": "六五", "text": "不富，以其鄰，利用侵伐，無不利", "target": 20}, {"pos": 6, "yao": "上六", "text": "鳴謙，利用行師，征邑國", "target": 36}]}, {"xu": 16, "name": "雷地豫", "short": "豫", "value": 8, "lines": [{"pos": 1, "yao": "初六", "text": "鳴豫，凶", "target": 9}, {"pos": 2, "yao": "六二", "text": "介于石，不終日，貞吉", "target": 10}, {"pos": 3, "yao": "六三", "text": "盱豫，悔。遲有悔", "target": 12}, {"pos": 4, "yao": "九四", "text": "由豫，大有得。勿疑。朋盍簪", "target": 0}, {"pos": 5, "yao": "六五", "text": "貞疾，恆不死", "target": 24}, {"pos": 6, "yao": "上六", "text": "冥豫，成有渝，無咎", "target": 40}]}, {"xu": 17, "name": "澤雷隨", "short": "隨", "value": 25, "lines": [{"pos": 1, "yao": "初九", "text": "官有渝，貞吉。出門交有功", "target": 24}, {"pos": 2, "yao": "六二", "text": "係小子，失丈夫", "target": 27}, {"pos": 3, "yao": "六三", "text": "係丈夫，失小子。隨有求得，利居貞", "target": 29}, {"pos": 4, "yao": "九四", "text": "隨有獲，貞凶。有孚在道，以明，何咎", "target": 17}, {"pos": 5, "yao": "九五", "text": "孚于嘉，吉", "target": 9}, {"pos": 6, "yao": "上六", "text": "拘系之，乃從維之。王用亨于西山", "target": 57}]}, {"xu": 18, "name": "山風蠱", "short": "蠱", "value": 38, "lines": [{"pos": 1, "yao": "初六", "text": "幹父之蠱，有子，考無咎，厲終吉", "target": 39}, {"pos": 2, "yao": "九二", "text": "幹母之蠱，不可貞", "target": 36}, {"pos": 3, "yao": "九三", "text": "幹父小有晦，無大咎", "target": 34}, {"pos": 4, "yao": "六四", "text": "裕父之蠱，往見吝", "target": 46}, {"pos": 5, "yao": "六五", "text": "幹父之蠱，用譽", "target": 54}, {"pos": 6, "yao": "上九", "text": "不事王侯，高尚其事", "target": 6}]}, {"xu": 19, "name": "地澤臨", "short": "臨", "value": 3, "lines": [{"pos": 1, "yao": "初九", "text": "咸臨，貞吉", "target": 2}, {"pos": 2, "yao": "九二", "text": "咸臨，吉無不利", "target": 1}, {"pos": 3, "yao": "六三", "text": "甘臨，無攸利。既憂之，無咎", "target": 7}, {"pos": 4, "yao": "六四", "text": "至臨，無咎", "target": 11}, {"pos": 5, "yao": "六五", "text": "知臨，大君之宜，吉", "target": 19}, {"pos": 6, "yao": "上六", "text": "敦臨，吉無咎", "target": 35}]}, {"xu": 20, "name": "風地觀", "short": "觀", "value": 48, "lines": [{"pos": 1, "yao": "初六", "text": "童觀，小人無咎，君子吝", "target": 49}, {"pos": 2, "yao": "六二", "text": "窺觀，利女貞", "target": 50}, {"pos": 3, "yao": "六三", "text": "觀我生，進退", "target": 52}, {"pos": 4, "yao": "六四", "text": "觀國之光，利用賓于王", "target": 56}, {"pos": 5, "yao": "九五", "text": "觀我生，君子無咎", "target": 32}, {"pos": 6, "yao": "上九", "text": "觀其生，君子無咎", "target": 16}]}, {"xu": 21, "name": "火雷噬嗑", "short": "噬嗑", "value": 41, "lines": [{"pos": 1, "yao": "初九", "text": "履校滅趾，無咎", "target": 40}, {"pos": 2, "yao": "六二", "text": "噬膚滅鼻，無咎", "target": 43}, {"pos": 3, "yao": "六三", "text": "噬臘肉，遇毒；小吝，無咎", "target": 45}, {"pos": 4, "yao": "九四", "text": "噬乾胏，得金矢，利艱貞，吉", "target": 33}, {"pos": 5, "yao": "六五", "text": "噬乾肉，得黃金，貞厲，無咎", "target": 57}, {"pos": 6, "yao": "上九", "text": "何校滅耳，凶", "target": 9}]}, {"xu": 22, "name": "山火賁", "short": "賁", "value": 37, "lines": [{"pos": 1, "yao": "初九", "text": "賁其趾，舍車而徒", "target": 36}, {"pos": 2, "yao": "六二", "text": "賁其須", "target": 39}, {"pos": 3, "yao": "九三", "text": "賁如濡如，永貞吉", "target": 33}, {"pos": 4, "yao": "六四", "text": "賁如皤如，白馬翰如，匪寇婚媾", "target": 45}, {"pos": 5, "yao": "六五", "text": "賁于丘園，束帛戔戔，吝，終吉", "target": 53}, {"pos": 6, "yao": "上九", "text": "白賁，無咎", "target": 5}]}, {"xu": 23, "name": "山地剝", "short": "剝", "value": 32, "lines": [{"pos": 1, "yao": "初六", "text": "剝床以足，蔑貞凶", "target": 33}, {"pos": 2, "yao": "六二", "text": "剝床以辨，蔑貞凶", "target": 34}, {"pos": 3, "yao": "六三", "text": "剝之，無咎", "target": 36}, {"pos": 4, "yao": "六四", "text": "剝床以膚，凶", "target": 40}, {"pos": 5, "yao": "六五", "text": "貫魚，以宮人寵，無不利", "target": 48}, {"pos": 6, "yao": "上九", "text": "碩果不食，君子得輿，小人剝廬", "target": 0}]}, {"xu": 24, "name": "地雷復", "short": "復", "value": 1, "lines": [{"pos": 1, "yao": "初九", "text": "不復遠，無祗悔，元吉", "target": 0}, {"pos": 2, "yao": "六二", "text": "休復，吉", "target": 3}, {"pos": 3, "yao": "六三", "text": "頻復厲，無咎", "target": 5}, {"pos": 4, "yao": "六四", "text": "中行獨復", "target": 9}, {"pos": 5, "yao": "六五", "text": "敦復，無悔", "target": 17}, {"pos": 6, "yao": "上六", "text": "迷復，凶，有災眚。用行師，終有大敗，以其國君，凶；至于十年，不克征", "target": 33}]}, {"xu": 25, "name": "天雷無妄", "short": "無妄", "value": 57, "lines": [{"pos": 1, "yao": "初九", "text": "無妄，往吉", "target": 56}, {"pos": 2, "yao": "六二", "text": "不耕獲，不菑畬，則利有攸往", "target": 59}, {"pos": 3, "yao": "六三", "text": "無妄之災，或繫之牛，行人之得，邑人之災", "target": 61}, {"pos": 4, "yao": "九四", "text": "可貞，無咎", "target": 49}, {"pos": 5, "yao": "九五", "text": "無妄之疾，勿藥有喜", "target": 41}, {"pos": 6, "yao": "上九", "text": "無妄，行有眚，無攸利", "target": 25}]}, {"xu": 26, "name": "山天大畜", "short": "大畜", "value": 39, "lines": [{"pos": 1, "yao": "初九", "text": "有厲利已", "target": 38}, {"pos": 2, "yao": "九二", "text": "輿說輻", "target": 37}, {"pos": 3, "yao": "九三", "text": "良馬逐，利艱貞。日閑輿衛，利有攸往", "target": 35}, {"pos": 4, "yao": "六四", "text": "童牛之牿，元吉", "target": 47}, {"pos": 5, "yao": "六五", "text": "豶豕之牙，吉", "target": 55}, {"pos": 6, "yao": "上九", "text": "何天之衢，亨", "target": 7}]}, {"xu": 27, "name": "山雷頤", "short": "頤", "value": 33, "lines": [{"pos": 1, "yao": "初九", "text": "舍爾靈龜，觀我朵頤，凶", "target": 32}, {"pos": 2, "yao": "六二", "text": "顛頤，拂經于丘頤，征凶", "target": 35}, {"pos": 3, "yao": "六三", "text": "拂頤，貞凶，十年勿用，無攸利", "target": 37}, {"pos": 4, "yao": "六四", "text": "顛頤吉，虎視眈眈，其欲逐逐，無咎", "target": 41}, {"pos": 5, "yao": "六五", "text": "拂經，居貞吉，不可涉大川", "target": 49}, {"pos": 6, "yao": "上九", "text": "由頤，厲吉，利涉大川", "target": 1}]}, {"xu": 28, "name": "澤風大過", "short": "大過", "value": 30, "lines": [{"pos": 1, "yao": "初六", "text": "藉用白茅，無咎", "target": 31}, {"pos": 2, "yao": "九二", "text": "枯楊生稊，老夫得其女妻，無不利", "target": 28}, {"pos": 3, "yao": "九三", "text": "棟橈，凶", "target": 26}, {"pos": 4, "yao": "九四", "text": "棟隆，吉；有它吝", "target": 22}, {"pos": 5, "yao": "九五", "text": "枯楊生華，老婦得士夫，無咎無譽", "target": 14}, {"pos": 6, "yao": "上六", "text": "過涉滅頂，凶，無咎", "target": 62}]}, {"xu": 29, "name": "坎為水", "short": "坎", "value": 18, "lines": [{"pos": 1, "yao": "初六", "text": "習坎，入于坎窞，凶", "target": 19}, {"pos": 2, "yao": "九二", "text": "坎有險，求小得", "target": 16}, {"pos": 3, "yao": "六三", "text": "來之坎坎，險且枕，入于坎窞，勿用", "target": 22}, {"pos": 4, "yao": "六四", "text": "樽酒簋貳，用缶，納約自牖，終無咎", "target": 26}, {"pos": 5, "yao": "九五", "text": "坎不盈，祗既平，無咎", "target": 2}, {"pos": 6, "yao": "上六", "text": "係用徽纆，寘于叢棘，三歲不得，凶", "target": 50}]}, {"xu": 30, "name": "離為火", "short": "離", "value": 45, "lines": [{"pos": 1, "yao": "初九", "text": "履錯然，敬之無咎", "target": 44}, {"pos": 2, "yao": "六二", "text": "黃離，元吉", "target": 47}, {"pos": 3, "yao": "九三", "text": "日昃之離，不鼓缶而歌，則大耋之嗟，凶", "target": 41}, {"pos": 4, "yao": "九四", "text": "突如其來如，焚如，死如，棄如", "target": 37}, {"pos": 5, "yao": "六五", "text": "出涕沱若，戚嗟若，吉", "target": 61}, {"pos": 6, "yao": "上九", "text": "王用出征，有嘉折首，獲匪其醜，無咎", "target": 13}]}, {"xu": 31, "name": "澤山咸", "short": "咸", "value": 28, "lines": [{"pos": 1, "yao": "初六", "text": "咸其拇", "target": 29}, {"pos": 2, "yao": "六二", "text": "咸其腓，凶，居吉", "target": 30}, {"pos": 3, "yao": "九三", "text": "咸其股，執其隨，往吝", "target": 24}, {"pos": 4, "yao": "九四", "text": "貞吉悔亡，憧憧往來，朋從爾思", "target": 20}, {"pos": 5, "yao": "九五", "text": "咸其脢，無悔", "target": 12}, {"pos": 6, "yao": "上六", "text": "咸其輔，頰，舌", "target": 60}]}, {"xu": 32, "name": "雷風恆", "short": "恆", "value": 14, "lines": [{"pos": 1, "yao": "初六", "text": "浚恆，貞凶，無攸利", "target": 15}, {"pos": 2, "yao": "九二", "text": "悔亡", "target": 12}, {"pos": 3, "yao": "九三", "text": "不恆其德，或承之羞，貞吝", "target": 10}, {"pos": 4, "yao": "九四", "text": "田無禽", "target": 6}, {"pos": 5, "yao": "六五", "text": "恆其德，貞，婦人吉，夫子凶", "target": 30}, {"pos": 6, "yao": "上六", "text": "振恆，凶", "target": 46}]}, {"xu": 33, "name": "天山遯", "short": "遯", "value": 60, "lines": [{"pos": 1, "yao": "初六", "text": "遯尾，厲，勿用有攸往", "target": 61}, {"pos": 2, "yao": "六二", "text": "執之用黃牛之革，莫之勝說", "target": 62}, {"pos": 3, "yao": "九三", "text": "係遯，有疾厲，畜臣妾吉", "target": 56}, {"pos": 4, "yao": "九四", "text": "好遯君子吉，小人否", "target": 52}, {"pos": 5, "yao": "九五", "text": "嘉遯，貞吉", "target": 44}, {"pos": 6, "yao": "上九", "text": "肥遯，無不利", "target": 28}]}, {"xu": 34, "name": "雷天大壯", "short": "大壯", "value": 15, "lines": [{"pos": 1, "yao": "初九", "text": "壯于趾，征凶，有孚", "target": 14}, {"pos": 2, "yao": "九二", "text": "貞吉", "target": 13}, {"pos": 3, "yao": "九三", "text": "小人用壯，君子用罔，貞厲。羝羊觸藩，羸其角", "target": 11}, {"pos": 4, "yao": "九四", "text": "貞吉悔亡，藩決不羸，壯于大輿之輹", "target": 7}, {"pos": 5, "yao": "六五", "text": "喪羊于易，無悔", "target": 31}, {"pos": 6, "yao": "上六", "text": "羝羊觸藩，不能退，不能遂，無攸利，艱則吉", "target": 47}]}, {"xu": 35, "name": "火地晉", "short": "晉", "value": 40, "lines": [{"pos": 1, "yao": "初六", "text": "晉如，摧如，貞吉。罔孚，裕無咎", "target": 41}, {"pos": 2, "yao": "六二", "text": "晉如，愁如，貞吉。受茲介福，于其王母", "target": 42}, {"pos": 3, "yao": "六三", "text": "眾允，悔亡", "target": 44}, {"pos": 4, "yao": "九四", "text": "晉如鼫鼠，貞厲", "target": 32}, {"pos": 5, "yao": "六五", "text": "悔亡，失得勿恤，往吉無不利", "target": 56}, {"pos": 6, "yao": "上九", "text": "晉其角，維用伐邑，厲吉無咎，貞吝", "target": 8}]}, {"xu": 36, "name": "地火明夷", "short": "明夷", "value": 5, "lines": [{"pos": 1, "yao": "初九", "text": "明夷于飛，垂其翼。君子于行，三日不食，有攸往，主人有言", "target": 4}, {"pos": 2, "yao": "六二", "text": "明夷，夷于左股，用拯馬壯，吉", "target": 7}, {"pos": 3, "yao": "九三", "text": "明夷于南狩，得其大首，不可疾貞", "target": 1}, {"pos": 4, "yao": "六四", "text": "入于左腹，獲明夷之心，于出門庭", "target": 13}, {"pos": 5, "yao": "六五", "text": "箕子之明夷，利貞", "target": 21}, {"pos": 6, "yao": "上六", "text": "不明晦，初登于天，後入于地", "target": 37}]}, {"xu": 37, "name": "風火家人", "short": "家人", "value": 53, "lines": [{"pos": 1, "yao": "初九", "text": "閑有家，悔亡", "target": 52}, {"pos": 2, "yao": "六二", "text": "無攸遂，在中饋，貞吉", "target": 55}, {"pos": 3, "yao": "九三", "text": "家人嗃嗃，悔厲吉；婦子嘻嘻，終吝", "target": 49}, {"pos": 4, "yao": "六四", "text": "富家，大吉", "target": 61}, {"pos": 5, "yao": "九五", "text": "王假有家，勿恤吉", "target": 37}, {"pos": 6, "yao": "上九", "text": "有孚威如，終吉", "target": 21}]}, {"xu": 38, "name": "火澤睽", "short": "睽", "value": 43, "lines": [{"pos": 1, "yao": "初九", "text": "悔亡，喪馬勿逐，自復；見惡人無咎", "target": 42}, {"pos": 2, "yao": "九二", "text": "遇主于巷，無咎", "target": 41}, {"pos": 3, "yao": "六三", "text": "見輿曳，其牛掣，其人天且劓，無初有終", "target": 47}, {"pos": 4, "yao": "九四", "text": "睽孤，遇元夫，交孚，厲無咎", "target": 35}, {"pos": 5, "yao": "六五", "text": "悔亡，厥宗噬膚，往何咎", "target": 59}, {"pos": 6, "yao": "上九", "text": "睽孤，見豕負塗，載鬼一車，先張之弧，後說之弧，匪寇婚媾，往遇雨則吉", "target": 11}]}, {"xu": 39, "name": "水山蹇", "short": "蹇", "value": 20, "lines": [{"pos": 1, "yao": "初六", "text": "往蹇，來譽", "target": 21}, {"pos": 2, "yao": "六二", "text": "王臣蹇蹇，匪躬之故", "target": 22}, {"pos": 3, "yao": "九三", "text": "往蹇來反", "target": 16}, {"pos": 4, "yao": "六四", "text": "往蹇來連", "target": 28}, {"pos": 5, "yao": "九五", "text": "大蹇朋來", "target": 4}, {"pos": 6, "yao": "上六", "text": "往蹇來碩，吉；利見大人", "target": 52}]}, {"xu": 40, "name": "雷水解", "short": "解", "value": 10, "lines": [{"pos": 1, "yao": "初六", "text": "無咎", "target": 11}, {"pos": 2, "yao": "九二", "text": "田獲三狐，得黃矢，貞吉", "target": 8}, {"pos": 3, "yao": "六三", "text": "負且乘，致寇至，貞吝", "target": 14}, {"pos": 4, "yao": "九四", "text": "解而拇，朋至斯孚", "target": 2}, {"pos": 5, "yao": "六五", "text": "君子維有解，吉；有孚于小人", "target": 26}, {"pos": 6, "yao": "上六", "text": "公用射隼，于高墉之上，獲之，無不利", "target": 42}]}, {"xu": 41, "name": "山澤損", "short": "損", "value": 35, "lines": [{"pos": 1, "yao": "初九", "text": "已事遄往，無咎，酌損之", "target": 34}, {"pos": 2, "yao": "九二", "text": "利貞，征凶，弗損益之", "target": 33}, {"pos": 3, "yao": "六三", "text": "三人行，則損一人；一人行，則得其友", "target": 39}, {"pos": 4, "yao": "六四", "text": "損其疾，使遄有喜，無咎", "target": 43}, {"pos": 5, "yao": "六五", "text": "或益之，十朋之龜弗克違，元吉", "target": 51}, {"pos": 6, "yao": "上九", "text": "弗損益之，無咎，貞吉，利有攸往，得臣無家", "target": 3}]}, {"xu": 42, "name": "風雷益", "short": "益", "value": 49, "lines": [{"pos": 1, "yao": "初九", "text": "利用為大作，元吉，無咎", "target": 48}, {"pos": 2, "yao": "六二", "text": "或益之，十朋之龜弗克違，永貞吉。王用享于帝，吉", "target": 51}, {"pos": 3, "yao": "六三", "text": "益之用凶事，無咎。有孚中行，告公用圭", "target": 53}, {"pos": 4, "yao": "六四", "text": "中行，告公從。利用為依遷國", "target": 57}, {"pos": 5, "yao": "九五", "text": "有孚惠心，勿問元吉。有孚惠我德", "target": 33}, {"pos": 6, "yao": "上九", "text": "莫益之，或擊之，立心勿恆，凶", "target": 17}]}, {"xu": 43, "name": "澤天夬", "short": "夬", "value": 31, "lines": [{"pos": 1, "yao": "初九", "text": "壯于前趾，往不勝為吝", "target": 30}, {"pos": 2, "yao": "九二", "text": "惕號，莫夜有戎，勿恤", "target": 29}, {"pos": 3, "yao": "九三", "text": "壯于頄，有凶。君子夬夬，獨行遇雨，若濡有慍，無咎", "target": 27}, {"pos": 4, "yao": "九四", "text": "臀無膚，其行次且。牽羊悔亡，聞言不信", "target": 23}, {"pos": 5, "yao": "九五", "text": "莧陸夬夬，中行無咎", "target": 15}, {"pos": 6, "yao": "上六", "text": "無號，終有凶", "target": 63}]}, {"xu": 44, "name": "天風姤", "short": "姤", "value": 62, "lines": [{"pos": 1, "yao": "初六", "text": "繫于金柅，貞吉，有攸往，見凶，羸豕孚蹢躅", "target": 63}, {"pos": 2, "yao": "九二", "text": "包有魚，無咎，不利賓", "target": 60}, {"pos": 3, "yao": "九三", "text": "臀無膚，其行次且，厲，無大咎", "target": 58}, {"pos": 4, "yao": "九四", "text": "包無魚，起凶", "target": 54}, {"pos": 5, "yao": "九五", "text": "以杞包瓜，含章，有隕自天", "target": 46}, {"pos": 6, "yao": "上九", "text": "姤其角，吝，無咎", "target": 30}]}, {"xu": 45, "name": "澤地萃", "short": "萃", "value": 24, "lines": [{"pos": 1, "yao": "初六", "text": "有孚不終，乃亂乃萃，若號一握為笑，勿恤，往無咎", "target": 25}, {"pos": 2, "yao": "六二", "text": "引吉，無咎，孚乃利用禴", "target": 26}, {"pos": 3, "yao": "六三", "text": "萃如，嗟如，無攸利，往無咎，小吝", "target": 28}, {"pos": 4, "yao": "九四", "text": "大吉，無咎", "target": 16}, {"pos": 5, "yao": "九五", "text": "萃有位，無咎。匪孚，元永貞，悔亡", "target": 8}, {"pos": 6, "yao": "上六", "text": "齎咨涕洟，無咎", "target": 56}]}, {"xu": 46, "name": "地風升", "short": "升", "value": 6, "lines": [{"pos": 1, "yao": "初六", "text": "允升，大吉", "target": 7}, {"pos": 2, "yao": "九二", "text": "孚乃利用禴，無咎", "target": 4}, {"pos": 3, "yao": "九三", "text": "升虛邑", "target": 2}, {"pos": 4, "yao": "六四", "text": "王用亨于岐山，吉無咎", "target": 14}, {"pos": 5, "yao": "六五", "text": "貞吉，升階", "target": 22}, {"pos": 6, "yao": "上六", "text": "冥升，利于不息之貞", "target": 38}]}, {"xu": 47, "name": "澤水困", "short": "困", "value": 26, "lines": [{"pos": 1, "yao": "初六", "text": "臀困于株木，入于幽谷，三歲不覿", "target": 27}, {"pos": 2, "yao": "九二", "text": "困于酒食，朱紱方來，利用亨祀，征凶，無咎", "target": 24}, {"pos": 3, "yao": "六三", "text": "困于石，據于蒺藜，入于其宮，不見其妻，凶", "target": 30}, {"pos": 4, "yao": "九四", "text": "來徐徐，困于金車，吝，有終", "target": 18}, {"pos": 5, "yao": "九五", "text": "劓刖，困于赤紱，乃徐有說，利用祭祀", "target": 10}, {"pos": 6, "yao": "上六", "text": "困于葛藟，于臲卼，曰動悔。有悔，征吉", "target": 58}]}, {"xu": 48, "name": "水風井", "short": "井", "value": 22, "lines": [{"pos": 1, "yao": "初六", "text": "井泥不食，舊井無禽", "target": 23}, {"pos": 2, "yao": "九二", "text": "井谷射鮒，甕敝漏", "target": 20}, {"pos": 3, "yao": "九三", "text": "井渫不食，為我心惻，可用汲，王明，並受其福", "target": 18}, {"pos": 4, "yao": "六四", "text": "井甃，無咎", "target": 30}, {"pos": 5, "yao": "九五", "text": "井冽，寒泉食", "target": 6}, {"pos": 6, "yao": "上六", "text": "井收勿幕，有孚元吉", "target": 54}]}, {"xu": 49, "name": "澤火革", "short": "革", "value": 29, "lines": [{"pos": 1, "yao": "初九", "text": "鞏用黃牛之革", "target": 28}, {"pos": 2, "yao": "六二", "text": "己日乃革之，征吉，無咎", "target": 31}, {"pos": 3, "yao": "九三", "text": "征凶，貞厲，革言三就，有孚", "target": 25}, {"pos": 4, "yao": "九四", "text": "悔亡，有孚改命，吉", "target": 21}, {"pos": 5, "yao": "九五", "text": "大人虎變，未占有孚", "target": 13}, {"pos": 6, "yao": "上六", "text": "君子豹變，小人革面，征凶，居貞吉", "target": 61}]}, {"xu": 50, "name": "火風鼎", "short": "鼎", "value": 46, "lines": [{"pos": 1, "yao": "初六", "text": "鼎顛趾，利出否，得妾以其子，無咎", "target": 47}, {"pos": 2, "yao": "九二", "text": "鼎有實，我仇有疾，不我能即，吉", "target": 44}, {"pos": 3, "yao": "九三", "text": "鼎耳革，其行塞，雉膏不食，方雨虧悔，終吉", "target": 42}, {"pos": 4, "yao": "九四", "text": "鼎折足，覆公餗，其形渥，凶", "target": 38}, {"pos": 5, "yao": "六五", "text": "鼎黃耳金鉉，利貞", "target": 62}, {"pos": 6, "yao": "上九", "text": "鼎玉鉉，大吉，無不利", "target": 14}]}, {"xu": 51, "name": "震為雷", "short": "震", "value": 9, "lines": [{"pos": 1, "yao": "初九", "text": "震來虩虩，後笑言啞啞，吉", "target": 8}, {"pos": 2, "yao": "六二", "text": "震來厲，億喪貝，躋于九陵，勿逐，七日得", "target": 11}, {"pos": 3, "yao": "六三", "text": "震蘇蘇，震行無眚", "target": 13}, {"pos": 4, "yao": "九四", "text": "震遂泥", "target": 1}, {"pos": 5, "yao": "六五", "text": "震往來厲，億無喪，有事", "target": 25}, {"pos": 6, "yao": "上六", "text": "震索索，視矍矍，征凶。震不于其躬，于其鄰，無咎。婚媾有言", "target": 41}]}, {"xu": 52, "name": "艮為山", "short": "艮", "value": 36, "lines": [{"pos": 1, "yao": "初六", "text": "艮其趾，無咎，利永貞", "target": 37}, {"pos": 2, "yao": "六二", "text": "艮其腓，不拯其隨，其心不快", "target": 38}, {"pos": 3, "yao": "九三", "text": "艮其限，列其夤，厲薰心", "target": 32}, {"pos": 4, "yao": "六四", "text": "艮其身，無咎", "target": 44}, {"pos": 5, "yao": "六五", "text": "艮其輔，言有序，悔亡", "target": 52}, {"pos": 6, "yao": "上九", "text": "敦艮，吉", "target": 4}]}, {"xu": 53, "name": "風山漸", "short": "漸", "value": 52, "lines": [{"pos": 1, "yao": "初六", "text": "鴻漸于干，小子厲，有言，無咎", "target": 53}, {"pos": 2, "yao": "六二", "text": "鴻漸于磐，飲食衎衎，吉", "target": 54}, {"pos": 3, "yao": "九三", "text": "鴻漸于陸，夫征不復，婦孕不育，凶；利御寇", "target": 48}, {"pos": 4, "yao": "六四", "text": "鴻漸于木，或得其桷，無咎", "target": 60}, {"pos": 5, "yao": "九五", "text": "鴻漸于陵，婦三歲不孕，終莫之勝，吉", "target": 36}, {"pos": 6, "yao": "上九", "text": "鴻漸于逵，其羽可用為儀，吉", "target": 20}]}, {"xu": 54, "name": "雷澤歸妹", "short": "歸妹", "value": 11, "lines": [{"pos": 1, "yao": "初九", "text": "歸妹以娣，跛能履，征吉", "target": 10}, {"pos": 2, "yao": "九二", "text": "眇能視，利幽人之貞", "target": 9}, {"pos": 3, "yao": "六三", "text": "歸妹以須，反歸以娣", "target": 15}, {"pos": 4, "yao": "九四", "text": "歸妹愆期，遲歸有時", "target": 3}, {"pos": 5, "yao": "六五", "text": "帝乙歸妹，其君之袂，不如其娣之袂良，月幾望，吉", "target": 27}, {"pos": 6, "yao": "上六", "text": "女承筐無實，士刲羊無血，無攸利", "target": 43}]}, {"xu": 55, "name": "雷火豐", "short": "豐", "value": 13, "lines": [{"pos": 1, "yao": "初九", "text": "遇其配主，雖旬無咎，往有尚", "target": 12}, {"pos": 2, "yao": "六二", "text": "豐其蔀，日中見斗，往得疑疾，有孚發若，吉", "target": 15}, {"pos": 3, "yao": "九三", "text": "豐其沛，日中見沫，折其右肱，無咎", "target": 9}, {"pos": 4, "yao": "九四", "text": "豐其蔀，日中見斗，遇其夷主，吉", "target": 5}, {"pos": 5, "yao": "六五", "text": "來章，有慶譽，吉", "target": 29}, {"pos": 6, "yao": "上六", "text": "豐其屋，蔀其家，窺其戶，闃其無人，三歲不覿，凶", "target": 45}]}, {"xu": 56, "name": "火山旅", "short": "旅", "value": 44, "lines": [{"pos": 1, "yao": "初六", "text": "旅瑣瑣，斯其所取災", "target": 45}, {"pos": 2, "yao": "六二", "text": "旅即次，懷其資，得童僕貞", "target": 46}, {"pos": 3, "yao": "九三", "text": "旅焚其次，喪其童僕，貞厲", "target": 40}, {"pos": 4, "yao": "九四", "text": "旅于處，得其資斧，我心不快", "target": 36}, {"pos": 5, "yao": "六五", "text": "射雉一矢亡，終以譽命", "target": 60}, {"pos": 6, "yao": "上九", "text": "鳥焚其巢，旅人先笑後號咷。喪牛于易，凶", "target": 12}]}, {"xu": 57, "name": "巽為風", "short": "巽", "value": 54, "lines": [{"pos": 1, "yao": "初六", "text": "進退，利武人之貞", "target": 55}, {"pos": 2, "yao": "九二", "text": "巽在床下，用史巫紛若，吉無咎", "target": 52}, {"pos": 3, "yao": "九三", "text": "頻巽，吝", "target": 50}, {"pos": 4, "yao": "六四", "text": "悔亡，田獲三品", "target": 62}, {"pos": 5, "yao": "九五", "text": "貞吉悔亡，無不利。無初有終，先庚三日，後庚三日，吉", "target": 38}, {"pos": 6, "yao": "上九", "text": "巽在床下，喪其資斧，貞凶", "target": 22}]}, {"xu": 58, "name": "兌為澤", "short": "兌", "value": 27, "lines": [{"pos": 1, "yao": "初九", "text": "和兌，吉", "target": 26}, {"pos": 2, "yao": "九二", "text": "孚兌，吉，悔亡", "target": 25}, {"pos": 3, "yao": "六三", "text": "來兌，凶", "target": 31}, {"pos": 4, "yao": "九四", "text": "商兌，未寧，介疾有喜", "target": 19}, {"pos": 5, "yao": "九五", "text": "孚于剝，有厲", "target": 11}, {"pos": 6, "yao": "上六", "text": "引兌", "target": 59}]}, {"xu": 59, "name": "風水渙", "short": "渙", "value": 50, "lines": [{"pos": 1, "yao": "初六", "text": "用拯馬壯，吉", "target": 51}, {"pos": 2, "yao": "九二", "text": "渙奔其機，悔亡", "target": 48}, {"pos": 3, "yao": "六三", "text": "渙其躬，無悔", "target": 54}, {"pos": 4, "yao": "六四", "text": "渙其群，元吉。渙有丘，匪夷所思", "target": 58}, {"pos": 5, "yao": "九五", "text": "渙汗其大號，渙王居，無咎", "target": 34}, {"pos": 6, "yao": "上九", "text": "渙其血，去逖出，無咎", "target": 18}]}, {"xu": 60, "name": "水澤節", "short": "節", "value": 19, "lines": [{"pos": 1, "yao": "初九", "text": "不出戶庭，無咎", "target": 18}, {"pos": 2, "yao": "九二", "text": "不出門庭，凶", "target": 17}, {"pos": 3, "yao": "六三", "text": "不節若，則嗟若，無咎", "target": 23}, {"pos": 4, "yao": "六四", "text": "安節，亨", "target": 27}, {"pos": 5, "yao": "九五", "text": "甘節，吉；往有尚", "target": 3}, {"pos": 6, "yao": "上六", "text": "苦節，貞凶，悔亡", "target": 51}]}, {"xu": 61, "name": "風澤中孚", "short": "中孚", "value": 51, "lines": [{"pos": 1, "yao": "初九", "text": "虞吉，有他不燕", "target": 50}, {"pos": 2, "yao": "九二", "text": "鳴鶴在陰，其子和之，我有好爵，吾與爾靡之", "target": 49}, {"pos": 3, "yao": "六三", "text": "得敵，或鼓或罷，或泣或歌", "target": 55}, {"pos": 4, "yao": "六四", "text": "月幾望，馬匹亡，無咎", "target": 59}, {"pos": 5, "yao": "九五", "text": "有孚攣如，無咎", "target": 35}, {"pos": 6, "yao": "上九", "text": "翰音登于天，貞凶", "target": 19}]}, {"xu": 62, "name": "雷山小過", "short": "小過", "value": 12, "lines": [{"pos": 1, "yao": "初六", "text": "飛鳥以凶", "target": 13}, {"pos": 2, "yao": "六二", "text": "過其祖，遇其妣；不及其君，遇其臣；無咎", "target": 14}, {"pos": 3, "yao": "九三", "text": "弗過防之，從或戕之，凶", "target": 8}, {"pos": 4, "yao": "九四", "text": "無咎，弗過遇之。往厲必戒，勿用永貞", "target": 4}, {"pos": 5, "yao": "六五", "text": "密雲不雨，自我西郊，公弋取彼在穴", "target": 28}, {"pos": 6, "yao": "上六", "text": "弗遇過之，飛鳥離之，凶，是謂災眚", "target": 44}]}, {"xu": 63, "name": "水火既濟", "short": "既濟", "value": 21, "lines": [{"pos": 1, "yao": "初九", "text": "曳其輪，濡其尾，無咎", "target": 20}, {"pos": 2, "yao": "六二", "text": "婦喪其茀，勿逐，七日得", "target": 23}, {"pos": 3, "yao": "九三", "text": "高宗伐鬼方，三年克之，小人勿用", "target": 17}, {"pos": 4, "yao": "六四", "text": "繻有衣袽，終日戒", "target": 29}, {"pos": 5, "yao": "九五", "text": "東鄰殺牛，不如西鄰之禴祭，實受其福", "target": 5}, {"pos": 6, "yao": "上六", "text": "濡其首，厲", "target": 53}]}, {"xu": 64, "name": "火水未濟", "short": "未濟", "value": 42, "lines": [{"pos": 1, "yao": "初六", "text": "濡其尾，吝", "target": 43}, {"pos": 2, "yao": "九二", "text": "曳其輪，貞吉", "target": 40}, {"pos": 3, "yao": "六三", "text": "未濟，征凶，利涉大川", "target": 46}, {"pos": 4, "yao": "九四", "text": "貞吉，悔亡，震用伐鬼方，三年有賞于大國", "target": 34}, {"pos": 5, "yao": "六五", "text": "貞吉，無悔，君子之光，有孚，吉", "target": 58}, {"pos": 6, "yao": "上九", "text": "有孚于飲酒，無咎，濡其首，有孚失是", "target": 10}]}];
+    var PMAP = {"63": {"c": 0, "r": 0}, "62": {"c": 0, "r": 1}, "60": {"c": 0, "r": 2}, "56": {"c": 0, "r": 3}, "48": {"c": 0, "r": 4}, "32": {"c": 0, "r": 5}, "40": {"c": 0, "r": 6}, "47": {"c": 0, "r": 7}, "27": {"c": 1, "r": 0}, "26": {"c": 1, "r": 1}, "24": {"c": 1, "r": 2}, "28": {"c": 1, "r": 3}, "20": {"c": 1, "r": 4}, "4": {"c": 1, "r": 5}, "12": {"c": 1, "r": 6}, "11": {"c": 1, "r": 7}, "45": {"c": 2, "r": 0}, "44": {"c": 2, "r": 1}, "46": {"c": 2, "r": 2}, "42": {"c": 2, "r": 3}, "34": {"c": 2, "r": 4}, "50": {"c": 2, "r": 5}, "58": {"c": 2, "r": 6}, "61": {"c": 2, "r": 7}, "9": {"c": 3, "r": 0}, "8": {"c": 3, "r": 1}, "10": {"c": 3, "r": 2}, "14": {"c": 3, "r": 3}, "6": {"c": 3, "r": 4}, "22": {"c": 3, "r": 5}, "30": {"c": 3, "r": 6}, "25": {"c": 3, "r": 7}, "54": {"c": 4, "r": 0}, "55": {"c": 4, "r": 1}, "53": {"c": 4, "r": 2}, "49": {"c": 4, "r": 3}, "57": {"c": 4, "r": 4}, "41": {"c": 4, "r": 5}, "33": {"c": 4, "r": 6}, "38": {"c": 4, "r": 7}, "18": {"c": 5, "r": 0}, "19": {"c": 5, "r": 1}, "17": {"c": 5, "r": 2}, "21": {"c": 5, "r": 3}, "29": {"c": 5, "r": 4}, "13": {"c": 5, "r": 5}, "5": {"c": 5, "r": 6}, "2": {"c": 5, "r": 7}, "36": {"c": 6, "r": 0}, "37": {"c": 6, "r": 1}, "39": {"c": 6, "r": 2}, "35": {"c": 6, "r": 3}, "43": {"c": 6, "r": 4}, "59": {"c": 6, "r": 5}, "51": {"c": 6, "r": 6}, "52": {"c": 6, "r": 7}, "0": {"c": 7, "r": 0}, "1": {"c": 7, "r": 1}, "3": {"c": 7, "r": 2}, "7": {"c": 7, "r": 3}, "15": {"c": 7, "r": 4}, "31": {"c": 7, "r": 5}, "23": {"c": 7, "r": 6}, "16": {"c": 7, "r": 7}};
+    var COL = ["乾", "兌", "離", "震", "巽", "坎", "艮", "坤"];
+    var PCOL = {"乾": "#c0392b", "兌": "#d35400", "離": "#f39c12", "震": "#27ae60", "巽": "#16a085", "坎": "#2980b9", "艮": "#7f8c8d", "坤": "#8e6e4e"};
+    var ECOL = {"1": "#e74c3c", "2": "#e67e22", "3": "#d4ac0d", "4": "#27ae60", "5": "#2e86c1", "6": "#7f8c8d"};
+    var MX = 100, MY = 46, CW = 66, CH = 58;
+    var 名查 = {};
+    DATA.forEach(function(h){ 名查[h['short']] = h['value']; 名查[h['name']] = h['value']; 名查[String(h['value'])] = h['value']; });
+    var 對照 = {};
+    DATA.forEach(function(h){ 對照[h['value']] = h['lines']; });
+    var 宮資 = {};
+    DATA.forEach(function(h){ 宮資[h['value']] = {"63": {"宮": "乾", "世": "本宮", "世爻": 6, "應爻": 3}, "62": {"宮": "乾", "世": "一世", "世爻": 1, "應爻": 4}, "60": {"宮": "乾", "世": "二世", "世爻": 2, "應爻": 5}, "56": {"宮": "乾", "世": "三世", "世爻": 3, "應爻": 6}, "48": {"宮": "乾", "世": "四世", "世爻": 4, "應爻": 1}, "32": {"宮": "乾", "世": "五世", "世爻": 5, "應爻": 2}, "40": {"宮": "乾", "世": "遊魂", "世爻": 4, "應爻": 1}, "47": {"宮": "乾", "世": "歸魂", "世爻": 3, "應爻": 6}, "27": {"宮": "兌", "世": "本宮", "世爻": 6, "應爻": 3}, "26": {"宮": "兌", "世": "一世", "世爻": 1, "應爻": 4}, "24": {"宮": "兌", "世": "二世", "世爻": 2, "應爻": 5}, "28": {"宮": "兌", "世": "三世", "世爻": 3, "應爻": 6}, "20": {"宮": "兌", "世": "四世", "世爻": 4, "應爻": 1}, "4": {"宮": "兌", "世": "五世", "世爻": 5, "應爻": 2}, "12": {"宮": "兌", "世": "遊魂", "世爻": 4, "應爻": 1}, "11": {"宮": "兌", "世": "歸魂", "世爻": 3, "應爻": 6}, "45": {"宮": "離", "世": "本宮", "世爻": 6, "應爻": 3}, "44": {"宮": "離", "世": "一世", "世爻": 1, "應爻": 4}, "46": {"宮": "離", "世": "二世", "世爻": 2, "應爻": 5}, "42": {"宮": "離", "世": "三世", "世爻": 3, "應爻": 6}, "34": {"宮": "離", "世": "四世", "世爻": 4, "應爻": 1}, "50": {"宮": "離", "世": "五世", "世爻": 5, "應爻": 2}, "58": {"宮": "離", "世": "遊魂", "世爻": 4, "應爻": 1}, "61": {"宮": "離", "世": "歸魂", "世爻": 3, "應爻": 6}, "9": {"宮": "震", "世": "本宮", "世爻": 6, "應爻": 3}, "8": {"宮": "震", "世": "一世", "世爻": 1, "應爻": 4}, "10": {"宮": "震", "世": "二世", "世爻": 2, "應爻": 5}, "14": {"宮": "震", "世": "三世", "世爻": 3, "應爻": 6}, "6": {"宮": "震", "世": "四世", "世爻": 4, "應爻": 1}, "22": {"宮": "震", "世": "五世", "世爻": 5, "應爻": 2}, "30": {"宮": "震", "世": "遊魂", "世爻": 4, "應爻": 1}, "25": {"宮": "震", "世": "歸魂", "世爻": 3, "應爻": 6}, "54": {"宮": "巽", "世": "本宮", "世爻": 6, "應爻": 3}, "55": {"宮": "巽", "世": "一世", "世爻": 1, "應爻": 4}, "53": {"宮": "巽", "世": "二世", "世爻": 2, "應爻": 5}, "49": {"宮": "巽", "世": "三世", "世爻": 3, "應爻": 6}, "57": {"宮": "巽", "世": "四世", "世爻": 4, "應爻": 1}, "41": {"宮": "巽", "世": "五世", "世爻": 5, "應爻": 2}, "33": {"宮": "巽", "世": "遊魂", "世爻": 4, "應爻": 1}, "38": {"宮": "巽", "世": "歸魂", "世爻": 3, "應爻": 6}, "18": {"宮": "坎", "世": "本宮", "世爻": 6, "應爻": 3}, "19": {"宮": "坎", "世": "一世", "世爻": 1, "應爻": 4}, "17": {"宮": "坎", "世": "二世", "世爻": 2, "應爻": 5}, "21": {"宮": "坎", "世": "三世", "世爻": 3, "應爻": 6}, "29": {"宮": "坎", "世": "四世", "世爻": 4, "應爻": 1}, "13": {"宮": "坎", "世": "五世", "世爻": 5, "應爻": 2}, "5": {"宮": "坎", "世": "遊魂", "世爻": 4, "應爻": 1}, "2": {"宮": "坎", "世": "歸魂", "世爻": 3, "應爻": 6}, "36": {"宮": "艮", "世": "本宮", "世爻": 6, "應爻": 3}, "37": {"宮": "艮", "世": "一世", "世爻": 1, "應爻": 4}, "39": {"宮": "艮", "世": "二世", "世爻": 2, "應爻": 5}, "35": {"宮": "艮", "世": "三世", "世爻": 3, "應爻": 6}, "43": {"宮": "艮", "世": "四世", "世爻": 4, "應爻": 1}, "59": {"宮": "艮", "世": "五世", "世爻": 5, "應爻": 2}, "51": {"宮": "艮", "世": "遊魂", "世爻": 4, "應爻": 1}, "52": {"宮": "艮", "世": "歸魂", "世爻": 3, "應爻": 6}, "0": {"宮": "坤", "世": "本宮", "世爻": 6, "應爻": 3}, "1": {"宮": "坤", "世": "一世", "世爻": 1, "應爻": 4}, "3": {"宮": "坤", "世": "二世", "世爻": 2, "應爻": 5}, "7": {"宮": "坤", "世": "三世", "世爻": 3, "應爻": 6}, "15": {"宮": "坤", "世": "四世", "世爻": 4, "應爻": 1}, "31": {"宮": "坤", "世": "五世", "世爻": 5, "應爻": 2}, "23": {"宮": "坤", "世": "遊魂", "世爻": 4, "應爻": 1}, "16": {"宮": "坤", "世": "歸魂", "世爻": 3, "應爻": 6}}[h['value']]; });
+    var svgns = "http://www.w3.org/2000/svg";
+    function xy(q){ var p = PMAP[q]; return [MX + p.c*CW + CW/2, MY + p.r*CH + CH/2]; }
+    function 名(v){ for (var i=0;i<DATA.length;i++) if (DATA[i]['value']===v) return DATA[i]['short']; return '?'; }
+    function 全名(v){ for (var i=0;i<DATA.length;i++) if (DATA[i]['value']===v) return DATA[i]['name']; return '?'; }
+    function 爻名線(v){ var s=''; for (var k=5;k>=0;k--) s += '<div class="l">' + ((v>>k)&1 ? '▅▅▅▅▅' : '▅▅　▅▅') + '</div>'; return s; }
+    function 邊(q){ var s=''; 對照[q].forEach(function(l,i){
+        var t=l['target'], a=xy(q), b=xy(t), c=ECOL[i+1];
+        var dx=b[0]-a[0], dy=b[1]-a[1], L=Math.sqrt(dx*dx+dy*dy)||1, off=14+(i%3)*6, sgn=(i%2)?1:-1;
+        var cx=(a[0]+b[0])/2 - sgn*off*dy/L, cy=(a[1]+b[1])/2 + sgn*off*dx/L;
+        s += '<path d="M '+a[0]+' '+a[1]+' Q '+cx.toFixed(1)+' '+cy.toFixed(1)+' '+b[0]+' '+b[1]+'" fill="none" stroke="'+c+'" stroke-width="2" opacity=".85" marker-end="url(#arw'+c+')"/>';
+        s += '<text x="'+((a[0]+b[0])/2).toFixed(0)+'" y="'+((a[1]+b[1])/2).toFixed(0)+'" font-size="12" fill="'+c+'" text-anchor="middle" font-weight="bold">'+l['yao']+'</text>';
+      }); return s; }
+    function 面板(q){
+      var h = 對照[q], g = 宮資[q];
+      var rows = ''; h.forEach(function(l,i){
+        rows += '<tr data-i="'+(i+1)+'" onclick="window.__sel && window.__sel('+l['target']+')">'
+          + '<td class="i">'+(i+1)+'</td><td class="y">'+l['yao']+'</td>'
+          + '<td class="t">'+l['text']+'</td><td class="d">'+名(l['target'])+'</td></tr>';
+      });
+      var ph = '<div class="ph" style="border-left:6px solid '+PCOL[g['宮']]+'"><b>'+全名(q)+'</b>'
+        + '<span class="v">'+('000000'+q.toString(2)).slice(-6)+' = '+q+'</span>'
+        + '<span class="g">之卦機 FSM 節點</span></div>';
+      return ph + '<div class="pw"><div class="lines">'+爻名線(q)+'</div>'
+        + '<div class="meta">屬 '+g['宮']+'宮 · '+g['世']+'卦 · 世爻'+g['世爻']+' · 應爻'+g['應爻']+'</div></div>'
+        + '<table class="tr"><tr><th>動爻</th><th>爻名</th><th>爻辭</th><th>之卦</th></tr>'+rows+'</table>'
+        + '<div class="hint">點擊表格列可跳到之卦；點擊格狀圖任一卦即可切換。</div>';
+    }
+    function sel(q){
+      document.getElementById('edges').innerHTML = 邊(q);
+      document.getElementById('panel').innerHTML = 面板(q);
+      var cells = document.querySelectorAll('.cell');
+      for (var i=0;i<cells.length;i++){ cells[i].classList.remove('sel','tgt'); }
+      var sc = document.querySelector('.cell[data-q="'+q+'"]'); if (sc) sc.classList.add('sel');
+      對照[q].forEach(function(l){ var tc = document.querySelector('.cell[data-q="'+l['target']+'"]'); if (tc) tc.classList.add('tgt'); });
+    }
+    window.__sel = sel;
+    window.__search = function(s){
+      s = String(s||'').trim(); if(!s) return;
+      var v = 名查[s] || 名查[String(parseInt(s,10))]; if (v !== undefined) sel(v);
+    };
+    window.__filt = function(s){
+      s = String(s||'').toLowerCase();
+      var rows = document.querySelectorAll('#all tr');
+      for (var i=1;i<rows.length;i++){ var t = rows[i].textContent.toLowerCase(); rows[i].style.display = t.indexOf(s)>=0 ? '' : 'none'; }
+    };
+    (function 建全表() {
+      var h = '';
+      DATA.forEach(function(g){ g['lines'].forEach(function(l){ h += '<tr><td>'+g['xu']+'</td><td>'+g['short']+'</td><td>'+l['pos']+'</td><td>'+l['yao']+'</td><td>'+l['text']+'</td><td>'+名(l['target'])+'</td></tr>'; }); });
+      var tb = document.getElementById('allb'); if (tb) tb.innerHTML = h;
+    })();
+    var cells = document.querySelectorAll('.cell');
+    for (var j=0;j<cells.length;j++){
+      (function(el){ el.addEventListener('click', function(){ sel(parseInt(el.getAttribute('data-q'),10)); }); })(cells[j]);
+    }
+    sel(63);
+  }catch(e){ document.getElementById('panel').innerHTML += '<p style="color:#a33;font-size:12px">互動已降級（'+(e && e.message ? e.message : 'JS error')+'）— 請改用靜態檢視。</p>'; }
+})();
+</script>
+</div>
 </html>
