@@ -1,0 +1,3021 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>從 Nand 到六十四卦：電腦系統建構與易經生成邏輯的雙重旅程</title>
+<style>
+  @page { size: A4; margin: 2cm; }
+  body {
+    font-family: "Noto Serif TC", "Source Han Serif TC", "PMingLiU", serif;
+    font-size: 12pt;
+    line-height: 1.8;
+    color: #222;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #fff;
+  }
+  h1 {
+    font-size: 24pt;
+    text-align: center;
+    margin-top: 3em;
+    border-bottom: 2px solid #333;
+    padding-bottom: 0.5em;
+  }
+  h2 {
+    font-size: 18pt;
+    margin-top: 2em;
+    border-bottom: 1px solid #999;
+    padding-bottom: 0.3em;
+    page-break-before: always;
+  }
+  h3 {
+    font-size: 14pt;
+    margin-top: 1.5em;
+  }
+  h4 {
+    font-size: 12pt;
+    margin-top: 1.2em;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+    font-size: 10pt;
+  }
+  th, td {
+    border: 1px solid #999;
+    padding: 6px 8px;
+    text-align: left;
+  }
+  th {
+    background: #f0f0f0;
+    font-weight: bold;
+  }
+  blockquote {
+    border-left: 4px solid #999;
+    margin: 1em 0;
+    padding-left: 1em;
+    color: #555;
+    font-style: italic;
+  }
+  pre {
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    padding: 10px;
+    overflow-x: auto;
+    font-size: 9pt;
+    line-height: 1.4;
+  }
+  code {
+    font-family: "Courier New", monospace;
+    background: #f5f5f5;
+    padding: 1px 4px;
+  }
+  .cover {
+    text-align: center;
+    margin-top: 6em;
+  }
+  .cover h1 {
+    font-size: 32pt;
+    border: none;
+  }
+  .cover .subtitle {
+    font-size: 18pt;
+    margin-top: 1em;
+    color: #555;
+  }
+  .cover .subsubtitle {
+    font-size: 14pt;
+    margin-top: 2em;
+    color: #777;
+  }
+  .toc {
+    margin-top: 3em;
+  }
+  .toc h2 {
+    border: none;
+    page-break-before: auto;
+  }
+  .toc ul {
+    list-style: none;
+    padding-left: 0;
+  }
+  .toc li {
+    margin: 0.3em 0;
+  }
+  .toc .chapter {
+    font-weight: bold;
+    margin-top: 0.8em;
+  }
+  @media print {
+    body { padding: 0; }
+    h2 { page-break-before: always; }
+    h3, h4 { page-break-after: avoid; }
+    table, pre, blockquote { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== 封面 ========== -->
+<div class="cover">
+  <h1>從 Nand 到六十四卦</h1>
+  <p class="subtitle">電腦系統建構與易經生成邏輯的雙重旅程</p>
+  <p class="subsubtitle">Nand2Tetris 與易經六爻的跨域對應</p>
+  <p style="margin-top:4em; color:#777;">作者：（陳育昇）</p>
+  <p style="color:#777;">出版社：（）</p>
+  <p style="color:#777;">出版日期：（）</p>
+</div>
+
+<!-- ========== 目錄 ========== -->
+<div class="toc">
+<h2>目錄</h2>
+<ul>
+  <li class="chapter">序</li>
+  <li class="chapter">導論</li>
+  <li>第一章　導論：兩種生成邏輯的相遇</li>
+  <li>第二章　六十四卦二進制對照表</li>
+  <li class="chapter">第一部：硬體建構——從太極到六十四卦</li>
+  <li>第三章　基本邏輯閘（第1章）</li>
+  <li>第四章　布林算術與 ALU（第2章）</li>
+  <li>第五章　時序邏輯（第3章）</li>
+  <li>第六章　機器語言（第4章）</li>
+  <li>第七章　電腦架構（第5章）</li>
+  <li class="chapter">第二部：軟體工具——從卦名到卦氣</li>
+  <li>第八章　組譯器（第6章）</li>
+  <li>第九章　虛擬機（第7~8章）</li>
+  <li>第十章　高階語言 Jack（第9章）</li>
+  <li>第十一章　編譯器（第10~11章）</li>
+  <li>第十二章　作業系統（第12章）</li>
+  <li class="chapter">第三部：統整與延伸</li>
+  <li>第十三章　全書統整</li>
+  <li>第十四章　跨域對話</li>
+  <li>第十五章　延伸應用與未來探索</li>
+  <li>第十六章　實作專案：卦象化電腦</li>
+  <li class="chapter">附錄</li>
+  <li>附錄 A：六十四卦二進制完整對照表</li>
+  <li>附錄 B：Nand2Tetris 元件總表</li>
+  <li>附錄 C：易經六爻基礎</li>
+  <li>附錄 D：Harness Skill 框架</li>
+  <li>附錄 E：參考文獻</li>
+  <li class="chapter">後記</li>
+</ul>
+</div>
+
+<!-- ========== 序 ========== -->
+<h2>序</h2>
+
+<h3>序一：為什麼要寫這本書</h3>
+<p>從兩個看似無關的體系說起。</p>
+<p>一個是 <strong>Nand2Tetris</strong>——以色列理工學院的 Shimon Schocken 和 Noam Nisan 教授於 2005 年開設的課程，核心是「從一個 Nand 閘開始，建構一台完整的電腦」。</p>
+<p>一個是 <strong>易經六爻</strong>——中國最古老的經典之一，成書於西周時期，核心是「從陰陽兩爻開始，推演出六十四卦，涵蓋天地人三才」。</p>
+<p>這兩者，一個來自西方，一個來自東方；一個強調分析與計算，一個強調綜合與類比。它們看似無關，卻在<strong>生成邏輯</strong>上展現了驚人的相似性。</p>
+<p>本書的定位：不是技術手冊，也不是易經註解，而是一場<strong>跨域對話</strong>。</p>
+
+<h3>序二：本書的閱讀方式</h3>
+<table>
+<tr><th>讀者類型</th><th>閱讀方式</th><th>重點</th></tr>
+<tr><td>資訊背景讀者</td><td>從技術進入卦理</td><td>用易經重新理解電腦科學</td></tr>
+<tr><td>易經背景讀者</td><td>從卦理進入技術</td><td>用電腦科學重新理解易經</td></tr>
+<tr><td>跨域讀者</td><td>雙軌並進</td><td>探索兩種思維體系的對話</td></tr>
+</table>
+<p><strong>本書的核心約定：</strong></p>
+<ul>
+<li>讀取方向：由上爻往下爻讀</li>
+<li>位元順序：上爻 = bit 5（MSB），初爻 = bit 0（LSB）</li>
+<li>陽爻 = 1，陰爻 = 0</li>
+</ul>
+
+<h3>序三：Nand2Tetris 與易經的深層共鳴</h3>
+<table>
+<tr><th>面向</th><th>Nand2Tetris</th><th>易經六爻</th></tr>
+<tr><td>有限元素的無限組合</td><td>Nand 閘</td><td>陰陽爻</td></tr>
+<tr><td>分層抽象與封裝</td><td>Nand → OS</td><td>太極 → 六十四卦</td></tr>
+<tr><td>從靜態到動態</td><td>組合邏輯 → 時序邏輯</td><td>卦象 → 卦變</td></tr>
+<tr><td>命名與語意</td><td>組譯器</td><td>卦名</td></tr>
+<tr><td>條件與變易</td><td>跳躍指令</td><td>動爻</td></tr>
+<tr><td>系統與三才</td><td>作業系統</td><td>三才之道</td></tr>
+</table>
+
+<!-- ========== 導論 ========== -->
+<h2>第一章　導論：兩種生成邏輯的相遇</h2>
+
+<blockquote>「易有太極，是生兩儀，兩儀生四象，四象生八卦，八卦定吉凶，吉凶生大業。」——《易傳·繫辭上》</blockquote>
+<blockquote>「電腦科學不是關於電腦的科學，而是關於計算的科學。它研究的是：什麼是可計算的，以及如何計算。」——Michael Sipser</blockquote>
+
+<p>這本書試圖回答一個看似不可能的問題：</p>
+<p><strong>一台從 Nand 閘開始建構的電腦，和一套從陰陽爻開始推演的易經卦象，它們之間有什麼關係？</strong></p>
+<p>答案是：<strong>它們共享同一種生成邏輯。</strong></p>
+<ul>
+<li>兩者都從最簡單的元素出發（Nand 閘 / 陰陽爻）</li>
+<li>兩者都透過組合與封裝向上建構（邏輯閘 → ALU → CPU / 四象 → 八卦 → 六十四卦）</li>
+<li>兩者都從靜態結構演化為動態執行（組合邏輯 → 時序邏輯 / 卦象 → 卦變）</li>
+<li>兩者都透過命名與編碼賦予意義（指令集 / 卦辭爻辭）</li>
+</ul>
+
+<h3>1.1 Nand2Tetris 是什麼</h3>
+<p>Nand2Tetris（又名《The Elements of Computing Systems》）是以色列理工學院（Technion）的 Shimon Schocken 和 Noam Nisan 教授於 2005 年開設的課程。</p>
+<p>課程的核心理念是：</p>
+<blockquote>「從一個 Nand 閘開始，建構一台完整的電腦。」</blockquote>
+<p>這門課拒絕「黑箱」——學生不會被告訴「CPU 就是這樣運作的」，而是要親手用 Nand 閘建構出 CPU。</p>
+
+<h4>課程結構</h4>
+<table>
+<tr><th>部分</th><th>章節</th><th>內容</th></tr>
+<tr><td>硬體</td><td>第1章</td><td>基本邏輯閘</td></tr>
+<tr><td></td><td>第2章</td><td>布林算術與 ALU</td></tr>
+<tr><td></td><td>第3章</td><td>時序邏輯（記憶元件）</td></tr>
+<tr><td></td><td>第4章</td><td>機器語言</td></tr>
+<tr><td></td><td>第5章</td><td>電腦架構</td></tr>
+<tr><td>軟體</td><td>第6章</td><td>組譯器</td></tr>
+<tr><td></td><td>第7~8章</td><td>虛擬機</td></tr>
+<tr><td></td><td>第9章</td><td>高階語言（Jack）</td></tr>
+<tr><td></td><td>第10~11章</td><td>編譯器</td></tr>
+<tr><td></td><td>第12章</td><td>作業系統</td></tr>
+</table>
+
+<h4>核心精神</h4>
+<ol>
+<li>從零建構（From Scratch）：不使用任何現成的元件，一切從 Nand 閘開始</li>
+<li>分層抽象（Layered Abstraction）：每一層都封裝下層的複雜性，提供更簡潔的介面</li>
+<li>動手實作（Hands-On）：每個元件都要親手實作，通過測試才能進入下一章</li>
+</ol>
+
+<h4>為什麼選擇 Nand 閘</h4>
+<p>Nand 閘是通用閘（Universal Gate）——任何布林函數都可以用 Nand 閘實現。</p>
+<table>
+<tr><th>邏輯閘</th><th>用 Nand 實現</th></tr>
+<tr><td>Not</td><td>Nand(a, a)</td></tr>
+<tr><td>And</td><td>Not(Nand(a, b))</td></tr>
+<tr><td>Or</td><td>Nand(Not(a), Not(b))</td></tr>
+<tr><td>Xor</td><td>Or(And(a, Not(b)), And(Not(a), b))</td></tr>
+</table>
+
+<h3>1.2 易經六爻是什麼</h3>
+<p>《易經》是中國最古老的經典之一，成書於西周時期（約公元前 1000 年），最初是一部占卜之書，後來發展為一套哲學體系。</p>
+<p>易經的核心是六十四卦，每卦由六爻組成，每爻分陰（⚋）和陽（⚊）。</p>
+
+<h4>生成邏輯</h4>
+<blockquote>「易有太極，是生兩儀，兩儀生四象，四象生八卦，八卦定吉凶，吉凶生大業。」——《易傳·繫辭上》</blockquote>
+<table>
+<tr><th>階段</th><th>名稱</th><th>內容</th><th>數量</th></tr>
+<tr><td>0</td><td>太極</td><td>未分化的原初狀態</td><td>1</td></tr>
+<tr><td>1</td><td>兩儀</td><td>陰、陽</td><td>2</td></tr>
+<tr><td>2</td><td>四象</td><td>老陽、少陰、少陽、老陰</td><td>4</td></tr>
+<tr><td>3</td><td>八卦</td><td>乾、坤、震、巽、坎、離、艮、兌</td><td>8</td></tr>
+<tr><td>4</td><td>六十四卦</td><td>八卦重疊</td><td>64</td></tr>
+</table>
+
+<h3>1.3 為什麼可以對應</h3>
+<table>
+<tr><th>層次</th><th>Nand2Tetris</th><th>易經六爻</th><th>對應關係</th></tr>
+<tr><td>元素層</td><td>Nand 閘</td><td>陰陽爻</td><td>最簡單的通用元素</td></tr>
+<tr><td>組合層</td><td>邏輯閘 → ALU → CPU</td><td>四象 → 八卦 → 六十四卦</td><td>從簡單到複雜的組合</td></tr>
+<tr><td>語意層</td><td>指令集 → 程式</td><td>卦辭 → 爻辭</td><td>賦予結構意義</td></tr>
+</table>
+
+<h3>1.4 核心約定：六爻二進制編碼</h3>
+<p>為了讓易經六爻與電腦科學能夠精確對應，我們需要一個共同的編碼方式。</p>
+<p>電腦使用二進制（0 和 1），易經使用陰陽（⚋ 和 ⚊）。如果我們將：</p>
+<ul>
+<li>陽爻（⚊）= 1</li>
+<li>陰爻（⚋）= 0</li>
+</ul>
+<p>則每個六爻卦都可以表示為一個 6-bit 的二進制數。</p>
+
+<table>
+<tr><th>規則</th><th>說明</th></tr>
+<tr><td>讀取方向</td><td>由上爻往下爻讀</td></tr>
+<tr><td>位元順序</td><td>上爻 = bit 5（MSB），初爻 = bit 0（LSB）</td></tr>
+<tr><td>陽爻</td><td>1</td></tr>
+<tr><td>陰爻</td><td>0</td></tr>
+</table>
+
+<table>
+<tr><th>卦名</th><th>卦象</th><th>上爻</th><th>五爻</th><th>四爻</th><th>三爻</th><th>二爻</th><th>初爻</th><th>二進制</th></tr>
+<tr><td>地雷復</td><td>䷗</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>000001</td></tr>
+<tr><td>乾為天</td><td>䷀</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>111111</td></tr>
+<tr><td>坤為地</td><td>䷁</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>000000</td></tr>
+<tr><td>天地否</td><td>䷋</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>111000</td></tr>
+<tr><td>地天泰</td><td>䷊</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td><td>000111</td></tr>
+</table>
+
+<h3>1.5 本書的 Harness Skill 框架</h3>
+<p><strong>核心類比原則：</strong></p>
+<table>
+<tr><th>原則</th><th>說明</th></tr>
+<tr><td>組合層級對應</td><td>從最簡元素到完整系統，層層組合</td></tr>
+<tr><td>靜態→動態對應</td><td>組合邏輯（空間）→ 時序邏輯（時間）→ 執行（變化）</td></tr>
+<tr><td>語意階層對應</td><td>硬體（結構）→ 指令（符號）→ 高階語言（詮釋）→ OS（環境）</td></tr>
+</table>
+
+<p><strong>完整對應表：</strong></p>
+<table>
+<tr><th>章節</th><th>Nand2Tetris</th><th>易經六爻</th><th>核心對應</th></tr>
+<tr><td>第1章</td><td>基本邏輯閘</td><td>四象</td><td>從無到有</td></tr>
+<tr><td>第2章</td><td>ALU</td><td>八卦</td><td>賦予意義</td></tr>
+<tr><td>第3章</td><td>時序邏輯</td><td>爻位與時機</td><td>引入時間</td></tr>
+<tr><td>第4章</td><td>機器語言</td><td>卦辭與爻辭</td><td>賦予語意</td></tr>
+<tr><td>第5章</td><td>電腦架構</td><td>六十四卦</td><td>完整系統</td></tr>
+<tr><td>第6章</td><td>組譯器</td><td>卦名與符號化</td><td>命名與定位</td></tr>
+<tr><td>第7~8章</td><td>虛擬機</td><td>錯綜交互卦</td><td>變易關係</td></tr>
+<tr><td>第9章</td><td>高階語言</td><td>取象比類</td><td>高階抽象</td></tr>
+<tr><td>第10~11章</td><td>編譯器</td><td>卦序與卦氣</td><td>結構與流轉</td></tr>
+<tr><td>第12章</td><td>作業系統</td><td>三才之道</td><td>天地人和諧</td></tr>
+</table>
+
+<h3>1.6 本章總結</h3>
+<table>
+<tr><th>面向</th><th>Nand2Tetris</th><th>易經六爻</th></tr>
+<tr><td>起源</td><td>2005 年，Technion</td><td>約公元前 1000 年，西周</td></tr>
+<tr><td>核心元素</td><td>Nand 閘</td><td>陰陽爻</td></tr>
+<tr><td>生成邏輯</td><td>Nand → 電腦</td><td>太極 → 六十四卦</td></tr>
+<tr><td>核心精神</td><td>從零建構、分層抽象、動手實作</td><td>從簡到繁、分層組合、動態變化</td></tr>
+<tr><td>通用元素</td><td>Nand 閘（通用閘）</td><td>陰陽爻（通用元素）</td></tr>
+</table>
+
+<h3>1.7 延伸閱讀</h3>
+<ol>
+<li>Nand2Tetris：Noam Nisan &amp; Shimon Schocken, <em>The Elements of Computing Systems</em></li>
+<li>易經：《周易》原文、《易傳·繫辭上/下》</li>
+<li>跨域研究：Fritjof Capra, <em>The Tao of Physics</em></li>
+<li>計算理論：Michael Sipser, <em>Introduction to the Theory of Computation</em></li>
+</ol>
+
+<!-- ========== 第二章 ========== -->
+<h2>第二章　六十四卦二進制對照表</h2>
+
+<blockquote>「參伍以變，錯綜其數，通其變，遂成天地之文。」——《易傳·繫辭上》</blockquote>
+<blockquote>「二進制是電腦的語言，0 和 1 構成了整個數位世界。」——Gottfried Wilhelm Leibniz</blockquote>
+
+<p>本章提供六十四卦的完整二進制對照表，這是全書的<strong>核心工具</strong>。所有後續章節的對應，都基於這個編碼系統。</p>
+
+<h3>2.1 編碼規則與讀取方向</h3>
+<table>
+<tr><th>規則</th><th>說明</th></tr>
+<tr><td>讀取方向</td><td>由上爻往下爻讀</td></tr>
+<tr><td>位元順序</td><td>上爻 = bit 5（MSB），初爻 = bit 0（LSB）</td></tr>
+<tr><td>陽爻</td><td>1</td></tr>
+<tr><td>陰爻</td><td>0</td></tr>
+</table>
+
+<h3>2.2 六十四卦完整二進制對照表（0～63）</h3>
+<table>
+<tr><th>二進制</th><th>十進制</th><th>上卦</th><th>下卦</th><th>卦名</th><th>卦象</th></tr>
+<tr><td>000000</td><td>0</td><td>坤 ☷</td><td>坤 ☷</td><td>坤為地</td><td>䷁</td></tr>
+<tr><td>000001</td><td>1</td><td>坤 ☷</td><td>震 ☳</td><td>地雷復</td><td>䷗</td></tr>
+<tr><td>000010</td><td>2</td><td>坤 ☷</td><td>坎 ☵</td><td>地水師</td><td>䷆</td></tr>
+<tr><td>000011</td><td>3</td><td>坤 ☷</td><td>兌 ☱</td><td>地澤臨</td><td>䷒</td></tr>
+<tr><td>000100</td><td>4</td><td>坤 ☷</td><td>艮 ☶</td><td>地山謙</td><td>䷎</td></tr>
+<tr><td>000101</td><td>5</td><td>坤 ☷</td><td>離 ☲</td><td>地火明夷</td><td>䷣</td></tr>
+<tr><td>000110</td><td>6</td><td>坤 ☷</td><td>巽 ☴</td><td>地風升</td><td>䷭</td></tr>
+<tr><td>000111</td><td>7</td><td>坤 ☷</td><td>乾 ☰</td><td>地天泰</td><td>䷊</td></tr>
+<tr><td>001000</td><td>8</td><td>震 ☳</td><td>坤 ☷</td><td>雷地豫</td><td>䷏</td></tr>
+<tr><td>001001</td><td>9</td><td>震 ☳</td><td>震 ☳</td><td>震為雷</td><td>䷲</td></tr>
+<tr><td>001010</td><td>10</td><td>震 ☳</td><td>坎 ☵</td><td>雷水解</td><td>䷧</td></tr>
+<tr><td>001011</td><td>11</td><td>震 ☳</td><td>兌 ☱</td><td>雷澤歸妹</td><td>䷵</td></tr>
+<tr><td>001100</td><td>12</td><td>震 ☳</td><td>艮 ☶</td><td>雷山小過</td><td>䷽</td></tr>
+<tr><td>001101</td><td>13</td><td>震 ☳</td><td>離 ☲</td><td>雷火豐</td><td>䷶</td></tr>
+<tr><td>001110</td><td>14</td><td>震 ☳</td><td>巽 ☴</td><td>雷風恆</td><td>䷟</td></tr>
+<tr><td>001111</td><td>15</td><td>震 ☳</td><td>乾 ☰</td><td>雷天大壯</td><td>䷡</td></tr>
+<tr><td>010000</td><td>16</td><td>坎 ☵</td><td>坤 ☷</td><td>水地比</td><td>䷇</td></tr>
+<tr><td>010001</td><td>17</td><td>坎 ☵</td><td>震 ☳</td><td>水雷屯</td><td>䷂</td></tr>
+<tr><td>010010</td><td>18</td><td>坎 ☵</td><td>坎 ☵</td><td>坎為水</td><td>䷜</td></tr>
+<tr><td>010011</td><td>19</td><td>坎 ☵</td><td>兌 ☱</td><td>水澤節</td><td>䷻</td></tr>
+<tr><td>010100</td><td>20</td><td>坎 ☵</td><td>艮 ☶</td><td>水山蹇</td><td>䷦</td></tr>
+<tr><td>010101</td><td>21</td><td>坎 ☵</td><td>離 ☲</td><td>水火既濟</td><td>䷾</td></tr>
+<tr><td>010110</td><td>22</td><td>坎 ☵</td><td>巽 ☴</td><td>水風井</td><td>䷯</td></tr>
+<tr><td>010111</td><td>23</td><td>坎 ☵</td><td>乾 ☰</td><td>水天需</td><td>䷄</td></tr>
+<tr><td>011000</td><td>24</td><td>兌 ☱</td><td>坤 ☷</td><td>澤地萃</td><td>䷬</td></tr>
+<tr><td>011001</td><td>25</td><td>兌 ☱</td><td>震 ☳</td><td>澤雷隨</td><td>䷐</td></tr>
+<tr><td>011010</td><td>26</td><td>兌 ☱</td><td>坎 ☵</td><td>澤水困</td><td>䷮</td></tr>
+<tr><td>011011</td><td>27</td><td>兌 ☱</td><td>兌 ☱</td><td>兌為澤</td><td>䷹</td></tr>
+<tr><td>011100</td><td>28</td><td>兌 ☱</td><td>艮 ☶</td><td>澤山咸</td><td>䷞</td></tr>
+<tr><td>011101</td><td>29</td><td>兌 ☱</td><td>離 ☲</td><td>澤火革</td><td>䷰</td></tr>
+<tr><td>011110</td><td>30</td><td>兌 ☱</td><td>巽 ☴</td><td>澤風大過</td><td>䷛</td></tr>
+<tr><td>011111</td><td>31</td><td>兌 ☱</td><td>乾 ☰</td><td>澤天夬</td><td>䷪</td></tr>
+<tr><td>100000</td><td>32</td><td>艮 ☶</td><td>坤 ☷</td><td>山地剝</td><td>䷖</td></tr>
+<tr><td>100001</td><td>33</td><td>艮 ☶</td><td>震 ☳</td><td>山雷頤</td><td>䷚</td></tr>
+<tr><td>100010</td><td>34</td><td>艮 ☶</td><td>坎 ☵</td><td>山水蒙</td><td>䷃</td></tr>
+<tr><td>100011</td><td>35</td><td>艮 ☶</td><td>兌 ☱</td><td>山澤損</td><td>䷨</td></tr>
+<tr><td>100100</td><td>36</td><td>艮 ☶</td><td>艮 ☶</td><td>艮為山</td><td>䷳</td></tr>
+<tr><td>100101</td><td>37</td><td>艮 ☶</td><td>離 ☲</td><td>山火賁</td><td>䷕</td></tr>
+<tr><td>100110</td><td>38</td><td>艮 ☶</td><td>巽 ☴</td><td>山風蠱</td><td>䷑</td></tr>
+<tr><td>100111</td><td>39</td><td>艮 ☶</td><td>乾 ☰</td><td>山天大畜</td><td>䷙</td></tr>
+<tr><td>101000</td><td>40</td><td>離 ☲</td><td>坤 ☷</td><td>火地晉</td><td>䷢</td></tr>
+<tr><td>101001</td><td>41</td><td>離 ☲</td><td>震 ☳</td><td>火雷噬嗑</td><td>䷔</td></tr>
+<tr><td>101010</td><td>42</td><td>離 ☲</td><td>坎 ☵</td><td>火水未濟</td><td>䷿</td></tr>
+<tr><td>101011</td><td>43</td><td>離 ☲</td><td>兌 ☱</td><td>火澤睽</td><td>䷥</td></tr>
+<tr><td>101100</td><td>44</td><td>離 ☲</td><td>艮 ☶</td><td>火山旅</td><td>䷷</td></tr>
+<tr><td>101101</td><td>45</td><td>離 ☲</td><td>離 ☲</td><td>離為火</td><td>䷝</td></tr>
+<tr><td>101110</td><td>46</td><td>離 ☲</td><td>巽 ☴</td><td>火風鼎</td><td>䷱</td></tr>
+<tr><td>101111</td><td>47</td><td>離 ☲</td><td>乾 ☰</td><td>火天大有</td><td>䷍</td></tr>
+<tr><td>110000</td><td>48</td><td>巽 ☴</td><td>坤 ☷</td><td>風地觀</td><td>䷓</td></tr>
+<tr><td>110001</td><td>49</td><td>巽 ☴</td><td>震 ☳</td><td>風雷益</td><td>䷩</td></tr>
+<tr><td>110010</td><td>50</td><td>巽 ☴</td><td>坎 ☵</td><td>風水渙</td><td>䷺</td></tr>
+<tr><td>110011</td><td>51</td><td>巽 ☴</td><td>兌 ☱</td><td>風澤中孚</td><td>䷼</td></tr>
+<tr><td>110100</td><td>52</td><td>巽 ☴</td><td>艮 ☶</td><td>風山漸</td><td>䷴</td></tr>
+<tr><td>110101</td><td>53</td><td>巽 ☴</td><td>離 ☲</td><td>風火家人</td><td>䷤</td></tr>
+<tr><td>110110</td><td>54</td><td>巽 ☴</td><td>巽 ☴</td><td>巽為風</td><td>䷸</td></tr>
+<tr><td>110111</td><td>55</td><td>巽 ☴</td><td>乾 ☰</td><td>風天小畜</td><td>䷈</td></tr>
+<tr><td>111000</td><td>56</td><td>乾 ☰</td><td>坤 ☷</td><td>天地否</td><td>䷋</td></tr>
+<tr><td>111001</td><td>57</td><td>乾 ☰</td><td>震 ☳</td><td>天雷無妄</td><td>䷘</td></tr>
+<tr><td>111010</td><td>58</td><td>乾 ☰</td><td>坎 ☵</td><td>天水訟</td><td>䷅</td></tr>
+<tr><td>111011</td><td>59</td><td>乾 ☰</td><td>兌 ☱</td><td>天澤履</td><td>䷉</td></tr>
+<tr><td>111100</td><td>60</td><td>乾 ☰</td><td>艮 ☶</td><td>天山遯</td><td>䷠</td></tr>
+<tr><td>111101</td><td>61</td><td>乾 ☰</td><td>離 ☲</td><td>天火同人</td><td>䷌</td></tr>
+<tr><td>111110</td><td>62</td><td>乾 ☰</td><td>巽 ☴</td><td>天風姤</td><td>䷫</td></tr>
+<tr><td>111111</td><td>63</td><td>乾 ☰</td><td>乾 ☰</td><td>乾為天</td><td>䷀</td></tr>
+</table>
+
+<h3>2.3 關鍵驗證</h3>
+<table>
+<tr><th>驗證</th><th>結果</th></tr>
+<tr><td>000001 = 地雷復</td><td>上爻0、五爻0、四爻0、三爻0、二爻0、初爻1 → 坤上震下 → 地雷復 ✔</td></tr>
+<tr><td>111111 = 乾為天</td><td>六爻全陽 → 乾上乾下 → 乾為天 ✔</td></tr>
+<tr><td>000000 = 坤為地</td><td>六爻全陰 → 坤上坤下 → 坤為地 ✔</td></tr>
+<tr><td>111000 = 天地否</td><td>上三爻陽（乾）、下三爻陰（坤）→ 天地否 ✔</td></tr>
+<tr><td>000111 = 地天泰</td><td>上三爻陰（坤）、下三爻陽（乾）→ 地天泰 ✔</td></tr>
+</table>
+
+<h3>2.4 易經卦序 vs 二進制排序</h3>
+<table>
+<tr><th>排序方式</th><th>說明</th></tr>
+<tr><td>二進制排序</td><td>按數值 0～63 排列，這是數學順序</td></tr>
+<tr><td>《易經》卦序</td><td>按乾、坤、屯、蒙、需、訟... 排列，這是哲學/歷史順序</td></tr>
+<tr><td>先天八卦序</td><td>乾一、兌二、離三、震四、巽五、坎六、艮七、坤八</td></tr>
+<tr><td>後天八卦序</td><td>坎一、坤二、震三、巽四、中五、乾六、兌七、艮八、離九</td></tr>
+</table>
+
+<h3>2.5 與 Hack 電腦 16-bit 指令格式的類比</h3>
+<table>
+<tr><th>面向</th><th>Hack 指令</th><th>六爻卦象</th></tr>
+<tr><td>位元數</td><td>16-bit</td><td>6-bit（可視為 16-bit 的低 6 位）</td></tr>
+<tr><td>位元方向</td><td>MSB 在左，LSB 在右</td><td>上爻在 bit5，初爻在 bit0</td></tr>
+<tr><td>編碼意義</td><td>0/1 決定硬體行為</td><td>0/1（陰/陽）決定卦象性質</td></tr>
+<tr><td>解碼方式</td><td>控制單元解碼</td><td>卜筮者解卦</td></tr>
+</table>
+
+<!-- ========== 第一部 ========== -->
+<h2>第一部：硬體建構——從太極到六十四卦</h2>
+
+<h2>第三章　基本邏輯閘（第1章）</h2>
+
+<blockquote>「易有太極，是生兩儀，兩儀生四象，四象生八卦。」——《易傳·繫辭上》</blockquote>
+<blockquote>「Nand 閘是數位邏輯的通用元素，任何布林函數都可以用它來實現。」——Shimon Schocken &amp; Noam Nisan</blockquote>
+
+<p>Nand2Tetris 的旅程，從一個最簡單的邏輯閘開始：Nand。</p>
+<p>易經的生成，從一個最原初的狀態開始：太極。</p>
+<p>這兩者看似無關，卻共享同一種生成邏輯——從一個通用元素出發，透過組合與封裝，建構出所有其他元素。</p>
+
+<h3>3.1 技術層：Nand 閘與基本邏輯閘</h3>
+
+<h4>3.1.1 Nand 閘：通用閘</h4>
+<p>Nand 是「Not And」的縮寫，它的真值表如下：</p>
+<table>
+<tr><th>a</th><th>b</th><th>Nand(a, b)</th></tr>
+<tr><td>0</td><td>0</td><td>1</td></tr>
+<tr><td>0</td><td>1</td><td>1</td></tr>
+<tr><td>1</td><td>0</td><td>1</td></tr>
+<tr><td>1</td><td>1</td><td>0</td></tr>
+</table>
+<p><strong>Nand 的特性：</strong></p>
+<ul>
+<li>只有當兩個輸入都為 1 時，輸出才為 0</li>
+<li>其餘所有情況，輸出都為 1</li>
+</ul>
+<p><strong>為什麼 Nand 是通用閘：</strong></p>
+<p>因為任何布林函數都可以用 Nand 閘實現。這意味著：</p>
+<ul>
+<li>Not、And、Or、Xor 都可以用 Nand 實現</li>
+<li>所有更複雜的電路（ALU、CPU）也可以用 Nand 實現</li>
+<li>Nand 是數位邏輯的「原子」</li>
+</ul>
+
+<h4>3.1.2 由 Nand 建構的基本邏輯閘</h4>
+<p><strong>Not 閘：</strong></p>
+<table>
+<tr><th>a</th><th>Not(a)</th></tr>
+<tr><td>0</td><td>1</td></tr>
+<tr><td>1</td><td>0</td></tr>
+</table>
+<p>用 Nand 實現：<code>Not(a) = Nand(a, a)</code></p>
+
+<p><strong>And 閘：</strong></p>
+<table>
+<tr><th>a</th><th>b</th><th>And(a, b)</th></tr>
+<tr><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>0</td><td>1</td><td>0</td></tr>
+<tr><td>1</td><td>0</td><td>0</td></tr>
+<tr><td>1</td><td>1</td><td>1</td></tr>
+</table>
+<p>用 Nand 實現：<code>And(a, b) = Not(Nand(a, b))</code></p>
+
+<p><strong>Or 閘：</strong></p>
+<table>
+<tr><th>a</th><th>b</th><th>Or(a, b)</th></tr>
+<tr><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>0</td><td>1</td><td>1</td></tr>
+<tr><td>1</td><td>0</td><td>1</td></tr>
+<tr><td>1</td><td>1</td><td>1</td></tr>
+</table>
+<p>用 Nand 實現：<code>Or(a, b) = Nand(Not(a), Not(b))</code></p>
+
+<p><strong>Xor 閘：</strong></p>
+<table>
+<tr><th>a</th><th>b</th><th>Xor(a, b)</th></tr>
+<tr><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>0</td><td>1</td><td>1</td></tr>
+<tr><td>1</td><td>0</td><td>1</td></tr>
+<tr><td>1</td><td>1</td><td>0</td></tr>
+</table>
+<p>用 Nand 實現：<code>Xor(a, b) = Or(And(a, Not(b)), And(Not(a), b))</code></p>
+
+<h4>3.1.3 多工器與解多工器</h4>
+<p><strong>Mux（多工器）：</strong></p>
+<table>
+<tr><th>sel</th><th>輸出</th></tr>
+<tr><td>0</td><td>a</td></tr>
+<tr><td>1</td><td>b</td></tr>
+</table>
+<p>用 Nand 實現：<code>Mux(a, b, sel) = Or(And(a, Not(sel)), And(b, sel))</code></p>
+
+<p><strong>DMux（解多工器）：</strong></p>
+<table>
+<tr><th>in</th><th>sel</th><th>out1</th><th>out2</th></tr>
+<tr><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+<tr><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+<tr><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+</table>
+<p>用 Nand 實現：<code>DMux(in, sel) = (And(in, Not(sel)), And(in, sel))</code></p>
+
+<h4>3.1.4 基本邏輯閘總表</h4>
+<table>
+<tr><th>邏輯閘</th><th>功能</th><th>用 Nand 實現</th></tr>
+<tr><td>Nand</td><td>Not And</td><td>基本</td></tr>
+<tr><td>Not</td><td>反相</td><td>Nand(a, a)</td></tr>
+<tr><td>And</td><td>邏輯與</td><td>Not(Nand(a, b))</td></tr>
+<tr><td>Or</td><td>邏輯或</td><td>Nand(Not(a), Not(b))</td></tr>
+<tr><td>Xor</td><td>邏輯異或</td><td>Or(And(a, Not(b)), And(Not(a), b))</td></tr>
+<tr><td>Mux</td><td>多工器</td><td>Or(And(a, Not(sel)), And(b, sel))</td></tr>
+<tr><td>DMux</td><td>解多工器</td><td>(And(in, Not(sel)), And(in, sel))</td></tr>
+</table>
+
+<h3>3.2 卦理對應：四象</h3>
+
+<h4>3.2.1 Nand 閘 = 太極</h4>
+<table>
+<tr><th>Nand 閘</th><th>太極</th></tr>
+<tr><td>通用閘</td><td>未分化的原初狀態</td></tr>
+<tr><td>所有邏輯閘的基礎</td><td>所有卦象的基礎</td></tr>
+<tr><td>只有一個（Nand）</td><td>只有一個（太極）</td></tr>
+<tr><td>透過組合生成其他閘</td><td>透過分化生成其他卦</td></tr>
+</table>
+
+<h4>3.2.2 Not 閘 = 兩儀（陰陽互變）</h4>
+<table>
+<tr><th>Not 閘</th><th>兩儀</th></tr>
+<tr><td>0 → 1</td><td>陰 → 陽</td></tr>
+<tr><td>1 → 0</td><td>陽 → 陰</td></tr>
+<tr><td>最簡單的轉化</td><td>最基本的變化</td></tr>
+<tr><td>一個輸入，一個輸出</td><td>一個爻，一個變化</td></tr>
+</table>
+
+<h4>3.2.3 And / Or / Xor = 四象</h4>
+<table>
+<tr><th>邏輯閘</th><th>真值表</th><th>四象</th><th>說明</th></tr>
+<tr><td>And</td><td>只有 (1,1) → 1</td><td>老陽（純陽）</td><td>條件最嚴苛，全陽方成</td></tr>
+<tr><td>Or</td><td>只要有一個 1 → 1</td><td>老陰（純陰）</td><td>條件最寬鬆，一陽即顯</td></tr>
+<tr><td>Xor</td><td>相異 → 1，相同 → 0</td><td>少陽 / 少陰</td><td>陰陽相錯，不純粹的混合態</td></tr>
+</table>
+
+<h4>3.2.4 Mux / DMux = 選擇與分流</h4>
+<table>
+<tr><th>邏輯閘</th><th>功能</th><th>卦理對應</th><th>說明</th></tr>
+<tr><td>Mux</td><td>根據 sel 選擇 a 或 b</td><td>選擇之象</td><td>如同占卜中的「決疑」</td></tr>
+<tr><td>DMux</td><td>根據 sel 將 in 送到其中一個輸出</td><td>分流之象</td><td>如同太極生兩儀，一源分出兩路</td></tr>
+</table>
+
+<h3>3.3 雙層交織對照表</h3>
+<table>
+<tr><th>面向</th><th>Nand2Tetris</th><th>易經六爻</th></tr>
+<tr><td>起點</td><td>Nand 閘</td><td>太極</td></tr>
+<tr><td>第一次分化</td><td>Not 閘</td><td>兩儀</td></tr>
+<tr><td>基本組合</td><td>And / Or / Xor</td><td>四象</td></tr>
+<tr><td>進階組合</td><td>Mux / DMux</td><td>選擇與分流</td></tr>
+<tr><td>核心精神</td><td>布林代數的完備性</td><td>陰陽生克的完備性</td></tr>
+<tr><td>狀態特性</td><td>組合邏輯（無記憶）</td><td>靜態卦象（未涉時位）</td></tr>
+<tr><td>通用元素</td><td>Nand（通用閘）</td><td>陰陽爻（通用元素）</td></tr>
+</table>
+
+<h3>3.4 本章總結</h3>
+<table>
+<tr><th>面向</th><th>技術層</th><th>卦理層</th></tr>
+<tr><td>起點</td><td>Nand 閘</td><td>太極</td></tr>
+<tr><td>第一次分化</td><td>Not 閘</td><td>兩儀</td></tr>
+<tr><td>基本組合</td><td>And / Or / Xor</td><td>四象</td></tr>
+<tr><td>進階組合</td><td>Mux / DMux</td><td>選擇與分流</td></tr>
+<tr><td>核心精神</td><td>布林代數的完備性</td><td>陰陽生克的完備性</td></tr>
+</table>
+
+<h3>3.5 延伸閱讀</h3>
+<ol>
+<li>Nand2Tetris 第1章：Boolean Logic</li>
+<li>《易傳·繫辭上》：「易有太極，是生兩儀，兩儀生四象，四象生八卦。」</li>
+<li>布林代數：George Boole, <em>An Investigation of the Laws of Thought</em></li>
+<li>數位邏輯設計：M. Morris Mano, <em>Digital Design</em></li>
+</ol>
+
+<!-- ========== 第四章 ========== -->
+<h2>第四章　布林算術與 ALU（第2章）</h2>
+
+<blockquote>「八卦成列，象在其中矣。」——《易傳·繫辭下》</blockquote>
+<blockquote>「ALU 是 CPU 的心臟，所有運算都在這裡完成。」——Shimon Schocken &amp; Noam Nisan</blockquote>
+
+<p>前一章，我們從 Nand 閘出發，建構出所有基本邏輯閘。那些電路處理的是真/假判斷——輸出只有 0 或 1。</p>
+<p>本章，我們要跨出關鍵一步：從邏輯進入算術。</p>
+<p>我們將建構：</p>
+<ul>
+<li>Half-Adder（半加器）：兩個 bit 相加</li>
+<li>Full-Adder（全加器）：三個 bit 相加</li>
+<li>16-bit Adder（16 位加法器）：兩個 16 位數相加</li>
+<li>ALU（算術邏輯單元）：執行多種運算</li>
+</ul>
+
+<h3>4.1 技術層：從邏輯到算術</h3>
+
+<h4>4.1.1 Half-Adder（半加器）</h4>
+<p>功能：將兩個單 bit 相加，產出「和」（Sum）與「進位」（Carry）。</p>
+<table>
+<tr><th>a</th><th>b</th><th>Sum</th><th>Carry</th></tr>
+<tr><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+<tr><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+<tr><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+</table>
+<p>觀察：</p>
+<ul>
+<li>Sum = Xor(a, b)：相異為 1，相同為 0</li>
+<li>Carry = And(a, b)：只有全 1 才進位</li>
+</ul>
+<pre>Sum   = Xor(a, b)
+Carry = And(a, b)</pre>
+
+<h4>4.1.2 Full-Adder（全加器）</h4>
+<p>功能：將三個 bit 相加（a + b + 進位輸入），產出「和」與「進位輸出」。</p>
+<table>
+<tr><th>a</th><th>b</th><th>Cin</th><th>Sum</th><th>Cout</th></tr>
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr>
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+<tr><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+</table>
+<p>用兩個 Half-Adder 實現：</p>
+<pre>Half-Adder 1：Sum1 = Xor(a, b), Carry1 = And(a, b)
+Half-Adder 2：Sum  = Xor(Sum1, Cin), Carry2 = And(Sum1, Cin)
+Cout = Or(Carry1, Carry2)</pre>
+
+<h4>4.1.3 16-bit Adder（16 位加法器）</h4>
+<p>功能：將兩個 16 位數相加，產出 16 位的和。</p>
+<p>用 16 個 Full-Adder 串聯實現（漣波進位）。</p>
+<p>關鍵技術概念：</p>
+<ul>
+<li>漣波進位（Ripple Carry）：進位從最低位傳到最高位，如同波浪</li>
+<li>延遲（Delay）：進位傳遞需要時間，位數越多延遲越長</li>
+<li>改進方法：超前進位（Carry Lookahead）、進位選擇（Carry Select）</li>
+</ul>
+
+<h4>4.1.4 ALU（算術邏輯單元）</h4>
+<p>功能：執行多種算術與邏輯運算，是 CPU 的核心。</p>
+<p>Hack ALU 規格：</p>
+<table>
+<tr><th>類型</th><th>訊號</th><th>說明</th></tr>
+<tr><td>輸入</td><td>a[16], b[16]</td><td>兩個 16 位運算元</td></tr>
+<tr><td>輸入</td><td>zx, nx, zy, ny, f, no</td><td>6 個控制位</td></tr>
+<tr><td>輸出</td><td>out[16]</td><td>16 位運算結果</td></tr>
+<tr><td>輸出</td><td>zr, ng</td><td>狀態位（零、負）</td></tr>
+</table>
+
+<p>6 個控制位的功能：</p>
+<table>
+<tr><th>控制位</th><th>功能</th><th>說明</th></tr>
+<tr><td>zx</td><td>zero x</td><td>將 a 歸零</td></tr>
+<tr><td>nx</td><td>not x</td><td>將 a 取反</td></tr>
+<tr><td>zy</td><td>zero y</td><td>將 b 歸零</td></tr>
+<tr><td>ny</td><td>not y</td><td>將 b 取反</td></tr>
+<tr><td>f</td><td>function</td><td>0=And, 1=Add</td></tr>
+<tr><td>no</td><td>not output</td><td>將輸出取反</td></tr>
+</table>
+
+<p>ALU 的 18 種運算（部分）：</p>
+<table>
+<tr><th>zx</th><th>nx</th><th>zy</th><th>ny</th><th>f</th><th>no</th><th>輸出</th><th>運算</th></tr>
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>a And b</td><td>邏輯與</td></tr>
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>a + b</td><td>加法</td></tr>
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>歸零</td></tr>
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>Not a</td><td>取反</td></tr>
+<tr><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td><td>a</td><td>傳遞</td></tr>
+<tr><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td><td>a + 1</td><td>增量</td></tr>
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td><td>a - 1</td><td>減量</td></tr>
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>-a</td><td>取負</td></tr>
+</table>
+
+<h3>4.2 卦理對應：八卦</h3>
+
+<h4>4.2.1 Half-Adder = 兌卦（澤）</h4>
+<table>
+<tr><th>Half-Adder</th><th>兌卦</th></tr>
+<tr><td>Sum（和）</td><td>澤水滋潤</td></tr>
+<tr><td>Carry（進位）</td><td>澤水滿溢</td></tr>
+<tr><td>兩個輸入</td><td>澤的兩面</td></tr>
+<tr><td>產出和與進位</td><td>澤的雙重作用</td></tr>
+</table>
+
+<h4>4.2.2 Full-Adder = 離卦（火）</h4>
+<table>
+<tr><th>Full-Adder</th><th>離卦</th></tr>
+<tr><td>a, b, Cin</td><td>火的三要素</td></tr>
+<tr><td>Sum（和）</td><td>火的光明</td></tr>
+<tr><td>Cout（進位）</td><td>火的熱量</td></tr>
+<tr><td>三輸入</td><td>火的三要素</td></tr>
+</table>
+
+<h4>4.2.3 16-bit Adder = 震卦（雷）</h4>
+<table>
+<tr><th>16-bit Adder</th><th>震卦</th></tr>
+<tr><td>漣波進位</td><td>雷電連鎖</td></tr>
+<tr><td>16 個 Full-Adder</td><td>雷的連續爆發</td></tr>
+<tr><td>進位傳遞</td><td>雷的傳播</td></tr>
+<tr><td>延遲</td><td>雷的時間差</td></tr>
+</table>
+
+<h4>4.2.4 ALU = 乾卦（天）</h4>
+<table>
+<tr><th>ALU</th><th>乾卦</th></tr>
+<tr><td>執行所有運算</td><td>創始萬物</td></tr>
+<tr><td>CPU 的核心</td><td>天的主宰</td></tr>
+<tr><td>6 個控制位</td><td>天的六爻</td></tr>
+<tr><td>18 種運算</td><td>天的規律</td></tr>
+<tr><td>輸出結果</td><td>天的造化</td></tr>
+</table>
+
+<h4>4.2.5 ALU 的 18 種運算 = 十八變</h4>
+<table>
+<tr><th>ALU 運算</th><th>對應卦象</th><th>象徵意涵</th></tr>
+<tr><td>out = 0</td><td>坤卦（☷，地）</td><td>純陰，歸零，承載一切卻無作用</td></tr>
+<tr><td>out = a</td><td>乾卦（☰，天）</td><td>純陽，主動，直接傳遞</td></tr>
+<tr><td>out = Not(a)</td><td>巽卦（☴，風）</td><td>反轉，如風無孔不入，改變方向</td></tr>
+<tr><td>out = a + b</td><td>離卦（☲，火）</td><td>相加如火光融合，照亮計算之路</td></tr>
+<tr><td>out = a - b</td><td>坎卦（☵，水）</td><td>相減如水流侵蝕，消去一側</td></tr>
+<tr><td>out = a And b</td><td>艮卦（☶，山）</td><td>交集如山峰疊加，條件嚴苛</td></tr>
+<tr><td>out = a Or b</td><td>兌卦（☱，澤）</td><td>聯集如澤水匯聚，容納萬物</td></tr>
+<tr><td>out = -a</td><td>震卦（☳，雷）</td><td>劇烈變動，正負逆轉如雷擊</td></tr>
+</table>
+
+<h4>4.2.6 控制位 = 動爻</h4>
+<table>
+<tr><th>控制位</th><th>對應爻位</th><th>說明</th></tr>
+<tr><td>zx</td><td>初爻</td><td>將 a 歸零（坤化）</td></tr>
+<tr><td>nx</td><td>二爻</td><td>將 a 取反（陰陽互變）</td></tr>
+<tr><td>zy</td><td>三爻</td><td>將 b 歸零（坤化）</td></tr>
+<tr><td>ny</td><td>四爻</td><td>將 b 取反（陰陽互變）</td></tr>
+<tr><td>f</td><td>五爻</td><td>切換 And/Add（功能選擇）</td></tr>
+<tr><td>no</td><td>上爻</td><td>將輸出取反（最終反轉）</td></tr>
+</table>
+
+<h3>4.3 雙層交織對照表</h3>
+<table>
+<tr><th>面向</th><th>Nand2Tetris</th><th>易經六爻</th></tr>
+<tr><td>核心元件</td><td>ALU（算術邏輯單元）</td><td>八卦（三爻卦）</td></tr>
+<tr><td>基本單元</td><td>Half-Adder / Full-Adder</td><td>兌 / 離（初階卦象）</td></tr>
+<tr><td>組合方式</td><td>串聯進位（漣波）</td><td>卦象相重（如澤火革）</td></tr>
+<tr><td>功能切換</td><td>6 個控制位決定運算</td><td>爻位變動決定卦義</td></tr>
+<tr><td>輸出判斷</td><td>zr（零）/ ng（負）</td><td>吉 / 凶 / 悔 / 吝</td></tr>
+<tr><td>核心精神</td><td>用有限硬體實現多種算術</td><td>用有限卦象涵蓋萬物情境</td></tr>
+<tr><td>運算數量</td><td>18 種運算</td><td>十八變</td></tr>
+</table>
+
+<h3>4.4 本章總結</h3>
+<table>
+<tr><th>面向</th><th>技術層</th><th>卦理層</th></tr>
+<tr><td>核心元件</td><td>ALU</td><td>八卦</td></tr>
+<tr><td>基本單元</td><td>Half-Adder / Full-Adder</td><td>兌 / 離</td></tr>
+<tr><td>組合方式</td><td>串聯進位</td><td>卦象相重</td></tr>
+<tr><td>功能切換</td><td>6 個控制位</td><td>爻位變動</td></tr>
+<tr><td>輸出判斷</td><td>zr / ng</td><td>吉 / 凶</td></tr>
+<tr><td>運算數量</td><td>18 種運算</td><td>十八變</td></tr>
+</table>
+
+<p><strong>關鍵對應：</strong></p>
+<ul>
+<li>Half-Adder = 兌卦（澤）</li>
+<li>Full-Adder = 離卦（火）</li>
+<li>16-bit Adder = 震卦（雷）</li>
+<li>ALU = 乾卦（天）</li>
+<li>控制位 = 動爻</li>
+<li>18 種運算 = 十八變</li>
+</ul>
+
+<h3>4.5 延伸閱讀</h3>
+<ol>
+<li>Nand2Tetris 第2章：Boolean Arithmetic</li>
+<li>《易傳·繫辭下》：「八卦成列，象在其中矣。」</li>
+<li>數位邏輯設計：M. Morris Mano, <em>Digital Design</em></li>
+<li>計算機組織：David Patterson &amp; John Hennessy, <em>Computer Organization and Design</em></li>
+</ol>
+
+<!-- ========== 第五章 ========== -->
+<h2>第五章　時序邏輯（第3章）</h2>
+
+<blockquote>「六爻之動，三極之道也。」——《易傳·繫辭上》</blockquote>
+<blockquote>「時序邏輯讓電路擁有了記憶，這是電腦從『計算器』變成『電腦』的關鍵一步。」——Shimon Schocken &amp; Noam Nisan</blockquote>
+
+<p>前兩章，我們建構的是組合邏輯——輸出僅由當前輸入決定，沒有記憶。</p>
+<p>本章，我們要引入時間維度，讓電路擁有狀態與記憶。這是電腦從「計算器」變成「電腦」的關鍵一步。</p>
+<p>我們將建構：</p>
+<ul>
+<li>DFF（資料正反器）：最基本的時序元件</li>
+<li>1-bit 暫存器：可選擇保持或載入</li>
+<li>16-bit 暫存器：儲存一個字</li>
+<li>RAM：隨機存取記憶體</li>
+<li>計數器：自動遞增的暫存器</li>
+</ul>
+
+<h3>5.1 技術層：從組合到時序</h3>
+
+<h4>5.1.1 DFF（資料正反器）</h4>
+<table>
+<tr><th>時脈</th><th>D</th><th>Q（下一個時脈）</th></tr>
+<tr><td>↑</td><td>0</td><td>0</td></tr>
+<tr><td>↑</td><td>1</td><td>1</td></tr>
+<tr><td>非↑</td><td>X</td><td>Q（保持不變）</td></tr>
+</table>
+
+<h4>5.1.2 1-bit 暫存器</h4>
+<table>
+<tr><th>load</th><th>輸入</th><th>輸出（下一個時脈）</th></tr>
+<tr><td>0</td><td>X</td><td>保持舊值</td></tr>
+<tr><td>1</td><td>D</td><td>載入 D</td></tr>
+</table>
+
+<h4>5.1.3 16-bit 暫存器</h4>
+<p>用 16 個 1-bit 暫存器並聯實現，儲存一個 16 位元字。</p>
+
+<h4>5.1.4 RAM（隨機存取記憶體）</h4>
+<table>
+<tr><th>元件</th><th>容量</th><th>位址線</th><th>說明</th></tr>
+<tr><td>RAM8</td><td>8 個字</td><td>3 條</td><td>8 個 16-bit 暫存器</td></tr>
+<tr><td>RAM64</td><td>64 個字</td><td>6 條</td><td>8 個 RAM8</td></tr>
+<tr><td>RAM512</td><td>512 個字</td><td>9 條</td><td>8 個 RAM64</td></tr>
+<tr><td>RAM4K</td><td>4096 個字</td><td>12 條</td><td>8 個 RAM512</td></tr>
+<tr><td>RAM16K</td><td>16384 個字</td><td>14 條</td><td>4 個 RAM4K</td></tr>
+</table>
+
+<h4>5.1.5 計數器（Counter）</h4>
+<table>
+<tr><th>reset</th><th>load</th><th>輸入</th><th>輸出（下一個時脈）</th></tr>
+<tr><td>1</td><td>X</td><td>X</td><td>0</td></tr>
+<tr><td>0</td><td>1</td><td>D</td><td>D</td></tr>
+<tr><td>0</td><td>0</td><td>X</td><td>輸出 + 1</td></tr>
+</table>
+
+<h3>5.2 卦理對應：爻位與時機</h3>
+
+<h4>5.2.1 時鐘（Clock）= 時</h4>
+<table>
+<tr><th>時鐘</th><th>時</th></tr>
+<tr><td>提供時間基準</td><td>提供時位基準</td></tr>
+<tr><td>每個時脈觸發一次</td><td>每個時機觸發一次</td></tr>
+<tr><td>同步所有元件</td><td>協調所有爻位</td></tr>
+<tr><td>週期性</td><td>循環性</td></tr>
+</table>
+
+<h4>5.2.2 DFF = 初爻（潛龍勿用）</h4>
+<table>
+<tr><th>DFF</th><th>初爻</th></tr>
+<tr><td>儲存一個 bit</td><td>潛藏一個爻</td></tr>
+<tr><td>最基本的記憶</td><td>最基本的狀態</td></tr>
+<tr><td>等待時脈觸發</td><td>等待時機觸發</td></tr>
+<tr><td>潛龍勿用</td><td>潛龍勿用</td></tr>
+</table>
+
+<h4>5.2.3 1-bit 暫存器 = 二爻（見龍在田）</h4>
+<table>
+<tr><th>1-bit 暫存器</th><th>二爻</th></tr>
+<tr><td>可保持或載入</td><td>可靜可動</td></tr>
+<tr><td>有了選擇能力</td><td>有了顯現能力</td></tr>
+<tr><td>見龍在田</td><td>見龍在田</td></tr>
+<tr><td>利見大人</td><td>利見大人</td></tr>
+</table>
+
+<h4>5.2.4 16-bit 暫存器 = 三爻（終日乾乾）</h4>
+<table>
+<tr><th>16-bit 暫存器</th><th>三爻</th></tr>
+<tr><td>儲存一個字</td><td>承載一個狀態</td></tr>
+<tr><td>完整的狀態單元</td><td>完整的爻位單元</td></tr>
+<tr><td>終日乾乾</td><td>終日乾乾</td></tr>
+<tr><td>夕惕若厲</td><td>夕惕若厲</td></tr>
+</table>
+
+<h4>5.2.5 RAM = 卦象擴展（二爻→六爻）</h4>
+<table>
+<tr><th>RAM 層級</th><th>容量</th><th>易經對應</th></tr>
+<tr><td>RAM8</td><td>8 個字</td><td>八卦（3 爻）</td></tr>
+<tr><td>RAM64</td><td>64 個字</td><td>六十四卦（6 爻）</td></tr>
+<tr><td>RAM512</td><td>512 個字</td><td>512 種可能</td></tr>
+<tr><td>RAM4K</td><td>4096 個字</td><td>4096 種可能</td></tr>
+<tr><td>RAM16K</td><td>16384 個字</td><td>16384 種可能</td></tr>
+</table>
+
+<h4>5.2.6 計數器 = 卦序流轉</h4>
+<table>
+<tr><th>計數器</th><th>卦序流轉</th></tr>
+<tr><td>每時脈加 1</td><td>每時機變一卦</td></tr>
+<tr><td>自動遞增</td><td>自動流轉</td></tr>
+<tr><td>可重設</td><td>可復卦</td></tr>
+<tr><td>可載入</td><td>可變卦</td></tr>
+<tr><td>程式計數器（PC）的基礎</td><td>卦序導航的基礎</td></tr>
+</table>
+
+<h3>5.3 雙層交織對照表</h3>
+<table>
+<tr><th>面向</th><th>Nand2Tetris</th><th>易經六爻</th></tr>
+<tr><td>核心元件</td><td>DFF / 暫存器 / RAM / 計數器</td><td>爻位 / 卦象 / 卦序 / 時氣</td></tr>
+<tr><td>時間引入</td><td>時鐘（Clock）</td><td>「時」與「位」的動態</td></tr>
+<tr><td>狀態儲存</td><td>暫存器（保持或載入）</td><td>爻的陰陽（保持或變化）</td></tr>
+<tr><td>容量擴展</td><td>RAM8 → RAM16K</td><td>八卦 → 六十四卦</td></tr>
+<tr><td>自動變化</td><td>計數器（每時脈加 1）</td><td>卦氣流轉（十二消息卦）</td></tr>
+<tr><td>核心精神</td><td>引入記憶，讓電腦擁有「過去」</td><td>引入時位，讓卦象擁有「變化」</td></tr>
+</table>
+
+<h3>5.4 本章總結</h3>
+<table>
+<tr><th>面向</th><th>技術層</th><th>卦理層</th></tr>
+<tr><td>核心元件</td><td>DFF / 暫存器 / RAM / 計數器</td><td>爻位 / 卦象 / 卦序 / 時氣</td></tr>
+<tr><td>時間引入</td><td>時鐘（Clock）</td><td>「時」與「位」</td></tr>
+<tr><td>狀態儲存</td><td>暫存器</td><td>爻的陰陽</td></tr>
+<tr><td>容量擴展</td><td>RAM8 → RAM16K</td><td>八卦 → 六十四卦</td></tr>
+<tr><td>自動變化</td><td>計數器</td><td>卦氣流轉</td></tr>
+<tr><td>核心精神</td><td>引入記憶</td><td>引入時位</td></tr>
+</table>
+
+<p><strong>關鍵對應：</strong></p>
+<ul>
+<li>時鐘 = 時</li>
+<li>DFF = 初爻（潛龍勿用）</li>
+<li>1-bit 暫存器 = 二爻（見龍在田）</li>
+<li>16-bit 暫存器 = 三爻（終日乾乾）</li>
+<li>RAM = 卦象擴展（八卦 → 六十四卦）</li>
+<li>計數器 = 卦序流轉</li>
+</ul>
+
+<h3>5.5 延伸閱讀</h3>
+<ol>
+<li>Nand2Tetris 第3章：Sequential Logic</li>
+<li>《易傳·繫辭上》：「六爻之動，三極之道也。」</li>
+<li>數位邏輯設計：M. Morris Mano, <em>Digital Design</em></li>
+<li>計算機組織：David Patterson &amp; John Hennessy, <em>Computer Organization and Design</em></li>
+</ol>
+
+<!-- ========== 第六章 ========== -->
+<h2>第六章　機器語言（第4章）</h2>
+
+<blockquote>「聖人設卦觀象，繫辭焉而明吉凶。」——《易傳·繫辭上》</blockquote>
+<blockquote>「機器語言是硬體與軟體之間的橋樑，它讓程式設計師能夠指揮電腦工作。」——Shimon Schocken &amp; Noam Nisan</blockquote>
+
+<p>前五章，我們建構了完整的硬體：從 Nand 閘到 ALU，從暫存器到 RAM，從計數器到完整電腦。</p>
+<p>但硬體本身不知道要做什麼——它需要指令來指揮。</p>
+<p>本章，我們要定義機器語言（Hack 指令集），讓程式設計師能夠用符號化的指令來指揮硬體。這對應易經的卦辭與爻辭——卦象本身只是陰陽組合，需要「辭」來賦予意義。</p>
+
+<h3>6.1 技術層：指令集</h3>
+
+<h4>6.1.1 機器語言概觀</h4>
+<table>
+<tr><th>指令類型</th><th>格式</th><th>功能</th></tr>
+<tr><td>A-instruction</td><td><code>@value</code></td><td>將數值載入 A 暫存器</td></tr>
+<tr><td>C-instruction</td><td><code>dest = comp ; jump</code></td><td>執行運算、儲存結果、條件跳躍</td></tr>
+</table>
+
+<h4>6.1.2 A-instruction（地址指令）</h4>
+<table>
+<tr><th>組合語言</th><th>二進制</th></tr>
+<tr><td><code>@0</code></td><td><code>0000000000000000</code></td></tr>
+<tr><td><code>@1</code></td><td><code>0000000000000001</code></td></tr>
+<tr><td><code>@2</code></td><td><code>0000000000000010</code></td></tr>
+<tr><td><code>@10</code></td><td><code>0000000000001010</code></td></tr>
+<tr><td><code>@SCREEN</code></td><td><code>0100000000000000</code>（16384）</td></tr>
+<tr><td><code>@KBD</code></td><td><code>0110000000000000</code>（24576）</td></tr>
+</table>
+
+<h4>6.1.3 C-instruction（計算指令）</h4>
+<table>
+<tr><th>欄位</th><th>位元數</th><th>功能</th><th>範例</th></tr>
+<tr><td>comp</td><td>6</td><td>指定 ALU 運算</td><td><code>D+1</code>, <code>A-D</code>, <code>!M</code></td></tr>
+<tr><td>dest</td><td>3</td><td>指定儲存目標</td><td><code>M</code>, <code>D</code>, <code>MD</code></td></tr>
+<tr><td>jump</td><td>3</td><td>指定跳躍條件</td><td><code>JGT</code>, <code>JEQ</code>, <code>JMP</code></td></tr>
+</table>
+
+<p>comp 欄位的 28 種運算（部分）：</p>
+<table>
+<tr><th>comp</th><th>運算</th><th>說明</th></tr>
+<tr><td><code>0</code></td><td>0</td><td>常數 0</td></tr>
+<tr><td><code>1</code></td><td>1</td><td>常數 1</td></tr>
+<tr><td><code>-1</code></td><td>-1</td><td>常數 -1</td></tr>
+<tr><td><code>D</code></td><td>D</td><td>D 暫存器</td></tr>
+<tr><td><code>A</code></td><td>A</td><td>A 暫存器</td></tr>
+<tr><td><code>!D</code></td><td>Not D</td><td>D 取反</td></tr>
+<tr><td><code>!A</code></td><td>Not A</td><td>A 取反</td></tr>
+<tr><td><code>-D</code></td><td>-D</td><td>D 取負</td></tr>
+<tr><td><code>-A</code></td><td>-A</td><td>A 取負</td></tr>
+<tr><td><code>D+1</code></td><td>D + 1</td><td>D 增量</td></tr>
+<tr><td><code>A+1</code></td><td>A + 1</td><td>A 增量</td></tr>
+<tr><td><code>D-1</code></td><td>D - 1</td><td>D 減量</td></tr>
+<tr><td><code>A-1</code></td><td>A - 1</td><td>A 減量</td></tr>
+<tr><td><code>D+A</code></td><td>D + A</td><td>D 加 A</td></tr>
+<tr><td><code>D-A</code></td><td>D - A</td><td>D 減 A</td></tr>
+<tr><td><code>A-D</code></td><td>A - D</td><td>A 減 D</td></tr>
+<tr><td><code>D&amp;A</code></td><td>D And A</td><td>D 與 A</td></tr>
+<tr><td><code>D|A</code></td><td>D Or A</td><td>D 或 A</td></tr>
+</table>
+
+<p>dest 欄位的 8 種組合：</p>
+<table>
+<tr><th>dest</th><th>說明</th></tr>
+<tr><td><code>null</code></td><td>不儲存</td></tr>
+<tr><td><code>M</code></td><td>儲存到 RAM[A]</td></tr>
+<tr><td><code>D</code></td><td>儲存到 D 暫存器</td></tr>
+<tr><td><code>MD</code></td><td>儲存到 M 和 D</td></tr>
+<tr><td><code>A</code></td><td>儲存到 A 暫存器</td></tr>
+<tr><td><code>AM</code></td><td>儲存到 A 和 M</td></tr>
+<tr><td><code>AD</code></td><td>儲存到 A 和 D</td></tr>
+<tr><td><code>AMD</code></td><td>儲存到 A、M 和 D</td></tr>
+</table>
+
+<p>jump 欄位的 8 種組合：</p>
+<table>
+<tr><th>jump</th><th>條件</th><th>說明</th></tr>
+<tr><td><code>null</code></td><td>無</td><td>不跳躍</td></tr>
+<tr><td><code>JGT</code></td><td>out &gt; 0</td><td>大於零跳躍</td></tr>
+<tr><td><code>JEQ</code></td><td>out = 0</td><td>等於零跳躍</td></tr>
+<tr><td><code>JGE</code></td><td>out ≥ 0</td><td>大於等於零跳躍</td></tr>
+<tr><td><code>JLT</code></td><td>out &lt; 0</td><td>小於零跳躍</td></tr>
+<tr><td><code>JNE</code></td><td>out ≠ 0</td><td>不等於零跳躍</td></tr>
+<tr><td><code>JLE</code></td><td>out ≤ 0</td><td>小於等於零跳躍</td></tr>
+<tr><td><code>JMP</code></td><td>無條件</td><td>無條件跳躍</td></tr>
+</table>
+
+<h4>6.1.4 組合語言範例</h4>
+<pre>// 計算 1+2+...+10
+@1
+D=A
+@sum
+M=D
+@2
+D=A
+@i
+M=D
+(LOOP)
+@i
+D=M
+@10
+D=D-A
+@END
+D;JGT
+@i
+D=M
+@sum
+M=D+M
+@i
+M=M+1
+@LOOP
+0;JMP
+(END)
+@END
+0;JMP</pre>
+
+<h3>6.2 卦理對應：卦辭與爻辭</h3>
+
+<h4>6.2.1 A-instruction = 卦名（命名與指向）</h4>
+<table>
+<tr><th>A-instruction</th><th>卦名</th></tr>
+<tr><td><code>@value</code></td><td>卦名</td></tr>
+<tr><td>指向一個位址</td><td>指向一個卦象</td></tr>
+<tr><td>為後續指令做準備</td><td>為後續解讀做準備</td></tr>
+<tr><td>命名即定位</td><td>命名即存在</td></tr>
+</table>
+
+<h4>6.2.2 C-instruction = 卦辭與爻辭（語意解讀）</h4>
+<table>
+<tr><th>C-instruction</th><th>卦辭與爻辭</th></tr>
+<tr><td><code>comp</code></td><td>卦辭（整體判斷）</td></tr>
+<tr><td><code>dest</code></td><td>爻辭（各爻細節）</td></tr>
+<tr><td><code>jump</code></td><td>動爻（觸發變卦）</td></tr>
+<tr><td>完整的指令</td><td>完整的解讀</td></tr>
+</table>
+
+<h4>6.2.3 comp 欄位 = 卦象本體（內在結構）</h4>
+<table>
+<tr><th>comp 欄位</th><th>卦象本體</th></tr>
+<tr><td>指定 ALU 運算</td><td>指定卦象結構</td></tr>
+<tr><td>28 種運算</td><td>多種卦象</td></tr>
+<tr><td>內在結構</td><td>內在結構</td></tr>
+<tr><td>決定計算結果</td><td>決定吉凶</td></tr>
+</table>
+
+<h4>6.2.4 dest 欄位 = 爻的當位（承載結果）</h4>
+<table>
+<tr><th>dest 欄位</th><th>爻的當位</th></tr>
+<tr><td>指定儲存目標</td><td>指定爻位</td></tr>
+<tr><td>M, D, A</td><td>初、二、三...</td></tr>
+<tr><td>結果儲存</td><td>吉凶承載</td></tr>
+<tr><td>決定後續使用</td><td>決定後續影響</td></tr>
+</table>
+
+<h4>6.2.5 jump 欄位 = 動爻與變卦（觸發轉變）</h4>
+<table>
+<tr><th>jump 欄位</th><th>動爻與變卦</th></tr>
+<tr><td>條件跳躍</td><td>動爻觸發</td></tr>
+<tr><td>JGT, JEQ, JLT</td><td>陽動、爻變、陰動</td></tr>
+<tr><td>JMP</td><td>變卦</td></tr>
+<tr><td>改變程式流程</td><td>改變卦象走向</td></tr>
+</table>
+
+<h3>6.3 雙層交織對照表</h3>
+<table>
+<tr><th>面向</th><th>Nand2Tetris</th><th>易經六爻</th></tr>
+<tr><td>核心元件</td><td>A-instruction / C-instruction</td><td>卦名 / 卦辭與爻辭</td></tr>
+<tr><td>指令格式</td><td>16-bit 二進制</td><td>卦象（陰陽爻組合）</td></tr>
+<tr><td>comp 欄位</td><td>ALU 運算選擇</td><td>卦象本體</td></tr>
+<tr><td>dest 欄位</td><td>結果儲存目標</td><td>爻的當位</td></tr>
+<tr><td>jump 欄位</td><td>條件跳躍</td><td>動爻與變卦</td></tr>
+<tr><td>程式序列</td><td>指令流</td><td>卦序（《序卦傳》）</td></tr>
+<tr><td>核心精神</td><td>用指令「命令」硬體</td><td>用卦辭「指示」人事</td></tr>
+</table>
+
+<h3>6.4 本章總結</h3>
+<table>
+<tr><th>面向</th><th>技術層</th><th>卦理層</th></tr>
+<tr><td>核心元件</td><td>A-instruction / C-instruction</td><td>卦名 / 卦辭與爻辭</td></tr>
+<tr><td>指令格式</td><td>16-bit 二進制</td><td>卦象</td></tr>
+<tr><td>comp 欄位</td><td>ALU 運算</td><td>卦象本體</td></tr>
+<tr><td>dest 欄位</td><td>儲存目標</td><td>爻的當位</td></tr>
+<tr><td>jump 欄位</td><td>條件跳躍</td><td>動爻與變卦</td></tr>
+<tr><td>程式序列</td><td>指令流</td><td>卦序</td></tr>
+<tr><td>核心精神</td><td>命令硬體</td><td>指示人事</td></tr>
+</table>
+
+<p><strong>關鍵對應：</strong></p>
+<ul>
+<li>A-instruction = 卦名</li>
+<li>C-instruction = 卦辭與爻辭</li>
+<li>comp = 卦象本體</li>
+<li>dest = 爻的當位</li>
+<li>jump = 動爻與變卦</li>
+<li>程式 = 卦序</li>
+</ul>
+
+<h3>6.5 延伸閱讀</h3>
+<ol>
+<li>Nand2Tetris 第4章：Machine Language</li>
+<li>《易傳·繫辭上》：「聖人設卦觀象，繫辭焉而明吉凶。」</li>
+<li>《序卦傳》：六十四卦的排列順序</li>
+<li>計算機組織：David Patterson &amp; John Hennessy, <em>Computer Organization and Design</em></li>
+</ol>
+
+<!-- ========== 第七章 ========== -->
+<h2>第七章　電腦架構（第5章）</h2>
+
+<blockquote>「八卦定吉凶，吉凶生大業。」——《易傳·繫辭上》</blockquote>
+<blockquote>「電腦是人類最偉大的發明之一，因為它是第一台能夠執行任何邏輯運算的機器。」——Alan Turing</blockquote>
+
+<p>前六章，我們分別建構了：</p>
+<ul>
+<li>第1章：基本邏輯閘（Nand → Not/And/Or/Xor/Mux/DMux）</li>
+<li>第2章：ALU（算術邏輯單元）</li>
+<li>第3章：時序邏輯（DFF → 暫存器 → RAM → 計數器）</li>
+<li>第4章：機器語言（A-instruction / C-instruction）</li>
+</ul>
+<p>這些元件如同易經中的四象與八卦——它們各自完備，卻尚未整合為一個完整的系統。</p>
+<p>本章，我們將所有元件匯聚為一台完整的電腦。這如同六十四卦——六爻齊備，完整情境呈現。</p>
+
+<h3>7.1 技術層：完整電腦</h3>
+
+<h4>7.1.1 從元件到系統</h4>
+<pre>┌─────────────────────────────────────────────────┐
+│                   Hack 電腦                      │
+│                                                  │
+│  ┌──────────┐    ┌──────────┐    ┌──────────┐  │
+│  │   ROM    │    │   CPU    │    │   RAM    │  │
+│  │（指令記憶體）│←──│（中央處理單元）│──→│（資料記憶體）│  │
+│  │ 32K×16   │    │          │    │ 16K×16   │  │
+│  └──────────┘    └──────────┘    └──────────┘  │
+│                        ↑                ↑        │
+│                        │                │        │
+│                   ┌────┴────┐      ┌────┴────┐  │
+│                   │  鍵盤   │      │  螢幕   │  │
+│                   │（輸入）  │      │（輸出）  │  │
+│                   └─────────┘      └─────────┘  │
+└─────────────────────────────────────────────────┘</pre>
+
+<h4>7.1.2 CPU（中央處理單元）</h4>
+<table>
+<tr><th>子元件</th><th>功能</th><th>來源</th></tr>
+<tr><td>ALU</td><td>執行算術與邏輯運算</td><td>第2章</td></tr>
+<tr><td>A 暫存器</td><td>儲存位址或數值</td><td>第3章</td></tr>
+<tr><td>D 暫存器</td><td>儲存資料</td><td>第3章</td></tr>
+<tr><td>程式計數器（PC）</td><td>記錄下一條指令的位址</td><td>第3章（計數器）</td></tr>
+<tr><td>控制單元</td><td>解碼指令並產生控制訊號</td><td>本章新增</td></tr>
+</table>
+
+<h4>7.1.3 ROM（指令記憶體）</h4>
+<table>
+<tr><th>特性</th><th>說明</th></tr>
+<tr><td>容量</td><td>32K × 16-bit</td></tr>
+<tr><td>位址範圍</td><td>0 ～ 32767</td></tr>
+<tr><td>讀取方式</td><td>根據 PC 的值讀取指令</td></tr>
+<tr><td>寫入</td><td>不支援（唯讀）</td></tr>
+</table>
+
+<h4>7.1.4 RAM（資料記憶體）</h4>
+<table>
+<tr><th>位址範圍</th><th>用途</th><th>說明</th></tr>
+<tr><td>0 ～ 15</td><td>虛擬暫存器 R0～R15</td><td>供程式使用</td></tr>
+<tr><td>16 ～ 255</td><td>靜態變數</td><td>供程式使用</td></tr>
+<tr><td>256 ～ 2047</td><td>堆疊</td><td>供 VM 使用</td></tr>
+<tr><td>2048 ～ 16383</td><td>堆積</td><td>供動態記憶體分配</td></tr>
+<tr><td>16384 ～ 24575</td><td>螢幕記憶體映射</td><td>512×256 像素</td></tr>
+<tr><td>24576</td><td>鍵盤記憶體映射</td><td>讀取鍵盤輸入</td></tr>
+</table>
+
+<h4>7.1.5 記憶體映射 I/O</h4>
+<table>
+<tr><th>I/O 裝置</th><th>記憶體位址</th><th>功能</th></tr>
+<tr><td>螢幕</td><td>16384 ～ 24575</td><td>每個位址對應 16 個像素（1 bit = 1 像素）</td></tr>
+<tr><td>鍵盤</td><td>24576</td><td>讀取當前按鍵的 ASCII 碼（無按鍵時為 0）</td></tr>
+</table>
+
+<h4>7.1.6 指令週期（Fetch-Decode-Execute）</h4>
+<table>
+<tr><th>階段</th><th>技術動作</th><th>說明</th></tr>
+<tr><td>Fetch（擷取）</td><td>PC → ROM → 讀取指令到 CPU</td><td>根據 PC 的值，從 ROM 讀取指令</td></tr>
+<tr><td>Decode（解碼）</td><td>解析指令類型（A 或 C）</td><td>控制單元解碼指令</td></tr>
+<tr><td>Execute（執行）</td><td>ALU 運算 + 暫存器更新 + PC 更新</td><td>執行指令並更新狀態</td></tr>
+</table>
+
+<h3>7.2 卦理對應：六十四卦</h3>
+
+<h4>7.2.1 完整電腦 = 六十四卦全體</h4>
+<table>
+<tr><th>面向</th><th>Hack 電腦</th><th>六十四卦</th></tr>
+<tr><td>完整性</td><td>CPU + ROM + RAM + I/O</td><td>六爻齊備</td></tr>
+<tr><td>組合性</td><td>元件整合為系統</td><td>八卦重疊為六十四卦</td></tr>
+<tr><td>狀態空間</td><td>2¹⁶ 種指令（16-bit）</td><td>2⁶ 種卦象（6-bit）</td></tr>
+<tr><td>執行方式</td><td>指令週期</td><td>卦變過程</td></tr>
+<tr><td>核心精神</td><td>圖靈完備</td><td>涵蓋萬物</td></tr>
+</table>
+
+<h4>7.2.2 CPU = 本卦（主卦）</h4>
+<table>
+<tr><th>CPU 子元件</th><th>卦理對應</th><th>說明</th></tr>
+<tr><td>ALU</td><td>乾 ☰（天）</td><td>創始、規律、計算</td></tr>
+<tr><td>A 暫存器</td><td>離 ☲（火）</td><td>光明、指向、位址</td></tr>
+<tr><td>D 暫存器</td><td>坎 ☵（水）</td><td>流動、儲存、資料</td></tr>
+<tr><td>PC</td><td>震 ☳（雷）</td><td>爆發、序列、推進</td></tr>
+<tr><td>控制單元</td><td>艮 ☶（山）</td><td>停止、控制、邊界</td></tr>
+</table>
+
+<h4>7.2.3 ROM = 卦序（《序卦傳》）</h4>
+<table>
+<tr><th>ROM 特性</th><th>卦序特性</th></tr>
+<tr><td>唯讀</td><td>固定不變</td></tr>
+<tr><td>位址 0～32767</td><td>卦序 1～64</td></tr>
+<tr><td>儲存指令</td><td>儲存卦象</td></tr>
+<tr><td>根據 PC 讀取</td><td>根據時位解讀</td></tr>
+</table>
+
+<h4>7.2.4 RAM = 時位（動態狀態）</h4>
+<table>
+<tr><th>RAM 特性</th><th>時位特性</th></tr>
+<tr><td>可讀寫</td><td>動態變化</td></tr>
+<tr><td>位址 0～16383</td><td>爻位 1～6</td></tr>
+<tr><td>儲存資料</td><td>儲存狀態</td></tr>
+<tr><td>根據位址讀寫</td><td>根據時位解讀</td></tr>
+</table>
+
+<h4>7.2.5 控制單元 = 解卦者（卜筮者）</h4>
+<table>
+<tr><th>控制單元功能</th><th>解卦者功能</th></tr>
+<tr><td>解碼指令</td><td>解讀卦象</td></tr>
+<tr><td>產生控制訊號</td><td>給出指引</td></tr>
+<tr><td>指揮各元件</td><td>指揮行動</td></tr>
+<tr><td>決定下一步</td><td>決定吉凶</td></tr>
+</table>
+
+<h4>7.2.6 指令週期 = 卦變（動態過程）</h4>
+<table>
+<tr><th>指令週期階段</th><th>卦變階段</th><th>說明</th></tr>
+<tr><td>Fetch（擷取）</td><td>起卦</td><td>從 ROM 讀取指令，如同從卦序中取出一卦</td></tr>
+<tr><td>Decode（解碼）</td><td>觀卦</td><td>解析指令結構，如同解讀卦象的陰陽結構</td></tr>
+<tr><td>Execute（執行）</td><td>變卦</td><td>ALU 運算 + 暫存器更新，如同動爻觸發卦象轉變</td></tr>
+<tr><td>Next（下一步）</td><td>卦序推進</td><td>決定下一條指令位址，如同進入下一卦</td></tr>
+</table>
+
+<h3>7.3 雙層交織對照表</h3>
+<table>
+<tr><th>面向</th><th>Nand2Tetris</th><th>易經六爻</th></tr>
+<tr><td>核心元件</td><td>Hack 電腦（CPU + ROM + RAM）</td><td>六十四卦（完整系統）</td></tr>
+<tr><td>指令來源</td><td>ROM（唯讀，固定程式）</td><td>卦序（固定排列）</td></tr>
+<tr><td>資料儲存</td><td>RAM（讀寫，動態變化）</td><td>爻位狀態（陰陽變動）</td></tr>
+<tr><td>執行單元</td><td>CPU（ALU + 暫存器 + PC）</td><td>本卦 + 動爻 + 變卦</td></tr>
+<tr><td>指令週期</td><td>Fetch-Decode-Execute</td><td>起卦 → 觀卦 → 變卦</td></tr>
+<tr><td>外部互動</td><td>鍵盤（輸入）/ 螢幕（輸出）</td><td>外在感應 / 卦象顯現</td></tr>
+<tr><td>核心精神</td><td>完整電腦，圖靈完備</td><td>六爻齊備，涵蓋萬物</td></tr>
+</table>
+
+<h3>7.4 本章總結</h3>
+<table>
+<tr><th>面向</th><th>技術層</th><th>卦理層</th></tr>
+<tr><td>核心元件</td><td>CPU + ROM + RAM</td><td>六十四卦全體</td></tr>
+<tr><td>指令來源</td><td>ROM</td><td>卦序</td></tr>
+<tr><td>資料儲存</td><td>RAM</td><td>時位</td></tr>
+<tr><td>執行單元</td><td>CPU</td><td>本卦</td></tr>
+<tr><td>解碼單元</td><td>控制單元</td><td>解卦者</td></tr>
+<tr><td>運作機制</td><td>指令週期</td><td>卦變</td></tr>
+<tr><td>核心精神</td><td>圖靈完備</td><td>涵蓋萬物</td></tr>
+</table>
+
+<p><strong>關鍵對應：</strong></p>
+<ul>
+<li>CPU = 本卦（主卦）</li>
+<li>ROM = 卦序（《序卦傳》）</li>
+<li>RAM = 時位（動態狀態）</li>
+<li>控制單元 = 解卦者</li>
+<li>指令週期 = 卦變</li>
+</ul>
+
+<h3>7.5 延伸閱讀</h3>
+<ol>
+<li>Nand2Tetris 第5章：Computer Architecture</li>
+<li>《易傳·繫辭上》：「八卦定吉凶，吉凶生大業。」</li>
+<li>《序卦傳》：六十四卦的排列順序</li>
+<li>計算機組織：David Patterson &amp; John Hennessy, <em>Computer Organization and Design</em></li>
+</ol>
+
+<!-- ========== 第二部 ========== -->
+<h2>第二部：軟體工具——從卦名到卦氣</h2>
+
+<h2>第八章　組譯器（第6章）</h2>
+
+<blockquote>「聖人設卦觀象，繫辭焉而明吉凶。」——《易傳·繫辭上》</blockquote>
+<blockquote>「組譯器是第一個軟體工具，它將人類可讀的符號轉譯為機器可執行的二進制碼。」——Shimon Schocken &amp; Noam Nisan</blockquote>
+
+<p>前七章，我們完成了硬體建構——從 Nand 閘到完整電腦。但程式設計師不能直接寫 0 和 1，他們需要符號化的語言。</p>
+<p>本章，我們要建構組譯器——它將組合語言（如 <code>@LOOP</code>, <code>D=M</code>）轉譯為二進制機器碼。這對應易經的卦名與符號化——將卦象賦予名稱，便於記憶與傳遞。</p>
+
+<h3>8.1 技術層：翻譯工具</h3>
+
+<h4>8.1.1 組譯器概觀</h4>
+<pre>組合語言程式（.asm）→ 組譯器 → 機器碼程式（.hack）</pre>
+
+<h4>8.1.2 組譯器的核心任務</h4>
+<table>
+<tr><th>任務</th><th>說明</th><th>輸入 → 輸出</th></tr>
+<tr><td>1. 移除註解與空白</td><td>清理程式碼</td><td><code>// 這是註解</code> → 移除</td></tr>
+<tr><td>2. 解析 A-instruction</td><td>將 <code>@value</code> 轉為二進制</td><td><code>@10</code> → <code>0000000000001010</code></td></tr>
+<tr><td>3. 解析 C-instruction</td><td>將 <code>dest=comp;jump</code> 轉為二進制</td><td><code>D=D+M</code> → <code>1111000010010000</code></td></tr>
+<tr><td>4. 符號處理（第一遍）</td><td>掃描標記（如 <code>(LOOP)</code>），記錄位址</td><td><code>(LOOP)</code> → 記錄到符號表</td></tr>
+<tr><td>5. 符號處理（第二遍）</td><td>將符號標記（如 <code>@LOOP</code>）轉為數值位址</td><td><code>@LOOP</code> → <code>@10</code>（查表）</td></tr>
+<tr><td>6. 預定義符號</td><td>處理內建符號（R0~R15, SCREEN, KBD 等）</td><td><code>@R0</code> → <code>@0</code></td></tr>
+</table>
+
+<h4>8.1.3 兩遍掃描（Two-Pass Assembly）</h4>
+<p><strong>第一遍：建立符號表</strong></p>
+<pre>掃描整個程式，找到所有標記（如 `(LOOP)`）
+記錄每個標記對應的指令位址</pre>
+<p><strong>第二遍：產生機器碼</strong></p>
+<pre>再次掃描程式，將所有符號轉譯為數值
+產生最終的二進制機器碼</pre>
+
+<h4>8.1.4 符號表（Symbol Table）</h4>
+<table>
+<tr><th>符號類型</th><th>範例</th><th>對應位址</th></tr>
+<tr><td>預定義符號</td><td>R0 ~ R15</td><td>0 ~ 15</td></tr>
+<tr><td>預定義符號</td><td>SCREEN</td><td>16384</td></tr>
+<tr><td>預定義符號</td><td>KBD</td><td>24576</td></tr>
+<tr><td>使用者標記（變數）</td><td><code>@count</code></td><td>16 ~ 1023（第一次出現時分配）</td></tr>
+<tr><td>使用者標記（標籤）</td><td><code>(LOOP)</code></td><td>指令所在位址（ROM）</td></tr>
+</table>
+
+<h3>8.2 卦理對應：卦名與符號化</h3>
+
+<h4>8.2.1 組合語言 = 卦象（陰陽爻）</h4>
+<table>
+<tr><th>組合語言</th><th>卦象</th></tr>
+<tr><td><code>@LOOP</code></td><td>卦名（如「乾」）</td></tr>
+<tr><td><code>D=M</code></td><td>爻辭（如「初九」）</td></tr>
+<tr><td>人類可讀</td><td>人類可讀</td></tr>
+<tr><td>需要轉譯</td><td>需要解讀</td></tr>
+</table>
+
+<h4>8.2.2 機器碼 = 卦序數字（如第 1 卦乾）</h4>
+<table>
+<tr><th>機器碼</th><th>卦序數字</th></tr>
+<tr><td>二進制（0/1）</td><td>數字（1~64）</td></tr>
+<tr><td>機器可讀</td><td>機器可讀</td></tr>
+<tr><td>需要解碼</td><td>需要查表</td></tr>
+<tr><td>精確但難讀</td><td>精確但難讀</td></tr>
+</table>
+
+<h4>8.2.3 組譯器 = 命名者與編碼者</h4>
+<table>
+<tr><th>組譯器</th><th>命名者</th></tr>
+<tr><td>將符號轉為數字</td><td>將卦象賦予名稱</td></tr>
+<tr><td>翻譯者</td><td>橋樑</td></tr>
+<tr><td>人機溝通</td><td>天人溝通</td></tr>
+<tr><td>賦予意義</td><td>賦予意義</td></tr>
+</table>
+
+<h4>8.2.4 符號表 = 卦名辭典</h4>
+<table>
+<tr><th>符號表</th><th>卦名辭典</th></tr>
+<tr><td>記錄符號 → 位址</td><td>記錄卦名 → 卦序</td></tr>
+<tr><td>核心資料結構</td><td>核心知識庫</td></tr>
+<tr><td>人機溝通</td><td>天人溝通</td></tr>
+<tr><td>需要維護</td><td>需要傳承</td></tr>
+</table>
+
+<h4>8.2.5 預定義符號 = 先天八卦（固定不變）</h4>
+<table>
+<tr><th>預定義符號</th><th>先天八卦</th></tr>
+<tr><td>R0 ~ R15</td><td>乾南、坤北</td></tr>
+<tr><td>SCREEN</td><td>離東、坎西</td></tr>
+<tr><td>KBD</td><td>震東北、巽西南</td></tr>
+<tr><td>固定不變</td><td>固定不變</td></tr>
+<tr><td>所有程式共享</td><td>所有卦象共享</td></tr>
+</table>
+
+<h4>8.2.6 使用者符號 = 後天八卦（動態分配）</h4>
+<table>
+<tr><th>使用者符號</th><th>後天八卦</th></tr>
+<tr><td><code>@count</code></td><td>應用卦象</td></tr>
+<tr><td><code>@sum</code></td><td>情境卦象</td></tr>
+<tr><td>動態分配</td><td>動態調整</td></tr>
+<tr><td>因應程式需求</td><td>因應情境需求</td></tr>
+</table>
+
+<h3>8.3 雙層交織對照表</h3>
+<table>
+<tr><th>面向</th><th>Nand2Tetris</th><th>易經六爻</th></tr>
+<tr><td>核心工具</td><td>組譯器（Assembler）</td><td>卦名編碼系統</td></tr>
+<tr><td>輸入</td><td>組合語言（.asm，符號化）</td><td>卦象（陰陽爻，圖形化）</td></tr>
+<tr><td>輸出</td><td>機器碼（.hack，二進制）</td><td>卦序（數字編號）</td></tr>
+<tr><td>核心任務</td><td>將符號轉為數字位址</td><td>將卦名轉為卦序數字</td></tr>
+<tr><td>第一遍掃描</td><td>建立符號表（標籤 → 位址）</td><td>觀象繫辭（賦予卦名）</td></tr>
+<tr><td>第二遍掃描</td><td>產生機器碼（查表轉譯）</td><td>排列卦序（《序卦傳》）</td></tr>
+<tr><td>預定義符號</td><td>內建符號（R0, SCREEN, KBD）</td><td>先天八卦方位（固定）</td></tr>
+<tr><td>使用者符號</td><td>變數與標籤（動態分配）</td><td>後天八卦應用（情境調整）</td></tr>
+<tr><td>核心精神</td><td>人機翻譯，命名即定位</td><td>命名即存在，定位即理解</td></tr>
+</table>
+
+<h3>8.4 本章總結</h3>
+<table>
+<tr><th>面向</th><th>技術層</th><th>卦理層</th></tr>
+<tr><td>核心工具</td><td>組譯器</td><td>卦名編碼系統</td></tr>
+<tr><td>輸入</td><td>組合語言（.asm）</td><td>卦象（陰陽爻）</td></tr>
+<tr><td>輸出</td><td>機器碼（.hack）</td><td>卦序（數字編號）</td></tr>
+<tr><td>核心任務</td><td>將符號轉為數字</td><td>將卦名轉為卦序</td></tr>
+<tr><td>第一遍掃描</td><td>建立符號表</td><td>觀象繫辭</td></tr>
+<tr><td>第二遍掃描</td><td>產生機器碼</td><td>排列卦序</td></tr>
+<tr><td>預定義符號</td><td>內建符號</td><td>先天八卦</td></tr>
+<tr><td>使用者符號</td><td>動態分配</td><td>後天八卦</td></tr>
+<tr><td>核心精神</td><td>人機翻譯</td><td>命名即存在</td></tr>
+</table>
+
+<p><strong>關鍵對應：</strong></p>
+<ul>
+<li>組合語言 = 卦象</li>
+<li>機器碼 = 卦序數字</li>
+<li>組譯器 = 命名者與編碼者</li>
+<li>符號表 = 卦名辭典</li>
+<li>預定義符號 = 先天八卦</li>
+<li>使用者符號 = 後天八卦</li>
+</ul>
+
+<h3>8.5 延伸閱讀</h3>
+<ol>
+<li>Nand2Tetris 第6章：Assembler</li>
+<li>《易傳·繫辭上》：「聖人設卦觀象，繫辭焉而明吉凶。」</li>
+<li>《序卦傳》：六十四卦的排列順序</li>
+<li>編譯器設計：Alfred Aho et al., <em>Compilers: Principles, Techniques, and Tools</em></li>
+</ol>
+
+<!-- ========== 第九章 ========== -->
+<h2>第九章　虛擬機（第7~8章）</h2>
+
+<blockquote>「參伍以變，錯綜其數，通其變，遂成天地之文。」——《易傳·繫辭上》</blockquote>
+<blockquote>「虛擬機是硬體與軟體之間的橋樑，它讓高階語言能夠在任何硬體上執行。」——Shimon Schocken &amp; Noam Nisan</blockquote>
+
+<p>前八章，我們完成了硬體建構（第一部）與低階工具（組譯器）。但組合語言仍然與硬體緊密相關——不同的硬體有不同的指令集。</p>
+<p>本章，我們要建立虛擬機（VM）——一個硬體無關的中間層。它將高階語言編譯為 VM 指令，再由 VM 轉譯器轉為組合語言。這對應易經的錯卦、綜卦、交互卦——卦象之間的轉換與變動關係。</p>
+
+<h3>9.1 技術層：中間層</h3>
+
+<h4>9.1.1 虛擬機概觀</h4>
+<pre>高階語言（Jack）
+   ↓ 編譯器
+VM 指令（中間碼）
+   ↓ VM 轉譯器
+組合語言（Hack）
+   ↓ 組譯器
+機器碼（0/1）</pre>
+
+<h4>9.1.2 堆疊（Stack）</h4>
+<table>
+<tr><th>操作</th><th>說明</th></tr>
+<tr><td>push</td><td>將值推入堆疊頂部</td></tr>
+<tr><td>pop</td><td>從堆疊頂部彈出值</td></tr>
+</table>
+
+<h4>9.1.3 虛擬記憶體段</h4>
+<table>
+<tr><th>記憶體段</th><th>用途</th><th>說明</th></tr>
+<tr><td>argument</td><td>函數參數</td><td>傳遞給函數的參數</td></tr>
+<tr><td>local</td><td>局部變數</td><td>函數內部的局部變數</td></tr>
+<tr><td>static</td><td>靜態變數</td><td>類別層級的共享變數</td></tr>
+<tr><td>constant</td><td>常數</td><td>唯讀常數</td></tr>
+<tr><td>this</td><td>當前物件</td><td>指向當前物件</td></tr>
+<tr><td>that</td><td>其他物件</td><td>指向其他物件</td></tr>
+<tr><td>pointer</td><td>指標</td><td>指向 this/that</td></tr>
+<tr><td>temp</td><td>暫存區</td><td>臨時變數</td></tr>
+</table>
+
+<h4>9.1.4 VM 指令四大類</h4>
+<p><strong>1. 算術/邏輯指令</strong></p>
+<table>
+<tr><th>指令</th><th>功能</th></tr>
+<tr><td>add</td><td>彈出兩個值，相加，推回結果</td></tr>
+<tr><td>sub</td><td>彈出兩個值，相減，推回結果</td></tr>
+<tr><td>neg</td><td>彈出一個值，取負，推回結果</td></tr>
+<tr><td>eq</td><td>彈出兩個值，相等則推 1，否則推 0</td></tr>
+<tr><td>gt</td><td>彈出兩個值，大於則推 1，否則推 0</td></tr>
+<tr><td>lt</td><td>彈出兩個值，小於則推 1，否則推 0</td></tr>
+<tr><td>and</td><td>彈出兩個值，邏輯與，推回結果</td></tr>
+<tr><td>or</td><td>彈出兩個值，邏輯或，推回結果</td></tr>
+<tr><td>not</td><td>彈出一個值，邏輯非，推回結果</td></tr>
+</table>
+
+<p><strong>2. 記憶體存取指令</strong></p>
+<table>
+<tr><th>指令</th><th>功能</th></tr>
+<tr><td>push segment index</td><td>將 segment[index] 推入堆疊</td></tr>
+<tr><td>pop segment index</td><td>從堆疊彈出值到 segment[index]</td></tr>
+</table>
+
+<p><strong>3. 程式流程指令</strong></p>
+<table>
+<tr><th>指令</th><th>功能</th></tr>
+<tr><td>label label</td><td>定義標記</td></tr>
+<tr><td>goto label</td><td>無條件跳躍</td></tr>
+<tr><td>if-goto label</td><td>條件跳躍（彈出值，若不等於 0 則跳躍）</td></tr>
+</table>
+
+<p><strong>4. 函數呼叫指令</strong></p>
+<table>
+<tr><th>指令</th><th>功能</th></tr>
+<tr><td>call f n</td><td>呼叫函數 f，n 個參數</td></tr>
+<tr><td>function f n</td><td>定義函數 f，n 個局部變數</td></tr>
+<tr><td>return</td><td>從函數返回</td></tr>
+</table>
+
+<h4>9.1.5 函數呼叫機制</h4>
+<p>呼叫流程（<code>call f n</code>）：</p>
+<pre>1. 將返回位址推入堆疊
+2. 將當前的 LCL, ARG, THIS, THAT 推入堆疊
+3. 設定 ARG 為新的參數區
+4. 設定 LCL 為新的局部變數區
+5. 跳躍到函數 f 的位址</pre>
+
+<p>返回流程（<code>return</code>）：</p>
+<pre>1. 將返回值放到 ARG[0]
+2. 恢復 LCL, ARG, THIS, THAT
+3. 跳躍到返回位址</pre>
+
+<h3>9.2 卦理對應：錯卦、綜卦、交互卦</h3>
+
+<h4>9.2.1 堆疊 = 爻位累積（承乘應與）</h4>
+<table>
+<tr><th>堆疊</th><th>爻位累積</th></tr>
+<tr><td>後進先出（LIFO）</td><td>最近的爻影響最大</td></tr>
+<tr><td>堆疊頂部 = 最近推入</td><td>初爻 = 最近的事件</td></tr>
+<tr><td>堆疊底部 = 最早推入</td><td>上爻 = 歷史的積累</td></tr>
+<tr><td>push = 爻生</td><td>新爻誕生</td></tr>
+<tr><td>pop = 爻變</td><td>動爻改變卦象</td></tr>
+</table>
+
+<h4>9.2.2 四類 VM 指令 = 四象</h4>
+<table>
+<tr><th>VM 指令類別</th><th>四象</th><th>卦理意涵</th></tr>
+<tr><td>算術/邏輯</td><td>老陽（純陽）</td><td>主動運算，改變數值，如同陽爻剛健進取</td></tr>
+<tr><td>記憶體存取</td><td>少陰（陰中含陽）</td><td>被動儲存，但可讀可取，如同陰爻柔順承載</td></tr>
+<tr><td>程式流程</td><td>少陽（陽中含陰）</td><td>主動跳躍，但需條件判斷，如同陽爻帶有變數</td></tr>
+<tr><td>函數呼叫</td><td>老陰（純陰）</td><td>被動等待，但可返回，如同陰爻靜待時機</td></tr>
+</table>
+
+<h4>9.2.3 8 個記憶體段 = 八卦</h4>
+<table>
+<tr><th>VM 記憶體段</th><th>功能</th><th>對應八卦</th><th>象徵意涵</th></tr>
+<tr><td>argument</td><td>函數參數</td><td>乾 ☰</td><td>創始、輸入、天</td></tr>
+<tr><td>local</td><td>局部變數</td><td>坤 ☷</td><td>承載、儲存、地</td></tr>
+<tr><td>static</td><td>靜態變數</td><td>震 ☳</td><td>持久、不動、雷</td></tr>
+<tr><td>constant</td><td>常數</td><td>巽 ☴</td><td>不變、滲透、風</td></tr>
+<tr><td>this</td><td>當前物件</td><td>坎 ☵</td><td>核心、流動、水</td></tr>
+<tr><td>that</td><td>其他物件</td><td>離 ☲</td><td>外在、光明、火</td></tr>
+<tr><td>pointer</td><td>指標</td><td>艮 ☶</td><td>指向、停止、山</td></tr>
+<tr><td>temp</td><td>暫存區</td><td>兌 ☱</td><td>愉悅、交換、澤</td></tr>
+</table>
+
+<h4>9.2.4 函數呼叫 = 變卦（動爻觸發）</h4>
+<table>
+<tr><th>函數呼叫</th><th>變卦</th></tr>
+<tr><td>呼叫前：當前函數執行中</td><td>本卦（主卦）</td></tr>
+<tr><td><code>call f n</code>：保存返回位址、LCL/ARG/THIS/THAT</td><td>起卦（準備進入新卦）</td></tr>
+<tr><td>進入函數 f：設定新的 LCL/ARG，跳躍到 f</td><td>變卦（進入新卦象）</td></tr>
+<tr><td>執行 f：函數內部運算</td><td>新卦的爻變（內部動爻）</td></tr>
+<tr><td><code>return</code>：恢復 LCL/ARG/THIS/THAT，跳躍返回</td><td>復卦（回到本卦）</td></tr>
+<tr><td>返回後：繼續執行原函數</td><td>本卦的延續</td></tr>
+</table>
+
+<h4>9.2.5 VM 轉譯 = 錯卦、綜卦、交互卦</h4>
+<table>
+<tr><th>轉譯層次</th><th>技術動作</th><th>卦理對應</th></tr>
+<tr><td>VM 指令 → 組合語言</td><td>將抽象指令展開為具體指令</td><td>錯卦（陰陽全變，形式轉換）</td></tr>
+<tr><td>push/pop → 記憶體操作</td><td>將堆疊操作轉為 RAM 讀寫</td><td>綜卦（上下顛倒，位置互換）</td></tr>
+<tr><td>函數呼叫 → 堆疊框架</td><td>將函數呼叫展開為堆疊操作</td><td>交互卦（內部重組，結構變化）</td></tr>
+</table>
+
+<h3>9.3 雙層交織對照表</h3>
+<table>
+<tr><th>面向</th><th>Nand2Tetris</th><th>易經六爻</th></tr>
+<tr><td>核心元件</td><td>虛擬機（VM）</td><td>錯綜交互卦</td></tr>
+<tr><td>資料結構</td><td>堆疊（LIFO）</td><td>爻位累積（承乘應與）</td></tr>
+<tr><td>指令類別</td><td>四類 VM 指令</td><td>四象</td></tr>
+<tr><td>記憶體段</td><td>8 個段</td><td>八卦</td></tr>
+<tr><td>函數呼叫</td><td>call/return</td><td>變卦/復卦</td></tr>
+<tr><td>轉譯過程</td><td>VM → 組合語言</td><td>錯卦/綜卦/交互卦</td></tr>
+<tr><td>核心精神</td><td>硬體無關的中間層</td><td>卦象之間的變易關係</td></tr>
+</table>
+
+<h3>9.4 本章總結</h3>
+<table>
+<tr><th>面向</th><th>技術層</th><th>卦理層</th></tr>
+<tr><td>核心元件</td><td>虛擬機（VM）</td><td>錯綜交互卦</td></tr>
+<tr><td>資料結構</td><td>堆疊（LIFO）</td><td>爻位累積（承乘應與）</td></tr>
+<tr><td>指令類別</td><td>四類 VM 指令</td><td>四象</td></tr>
+<tr><td>記憶體段</td><td>8 個段</td><td>八卦</td></tr>
+<tr><td>函數呼叫</td><td>call/return</td><td>變卦/復卦</td></tr>
+<tr><td>轉譯過程</td><td>VM → 組合語言</td><td>錯卦/綜卦/交互卦</td></tr>
+<tr><td>核心精神</td><td>硬體無關的中間層</td><td>卦象之間的變易關係</td></tr>
+</table>
+
+<p><strong>關鍵對應：</strong></p>
+<ul>
+<li>堆疊 = 爻位累積（承乘應與）</li>
+<li>四類 VM 指令 = 四象</li>
+<li>8 個記憶體段 = 八卦</li>
+<li>函數呼叫 = 變卦與復卦</li>
+<li>VM 轉譯 = 錯卦、綜卦、交互卦</li>
+</ul>
+
+<h3>9.5 延伸閱讀</h3>
+<ol>
+<li>Nand2Tetris 第7~8章：Virtual Machine</li>
+<li>《易傳·繫辭上》：「參伍以變，錯綜其數，通其變，遂成天地之文。」</li>
+<li>虛擬機設計：Robert Nystrom, <em>Crafting Interpreters</em></li>
+<li>編譯器設計：Alfred Aho et al., <em>Compilers: Principles, Techniques, and Tools</em></li>
+</ol>
+
+<!-- ========== 第十章 ========== -->
+<h2>第十章　高階語言 Jack（第9章）</h2>
+
+<blockquote>「古者包犧氏之王天下也，仰則觀象於天，俯則觀法於地，觀鳥獸之文與地之宜，近取諸身，遠取諸物，於是始作八卦，以通神明之德，以類萬物之情。」——《易傳·繫辭下》</blockquote>
+<blockquote>「Jack 是一個簡單的物件導向語言，它讓程式設計師能夠用接近人類思維的方式撰寫程式。」——Shimon Schocken &amp; Noam Nisan</blockquote>
+
+<p>前九章，我們完成了硬體建構（第一部）與軟體工具（第二部）。從 Nand 閘到虛擬機，我們見證了電腦系統的完整建構。</p>
+<p>本章，我們要進入高階語言——Jack。它讓程式設計師能用類別、方法、物件來描述問題，而不需關注底層硬體細節。這對應易經的取象比類——用高階符號描述問題，如同卦象象徵萬物。</p>
+
+<h3>10.1 技術層：物件導向</h3>
+
+<h4>10.1.1 Jack 語言概觀</h4>
+<table>
+<tr><th>特性</th><th>說明</th></tr>
+<tr><td>類別（Class）</td><td>封裝資料與方法的藍圖</td></tr>
+<tr><td>方法（Method）</td><td>類別內部的函數，可存取物件狀態</td></tr>
+<tr><td>建構子（Constructor）</td><td>建立物件時初始化</td></tr>
+<tr><td>欄位（Field）</td><td>物件的內部狀態</td></tr>
+<tr><td>靜態變數（Static）</td><td>類別層級的共享變數</td></tr>
+<tr><td>區域變數（Local）</td><td>方法內部的臨時變數</td></tr>
+<tr><td>參數（Parameter）</td><td>方法接收的輸入</td></tr>
+</table>
+
+<h4>10.1.2 類別（Class）</h4>
+<pre>class 類別名稱 {
+    // 欄位宣告
+    field int x, y;
+    static int count;
+    
+    // 建構子
+    constructor 類別名稱 new(參數) {
+        ...
+    }
+    
+    // 方法
+    method 返回類型 方法名稱(參數) {
+        ...
+    }
+    
+    // 函數
+    function 返回類型 函數名稱(參數) {
+        ...
+    }
+}</pre>
+
+<h4>10.1.3 物件（Object）</h4>
+<pre>var Circle c;
+let c = Circle.new(100, 50, 20);  // 建立圓形物件
+do c.draw();                       // 呼叫方法</pre>
+
+<h4>10.1.4 欄位（Field）</h4>
+<pre>field int x, y;       // 兩個整數欄位
+field boolean flag;   // 一個布林欄位
+field char c;         // 一個字元欄位</pre>
+
+<h4>10.1.5 方法（Method）</h4>
+<pre>method void draw() {
+    do Screen.drawPixel(x, y);
+    return;
+}
+
+method int getX() {
+    return x;
+}
+
+method void setX(int ax) {
+    let x = ax;
+    return;
+}</pre>
+
+<h4>10.1.6 建構子（Constructor）</h4>
+<pre>constructor Point new(int ax, int ay) {
+    let x = ax;
+    let y = ay;
+    let count = count + 1;
+    return this;
+}</pre>
+
+<h4>10.1.7 靜態變數（Static）</h4>
+<pre>static int count;       // 所有 Point 共享的計數器
+static Point origin;    // 共享的參考點</pre>
+
+<h3>10.2 卦理對應：取象比類</h3>
+
+<h4>10.2.1 類別 = 卦象（定義一類事物的本質）</h4>
+<table>
+<tr><th>Jack 類別</th><th>對應八卦</th><th>象徵意涵</th></tr>
+<tr><td>Point</td><td>艮 ☶（山）</td><td>定位、靜止、空間中的點</td></tr>
+<tr><td>Circle</td><td>離 ☲（火）</td><td>光明、擴散、圓滿</td></tr>
+<tr><td>Rectangle</td><td>坤 ☷（地）</td><td>承載、穩定、方形</td></tr>
+<tr><td>String</td><td>巽 ☴（風）</td><td>流動、滲透、文字</td></tr>
+<tr><td>Array</td><td>震 ☳（雷）</td><td>爆發、序列、能量</td></tr>
+<tr><td>Math</td><td>乾 ☰（天）</td><td>創始、規律、計算</td></tr>
+<tr><td>Memory</td><td>坎 ☵（水）</td><td>流動、儲存、深淵</td></tr>
+<tr><td>Screen</td><td>兌 ☱（澤）</td><td>愉悅、顯現、視覺</td></tr>
+</table>
+
+<h4>10.2.2 物件 = 具體卦（實例化）</h4>
+<table>
+<tr><th>物件</th><th>欄位狀態（6-bit）</th><th>對應卦象</th></tr>
+<tr><td>Point(3, 5)</td><td>000011</td><td>地澤臨 ䷒</td></tr>
+<tr><td>Point(7, 2)</td><td>000111</td><td>地天泰 ䷊</td></tr>
+<tr><td>Point(0, 0)</td><td>000000</td><td>坤為地 ䷁</td></tr>
+</table>
+
+<h4>10.2.3 欄位 = 爻（陰陽狀態）</h4>
+<table>
+<tr><th>Jack 欄位</th><th>易經爻</th></tr>
+<tr><td><code>field int x</code></td><td>初爻</td></tr>
+<tr><td><code>field int y</code></td><td>二爻</td></tr>
+<tr><td><code>field int z</code></td><td>三爻</td></tr>
+<tr><td>物件的狀態</td><td>卦象的結構</td></tr>
+<tr><td>可讀可寫</td><td>可變可動</td></tr>
+</table>
+
+<h4>10.2.4 方法 = 卦辭與爻辭（行為的描述）</h4>
+<table>
+<tr><th>Jack 方法</th><th>對應卦辭/爻辭</th><th>說明</th></tr>
+<tr><td>draw()</td><td>「見龍在田，利見大人」</td><td>顯現自己，如同龍出現在田野</td></tr>
+<tr><td>getX()</td><td>「潛龍勿用」</td><td>讀取內部狀態，如同潛藏的龍</td></tr>
+<tr><td>setX()</td><td>「君子終日乾乾」</td><td>改變狀態，如同君子自強不息</td></tr>
+<tr><td>new()</td><td>「元亨利貞」</td><td>建立物件，如同乾卦的創始之力</td></tr>
+</table>
+
+<h4>10.2.5 建構子 = 起卦（建立初始狀態）</h4>
+<table>
+<tr><th>階段</th><th>Jack 建構子</th><th>易經起卦</th></tr>
+<tr><td>呼叫</td><td>Point.new(3, 5)</td><td>提出問題，準備起卦</td></tr>
+<tr><td>分配記憶體</td><td>在堆積（heap）分配空間</td><td>準備占卜工具（蓍草/銅錢）</td></tr>
+<tr><td>初始化欄位</td><td>let x = 3; let y = 5;</td><td>賦予初始卦象（本卦）</td></tr>
+<tr><td>返回物件</td><td>return this;</td><td>得到卦象，開始解讀</td></tr>
+</table>
+
+<h4>10.2.6 靜態變數 = 卦氣（共享的時令）</h4>
+<table>
+<tr><th>Jack 靜態變數</th><th>易經卦氣</th><th>說明</th></tr>
+<tr><td><code>static int count;</code></td><td>十二消息卦</td><td>記錄類別的整體狀態，如同卦氣記錄時令</td></tr>
+<tr><td><code>static Point origin;</code></td><td>太極（原點）</td><td>共享的參考點，如同太極是萬物之源</td></tr>
+</table>
+
+<h3>10.3 雙層交織對照表</h3>
+<table>
+<tr><th>面向</th><th>Nand2Tetris</th><th>易經六爻</th></tr>
+<tr><td>核心語言</td><td>Jack（物件導向）</td><td>卦象系統（取象比類）</td></tr>
+<tr><td>類別</td><td>Class</td><td>卦象（如乾 ☰、坤 ☷）</td></tr>
+<tr><td>物件</td><td>Object</td><td>具體卦（如乾為天 ䷀）</td></tr>
+<tr><td>欄位</td><td>Field</td><td>爻（陰陽狀態）</td></tr>
+<tr><td>方法</td><td>Method</td><td>卦辭與爻辭</td></tr>
+<tr><td>建構子</td><td>Constructor</td><td>起卦</td></tr>
+<tr><td>靜態變數</td><td>Static</td><td>卦氣（共享時令）</td></tr>
+<tr><td>區域變數</td><td>Local</td><td>變爻（臨時變化）</td></tr>
+<tr><td>參數</td><td>Parameter</td><td>外應（外在條件）</td></tr>
+<tr><td>核心精神</td><td>用類別描述問題</td><td>用卦象象徵萬物</td></tr>
+</table>
+
+<h3>10.4 本章總結</h3>
+<table>
+<tr><th>面向</th><th>技術層</th><th>卦理層</th></tr>
+<tr><td>核心語言</td><td>Jack（物件導向）</td><td>卦象系統（取象比類）</td></tr>
+<tr><td>類別</td><td>Class</td><td>卦象</td></tr>
+<tr><td>物件</td><td>Object</td><td>具體卦</td></tr>
+<tr><td>欄位</td><td>Field</td><td>爻</td></tr>
+<tr><td>方法</td><td>Method</td><td>卦辭與爻辭</td></tr>
+<tr><td>建構子</td><td>Constructor</td><td>起卦</td></tr>
+<tr><td>靜態變數</td><td>Static</td><td>卦氣</td></tr>
+<tr><td>區域變數</td><td>Local</td><td>變爻</td></tr>
+<tr><td>參數</td><td>Parameter</td><td>外應</td></tr>
+<tr><td>核心精神</td><td>用類別描述問題</td><td>用卦象象徵萬物</td></tr>
+</table>
+
+<p><strong>關鍵對應：</strong></p>
+<ul>
+<li>類別 = 卦象（定義本質）</li>
+<li>物件 = 具體卦（實例化）</li>
+<li>欄位 = 爻（陰陽狀態）</li>
+<li>方法 = 卦辭與爻辭（行為描述）</li>
+<li>建構子 = 起卦（建立初始狀態）</li>
+<li>靜態變數 = 卦氣（共享時令）</li>
+</ul>
+
+<h3>10.5 延伸閱讀</h3>
+<ol>
+<li>Nand2Tetris 第9章：High-Level Language</li>
+<li>《易傳·繫辭下》：「古者包犧氏之王天下也，仰則觀象於天，俯則觀法於地...於是始作八卦，以通神明之德，以類萬物之情。」</li>
+<li>物件導向設計：Erich Gamma et al., <em>Design Patterns</em></li>
+<li>程式語言理論：Benjamin Pierce, <em>Types and Programming Languages</em></li>
+</ol>
+
+<!-- ========== 第十一章 ========== -->
+<h2>第十一章　編譯器（第10~11章）</h2>
+
+<blockquote>「參伍以變，錯綜其數，通其變，遂成天地之文；極其數，遂定天下之象。」——《易傳·繫辭上》</blockquote>
+<blockquote>「編譯器是電腦科學中最優雅的軟體之一，它將高階語言翻譯為機器碼。」——Alfred Aho et al.</blockquote>
+
+<p>前九章，我們完成了硬體建構（第一部）與軟體工具（第二部）。從 Nand 閘到虛擬機，我們見證了電腦系統的完整建構。</p>
+<p>第十章，我們進入了高階語言 Jack——用類別、方法、物件來描述問題。</p>
+<p>本章，我們要建構編譯器——將 Jack 原始碼解析為語法樹，再生成 VM 指令。這對應易經的卦序與卦氣——從靜態結構到動態流轉的轉化。</p>
+
+<h3>11.1 技術層：翻譯工具鏈</h3>
+
+<h4>11.1.1 編譯器概觀</h4>
+<pre>Jack 原始碼 → 編譯器 → VM 指令 → VM 轉譯器 → 組合語言 → 組譯器 → 機器碼</pre>
+
+<table>
+<tr><th>階段</th><th>章節</th><th>功能</th><th>輸入 → 輸出</th></tr>
+<tr><td>語法分析（Parsing）</td><td>第10章</td><td>將原始碼解析為語法樹</td><td>Jack 原始碼 → XML 語法樹</td></tr>
+<tr><td>代碼生成（Code Generation）</td><td>第11章</td><td>將語法樹轉為 VM 指令</td><td>XML 語法樹 → VM 指令</td></tr>
+</table>
+
+<h4>11.1.2 語法分析器（Parser）</h4>
+<table>
+<tr><th>步驟</th><th>技術動作</th><th>說明</th></tr>
+<tr><td>掃描</td><td>逐字元掃描原始碼</td><td>讀取字元流</td></tr>
+<tr><td>切分</td><td>將字元流切分為詞元</td><td><code>let x = 5;</code> → <code>[let, x, =, 5, ;]</code></td></tr>
+<tr><td>分類</td><td>將詞元分類</td><td>關鍵字、識別字、符號、常數</td></tr>
+</table>
+
+<h4>11.1.3 代碼生成器（Code Generator）</h4>
+<table>
+<tr><th>任務</th><th>說明</th></tr>
+<tr><td>符號表管理</td><td>記錄變數的類別（field/static/local/argument）與索引</td></tr>
+<tr><td>VM 指令生成</td><td>將語法樹節點轉為 VM 指令</td></tr>
+<tr><td>控制流生成</td><td>將 if/while 轉為 label + goto</td></tr>
+<tr><td>函數呼叫生成</td><td>將方法呼叫轉為 call 指令</td></tr>
+</table>
+
+<p>符號表：</p>
+<table>
+<tr><th>變數類別</th><th>VM 記憶體段</th><th>符號表記錄</th></tr>
+<tr><td>field</td><td>this</td><td><code>x</code> → <code>this 0</code></td></tr>
+<tr><td>static</td><td>static</td><td><code>count</code> → <code>static 0</code></td></tr>
+<tr><td>local</td><td>local</td><td><code>i</code> → <code>local 0</code></td></tr>
+<tr><td>argument</td><td>argument</td><td><code>ax</code> → <code>argument 0</code></td></tr>
+</table>
+
+<h3>11.2 卦理對應：卦序與卦氣</h3>
+
+<h4>11.2.1 Jack 原始碼 = 卦象（陰陽爻）</h4>
+<table>
+<tr><th>Jack 原始碼</th><th>卦象</th></tr>
+<tr><td>類別、方法、變數</td><td>陰陽爻</td></tr>
+<tr><td>人類可讀</td><td>人類可讀</td></tr>
+<tr><td>需要編譯</td><td>需要解讀</td></tr>
+<tr><td>高階抽象</td><td>高階抽象</td></tr>
+</table>
+
+<h4>11.2.2 語法樹 = 卦序（《序卦傳》）</h4>
+<table>
+<tr><th>語法樹</th><th>卦序</th></tr>
+<tr><td>層級結構</td><td>順序結構</td></tr>
+<tr><td>根節點為 Class</td><td>第一卦為乾</td></tr>
+<tr><td>子節點為方法、語句</td><td>後續卦為坤、屯、蒙...</td></tr>
+<tr><td>結構化</td><td>順序化</td></tr>
+<tr><td>靜態結構</td><td>靜態排列</td></tr>
+</table>
+
+<h4>11.2.3 詞法分析 = 分爻（區分陰陽）</h4>
+<table>
+<tr><th>詞法分析</th><th>分爻</th></tr>
+<tr><td>將字元流切分為詞元</td><td>將現象區分為陰陽爻</td></tr>
+<tr><td>識別關鍵字、符號、常數</td><td>識別陰、陽</td></tr>
+<tr><td>連續 → 離散</td><td>混沌 → 分明</td></tr>
+<tr><td>詞元序列</td><td>爻序列</td></tr>
+</table>
+
+<h4>11.2.4 語法分析 = 觀象（觀察卦象結構）</h4>
+<table>
+<tr><th>語法分析</th><th>觀象</th></tr>
+<tr><td>識別語法結構</td><td>觀察卦象結構</td></tr>
+<tr><td>建立語法樹</td><td>建立卦象結構</td></tr>
+<tr><td>識別 class、method、statement</td><td>識別上下卦組合</td></tr>
+<tr><td>層級關係</td><td>結構關係</td></tr>
+</table>
+
+<h4>11.2.5 符號表 = 卦名辭典</h4>
+<table>
+<tr><th>Jack 變數類別</th><th>VM 記憶體段</th><th>對應八卦</th><th>符號表記錄</th></tr>
+<tr><td>field</td><td>this</td><td>坎 ☵</td><td><code>x</code> → <code>this 0</code></td></tr>
+<tr><td>static</td><td>static</td><td>震 ☳</td><td><code>count</code> → <code>static 0</code></td></tr>
+<tr><td>local</td><td>local</td><td>坤 ☷</td><td><code>i</code> → <code>local 0</code></td></tr>
+<tr><td>argument</td><td>argument</td><td>乾 ☰</td><td><code>ax</code> → <code>argument 0</code></td></tr>
+</table>
+
+<h4>11.2.6 代碼生成 = 卦氣（從靜態到動態）</h4>
+<table>
+<tr><th>語法樹節點</th><th>生成的 VM 指令</th><th>卦理對應</th></tr>
+<tr><td><code>let x = 5;</code></td><td><code>push constant 5</code> + <code>pop local 0</code></td><td>卦變：從「5」到「x」</td></tr>
+<tr><td><code>if (x &gt; 0)</code></td><td><code>push local 0</code> + <code>push constant 0</code> + <code>gt</code> + <code>if-goto</code></td><td>動爻：條件觸發跳躍</td></tr>
+<tr><td><code>while (x &lt; 10)</code></td><td><code>label LOOP</code> + ... + <code>goto LOOP</code></td><td>卦序循環：週而復始</td></tr>
+<tr><td><code>do obj.method()</code></td><td><code>push obj</code> + <code>call method 1</code></td><td>變卦：進入新函數</td></tr>
+</table>
+
+<h4>11.2.7 控制流生成 = 變卦（動爻觸發）</h4>
+<table>
+<tr><th>Jack 控制流</th><th>生成的 VM 指令</th><th>卦理對應</th></tr>
+<tr><td><code>if (cond) { A } else { B }</code></td><td><code>if-goto IF_TRUE</code> + <code>goto IF_FALSE</code> + <code>label IF_TRUE</code> + ... + <code>label IF_FALSE</code></td><td>動爻：條件觸發分支</td></tr>
+<tr><td><code>while (cond) { A }</code></td><td><code>label LOOP</code> + <code>if-goto END</code> + ... + <code>goto LOOP</code> + <code>label END</code></td><td>卦序循環：週而復始</td></tr>
+<tr><td><code>return expr;</code></td><td><code>push expr</code> + <code>return</code></td><td>復卦：回到本卦</td></tr>
+</table>
+
+<h3>11.3 雙層交織對照表</h3>
+<table>
+<tr><th>面向</th><th>Nand2Tetris</th><th>易經六爻</th></tr>
+<tr><td>核心工具</td><td>編譯器（Compiler）</td><td>卦序與卦氣</td></tr>
+<tr><td>輸入</td><td>Jack 原始碼</td><td>卦象（陰陽爻）</td></tr>
+<tr><td>中間表示</td><td>語法樹（Parse Tree）</td><td>卦序（《序卦傳》）</td></tr>
+<tr><td>詞法分析</td><td>Tokenizer</td><td>分爻（區分陰陽）</td></tr>
+<tr><td>語法分析</td><td>Parser</td><td>觀象（觀察結構）</td></tr>
+<tr><td>符號表</td><td>Symbol Table</td><td>卦名辭典</td></tr>
+<tr><td>代碼生成</td><td>Code Generator</td><td>卦氣（時令流轉）</td></tr>
+<tr><td>控制流</td><td>if/while → label/goto</td><td>變卦（動爻觸發）</td></tr>
+<tr><td>輸出</td><td>VM 指令</td><td>變卦（動態變化）</td></tr>
+<tr><td>核心精神</td><td>從結構到執行</td><td>從卦象到卦氣</td></tr>
+</table>
+
+<h3>11.4 本章總結</h3>
+<table>
+<tr><th>面向</th><th>技術層</th><th>卦理層</th></tr>
+<tr><td>核心工具</td><td>編譯器</td><td>卦序與卦氣</td></tr>
+<tr><td>輸入</td><td>Jack 原始碼</td><td>卦象</td></tr>
+<tr><td>中間表示</td><td>語法樹</td><td>卦序</td></tr>
+<tr><td>詞法分析</td><td>Tokenizer</td><td>分爻</td></tr>
+<tr><td>語法分析</td><td>Parser</td><td>觀象</td></tr>
+<tr><td>符號表</td><td>Symbol Table</td><td>卦名辭典</td></tr>
+<tr><td>代碼生成</td><td>Code Generator</td><td>卦氣</td></tr>
+<tr><td>控制流</td><td>if/while → label/goto</td><td>變卦</td></tr>
+<tr><td>輸出</td><td>VM 指令</td><td>變卦</td></tr>
+<tr><td>核心精神</td><td>從結構到執行</td><td>從卦象到卦氣</td></tr>
+</table>
+
+<p><strong>關鍵對應：</strong></p>
+<ul>
+<li>Jack 原始碼 = 卦象</li>
+<li>語法樹 = 卦序</li>
+<li>詞法分析 = 分爻</li>
+<li>語法分析 = 觀象</li>
+<li>符號表 = 卦名辭典</li>
+<li>代碼生成 = 卦氣</li>
+<li>控制流 = 變卦</li>
+</ul>
+
+<h3>11.5 延伸閱讀</h3>
+<ol>
+<li>Nand2Tetris 第10~11章：Compiler</li>
+<li>《易傳·繫辭上》：「參伍以變，錯綜其數，通其變，遂成天地之文。」</li>
+<li>編譯器設計：Alfred Aho et al., <em>Compilers: Principles, Techniques, and Tools</em></li>
+<li>程式語言理論：Benjamin Pierce, <em>Types and Programming Languages</em></li>
+</ol>
+
+<!-- ========== 第十二章 ========== -->
+<h2>第十二章　作業系統（第12章）</h2>
+
+<blockquote>「易之為書也，廣大悉備，有天道焉，有人道焉，有地道焉。兼三才而兩之，故六。六者非它也，三才之道也。」——《易傳·繫辭下》</blockquote>
+<blockquote>「作業系統是電腦系統的靈魂，它管理硬體資源，提供服務給應用程式。」——Andrew S. Tanenbaum</blockquote>
+
+<p>前十一章，我們完成了硬體建構（第一部）、軟體工具（第二部）與高階語言與編譯器。從 Nand 閘到編譯器，我們見證了電腦系統的完整建構。</p>
+<p>本章，我們要進入作業系統——它將所有先前的元件整合為一個完整的執行環境。這對應易經的三才之道——天地人三者的和諧運作。</p>
+
+<h3>12.1 技術層：系統整合</h3>
+
+<h4>12.1.1 作業系統概觀</h4>
+<table>
+<tr><th>模組</th><th>功能</th><th>關鍵函數</th></tr>
+<tr><td>Math</td><td>數學運算</td><td>Math.multiply(), Math.divide(), Math.sqrt()</td></tr>
+<tr><td>String</td><td>字串處理</td><td>String.new(), String.appendChar(), String.intValue()</td></tr>
+<tr><td>Array</td><td>陣列管理</td><td>Array.new(), Array.dispose()</td></tr>
+<tr><td>Output</td><td>文字輸出</td><td>Output.printChar(), Output.printString(), Output.printInt()</td></tr>
+<tr><td>Screen</td><td>圖形輸出</td><td>Screen.drawPixel(), Screen.drawLine(), Screen.drawCircle()</td></tr>
+<tr><td>Keyboard</td><td>鍵盤輸入</td><td>Keyboard.keyPressed(), Keyboard.readLine()</td></tr>
+<tr><td>Memory</td><td>記憶體管理</td><td>Memory.alloc(), Memory.deAlloc()</td></tr>
+<tr><td>Sys</td><td>系統控制</td><td>Sys.halt(), Sys.wait(), Sys.error()</td></tr>
+</table>
+
+<h4>12.1.2 Math 模組</h4>
+<table>
+<tr><th>函數</th><th>功能</th><th>實現方式</th></tr>
+<tr><td>Math.multiply(x, y)</td><td>乘法</td><td>重複加法（或移位相加）</td></tr>
+<tr><td>Math.divide(x, y)</td><td>除法</td><td>重複減法（或移位相減）</td></tr>
+<tr><td>Math.sqrt(x)</td><td>平方根</td><td>牛頓法</td></tr>
+<tr><td>Math.abs(x)</td><td>絕對值</td><td>條件判斷</td></tr>
+<tr><td>Math.min(x, y)</td><td>最小值</td><td>條件判斷</td></tr>
+<tr><td>Math.max(x, y)</td><td>最大值</td><td>條件判斷</td></tr>
+</table>
+
+<h4>12.1.3 Memory 模組</h4>
+<table>
+<tr><th>函數</th><th>功能</th><th>說明</th></tr>
+<tr><td>Memory.alloc(size)</td><td>分配記憶體</td><td>返回可用區塊的起始位址</td></tr>
+<tr><td>Memory.deAlloc(obj)</td><td>釋放記憶體</td><td>將區塊標記為可用</td></tr>
+<tr><td>Memory.peek(addr)</td><td>讀取記憶體</td><td>返回指定位址的值</td></tr>
+<tr><td>Memory.poke(addr, val)</td><td>寫入記憶體</td><td>將值寫入指定位址</td></tr>
+</table>
+
+<h4>12.1.4 String 模組</h4>
+<table>
+<tr><th>函數</th><th>功能</th><th>說明</th></tr>
+<tr><td>String.new(maxLen)</td><td>建立字串</td><td>分配 maxLen 個字元的空間</td></tr>
+<tr><td>String.appendChar(c)</td><td>附加字元</td><td>在字串末尾加入字元</td></tr>
+<tr><td>String.charAt(i)</td><td>讀取字元</td><td>返回第 i 個字元</td></tr>
+<tr><td>String.intValue()</td><td>轉為整數</td><td>將字串轉為整數</td></tr>
+<tr><td>String.setInt(i)</td><td>設為整數</td><td>將整數轉為字串</td></tr>
+<tr><td>String.erase()</td><td>清除字串</td><td>清空字串內容</td></tr>
+</table>
+
+<h4>12.1.5 Array 模組</h4>
+<table>
+<tr><th>函數</th><th>功能</th><th>說明</th></tr>
+<tr><td>Array.new(size)</td><td>建立陣列</td><td>分配 size 個元素的空間</td></tr>
+<tr><td>Array.dispose()</td><td>釋放陣列</td><td>釋放陣列佔用的記憶體</td></tr>
+</table>
+
+<h4>12.1.6 Output 模組</h4>
+<table>
+<tr><th>函數</th><th>功能</th><th>說明</th></tr>
+<tr><td>Output.printChar(c)</td><td>輸出字元</td><td>在螢幕上顯示一個字元</td></tr>
+<tr><td>Output.printString(s)</td><td>輸出字串</td><td>在螢幕上顯示一個字串</td></tr>
+<tr><td>Output.printInt(i)</td><td>輸出整數</td><td>在螢幕上顯示一個整數</td></tr>
+<tr><td>Output.println()</td><td>換行</td><td>移動到下一行</td></tr>
+</table>
+
+<h4>12.1.7 Screen 模組</h4>
+<table>
+<tr><th>函數</th><th>功能</th><th>說明</th></tr>
+<tr><td>Screen.drawPixel(x, y)</td><td>繪製像素</td><td>在 (x, y) 繪製一個點</td></tr>
+<tr><td>Screen.drawLine(x1, y1, x2, y2)</td><td>繪製線條</td><td>從 (x1, y1) 到 (x2, y2) 繪製直線</td></tr>
+<tr><td>Screen.drawRectangle(x1, y1, x2, y2)</td><td>繪製矩形</td><td>繪製一個矩形</td></tr>
+<tr><td>Screen.drawCircle(x, y, r)</td><td>繪製圓形</td><td>以 (x, y) 為圓心，r 為半徑繪製圓</td></tr>
+<tr><td>Screen.clearScreen()</td><td>清除螢幕</td><td>清空整個螢幕</td></tr>
+</table>
+
+<h4>12.1.8 Keyboard 模組</h4>
+<table>
+<tr><th>函數</th><th>功能</th><th>說明</th></tr>
+<tr><td>Keyboard.keyPressed()</td><td>讀取按鍵</td><td>返回當前按鍵的 ASCII 碼</td></tr>
+<tr><td>Keyboard.readLine()</td><td>讀取一行</td><td>讀取使用者輸入的一行文字</td></tr>
+<tr><td>Keyboard.readInt()</td><td>讀取整數</td><td>讀取使用者輸入的整數</td></tr>
+</table>
+
+<h4>12.1.9 Sys 模組</h4>
+<table>
+<tr><th>函數</th><th>功能</th><th>說明</th></tr>
+<tr><td>Sys.halt()</td><td>停止系統</td><td>無窮迴圈，停止執行</td></tr>
+<tr><td>Sys.wait(duration)</td><td>等待</td><td>延遲指定的時間</td></tr>
+<tr><td>Sys.error(code)</td><td>錯誤處理</td><td>顯示錯誤訊息並停止</td></tr>
+</table>
+
+<h3>12.2 卦理對應：三才之道</h3>
+
+<h4>12.2.1 OS = 三才之道（天地人的和諧運作）</h4>
+<table>
+<tr><th>資源</th><th>技術對應</th><th>三才</th><th>說明</th></tr>
+<tr><td>硬體資源</td><td>CPU、記憶體、I/O 裝置</td><td>天</td><td>提供執行的基礎，如同天道運行</td></tr>
+<tr><td>資料資源</td><td>字串、陣列、記憶體區塊</td><td>地</td><td>承載與儲存資料，如同大地承載萬物</td></tr>
+<tr><td>軟體資源</td><td>應用程式、系統呼叫</td><td>人</td><td>使用與操作資源，如同人參贊天地</td></tr>
+</table>
+
+<h4>12.2.2 Math 模組 = 乾卦（天道規律）</h4>
+<table>
+<tr><th>Math 函數</th><th>對應卦辭</th><th>說明</th></tr>
+<tr><td>Math.multiply(x, y)</td><td>「元亨利貞」</td><td>創始、通達、和諧、貞正——乘法是重複相加的創始之力</td></tr>
+<tr><td>Math.divide(x, y)</td><td>「見龍在田」</td><td>顯現、分割——除法是分配資源的顯現之力</td></tr>
+<tr><td>Math.sqrt(x)</td><td>「飛龍在天」</td><td>提升、超越——平方根是尋找本源的超越之力</td></tr>
+<tr><td>Math.abs(x)</td><td>「潛龍勿用」</td><td>潛藏、純粹——絕對值是去除符號的純粹之力</td></tr>
+</table>
+
+<h4>12.2.3 Memory 模組 = 坤卦（大地承載）</h4>
+<table>
+<tr><th>Memory 函數</th><th>對應卦辭</th><th>說明</th></tr>
+<tr><td>Memory.alloc(size)</td><td>「厚德載物」</td><td>承載、包容——分配記憶體如同大地承載萬物</td></tr>
+<tr><td>Memory.deAlloc(obj)</td><td>「含章可貞」</td><td>收斂、釋放——釋放記憶體如同大地收納萬物</td></tr>
+<tr><td>Memory.peek(addr)</td><td>「直方大」</td><td>直接、方正、廣大——讀取記憶體如同大地呈現萬象</td></tr>
+<tr><td>Memory.poke(addr, val)</td><td>「不習無不利」</td><td>自然、無為——寫入記憶體如同大地自然變化</td></tr>
+</table>
+
+<h4>12.2.4 String 模組 = 巽卦（風傳訊息）</h4>
+<table>
+<tr><th>String 函數</th><th>對應卦辭</th><th>說明</th></tr>
+<tr><td>String.new(maxLen)</td><td>「隨風巽」</td><td>順隨、進入——建立字串如同風進入空間</td></tr>
+<tr><td>String.appendChar(c)</td><td>「君子以申命行事」</td><td>重複、傳遞——附加字元如同風傳遞訊息</td></tr>
+<tr><td>String.intValue()</td><td>「進退，利武人之貞」</td><td>前進、轉化——轉為整數如同風轉化方向</td></tr>
+<tr><td>String.charAt(i)</td><td>「頻巽，吝」</td><td>反覆、讀取——讀取字元如同風反覆吹拂</td></tr>
+</table>
+
+<h4>12.2.5 Array 模組 = 震卦（雷電序列）</h4>
+<table>
+<tr><th>Array 函數</th><th>對應卦辭</th><th>說明</th></tr>
+<tr><td>Array.new(size)</td><td>「震來虩虩」</td><td>爆發、序列——建立陣列如同雷電爆發</td></tr>
+<tr><td>Array.dispose()</td><td>「笑言啞啞」</td><td>釋放、歸零——釋放陣列如同雷電消逝</td></tr>
+</table>
+
+<h4>12.2.6 Output 模組 = 離卦（光明顯現）</h4>
+<table>
+<tr><th>Output 函數</th><th>對應卦辭</th><th>說明</th></tr>
+<tr><td>Output.printChar(c)</td><td>「明兩作，離」</td><td>光明、顯現——輸出字元如同光明顯現</td></tr>
+<tr><td>Output.printString(s)</td><td>「黃離，元吉」</td><td>中正、光明——輸出字串如同光明延伸</td></tr>
+<tr><td>Output.printInt(i)</td><td>「日昃之離」</td><td>圓滿、循環——輸出整數如同太陽循環</td></tr>
+<tr><td>Output.println()</td><td>「出涕沱若」</td><td>流動、換行——換行如同光明流轉</td></tr>
+</table>
+
+<h4>12.2.7 Screen 模組 = 兌卦（澤水顯現）</h4>
+<table>
+<tr><th>Screen 函數</th><th>對應卦辭</th><th>說明</th></tr>
+<tr><td>Screen.drawPixel(x, y)</td><td>「麗澤，兌」</td><td>愉悅、顯現——繪製像素如同澤水映照</td></tr>
+<tr><td>Screen.drawLine(x1, y1, x2, y2)</td><td>「和兌，吉」</td><td>和諧、延伸——繪製線條如同澤水延伸</td></tr>
+<tr><td>Screen.drawCircle(x, y, r)</td><td>「孚兌，吉」</td><td>圓滿、循環——繪製圓形如同澤水圓滿</td></tr>
+<tr><td>Screen.clearScreen()</td><td>「來兌，凶」</td><td>清除、歸零——清除螢幕如同澤水消逝</td></tr>
+</table>
+
+<h4>12.2.8 Keyboard 模組 = 坎卦（水反映外境）</h4>
+<table>
+<tr><th>Keyboard 函數</th><th>對應卦辭</th><th>說明</th></tr>
+<tr><td>Keyboard.keyPressed()</td><td>「習坎，入于坎窞」</td><td>重複、深入——讀取按鍵如同水深入洞穴</td></tr>
+<tr><td>Keyboard.readLine()</td><td>「坎不盈，祇既平」</td><td>流動、平衡——讀取一行如同水流平穩</td></tr>
+<tr><td>Keyboard.readInt()</td><td>「來之坎坎」</td><td>來回、危險——讀取整數如同水來回衝擊</td></tr>
+</table>
+
+<h4>12.2.9 Sys 模組 = 艮卦（山停止邊界）</h4>
+<table>
+<tr><th>Sys 函數</th><th>對應卦辭</th><th>說明</th></tr>
+<tr><td>Sys.halt()</td><td>「艮其背，不獲其身」</td><td>停止、靜止——停止系統如同山停止不動</td></tr>
+<tr><td>Sys.wait(duration)</td><td>「行其庭，不見其人」</td><td>等待、過渡——等待如同山間過渡</td></tr>
+<tr><td>Sys.error(code)</td><td>「敦艮，吉」</td><td>敦厚、終止——錯誤處理如同山終止一切</td></tr>
+</table>
+
+<h3>12.3 雙層交織對照表</h3>
+<table>
+<tr><th>面向</th><th>Nand2Tetris</th><th>易經六爻</th></tr>
+<tr><td>核心元件</td><td>作業系統（OS）</td><td>三才之道</td></tr>
+<tr><td>數學運算</td><td>Math 模組</td><td>乾 ☰（天）</td></tr>
+<tr><td>記憶體管理</td><td>Memory 模組</td><td>坤 ☷（地）</td></tr>
+<tr><td>字串處理</td><td>String 模組</td><td>巽 ☴（風）</td></tr>
+<tr><td>陣列管理</td><td>Array 模組</td><td>震 ☳（雷）</td></tr>
+<tr><td>文字輸出</td><td>Output 模組</td><td>離 ☲（火）</td></tr>
+<tr><td>圖形輸出</td><td>Screen 模組</td><td>兌 ☱（澤）</td></tr>
+<tr><td>鍵盤輸入</td><td>Keyboard 模組</td><td>坎 ☵（水）</td></tr>
+<tr><td>系統控制</td><td>Sys 模組</td><td>艮 ☶（山）</td></tr>
+<tr><td>核心精神</td><td>天地人和諧運作</td><td>三才之道</td></tr>
+</table>
+
+<h3>12.4 本章總結</h3>
+<table>
+<tr><th>面向</th><th>技術層</th><th>卦理層</th></tr>
+<tr><td>核心元件</td><td>作業系統（OS）</td><td>三才之道</td></tr>
+<tr><td>數學運算</td><td>Math 模組</td><td>乾 ☰（天）</td></tr>
+<tr><td>記憶體管理</td><td>Memory 模組</td><td>坤 ☷（地）</td></tr>
+<tr><td>字串處理</td><td>String 模組</td><td>巽 ☴（風）</td></tr>
+<tr><td>陣列管理</td><td>Array 模組</td><td>震 ☳（雷）</td></tr>
+<tr><td>文字輸出</td><td>Output 模組</td><td>離 ☲（火）</td></tr>
+<tr><td>圖形輸出</td><td>Screen 模組</td><td>兌 ☱（澤）</td></tr>
+<tr><td>鍵盤輸入</td><td>Keyboard 模組</td><td>坎 ☵（水）</td></tr>
+<tr><td>系統控制</td><td>Sys 模組</td><td>艮 ☶（山）</td></tr>
+<tr><td>核心精神</td><td>天地人和諧運作</td><td>三才之道</td></tr>
+</table>
+
+<p><strong>關鍵對應：</strong></p>
+<ul>
+<li>OS = 三才之道（天地人和諧）</li>
+<li>Math = 乾卦（天道規律）</li>
+<li>Memory = 坤卦（大地承載）</li>
+<li>String = 巽卦（風傳訊息）</li>
+<li>Array = 震卦（雷電序列）</li>
+<li>Output = 離卦（光明顯現）</li>
+<li>Screen = 兌卦（澤水顯現）</li>
+<li>Keyboard = 坎卦（水反映外境）</li>
+<li>Sys = 艮卦（山停止邊界）</li>
+</ul>
+
+<h3>12.5 延伸閱讀</h3>
+<ol>
+<li>Nand2Tetris 第12章：Operating System</li>
+<li>《易傳·繫辭下》：「易之為書也，廣大悉備，有天道焉，有人道焉，有地道焉。兼三才而兩之，故六。六者非它也，三才之道也。」</li>
+<li>作業系統設計：Andrew S. Tanenbaum, <em>Modern Operating Systems</em></li>
+<li>系統程式：Bryant &amp; O'Hallaron, <em>Computer Systems: A Programmer's Perspective</em></li>
+</ol>
+
+<!-- ========== 第三部 ========== -->
+<h2>第三部：統整與延伸</h2>
+
+<h2>第十三章　全書統整</h2>
+
+<blockquote>「易與天地準，故能彌綸天地之道。仰以觀於天文，俯以察於地理，是故知幽明之故。」——《易傳·繫辭上》</blockquote>
+<blockquote>「電腦科學不是關於電腦的科學，而是關於計算的科學。它研究的是：什麼是可計算的，以及如何計算。」——Michael Sipser</blockquote>
+
+<p>十二章的旅程，我們從 Nand 閘走到作業系統，從太極走到六十四卦。</p>
+<p>這趟旅程有兩條平行的主線：</p>
+<ul>
+<li>技術主線：Nand → 邏輯閘 → ALU → 時序邏輯 → 機器語言 → 電腦架構 → 組譯器 → 虛擬機 → 高階語言 → 編譯器 → 作業系統</li>
+<li>卦理主線：太極 → 兩儀 → 四象 → 八卦 → 爻位與時機 → 卦辭與爻辭 → 六十四卦 → 卦名與符號化 → 錯綜交互卦 → 取象比類 → 卦序與卦氣 → 三才之道</li>
+</ul>
+
+<h3>13.1 生成邏輯的雙重旅程</h3>
+
+<h4>13.1.1 從太極到六十四卦</h4>
+<pre>太極（未分化的原初狀態）
+   ↓
+兩儀（陰、陽）
+   ↓
+四象（老陽、少陰、少陽、老陰）
+   ↓
+八卦（乾、坤、震、巽、坎、離、艮、兌）
+   ↓
+六十四卦（八卦重疊）
+   ↓
+萬物（涵蓋天地人三才）</pre>
+
+<h4>13.1.2 從 Nand 到 OS</h4>
+<pre>Nand 閘（通用閘）
+   ↓
+基本邏輯閘（Not、And、Or、Xor、Mux、DMux）
+   ↓
+ALU（算術邏輯單元）
+   ↓
+時序邏輯（DFF、暫存器、RAM、計數器）
+   ↓
+機器語言（A-instruction、C-instruction）
+   ↓
+電腦架構（CPU、ROM、RAM）
+   ↓
+組譯器（將組合語言轉為機器碼）
+   ↓
+虛擬機（堆疊、記憶體段、函數呼叫）
+   ↓
+高階語言（Jack：類別、方法、物件）
+   ↓
+編譯器（語法分析、代碼生成）
+   ↓
+作業系統（Math、Memory、String、Array、Output、Screen、Keyboard、Sys）</pre>
+
+<h4>13.1.3 雙重旅程的深層共鳴</h4>
+<table>
+<tr><th>生成階段</th><th>Nand2Tetris</th><th>易經六爻</th></tr>
+<tr><td>起點</td><td>Nand 閘</td><td>太極</td></tr>
+<tr><td>第一次分化</td><td>Not 閘</td><td>兩儀</td></tr>
+<tr><td>基本組合</td><td>And / Or / Xor</td><td>四象</td></tr>
+<tr><td>功能單元</td><td>ALU</td><td>八卦</td></tr>
+<tr><td>時間引入</td><td>時序邏輯</td><td>爻位與時機</td></tr>
+<tr><td>語意賦予</td><td>機器語言</td><td>卦辭與爻辭</td></tr>
+<tr><td>完整系統</td><td>電腦架構</td><td>六十四卦</td></tr>
+<tr><td>符號化</td><td>組譯器</td><td>卦名與符號化</td></tr>
+<tr><td>變易關係</td><td>虛擬機</td><td>錯綜交互卦</td></tr>
+<tr><td>高階抽象</td><td>高階語言</td><td>取象比類</td></tr>
+<tr><td>結構與流轉</td><td>編譯器</td><td>卦序與卦氣</td></tr>
+<tr><td>系統整合</td><td>作業系統</td><td>三才之道</td></tr>
+</table>
+
+<h3>13.2 核心對應總表</h3>
+<table>
+<tr><th>章節</th><th>Nand2Tetris</th><th>易經六爻</th><th>核心對應</th></tr>
+<tr><td>第1章</td><td>基本邏輯閘</td><td>四象</td><td>Nand = 太極；Not = 兩儀；And/Or/Xor = 四象</td></tr>
+<tr><td>第2章</td><td>ALU</td><td>八卦</td><td>Half-Adder = 兌；Full-Adder = 離；ALU = 乾</td></tr>
+<tr><td>第3章</td><td>時序邏輯</td><td>爻位與時機</td><td>DFF = 初爻；暫存器 = 二爻；RAM = 卦象擴展</td></tr>
+<tr><td>第4章</td><td>機器語言</td><td>卦辭與爻辭</td><td>A-instruction = 卦名；C-instruction = 卦辭</td></tr>
+<tr><td>第5章</td><td>電腦架構</td><td>六十四卦</td><td>CPU = 本卦；ROM = 卦序；RAM = 時位</td></tr>
+<tr><td>第6章</td><td>組譯器</td><td>卦名與符號化</td><td>符號表 = 卦名辭典；預定義符號 = 先天八卦</td></tr>
+<tr><td>第7~8章</td><td>虛擬機</td><td>錯綜交互卦</td><td>堆疊 = 爻位累積；8 個記憶體段 = 八卦</td></tr>
+<tr><td>第9章</td><td>高階語言</td><td>取象比類</td><td>類別 = 卦象；物件 = 具體卦；方法 = 卦辭</td></tr>
+<tr><td>第10~11章</td><td>編譯器</td><td>卦序與卦氣</td><td>語法樹 = 卦序；代碼生成 = 卦氣</td></tr>
+<tr><td>第12章</td><td>作業系統</td><td>三才之道</td><td>Math = 乾；Memory = 坤；Screen = 兌</td></tr>
+</table>
+
+<h3>13.3 三層生成邏輯（垂直切面）</h3>
+<table>
+<tr><th>層級</th><th>Nand2Tetris</th><th>易經六爻</th></tr>
+<tr><td>底層（質）</td><td>Nand 閘</td><td>太極 / 陰陽爻</td></tr>
+<tr><td>中層（構）</td><td>邏輯閘 + 時序元件</td><td>四象 → 八卦 → 六十四卦</td></tr>
+<tr><td>上層（用）</td><td>指令集 + VM + 編譯器 + OS</td><td>卦辭 / 爻辭 / 卦序 / 三才</td></tr>
+</table>
+
+<h3>13.4 動態運行對應（水平流程）</h3>
+<pre>撰寫高階程式（取象）
+    ↓
+編譯為 VM（錯綜卦變）
+    ↓
+組譯為機器碼（符號化）
+    ↓
+CPU 擷取-解碼-執行（六爻之動）
+    ↓
+暫存器/記憶體更新（時位變化）
+    ↓
+輸出結果（卦象顯現）</pre>
+
+<h3>13.5 本章總結</h3>
+<table>
+<tr><th>面向</th><th>技術層</th><th>卦理層</th></tr>
+<tr><td>生成邏輯</td><td>Nand → OS</td><td>太極 → 六十四卦</td></tr>
+<tr><td>三層結構</td><td>質、構、用</td><td>質、構、用</td></tr>
+<tr><td>動態運行</td><td>高階程式 → 硬體執行</td><td>起卦 → 變卦</td></tr>
+<tr><td>核心對應</td><td>Nand = 太極</td><td>邏輯閘 = 四象</td></tr>
+<tr><td>關鍵亮點</td><td>有限元素的無限組合</td><td>分層抽象與封裝</td></tr>
+<tr><td>核心精神</td><td>從零建構</td><td>從簡到繁</td></tr>
+</table>
+
+<h3>13.6 延伸閱讀</h3>
+<ol>
+<li>Nand2Tetris：Noam Nisan &amp; Shimon Schocken, <em>The Elements of Computing Systems</em></li>
+<li>《易傳·繫辭上/下》：易經的哲學總綱</li>
+<li>《序卦傳》：六十四卦的排列順序</li>
+<li>跨域研究：Fritjof Capra, <em>The Tao of Physics</em></li>
+<li>計算理論：Michael Sipser, <em>Introduction to the Theory of Computation</em></li>
+</ol>
+
+<!-- ========== 第十四章 ========== -->
+<h2>第十四章　跨域對話</h2>
+
+<blockquote>「天下同歸而殊塗，一致而百慮。」——《易傳·繫辭下》</blockquote>
+<blockquote>「科學與人文是同一棵樹上的兩根樹枝，它們共同的根是對真理的追求。」——C.P. Snow</blockquote>
+
+<p>十三章的旅程，我們完成了從 Nand 閘到作業系統的技術建構，並將它與易經六爻進行了逐章對應。</p>
+<p>但這不僅是技術的對應，更是兩種思維體系的對話。</p>
+
+<h3>14.1 有限元素的無限組合</h3>
+<table>
+<tr><th>面向</th><th>Nand 閘</th><th>陰陽爻</th></tr>
+<tr><td>元素</td><td>Nand 閘</td><td>陰陽爻</td></tr>
+<tr><td>數量</td><td>1 種</td><td>2 種</td></tr>
+<tr><td>組合</td><td>邏輯閘 → 電腦</td><td>四象 → 八卦 → 六十四卦</td></tr>
+<tr><td>通用性</td><td>任何布林函數</td><td>任何卦象</td></tr>
+<tr><td>生成邏輯</td><td>從一到多</td><td>從二到多</td></tr>
+</table>
+
+<h3>14.2 分層抽象與封裝</h3>
+<table>
+<tr><th>面向</th><th>Nand2Tetris</th><th>易經六爻</th></tr>
+<tr><td>分層方式</td><td>抽象（封裝下層）</td><td>組合（重疊上層）</td></tr>
+<tr><td>層級數量</td><td>10 層</td><td>6 層</td></tr>
+<tr><td>每層功能</td><td>提供更簡潔的介面</td><td>提供更複雜的結構</td></tr>
+<tr><td>核心精神</td><td>從簡到繁</td><td>從簡到繁</td></tr>
+</table>
+
+<h3>14.3 從靜態結構到動態執行</h3>
+<table>
+<tr><th>面向</th><th>Nand2Tetris</th><th>易經六爻</th></tr>
+<tr><td>靜態</td><td>組合邏輯</td><td>卦象</td></tr>
+<tr><td>動態</td><td>時序邏輯</td><td>卦變</td></tr>
+<tr><td>時間引入</td><td>時鐘（Clock）</td><td>動爻</td></tr>
+<tr><td>記憶</td><td>暫存器</td><td>爻位</td></tr>
+<tr><td>核心精神</td><td>從體到用</td><td>從體到用</td></tr>
+</table>
+
+<h3>14.4 命名、編碼與語意賦予</h3>
+<table>
+<tr><th>面向</th><th>Nand2Tetris</th><th>易經六爻</th></tr>
+<tr><td>命名</td><td>組譯器</td><td>卦名</td></tr>
+<tr><td>編碼</td><td>二進制</td><td>卦序數字</td></tr>
+<tr><td>解碼</td><td>控制單元</td><td>解卦者</td></tr>
+<tr><td>核心精神</td><td>命名即定位</td><td>命名即存在</td></tr>
+</table>
+
+<h3>14.5 條件與變易</h3>
+<table>
+<tr><th>面向</th><th>Nand2Tetris</th><th>易經六爻</th></tr>
+<tr><td>條件</td><td>跳躍條件</td><td>動爻條件</td></tr>
+<tr><td>變化</td><td>程式流程</td><td>卦象轉變</td></tr>
+<tr><td>觸發</td><td>條件滿足</td><td>動爻觸發</td></tr>
+<tr><td>核心精神</td><td>條件觸發變化</td><td>條件觸發變化</td></tr>
+</table>
+
+<h3>14.6 系統與三才</h3>
+<table>
+<tr><th>面向</th><th>Nand2Tetris</th><th>易經六爻</th></tr>
+<tr><td>系統</td><td>作業系統</td><td>三才之道</td></tr>
+<tr><td>資源</td><td>硬體、資料、軟體</td><td>天、地、人</td></tr>
+<tr><td>目標</td><td>和諧運作</td><td>和諧運作</td></tr>
+<tr><td>核心精神</td><td>天地人和諧</td><td>天地人和諧</td></tr>
+</table>
+
+<h3>14.7 跨域對話的整體對照表</h3>
+<table>
+<tr><th>面向</th><th>Nand2Tetris</th><th>易經六爻</th><th>深層共鳴</th></tr>
+<tr><td>有限元素的無限組合</td><td>Nand 閘</td><td>陰陽爻</td><td>從一到多</td></tr>
+<tr><td>分層抽象與封裝</td><td>Nand → OS</td><td>太極 → 六十四卦</td><td>從簡到繁</td></tr>
+<tr><td>從靜態到動態</td><td>組合 → 時序</td><td>卦象 → 卦變</td><td>從體到用</td></tr>
+<tr><td>命名、編碼與語意</td><td>組譯器</td><td>卦名</td><td>命名即創造秩序</td></tr>
+<tr><td>條件與變易</td><td>跳躍指令</td><td>動爻</td><td>條件觸發變化</td></tr>
+<tr><td>系統與三才</td><td>作業系統</td><td>三才之道</td><td>系統需要和諧</td></tr>
+</table>
+
+<h3>14.8 本章總結</h3>
+<p><strong>關鍵對應：</strong></p>
+<ul>
+<li>有限元素的無限組合 = 從一到多</li>
+<li>分層抽象與封裝 = 從簡到繁</li>
+<li>從靜態到動態 = 從體到用</li>
+<li>命名、編碼與語意 = 命名即創造秩序</li>
+<li>條件與變易 = 條件觸發變化</li>
+<li>系統與三才 = 系統需要和諧</li>
+</ul>
+
+<h3>14.9 延伸閱讀</h3>
+<ol>
+<li>Nand2Tetris：Noam Nisan &amp; Shimon Schocken, <em>The Elements of Computing Systems</em></li>
+<li>《易傳·繫辭上/下》：易經的哲學總綱</li>
+<li>跨域研究：Fritjof Capra, <em>The Tao of Physics</em></li>
+<li>科學與人文：C.P. Snow, <em>The Two Cultures</em></li>
+<li>計算理論：Michael Sipser, <em>Introduction to the Theory of Computation</em></li>
+</ol>
+
+<!-- ========== 第十五章 ========== -->
+<h2>第十五章　延伸應用與未來探索</h2>
+
+<blockquote>「窮則變，變則通，通則久。」——《易傳·繫辭下》</blockquote>
+<blockquote>「我們正處於一個計算的新時代，但最深刻的問題仍然是：什麼是可計算的？」——Stephen Wolfram</blockquote>
+
+<p>回顧全書，我們從 Nand 閘一路走到作業系統，見證了電腦系統的完整建構。這趟旅程的每一步，都與易經六爻的生成邏輯產生了奇妙的共鳴。</p>
+<p>然而，Nand2Tetris 只是一個起點。當代電腦科學正朝著更複雜、更抽象、更接近「自然運算」的方向發展。本章，我們將 Harness Skill 框架延伸至五個前沿領域：</p>
+<ol>
+<li>Pipeline → 卦變的連續流轉</li>
+<li>中斷/例外 → 變卦中的突發動爻</li>
+<li>多核心 → 重卦之間的交互作用</li>
+<li>機器學習 → 卦象的自我演化</li>
+<li>量子計算 → 疊加態與卦象的潛在性</li>
+</ol>
+
+<h3>15.1 Pipeline：卦變的連續流轉</h3>
+<table>
+<tr><th>階段</th><th>功能</th><th>說明</th></tr>
+<tr><td>IF（Instruction Fetch）</td><td>從記憶體擷取指令</td><td>讀取 PC 指向的指令</td></tr>
+<tr><td>ID（Instruction Decode）</td><td>解碼指令</td><td>解析操作碼與運算元</td></tr>
+<tr><td>EX（Execute）</td><td>執行運算</td><td>ALU 執行算術/邏輯運算</td></tr>
+<tr><td>MEM（Memory Access）</td><td>記憶體存取</td><td>讀取或寫入資料</td></tr>
+<tr><td>WB（Write Back）</td><td>寫回結果</td><td>將結果寫入暫存器</td></tr>
+</table>
+
+<table>
+<tr><th>Pipeline 概念</th><th>卦理對應</th><th>說明</th></tr>
+<tr><td>五級管線</td><td>五行</td><td>金木水火土，相生相剋，循環不息</td></tr>
+<tr><td>同時執行</td><td>多爻齊動</td><td>多個爻位同時變化，如同多卦並行</td></tr>
+<tr><td>吞吐量</td><td>卦變速度</td><td>單位時間內完成的卦變數量</td></tr>
+<tr><td>延遲</td><td>單卦完成時間</td><td>一個卦從起卦到完成的時間</td></tr>
+<tr><td>冒險</td><td>爻位衝突</td><td>多個動爻同時影響同一爻位</td></tr>
+<tr><td>轉發</td><td>爻氣相通</td><td>動爻的影響直接傳遞</td></tr>
+<tr><td>分支預測</td><td>預測卦變</td><td>預測下一步的卦變方向</td></tr>
+</table>
+
+<h3>15.2 中斷/例外：變卦中的突發動爻</h3>
+<table>
+<tr><th>類型</th><th>觸發原因</th><th>處理方式</th></tr>
+<tr><td>硬體中斷</td><td>外部裝置（鍵盤、滑鼠、網路）</td><td>儲存當前狀態，跳往中斷處理程序</td></tr>
+<tr><td>軟體中斷</td><td>系統呼叫（system call）</td><td>從使用者模式切換到核心模式</td></tr>
+<tr><td>例外（Exception）</td><td>錯誤（除零、頁面錯誤、非法指令）</td><td>儲存當前狀態，跳往例外處理程序</td></tr>
+<tr><td>陷阱（Trap）</td><td>除錯（斷點、單步執行）</td><td>暫停執行，交由除錯器處理</td></tr>
+</table>
+
+<table>
+<tr><th>中斷/例外概念</th><th>卦理對應</th><th>說明</th></tr>
+<tr><td>中斷</td><td>突發動爻</td><td>外在事件觸發的突然變化</td></tr>
+<tr><td>例外</td><td>凶兆</td><td>內在錯誤引發的危機</td></tr>
+<tr><td>中斷處理程序</td><td>變卦</td><td>進入新的卦象處理問題</td></tr>
+<tr><td>上下文切換</td><td>爻位轉換</td><td>從一個卦象轉到另一個卦象</td></tr>
+<tr><td>中斷向量表</td><td>卦名辭典</td><td>記錄每個中斷對應的處理程序</td></tr>
+<tr><td>優先級</td><td>爻位尊卑</td><td>不同爻位的重要性不同</td></tr>
+<tr><td>不可遮罩中斷</td><td>天命</td><td>無法逃避的變化</td></tr>
+</table>
+
+<h3>15.3 多核心：重卦之間的交互作用</h3>
+<table>
+<tr><th>架構類型</th><th>說明</th><th>範例</th></tr>
+<tr><td>同質多核心</td><td>所有核心相同</td><td>Intel Core i7（4核8執行緒）</td></tr>
+<tr><td>異質多核心</td><td>核心不同（大核+小核）</td><td>ARM big.LITTLE</td></tr>
+<tr><td>多處理器（SMP）</td><td>多個獨立 CPU</td><td>伺服器主機板</td></tr>
+<tr><td>圖形處理器（GPU）</td><td>大量簡單核心</td><td>NVIDIA RTX 4090（16384 核心）</td></tr>
+</table>
+
+<table>
+<tr><th>多核心概念</th><th>卦理對應</th><th>說明</th></tr>
+<tr><td>多個核心</td><td>多個重卦</td><td>多個六爻卦同時存在</td></tr>
+<tr><td>共享記憶體</td><td>共享卦氣</td><td>多個卦共享同一時令</td></tr>
+<tr><td>快取一致性</td><td>卦氣同步</td><td>確保多個卦的狀態一致</td></tr>
+<tr><td>同步機制</td><td>爻位協調</td><td>多個卦的爻位需要協調</td></tr>
+<tr><td>通訊</td><td>卦象交流</td><td>多個卦之間交換訊息</td></tr>
+<tr><td>負載平衡</td><td>卦氣均衡</td><td>多個卦的工作量均衡</td></tr>
+<tr><td>異質多核心</td><td>錯卦綜卦</td><td>不同類型的卦各有用途</td></tr>
+</table>
+
+<h3>15.4 機器學習：卦象的自我演化</h3>
+<table>
+<tr><th>學習類型</th><th>說明</th><th>範例</th></tr>
+<tr><td>監督學習</td><td>從標註資料中學習</td><td>圖像分類、語音辨識</td></tr>
+<tr><td>非監督學習</td><td>從未標註資料中學習</td><td>聚類、降維</td></tr>
+<tr><td>強化學習</td><td>從獎勵訊號中學習</td><td>遊戲 AI、機器人控制</td></tr>
+<tr><td>深度學習</td><td>使用多層神經網路</td><td>ChatGPT、AlphaGo</td></tr>
+</table>
+
+<table>
+<tr><th>機器學習概念</th><th>卦理對應</th><th>說明</th></tr>
+<tr><td>神經網路</td><td>卦象網絡</td><td>多個卦象相互連接</td></tr>
+<tr><td>權重</td><td>爻位強度</td><td>每個爻位的影響力</td></tr>
+<tr><td>偏置</td><td>卦象傾向</td><td>卦象的初始偏向</td></tr>
+<tr><td>激活函數</td><td>爻變規則</td><td>決定爻是否變動</td></tr>
+<tr><td>反向傳播</td><td>卦氣回饋</td><td>根據結果調整卦象</td></tr>
+<tr><td>梯度下降</td><td>卦變優化</td><td>尋找最優卦象</td></tr>
+<tr><td>訓練</td><td>卦象修煉</td><td>透過反覆練習提升準確度</td></tr>
+<tr><td>推論</td><td>占卜</td><td>根據輸入預測輸出</td></tr>
+</table>
+
+<h3>15.5 量子計算：疊加態與卦象的潛在性</h3>
+<table>
+<tr><th>量子概念</th><th>說明</th><th>經典對比</th></tr>
+<tr><td>量子位元（Qubit）</td><td>0 和 1 的疊加態</td><td>經典位元只能是 0 或 1</td></tr>
+<tr><td>疊加（Superposition）</td><td>同時處於多個狀態</td><td>只能處於一個狀態</td></tr>
+<tr><td>糾纏（Entanglement）</td><td>多個量子位元相關聯</td><td>各自獨立</td></tr>
+<tr><td>測量（Measurement）</td><td>觀測導致波函數坍縮</td><td>讀取不改變狀態</td></tr>
+<tr><td>量子閘（Quantum Gate）</td><td>對量子位元進行操作</td><td>經典邏輯閘</td></tr>
+<tr><td>量子演算法</td><td>Shor, Grover</td><td>經典演算法</td></tr>
+</table>
+
+<table>
+<tr><th>量子概念</th><th>卦理對應</th><th>說明</th></tr>
+<tr><td>量子位元</td><td>爻的潛在態</td><td>爻同時是陰和陽</td></tr>
+<tr><td>疊加態</td><td>卦象的潛在性</td><td>卦同時是多種可能</td></tr>
+<tr><td>糾纏</td><td>爻位相應</td><td>爻與爻之間的神秘關聯</td></tr>
+<tr><td>測量</td><td>占卜</td><td>觀測導致卦象坍縮</td></tr>
+<tr><td>量子閘</td><td>動爻</td><td>對爻進行操作</td></tr>
+<tr><td>量子演算法</td><td>卦變策略</td><td>如何從潛在到確定</td></tr>
+</table>
+
+<h3>15.6 延伸應用的整體對照表</h3>
+<table>
+<tr><th>前沿領域</th><th>技術核心</th><th>卦理對應</th><th>核心精神</th></tr>
+<tr><td>Pipeline</td><td>指令管線化</td><td>卦變連續流轉</td><td>趨時</td></tr>
+<tr><td>中斷/例外</td><td>突發事件處理</td><td>變卦中的突發動爻</td><td>應變</td></tr>
+<tr><td>多核心</td><td>並行處理</td><td>重卦交互作用</td><td>交互</td></tr>
+<tr><td>機器學習</td><td>從資料學習</td><td>卦象自我演化</td><td>自適應</td></tr>
+<tr><td>量子計算</td><td>疊加與糾纏</td><td>卦象潛在性</td><td>潛在性</td></tr>
+</table>
+
+<h3>15.7 本章總結</h3>
+<table>
+<tr><th>前沿領域</th><th>技術核心</th><th>卦理對應</th><th>核心精神</th></tr>
+<tr><td>Pipeline</td><td>指令管線化</td><td>卦變連續流轉</td><td>趨時</td></tr>
+<tr><td>中斷/例外</td><td>突發事件處理</td><td>變卦中的突發動爻</td><td>應變</td></tr>
+<tr><td>多核心</td><td>並行處理</td><td>重卦交互作用</td><td>交互</td></tr>
+<tr><td>機器學習</td><td>從資料學習</td><td>卦象自我演化</td><td>自適應</td></tr>
+<tr><td>量子計算</td><td>疊加與糾纏</td><td>卦象潛在性</td><td>潛在性</td></tr>
+</table>
+
+<p><strong>關鍵對應：</strong></p>
+<ul>
+<li>Pipeline = 卦變連續流轉</li>
+<li>中斷/例外 = 變卦中的突發動爻</li>
+<li>多核心 = 重卦交互作用</li>
+<li>機器學習 = 卦象自我演化</li>
+<li>量子計算 = 卦象潛在性</li>
+</ul>
+
+<h3>15.8 延伸閱讀</h3>
+<ol>
+<li>Pipeline：Hennessy &amp; Patterson, <em>Computer Architecture: A Quantitative Approach</em></li>
+<li>中斷/例外：Tanenbaum, <em>Modern Operating Systems</em></li>
+<li>多核心：Herlihy &amp; Shavit, <em>The Art of Multiprocessor Programming</em></li>
+<li>機器學習：Goodfellow et al., <em>Deep Learning</em></li>
+<li>量子計算：Nielsen &amp; Chuang, <em>Quantum Computation and Quantum Information</em></li>
+<li>易經：《易傳·繫辭上/下》、《序卦傳》</li>
+</ol>
+
+<!-- ========== 第十六章 ========== -->
+<h2>第十六章　實作專案：卦象化電腦</h2>
+
+<blockquote>「紙上得來終覺淺，絕知此事要躬行。」——陸游</blockquote>
+<blockquote>「我聽見了，但我忘記了；我看見了，但我記住了；我做了，所以我理解了。」——孔子（據傳）</blockquote>
+
+<p>十五章的旅程，我們從 Nand 閘走到作業系統，從太極走到六十四卦，並將 Harness Skill 框架延伸到五個前沿領域。</p>
+<p>但這一切，都還停留在理論層面。</p>
+<p>本章，我們要將這些理論對應落實在具體的實作中——建構一台「卦象化」的 Hack 電腦。</p>
+
+<h3>16.1 專案目標</h3>
+<p>核心目標：建構一台「卦象化」的 Hack 電腦，包含以下功能：</p>
+<table>
+<tr><th>功能</th><th>說明</th></tr>
+<tr><td>標準 Hack 執行</td><td>能執行所有標準的 Hack 指令</td></tr>
+<tr><td>卦象對應</td><td>將每條指令對應到一個六爻卦象</td></tr>
+<tr><td>卦變序列</td><td>將程式執行視為卦變序列</td></tr>
+<tr><td>卦象顯示</td><td>在螢幕上顯示當前卦象</td></tr>
+<tr><td>互動式占卜</td><td>提供互動式占卜功能</td></tr>
+</table>
+
+<h3>16.2 專案步驟一：為每個元件賦予卦名</h3>
+<table>
+<tr><th>硬體元件</th><th>卦名</th><th>二進制</th><th>理由</th></tr>
+<tr><td>CPU</td><td>乾為天 ䷀</td><td>111111</td><td>主導全局，如天創始萬物</td></tr>
+<tr><td>ALU</td><td>離為火 ䷝</td><td>101101</td><td>執行運算，如火照亮計算之路</td></tr>
+<tr><td>A 暫存器</td><td>巽為風 ䷸</td><td>110110</td><td>指向位址，如風流動無孔不入</td></tr>
+<tr><td>D 暫存器</td><td>坎為水 ䷜</td><td>010010</td><td>儲存資料，如水儲存生命</td></tr>
+<tr><td>PC</td><td>震為雷 ䷲</td><td>001001</td><td>序列推進，如雷電連鎖</td></tr>
+<tr><td>控制單元</td><td>艮為山 ䷳</td><td>100100</td><td>控制邊界，如山界定疆域</td></tr>
+<tr><td>ROM</td><td>風地觀 ䷓</td><td>110000</td><td>儲存指令，如觀察卦序</td></tr>
+<tr><td>RAM</td><td>坤為地 ䷁</td><td>000000</td><td>承載資料，如大地承載萬物</td></tr>
+<tr><td>螢幕</td><td>兌為澤 ䷹</td><td>011011</td><td>顯現圖像，如澤水映照萬物</td></tr>
+<tr><td>鍵盤</td><td>坎為水 ䷜</td><td>010010</td><td>感應輸入，如水反映外境</td></tr>
+</table>
+
+<h3>16.3 專案步驟二：將指令對應到六十四卦</h3>
+<table>
+<tr><th>Hack 指令</th><th>二進制（低 6 位）</th><th>對應卦象</th><th>說明</th></tr>
+<tr><td><code>@0</code></td><td>000000</td><td>坤為地 ䷁</td><td>位址 0，純陰</td></tr>
+<tr><td><code>@1</code></td><td>000001</td><td>地雷復 ䷗</td><td>位址 1，初爻動</td></tr>
+<tr><td><code>@2</code></td><td>000010</td><td>地水師 ䷆</td><td>位址 2，二爻動</td></tr>
+<tr><td><code>@3</code></td><td>000011</td><td>地澤臨 ䷒</td><td>位址 3，初、二爻動</td></tr>
+<tr><td><code>@4</code></td><td>000100</td><td>地山謙 ䷎</td><td>位址 4，三爻動</td></tr>
+<tr><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+<tr><td><code>@63</code></td><td>111111</td><td>乾為天 ䷀</td><td>位址 63，六爻全動</td></tr>
+</table>
+
+<h3>16.4 專案步驟三：將程式執行視為卦變序列</h3>
+<pre>@1      // A = 1
+D=A     // D = 1
+@2      // A = 2
+D=D+A   // D = 3
+@3      // A = 3
+M=D     // RAM[3] = 3</pre>
+
+<table>
+<tr><th>步驟</th><th>指令</th><th>PC</th><th>A</th><th>D</th><th>RAM[3]</th><th>對應卦象</th></tr>
+<tr><td>0</td><td>初始</td><td>0</td><td>0</td><td>0</td><td>0</td><td>坤為地 ䷁（000000）</td></tr>
+<tr><td>1</td><td><code>@1</code></td><td>0</td><td>1</td><td>0</td><td>0</td><td>地雷復 ䷗（000001）</td></tr>
+<tr><td>2</td><td><code>D=A</code></td><td>1</td><td>1</td><td>1</td><td>0</td><td>地澤臨 ䷒（000011）</td></tr>
+<tr><td>3</td><td><code>@2</code></td><td>2</td><td>2</td><td>1</td><td>0</td><td>地水師 ䷆（000010）</td></tr>
+<tr><td>4</td><td><code>D=D+A</code></td><td>3</td><td>2</td><td>3</td><td>0</td><td>地火明夷 ䷣（000101）</td></tr>
+<tr><td>5</td><td><code>@3</code></td><td>4</td><td>3</td><td>3</td><td>0</td><td>地澤臨 ䷒（000011）</td></tr>
+<tr><td>6</td><td><code>M=D</code></td><td>5</td><td>3</td><td>3</td><td>3</td><td>地天泰 ䷊（000111）</td></tr>
+</table>
+
+<h3>16.5 專案步驟四：在螢幕上顯示當前卦象</h3>
+<pre>class HexagramViewer {
+    field int currentBinary;
+    field String currentName;
+    
+    constructor HexagramViewer new() {
+        let currentBinary = 0;
+        let currentName = "坤為地";
+        return this;
+    }
+    
+    method void update(int binary) {
+        let currentBinary = binary;
+        let currentName = HexagramNames.getName(binary);
+        return;
+    }
+    
+    method void draw() {
+        do Screen.clearScreen();
+        do Output.moveCursor(10, 10);
+        do Output.printString("當前卦象：");
+        do Output.printString(currentName);
+        do Output.println();
+        do HexagramDisplay.drawHexagram(currentBinary, 200, 100);
+        do Output.moveCursor(10, 15);
+        do Output.printString("二進制：");
+        do Output.printInt(currentBinary);
+        do Output.println();
+        return;
+    }
+}</pre>
+
+<h3>16.6 專案步驟五：建構互動式占卜電腦</h3>
+<pre>class Meihua {
+    field int yao1, yao2, yao3, yao4, yao5, yao6;
+    field int movingYao;
+    field int originalBinary;
+    field int changedBinary;
+    
+    constructor Meihua new() {
+        let yao1 = 0;
+        let yao2 = 0;
+        let yao3 = 0;
+        let yao4 = 0;
+        let yao5 = 0;
+        let yao6 = 0;
+        let movingYao = 0;
+        let originalBinary = 0;
+        let changedBinary = 0;
+        return this;
+    }
+    
+    method void cast(int num1, int num2, int num3) {
+        var int upper, lower, upperBagua, lowerBagua;
+        let upper = num1 - (num1 / 8 * 8);
+        if (upper = 0) { let upper = 8; }
+        let lower = num2 - (num2 / 8 * 8);
+        if (lower = 0) { let lower = 8; }
+        let movingYao = num3 - (num3 / 6 * 6);
+        if (movingYao = 0) { let movingYao = 6; }
+        let upperBagua = getBaguaBinary(upper);
+        let lowerBagua = getBaguaBinary(lower);
+        let yao1 = lowerBagua & 1;
+        let yao2 = (lowerBagua >> 1) & 1;
+        let yao3 = (lowerBagua >> 2) & 1;
+        let yao4 = upperBagua & 1;
+        let yao5 = (upperBagua >> 1) & 1;
+        let yao6 = (upperBagua >> 2) & 1;
+        let originalBinary = (yao6 * 32) + (yao5 * 16) + (yao4 * 8) + (yao3 * 4) + (yao2 * 2) + yao1;
+        let changedBinary = originalBinary;
+        if (movingYao = 1) { let changedBinary = changedBinary ^ 1; }
+        if (movingYao = 2) { let changedBinary = changedBinary ^ 2; }
+        if (movingYao = 3) { let changedBinary = changedBinary ^ 4; }
+        if (movingYao = 4) { let changedBinary = changedBinary ^ 8; }
+        if (movingYao = 5) { let changedBinary = changedBinary ^ 16; }
+        if (movingYao = 6) { let changedBinary = changedBinary ^ 32; }
+        return;
+    }
+    
+    method int getBaguaBinary(int num) {
+        if (num = 1) { return 7; }
+        if (num = 2) { return 6; }
+        if (num = 3) { return 5; }
+        if (num = 4) { return 4; }
+        if (num = 5) { return 3; }
+        if (num = 6) { return 2; }
+        if (num = 7) { return 1; }
+        if (num = 8) { return 0; }
+        return 0;
+    }
+    
+    method void draw() {
+        do Output.printString("本卦：");
+        do Output.printString(HexagramNames.getName(originalBinary));
+        do Output.println();
+        do HexagramDisplay.drawHexagram(originalBinary, 100, 100);
+        do Output.printString("變卦：");
+        do Output.printString(HexagramNames.getName(changedBinary));
+        do Output.println();
+        do HexagramDisplay.drawHexagram(changedBinary, 300, 100);
+        return;
+    }
+}</pre>
+
+<h3>16.7 專案範例：計算 1+2+...+10 的卦變過程</h3>
+<pre>@1
+D=A
+@sum
+M=D
+@2
+D=A
+@i
+M=D
+(LOOP)
+@i
+D=M
+@10
+D=D-A
+@END
+D;JGT
+@i
+D=M
+@sum
+M=D+M
+@i
+M=M+1
+@LOOP
+0;JMP
+(END)
+@END
+0;JMP</pre>
+
+<h3>16.8 專案總結</h3>
+<table>
+<tr><th>層級</th><th>成果</th></tr>
+<tr><td>硬體層</td><td>為每個元件賦予卦名</td></tr>
+<tr><td>軟體層</td><td>將指令對應到六十四卦</td></tr>
+<tr><td>應用層</td><td>將程式執行視為卦變序列</td></tr>
+<tr><td>顯示層</td><td>在螢幕上顯示當前卦象</td></tr>
+<tr><td>互動層</td><td>提供互動式占卜功能</td></tr>
+</table>
+
+<h3>16.9 全書結語</h3>
+<table>
+<tr><th>章節</th><th>技術內容</th><th>易經對應</th><th>核心精神</th></tr>
+<tr><td>1</td><td>基本邏輯閘</td><td>四象</td><td>從無到有</td></tr>
+<tr><td>2</td><td>ALU</td><td>八卦</td><td>賦予意義</td></tr>
+<tr><td>3</td><td>時序邏輯</td><td>爻位與時機</td><td>引入時間</td></tr>
+<tr><td>4</td><td>機器語言</td><td>卦辭與爻辭</td><td>賦予語意</td></tr>
+<tr><td>5</td><td>電腦架構</td><td>六十四卦</td><td>完整系統</td></tr>
+<tr><td>6</td><td>組譯器</td><td>卦名與符號化</td><td>命名與定位</td></tr>
+<tr><td>7-8</td><td>虛擬機</td><td>錯綜交互卦</td><td>變易關係</td></tr>
+<tr><td>9</td><td>高階語言</td><td>取象比類</td><td>高階抽象</td></tr>
+<tr><td>10-11</td><td>編譯器</td><td>卦序與卦氣</td><td>結構與流轉</td></tr>
+<tr><td>12</td><td>作業系統</td><td>三才之道</td><td>天地人和諧</td></tr>
+<tr><td>13</td><td>全書統整</td><td>雙重旅程</td><td>體系圓滿</td></tr>
+<tr><td>14</td><td>跨域對話</td><td>深層共鳴</td><td>思維對話</td></tr>
+<tr><td>15</td><td>未來探索</td><td>前沿領域</td><td>未然之變</td></tr>
+<tr><td>16</td><td>實作專案</td><td>卦象化電腦</td><td>理論落地</td></tr>
+</table>
+
+<p>最終體悟：</p>
+<ol>
+<li>生成邏輯是普世的</li>
+<li>有限可以生成無限</li>
+<li>分層抽象是關鍵</li>
+<li>命名即創造秩序</li>
+<li>變易是核心</li>
+<li>系統需要和諧</li>
+<li>理論需要實踐</li>
+</ol>
+
+<blockquote>「天下同歸而殊塗，一致而百慮。」——《易傳·繫辭下》</blockquote>
+
+<h3>16.10 延伸閱讀</h3>
+<ol>
+<li>Nand2Tetris：Noam Nisan &amp; Shimon Schocken, <em>The Elements of Computing Systems</em></li>
+<li>《易傳·繫辭上/下》：易經的哲學總綱</li>
+<li>《梅花易數》：邵雍</li>
+<li>跨域研究：Fritjof Capra, <em>The Tao of Physics</em></li>
+<li>計算理論：Michael Sipser, <em>Introduction to the Theory of Computation</em></li>
+</ol>
+
+<!-- ========== 附錄 ========== -->
+<h2>附錄</h2>
+
+<h3>附錄 A：六十四卦二進制完整對照表</h3>
+<p>編碼規則：</p>
+<table>
+<tr><th>規則</th><th>說明</th></tr>
+<tr><td>讀取方向</td><td>由上爻往下爻讀</td></tr>
+<tr><td>位元順序</td><td>上爻 = bit 5（MSB），初爻 = bit 0（LSB）</td></tr>
+<tr><td>陽爻</td><td>1</td></tr>
+<tr><td>陰爻</td><td>0</td></tr>
+</table>
+<p>完整對照表請參閱第二章 2.2 節。</p>
+
+<h3>附錄 B：Nand2Tetris 元件總表</h3>
+<table>
+<tr><th>章節</th><th>元件</th><th>功能</th></tr>
+<tr><td>第1章</td><td>Nand, Not, And, Or, Xor, Mux, DMux</td><td>基本邏輯閘</td></tr>
+<tr><td>第2章</td><td>Half-Adder, Full-Adder, 16-bit Adder, ALU</td><td>算術邏輯單元</td></tr>
+<tr><td>第3章</td><td>DFF, 暫存器, RAM8~RAM16K, 計數器</td><td>時序元件</td></tr>
+<tr><td>第5章</td><td>CPU, ROM, RAM, 螢幕, 鍵盤</td><td>電腦架構</td></tr>
+<tr><td>第7~8章</td><td>VM 指令（算術/記憶體/流程/函數）</td><td>虛擬機</td></tr>
+<tr><td>第9章</td><td>Jack 語法（class, method, field, ...）</td><td>高階語言</td></tr>
+<tr><td>第12章</td><td>Math, Memory, String, Array, Output, Screen, Keyboard, Sys</td><td>作業系統</td></tr>
+</table>
+
+<h3>附錄 C：易經六爻基礎</h3>
+<table>
+<tr><th>爻</th><th>符號</th><th>二進制</th></tr>
+<tr><td>陽爻</td><td>⚊</td><td>1</td></tr>
+<tr><td>陰爻</td><td>⚋</td><td>0</td></tr>
+</table>
+<table>
+<tr><th>卦名</th><th>符號</th><th>二進制</th><th>自然象徵</th></tr>
+<tr><td>乾</td><td>☰</td><td>111</td><td>天</td></tr>
+<tr><td>兌</td><td>☱</td><td>110</td><td>澤</td></tr>
+<tr><td>離</td><td>☲</td><td>101</td><td>火</td></tr>
+<tr><td>震</td><td>☳</td><td>100</td><td>雷</td></tr>
+<tr><td>巽</td><td>☴</td><td>011</td><td>風</td></tr>
+<tr><td>坎</td><td>☵</td><td>010</td><td>水</td></tr>
+<tr><td>艮</td><td>☶</td><td>001</td><td>山</td></tr>
+<tr><td>坤</td><td>☷</td><td>000</td><td>地</td></tr>
+</table>
+
+<h3>附錄 D：Harness Skill 框架</h3>
+<p>核心類比原則：</p>
+<table>
+<tr><th>原則</th><th>說明</th></tr>
+<tr><td>組合層級對應</td><td>從最簡元素到完整系統，層層組合</td></tr>
+<tr><td>靜態→動態對應</td><td>組合邏輯 → 時序邏輯 → 執行</td></tr>
+<tr><td>語意階層對應</td><td>硬體 → 指令 → 高階語言 → OS</td></tr>
+</table>
+<p>完整對應表請參閱第一章 1.5 節。</p>
+
+<h3>附錄 E：參考文獻</h3>
+<p><strong>Nand2Tetris 相關：</strong></p>
+<ol>
+<li>Noam Nisan &amp; Shimon Schocken, <em>The Elements of Computing Systems: Building a Modern Computer from First Principles</em>, MIT Press, 2005.</li>
+<li>Nand2Tetris 官方網站：https://www.nand2tetris.org/</li>
+</ol>
+<p><strong>易經相關：</strong></p>
+<ol>
+<li>《周易》原文</li>
+<li>《易傳·繫辭上/下》</li>
+<li>《序卦傳》</li>
+<li>邵雍，《梅花易數》</li>
+</ol>
+<p><strong>跨域研究相關：</strong></p>
+<ol>
+<li>Fritjof Capra, <em>The Tao of Physics</em>, Shambhala, 1975.</li>
+<li>C.P. Snow, <em>The Two Cultures</em>, Cambridge University Press, 1959.</li>
+<li>Douglas Hofstadter, <em>Gödel, Escher, Bach: An Eternal Golden Braid</em>, Basic Books, 1979.</li>
+</ol>
+<p><strong>計算機科學相關：</strong></p>
+<ol>
+<li>Michael Sipser, <em>Introduction to the Theory of Computation</em>, Cengage, 2012.</li>
+<li>David Patterson &amp; John Hennessy, <em>Computer Organization and Design</em>, Morgan Kaufmann, 2013.</li>
+<li>Alfred Aho et al., <em>Compilers: Principles, Techniques, and Tools</em>, Pearson, 2006.</li>
+<li>Andrew S. Tanenbaum, <em>Modern Operating Systems</em>, Pearson, 2014.</li>
+</ol>
+<p><strong>前沿領域相關：</strong></p>
+<ol>
+<li>Hennessy &amp; Patterson, <em>Computer Architecture: A Quantitative Approach</em>, Morgan Kaufmann, 2017.</li>
+<li>Herlihy &amp; Shavit, <em>The Art of Multiprocessor Programming</em>, Morgan Kaufmann, 2012.</li>
+<li>Goodfellow et al., <em>Deep Learning</em>, MIT Press, 2016.</li>
+<li>Nielsen &amp; Chuang, <em>Quantum Computation and Quantum Information</em>, Cambridge University Press, 2010.</li>
+</ol>
+
+<!-- ========== 後記 ========== -->
+<h2>後記</h2>
+
+<h3>後記一：從 Nand 到六十四卦的旅程</h3>
+<p>這本書的寫作緣起於一個簡單的問題：</p>
+<p>「一台從 Nand 閘開始建構的電腦，和一套從陰陽爻開始推演的易經卦象，它們之間有什麼關係？」</p>
+<p>這個問題，讓我踏上了一趟為期數年的跨域旅程。從 Nand2Tetris 的技術文件，到易經的哲學典籍，我試圖在兩者之間找到對應的橋樑。</p>
+<p>這本書不是技術手冊，也不是易經註解，而是一場跨域對話——用電腦科學的視角理解易經，用易經的視角理解電腦科學。</p>
+
+<h3>後記二：給讀者的話</h3>
+<p><strong>給資訊背景讀者：</strong>您可能熟悉 Nand2Tetris，但對易經感到陌生。本書希望用您熟悉的技術，帶您進入易經的世界，體會「生成邏輯」的普世性。</p>
+<p><strong>給易經背景讀者：</strong>您可能熟悉易經，但對電腦科學感到陌生。本書希望用您熟悉的卦理，帶您進入電腦科學的世界，體會「從簡到繁」的建構邏輯。</p>
+<p><strong>給跨域讀者：</strong>您可能對兩者都有興趣，本書希望為您提供一個系統性的對應框架，讓您能夠在兩者之間自由穿梭。</p>
+
+<h3>後記三：未盡之路</h3>
+<p>本書的對應是結構性的類比，而非功能上的等價。Nand2Tetris 與易經六爻的對應，是一種思維框架的延伸，而不是技術上的等價。</p>
+<p>未來的研究方向包括：</p>
+<ul>
+<li>將 Harness Skill 框架應用到更多領域</li>
+<li>探索更多跨域對話的可能性</li>
+<li>實作更多「卦象化」的電腦系統</li>
+</ul>
+<p>願這本書為您打開一扇跨域對話的窗。</p>
+
+</body>
+</html>
