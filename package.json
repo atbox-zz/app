@@ -8,8 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "b": "pnpm build",
-    "p": "pnpm preview --open",
+    "deploy": "gh-pages -d dist",
     "g": "gh-pages -d dist"
   },
   "dependencies": {
