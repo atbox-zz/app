@@ -157,7 +157,7 @@ const MusicPlayer = () => {
     },
     {
       buttons: [
-        { text: "拉霸機", filename: "slotmachine.html", isEnglish: false, isGame: true },
+        { text: "21點分析器", filename: "Vegas高額桌分析器.html", isEnglish: false, isGame: true },
         { text: "井字棋", filename: "./xx.html", isEnglish: false, isGame: true },
         { text: "🐍", filename: "./snake1.html", isEnglish: false, isGame: true },
         { text: "🎮魔術方塊", filename: "./cude6c.html", isEnglish: true, isGame: true },
