@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vegas 高額桌 21點規則分析器</title>
+<style>
+  :root{
+    --bg:#0f1419; --panel:#1a2029; --panel2:#232b36;
+    --green:#2ecc71; --red:#e74c3c; --gold:#f1c40f;
+    --blue:#3498db; --text:#e6e6e6; --muted:#8b98a8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Segoe UI","Microsoft JhengHei",sans-serif;
+    background:var(--bg); color:var(--text); padding:20px;
+    line-height:1.6;
+  }
+  h1{font-size:1.6rem;margin-bottom:4px;
+     background:linear-gradient(90deg,var(--gold),var(--green));
+     -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .sub{color:var(--muted);font-size:.85rem;margin-bottom:20px}
+  .layout{display:grid;grid-template-columns:380px 1fr;gap:20px}
+  @media(max-width:900px){.layout{grid-template-columns:1fr}}
+
+  .panel{background:var(--panel);border-radius:12px;padding:18px;
+         border:1px solid #2a3340}
+  .panel h2{font-size:1rem;color:var(--gold);margin-bottom:12px;
+            display:flex;align-items:center;gap:8px}
+  .panel h2::before{content:"";width:4px;height:16px;
+                    background:var(--gold);border-radius:2px}
+
+  /* 規則選項 */
+  .rule{margin-bottom:14px}
+  .rule label{display:block;font-size:.8rem;color:var(--muted);
+              margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+  .seg{display:flex;gap:6px;flex-wrap:wrap}
+  .seg button{
+    flex:1;min-width:70px;padding:8px 10px;border-radius:8px;
+    border:1px solid #33404f;background:var(--panel2);color:var(--text);
+    cursor:pointer;font-size:.82rem;transition:.15s;
+  }
+  .seg button:hover{border-color:var(--blue)}
+  .seg button.active{background:var(--blue);border-color:var(--blue);
+                     color:#fff;font-weight:600}
+  .seg button.good.active{background:var(--green);border-color:var(--green)}
+  .seg button.bad.active{background:var(--red);border-color:var(--red)}
+
+  select{width:100%;padding:9px;border-radius:8px;background:var(--panel2);
+         color:var(--text);border:1px solid #33404f;font-size:.85rem}
+
+  /* 結果 */
+  .results{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  @media(max-width:600px){.results{grid-template-columns:1fr}}
+  .stat{background:var(--panel2);border-radius:10px;padding:14px;
+        border-left:4px solid var(--blue)}
+  .stat.good{border-left-color:var(--green)}
+  .stat.bad{border-left-color:var(--red)}
+  .stat.warn{border-left-color:var(--gold)}
+  .stat .label{font-size:.75rem;color:var(--muted);margin-bottom:6px}
+  .stat .value{font-size:1.5rem;font-weight:700}
+  .stat .value.green{color:var(--green)}
+  .stat .value.red{color:var(--red)}
+  .stat .value.gold{color:var(--gold)}
+  .stat .note{font-size:.72rem;color:var(--muted);margin-top:4px}
+
+  /* 表格 */
+  table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid #2a3340}
+  th{color:var(--muted);font-weight:600;font-size:.75rem;
+     text-transform:uppercase}
+  td.num{text-align:right;font-family:"Consolas",monospace}
+  .pos{color:var(--green)} .neg{color:var(--red)}
+
+  /* Bet Ramp */
+  .ramp-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;
+            font-size:.82rem}
+  .ramp-tc{width:60px;color:var(--muted);font-family:monospace}
+  .ramp-bar{height:20px;border-radius:4px;
+            background:linear-gradient(90deg,var(--blue),var(--green));
+            transition:width .3s;min-width:2px}
+  .ramp-val{font-family:monospace;color:var(--gold);width:80px;text-align:right}
+
+  /* 總評 */
+  .verdict{margin-top:16px;padding:16px;border-radius:10px;
+           background:linear-gradient(135deg,#1e2a1e,#2a1e1e);
+           border:1px solid #33404f;text-align:center}
+  .verdict .big{font-size:2rem;font-weight:800}
+  .verdict .desc{font-size:.85rem;color:var(--muted);margin-top:6px}
+
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;
+         font-size:.7rem;font-weight:600;margin-left:6px}
+  .badge.g{background:rgba(46,204,113,.2);color:var(--green)}
+  .badge.r{background:rgba(231,76,60,.2);color:var(--red)}
+  .badge.y{background:rgba(241,196,15,.2);color:var(--gold)}
+
+  .legend{font-size:.72rem;color:var(--muted);margin-top:10px}
+  .legend span{display:inline-block;margin-right:14px}
+</style>
+</head>
+<body>
+
+<h1>🎰 Vegas 高額桌 21點規則分析器</h1>
+<p class="sub">調整規則，即時看算牌客優勢如何變化。3:2 + S17 + 投降 + DAS/RSA = 最大化優勢。</p>
+
+<div class="layout">
+
+  <!-- ============ 左側：規則控制 ============ -->
+  <div>
+    <div class="panel">
+      <h2>桌上規則</h2>
+
+      <div class="rule">
+        <label>黑傑克賠付</label>
+        <div class="seg" id="payout">
+          <button data-v="1.5" class="good">3:2</button>
+          <button data-v="1.2" class="bad">6:5</button>
+          <button data-v="1.0" class="bad">1:1</button>
+        </div>
+      </div>
+
+      <div class="rule">
+        <label>莊家軟17</label>
+        <div class="seg" id="soft17">
+          <button data-v="S17" class="good">S17 停牌</button>
+          <button data-v="H17" class="bad">H17 要牌</button>
+        </div>
+      </div>
+
+      <div class="rule">
+        <label>投降 Surrender</label>
+        <div class="seg" id="surrender">
+          <button data-v="1" class="good">允許</button>
+          <button data-v="0" class="bad">不允許</button>
+        </div>
+      </div>
+
+      <div class="rule">
+        <label>分牌後加倍 DAS</label>
+        <div class="seg" id="das">
+          <button data-v="1" class="good">允許</button>
+          <button data-v="0" class="bad">不允許</button>
+        </div>
+      </div>
+
+      <div class="rule">
+        <label>A 可再分 RSA</label>
+        <div class="seg" id="rsa">
+          <button data-v="1" class="good">允許</button>
+          <button data-v="0" class="bad">不允許</button>
+        </div>
+      </div>
+
+      <div class="rule">
+        <label>牌副數</label>
+        <select id="decks">
+          <option value="1">1 副</option>
+          <option value="2" selected>2 副</option>
+          <option value="4">4 副</option>
+          <option value="6">6 副</option>
+          <option value="8">8 副</option>
+        </select>
+      </div>
+
+      <div class="rule">
+        <label>穿透率 Penetration</label>
+        <div class="seg" id="pen">
+          <button data-v="0.60">60%</button>
+          <button data-v="0.70">70%</button>
+          <button data-v="0.75" class="active">75%</button>
+          <button data-v="0.85" class="good">85%</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h2>快速情境</h2>
+      <div class="seg" style="flex-direction:column">
+        <button onclick="preset('best')" class="good" style="flex:none">🏆 Vegas 最佳（2副 S17 全規則）</button>
+        <button onclick="preset('strip')" style="flex:none">🎰 Strip 標準（6副 S17 DAS）</button>
+        <button onclick="preset('bad')" class="bad" style="flex:none">💀 6:5 陷阱桌</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 右側：結果 ============ -->
+  <div>
+    <div class="panel">
+      <h2>即時分析</h2>
+      <div class="results">
+        <div class="stat" id="s-house">
+          <div class="label">莊家優勢（基本策略）</div>
+          <div class="value" id="house-edge">0.00%</div>
+          <div class="note">越低越好，負值代表玩家優勢</div>
+        </div>
+        <div class="stat" id="s-counter">
+          <div class="label">算牌客總優勢（TC=+4 時）</div>
+          <div class="value" id="counter-edge">0.00%</div>
+          <div class="note">基本策略 + 算牌加注 + 偏離</div>
+        </div>
+        <div class="stat" id="s-ev">
+          <div class="label">每局期望值 EV（TC=+4）</div>
+          <div class="value" id="ev-per-round">$0.00</div>
+          <div class="note">基本單位 $100 時</div>
+        </div>
+        <div class="stat" id="s-ramp">
+          <div class="label">建議最大下注（TC≥+5）</div>
+          <div class="value" id="max-bet">$0</div>
+          <div class="note">半凱利，基本單位 $100</div>
+        </div>
+      </div>
+
+      <div class="verdict" id="verdict">
+        <div class="big" id="verdict-text">—</div>
+        <div class="desc" id="verdict-desc">調整左側規則看結果</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h2>規則對優勢的影響（相對基準）</h2>
+      <table>
+        <thead>
+          <tr><th>規則</th><th>目前設定</th><th class="num">對玩家影響</th></tr>
+        </thead>
+        <tbody id="impact-table"></tbody>
+      </table>
+      <div class="legend">
+        <span>🟢 對玩家有利</span>
+        <span>🔴 對玩家不利</span>
+        <span>🟡 中性</span>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h2>Bet Ramp 建議（半凱利）</h2>
+      <div id="ramp-chart"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   規則 → 莊家優勢 的基準表
+   資料來源：Wizard of Odds 標準 6 副牌基準
+   ============================================================ */
+const BASE = {
+  // 基準：6副, 3:2, S17, 無投降, 無DAS, 無RSA → 莊家優勢 0.54%
+  baseHouse: 0.54,
+};
+
+// 各規則相對基準的影響（%）
+const EFFECT = {
+  payout: { 1.5: 0, 1.2: +1.39, 1.0: +2.32 },
+  soft17: { S17: 0, H17: +0.20 },
+  surrender: { 1: -0.07, 0: 0 },
+  das: { 1: -0.14, 0: 0 },
+  rsa: { 1: -0.07, 0: 0 },
+  decks: { 1: -0.02, 2: 0, 4: +0.05, 6: +0.09, 8: +0.12 },
+  pen: { 0.60: 0, 0.70: 0, 0.75: 0, 0.85: 0 }, // 穿透率不影響基本策略，只影響算牌
+};
+
+// 算牌優勢：每 +1 TC 約增加 0.5% 優勢
+const TC_ADVANTAGE_PER_UNIT = 0.5;
+
+// 狀態
+const state = {
+  payout: 1.5,
+  soft17: 'S17',
+  surrender: 1,
+  das: 1,
+  rsa: 1,
+  decks: '2',
+  pen: 0.75,
+  baseUnit: 100,
+};
+
+/* ============================================================
+   計算
+   ============================================================ */
+function calcHouseEdge() {
+  let edge = BASE.baseHouse;
+  edge += EFFECT.payout[state.payout];
+  edge += EFFECT.soft17[state.soft17];
+  edge += EFFECT.surrender[state.surrender];
+  edge += EFFECT.das[state.das];
+  edge += EFFECT.rsa[state.rsa];
+  edge += EFFECT.decks[state.decks];
+  return edge;
+}
+
+function calcCounterEdge(tc = 4) {
+  // 算牌客優勢 = 算牌帶來的優勢 - 莊家優勢
+  const counterBonus = tc * TC_ADVANTAGE_PER_UNIT; // TC=+4 → +2.0%
+  return counterBonus - calcHouseEdge();
+}
+
+function calcEV(tc = 4) {
+  const adv = calcCounterEdge(tc) / 100;
+  return state.baseUnit * adv;
+}
+
+function calcBetRamp() {
+  // 半凱利：bet = base * (1 + (TC-1) * 0.5)
+  const ramp = {};
+  for (let tc = -2; tc <= 6; tc++) {
+    let mult;
+    if (tc <= 1) mult = 1;
+    else mult = 1 + (tc - 1) * 0.5;
+    ramp[tc] = Math.round(state.baseUnit * mult);
+  }
+  return ramp;
+}
+
+/* ============================================================
+   渲染
+   ============================================================ */
+function render() {
+  const houseEdge = calcHouseEdge();
+  const counterEdge = calcCounterEdge(4);
+  const ev = calcEV(4);
+  const ramp = calcBetRamp();
+
+  // 莊家優勢
+  const heEl = document.getElementById('house-edge');
+  heEl.textContent = houseEdge.toFixed(2) + '%';
+  heEl.className = 'value ' + (houseEdge < 0.5 ? 'green' : houseEdge < 1.0 ? 'gold' : 'red');
+  document.getElementById('s-house').className =
+    'stat ' + (houseEdge < 0.5 ? 'good' : houseEdge < 1.0 ? 'warn' : 'bad');
+
+  // 算牌客優勢
+  const ceEl = document.getElementById('counter-edge');
+  ceEl.textContent = (counterEdge > 0 ? '+' : '') + counterEdge.toFixed(2) + '%';
+  ceEl.className = 'value ' + (counterEdge > 0 ? 'green' : 'red');
+  document.getElementById('s-counter').className =
+    'stat ' + (counterEdge > 0 ? 'good' : 'bad');
+
+  // EV
+  const evEl = document.getElementById('ev-per-round');
+  evEl.textContent = (ev > 0 ? '+$' : '-$') + Math.abs(ev).toFixed(2);
+  evEl.className = 'value ' + (ev > 0 ? 'green' : 'red');
+  document.getElementById('s-ev').className =
+    'stat ' + (ev > 0 ? 'good' : 'bad');
+
+  // 最大下注
+  document.getElementById('max-bet').textContent = '$' + ramp[5];
+  document.getElementById('s-ramp').className = 'stat good';
+
+  // 總評
+  renderVerdict(counterEdge, houseEdge);
+
+  // 影響表
+  renderImpactTable();
+
+  // Bet Ramp
+  renderRamp(ramp);
+}
+
+function renderVerdict(counterEdge, houseEdge) {
+  const el = document.getElementById('verdict-text');
+  const desc = document.getElementById('verdict-desc');
+
+  if (counterEdge >= 2.0) {
+    el.textContent = '🏆 頂級算牌環境';
+    el.style.color = 'var(--green)';
+    desc.textContent = `算牌客優勢 +${counterEdge.toFixed(2)}%，每局可賺 $${calcEV(4).toFixed(0)}。全力打。`;
+  } else if (counterEdge >= 1.0) {
+    el.textContent = '✅ 優秀算牌環境';
+    el.style.color = 'var(--green)';
+    desc.textContent = `算牌客優勢 +${counterEdge.toFixed(2)}%，值得投入。`;
+  } else if (counterEdge >= 0) {
+    el.textContent = '⚠️ 邊緣可打';
+    el.style.color = 'var(--gold)';
+    desc.textContent = `優勢僅 +${counterEdge.toFixed(2)}%，需極高精確度與大資金。`;
+  } else {
+    el.textContent = '💀 不可打';
+    el.style.color = 'var(--red)';
+    desc.textContent = `算牌客劣勢 ${counterEdge.toFixed(2)}%，算牌無法克服。直接離開。`;
+  }
+}
+
+function renderImpactTable() {
+  const rows = [
+    { name: '黑傑克賠付', val: state.payout === 1.5 ? '3:2' : state.payout === 1.2 ? '6:5' : '1:1',
+      impact: -EFFECT.payout[state.payout] },
+    { name: '莊家軟17', val: state.soft17,
+      impact: -EFFECT.soft17[state.soft17] },
+    { name: '投降', val: state.surrender ? '允許' : '不允許',
+      impact: -EFFECT.surrender[state.surrender] },
+    { name: 'DAS', val: state.das ? '允許' : '不允許',
+      impact: -EFFECT.das[state.das] },
+    { name: 'RSA', val: state.rsa ? '允許' : '不允許',
+      impact: -EFFECT.rsa[state.rsa] },
+    { name: '牌副數', val: state.decks + ' 副',
+      impact: -EFFECT.decks[state.decks] },
+  ];
+
+  const tbody = document.getElementById('impact-table');
+  tbody.innerHTML = rows.map(r => {
+    const cls = r.impact > 0.001 ? 'pos' : r.impact < -0.001 ? 'neg' : '';
+    const sign = r.impact > 0 ? '+' : '';
+    const badge = r.impact > 0.001 ? 'g' : r.impact < -0.001 ? 'r' : 'y';
+    return `<tr>
+      <td>${r.name}</td>
+      <td>${r.val} <span class="badge ${badge}">${r.impact > 0 ? '利' : r.impact < 0 ? '不利' : '中性'}</span></td>
+      <td class="num ${cls}">${sign}${r.impact.toFixed(2)}%</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderRamp(ramp) {
+  const maxBet = Math.max(...Object.values(ramp));
+  const container = document.getElementById('ramp-chart');
+  let html = '';
+  for (let tc = -2; tc <= 6; tc++) {
+    const bet = ramp[tc];
+    const width = (bet / maxBet) * 100;
+    const isHigh = tc >= 4;
+    html += `<div class="ramp-row">
+      <span class="ramp-tc">TC ${tc >= 0 ? '+' : ''}${tc}</span>
+      <div class="ramp-bar" style="width:${width}%;${isHigh ? 'background:linear-gradient(90deg,var(--gold),var(--red))' : ''}"></div>
+      <span class="ramp-val">$${bet}</span>
+    </div>`;
+  }
+  container.innerHTML = html;
+}
+
+/* ============================================================
+   互動
+   ============================================================ */
+function bindSeg(id, key, transform = v => v) {
+  const el = document.getElementById(id);
+  el.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      el.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state[key] = transform(btn.dataset.v);
+      render();
+    });
+  });
+  // 初始化 active
+  const defaultBtn = el.querySelector('button[data-v="' + state[key] + '"]')
+    || el.querySelector('button');
+  if (defaultBtn) defaultBtn.classList.add('active');
+}
+
+bindSeg('payout', 'payout', v => parseFloat(v));
+bindSeg('soft17', 'soft17');
+bindSeg('surrender', 'surrender', v => parseInt(v));
+bindSeg('das', 'das', v => parseInt(v));
+bindSeg('rsa', 'rsa', v => parseInt(v));
+bindSeg('pen', 'pen', v => parseFloat(v));
+
+document.getElementById('decks').addEventListener('change', e => {
+  state.decks = e.target.value;
+  render();
+});
+
+/* 快速情境 */
+function preset(type) {
+  const presets = {
+    best: { payout: 1.5, soft17: 'S17', surrender: 1, das: 1, rsa: 1, decks: '2', pen: 0.75 },
+    strip: { payout: 1.5, soft17: 'S17', surrender: 0, das: 1, rsa: 0, decks: '6', pen: 0.75 },
+    bad: { payout: 1.2, soft17: 'H17', surrender: 0, das: 0, rsa: 0, decks: '6', pen: 0.60 },
+  };
+  Object.assign(state, presets[type]);
+  // 同步 UI
+  syncUI();
+  render();
+}
+
+function syncUI() {
+  // payout
+  document.querySelectorAll('#payout button').forEach(b => {
+    b.classList.toggle('active', parseFloat(b.dataset.v) === state.payout);
+  });
+  document.querySelectorAll('#soft17 button').forEach(b => {
+    b.classList.toggle('active', b.dataset.v === state.soft17);
+  });
+  ['surrender', 'das', 'rsa'].forEach(key => {
+    document.querySelectorAll(`#${key} button`).forEach(b => {
+      b.classList.toggle('active', parseInt(b.dataset.v) === state[key]);
+    });
+  });
+  document.querySelectorAll('#pen button').forEach(b => {
+    b.classList.toggle('active', parseFloat(b.dataset.v) === state.pen);
+  });
+  document.getElementById('decks').value = state.decks;
+}
+
+/* 初始化 */
+syncUI();
+render();
+</script>
+
+</body>
+</html>
