@@ -157,7 +157,7 @@ const MusicPlayer = () => {
     },
     {
       buttons: [
-        { text: "21點分析器", filename: "Vegas高額桌分析器.html", isEnglish: false, isGame: true },
+        { text: "21點分析", filename: "Vegas高額桌分析器.html", isEnglish: false, isGame: true },
         { text: "井字棋", filename: "./xx.html", isEnglish: false, isGame: true },
         { text: "🐍", filename: "./snake1.html", isEnglish: false, isGame: true },
         { text: "🎮魔術方塊", filename: "./cude6c.html", isEnglish: true, isGame: true },
@@ -172,7 +172,7 @@ const MusicPlayer = () => {
         { text: "AI訓練", filename: "interactiveai/index.html", isEnglish: false, isGame: true },
         { text: "明明動了", filename: "git-viz.html", isEnglish: false, isGame: true },
         { text: "管線", filename: "pipe.html", isEnglish: false, isGame: true },
-        { text: "AI-tools", filename: "ai-tool.html", isEnglish: false, isGame: true },
+        { text: "錄異集", filename: "LUYI24.html", isEnglish: false, isGame: true },
         { text: "pop方程式", filename: "pop_music2.html", isEnglish: false, isGame: true },
         { text: "文字DNA編解碼", filename: "DNA_Cyper1.html", isEnglish: false, isGame: true },
         { text: "ClawOS", filename: "RELEASE_MANIFEST.html", isEnglish: false, isGame: true },
