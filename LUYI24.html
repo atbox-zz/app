@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>錄異集（道光二十四年刊本）</title>
+<style>
+  :root{
+    --paper:#f4ecd8;
+    --ink:#1a1a1a;
+    --line:#8b7355;
+    --red:#8b2e2e;
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:"Noto Serif TC","Source Han Serif TC","Songti TC",serif;
+    background:#d9cfb8;
+    color:var(--ink);
+    margin:0;padding:2rem 1rem;
+    line-height:1.9;
+  }
+  .book{
+    max-width:1100px;margin:0 auto;
+    background:var(--paper);
+    border:3px double var(--line);
+    box-shadow:0 0 24px rgba(0,0,0,.35);
+    padding:2.4rem 2rem;
+    position:relative;
+  }
+  /* 烏絲欄（行格） */
+  .book::before{
+    content:"";
+    position:absolute;inset:1.2rem;
+    border:1px solid rgba(139,115,85,.35);
+    pointer-events:none;
+  }
+  header{
+    text-align:center;
+    border-bottom:2px solid var(--line);
+    padding-bottom:1.4rem;margin-bottom:1.6rem;
+  }
+  h1{
+    font-size:2.6rem;letter-spacing:0.4em;
+    margin:0.4rem 0;color:var(--ink);
+    font-weight:700;
+  }
+  .subtitle{color:var(--red);font-size:1.1rem;letter-spacing:0.3em;}
+  .paiji{
+    display:inline-block;
+    border:2px solid var(--red);
+    color:var(--red);
+    padding:0.4rem 1.2rem;
+    font-size:0.95rem;
+    letter-spacing:0.25em;
+    margin-top:0.8rem;
+  }
+  .toc-wrap{
+    background:rgba(255,255,255,.35);
+    border:1px solid var(--line);
+    padding:1rem 1.4rem;margin-bottom:2rem;
+  }
+  .toc-title{
+    font-weight:bold;font-size:1.2rem;
+    letter-spacing:0.2em;color:var(--red);
+    margin-bottom:0.6rem;
+    border-bottom:1px solid var(--line);padding-bottom:0.4rem;
+  }
+  .toc a{
+    display:block;color:#3a2f1f;text-decoration:none;
+    padding:0.25rem 0;letter-spacing:0.05em;
+  }
+  .toc a:hover{color:var(--red);}
+  /* 豎排本文 */
+  .vertical{
+    writing-mode:vertical-rl;
+    text-orientation:upright;
+    height:auto;
+    max-height:78vh;
+    overflow-x:auto;
+    overflow-y:hidden;
+    padding:1rem 0.5rem;
+    margin:0 auto;
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+  }
+  .vertical p{
+    margin:0 0.6rem 0 0;
+    text-indent:0;
+    letter-spacing:0.08em;
+  }
+  /* 橫排區塊（凡例、表格、說明） */
+  .horizontal{writing-mode:horizontal-tb;}
+  .section{
+    border-bottom:1px solid rgba(139,115,85,.4);
+    padding:1rem 0;margin-bottom:0.5rem;
+  }
+  .section:last-child{border-bottom:none;}
+  .section-head{
+    cursor:pointer;
+    font-size:1.25rem;font-weight:bold;
+    color:var(--red);
+    letter-spacing:0.15em;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:0.3rem 0;
+  }
+  .section-content{padding-top:0.8rem;}
+  .collapse-icon{color:var(--line);font-size:1.1rem;}
+  h3{
+    color:var(--red);font-size:1.1rem;
+    letter-spacing:0.12em;
+    margin:1.2rem 0 0.6rem;
+    border-left:4px solid var(--red);
+    padding-left:0.6rem;
+  }
+  h4{color:#5a4a2f;font-size:1rem;letter-spacing:0.1em;margin:1rem 0 0.4rem;}
+  table{
+    width:100%;border-collapse:collapse;margin:1rem 0;
+    font-size:0.95rem;
+  }
+  table th,table td{
+    border:1px solid var(--line);
+    padding:0.45rem 0.6rem;
+    vertical-align:top;
+  }
+  table th{background:rgba(139,115,85,.15);letter-spacing:0.08em;}
+  .epigraph{
+    font-style:italic;color:#5a4a2f;
+    border-left:3px solid var(--red);
+    padding-left:0.8rem;margin:0.8rem 0;
+    letter-spacing:0.05em;
+  }
+  .paiji-end{
+    text-align:center;color:var(--red);
+    border:2px solid var(--red);
+    display:inline-block;
+    padding:0.6rem 1.6rem;
+    letter-spacing:0.3em;
+    margin:2rem auto 0;
+  }
+  footer{
+    margin-top:2rem;text-align:center;
+    color:#6b5b3f;font-size:0.9rem;
+    letter-spacing:0.15em;
+    border-top:1px solid var(--line);
+    padding-top:1rem;
+  }
+  /* 版心魚尾 */
+  .banxin{
+    text-align:center;
+    color:var(--line);
+    font-size:0.85rem;
+    letter-spacing:0.2em;
+    margin:1.2rem 0;
+  }
+  .banxin::before,.banxin::after{
+    content:"◆";
+    margin:0 0.6rem;
+    color:var(--red);
+  }
+  @media (max-width:720px){
+    .vertical{max-height:none;writing-mode:horizontal-tb;overflow:visible;}
+    .vertical p{margin:0 0 0.8rem;}
+    h1{font-size:1.9rem;letter-spacing:0.2em;}
+  }
+</style>
+</head>
+<body>
+<div class="book">
+
+<header>
+  <div class="section-content vertical">
+  <h1>錄異集</h1>
+  <div class="subtitle">道光二十四年　歲次甲辰</div>
+  <div class="paiji">姑蘇掃葉山房　鐫板</div>
+  </div>
+</header>
+
+<div class="toc-wrap vertical">
+<div class="toc-title">目　錄</div>
+<div class="toc">
+<a href="#preface">道光二十四年序</a>
+<a href="#fanli">凡例</a>
+<a href="#biblio">參考典籍總錄</a>
+<a href="#vol1">上卷　萬物靈化源流總綱</a>
+<a href="#vol2">中卷　精妖怪鬼魔仙品類詳解</a>
+<a href="#vol3">下卷　補充類別</a>
+<a href="#appendix1">附錄一　元天上帝斬妖科儀｜咒、符名稱與用途</a>
+<a href="#appendix2">附錄二　三界法力排行</a>
+<a href="#postscript">後跋</a>
+<a href="#juankuan">捐刊姓氏</a>
+<a href="#jiaozhi">校字姓氏</a>
+<a href="#colophon">刊刻牌記</a>
+</div>
+</div>
+
+<div class="banxin vertical">錄異集　卷首　一</div>
+
+<div class="section" id="preface">
+<div class="vertical">
+<div class="section-head" onclick="toggleSection(this)">道光二十四年序 <span class="collapse-icon">−</span></div>
+<div class="section-content">
+<p>天地一氣，分為陰陽。陰陽鼓鑄，化生萬彙。金石草木，歲久凝靈，是名為<strong>精</strong>；飛禽走獸，採氣煉形，是名為<strong>妖</strong>。異氣結形，預兆災殃，是名為<strong>怪</strong>；人身殞歿，魂魄滯留，是名為<strong>鬼</strong>。先天濁氣，惑道亂真，是名為<strong>魔</strong>；凡夫靈類，積功修證，超離生死，是名為<strong>仙</strong>。</p>
+<p>仙有品第，魔有部屬，神有職司，祟有種類。世人但聞斬妖除魔之名，罕辨精妖怪鬼之別。外魔易伏，心魔難降；妖形可誅，貪念難斷。元天上帝，受敕北極，掌雷霆之威，秉蕩魔之職，巡歷三界，察校萬靈。惡祟擾民則誅之，善靈守靜則容之；含冤陰魂則拔度，執惡魔眾則蕩平。</p>
+<p>此集匯集道藏丹經、古傳志怪、歷代善書，條分縷析，辨別萬靈源流，載仙品劫考，列魔王部屬，兼錄元帝科儀咒符、三界法力次第。非為炫法術之奇，實欲曉世人：<strong>斬妖，先斬心中之妖；除魔，先除念內之魔。</strong></p>
+<p>若能守善持正，滌除七情，則外邪不侵，百祟自遠。功行積累，可登仙階；一念偏邪，便墮妖籍。讀是集者，當知善惡有報，天道昭彰，勉行功德，毋墮邪徑。</p>
+<p>道光二十四年　歲次甲辰　仲秋　姑蘇掃葉山房主人　謹序</p>
+</div>
+</div>
+</div>
+
+<div class="section" id="fanli">
+<div class="section-content vertical">
+<div class="section-head" onclick="toggleSection(this)">凡例 <span class="collapse-icon">−</span></div>
+<li><strong>避諱</strong>：本朝避康熙聖祖諱，「玄」字改作「元」，故「玄天上帝」作「元天上帝」，「玄武」作「元武」，「玄帝」作「元帝」。避乾隆高宗諱，「曆」作「厯」。</li>
+<li><strong>用字</strong>：道經專字如「炁」仍舊，不從俗作「氣」；「錄」不從「录」；「靈」不從「灵」。</li>
+<li><strong>分類</strong>：凡萬靈分精、妖、怪、鬼、魔、仙六類，旁支有神、煞、魘、精魅、山靈地祇五目。</li>
+<li><strong>處置</strong>：凡元帝征討之規，悉依天條、陰律、地憲，不妄誅善靈，不縱容惡祟。</li>
+<li><strong>科儀</strong>：所載咒符，只錄名稱與用途，不載書符訣法。道法須有師承，無師妄行，反招咎譴。</li>
+<li><strong>刊刻</strong>：是本為姑蘇掃葉山房所鐫，板藏本堂，願四方善信助資印送，廣結善緣。</li>
+<li><strong>上網</strong>：民國一百一十五年　歲次丙午　仲秋十月國慶　抖音 無所有想　</p>
+</div>
+</div>
+
+<div class="section" id="biblio">
+<div class="section-content vertical">
+<div class="section-head" onclick="toggleSection(this)">參考典籍總錄 <span class="collapse-icon">−</span></div>
+<p>凡本集所載義理、品級、靈類、劫運、科儀咒符，悉本下列經籍。分為【道藏真經丹典】、【道法科儀總集】、【古志怪稗史】、【明清勸善善書與鸞文】四類，條列於後。</p>
+<h3>一、道藏真經丹典</h3>
+<li><strong>《鍾呂傳道集》</strong>，五代。內丹五仙品級、修煉次第、內外諸劫之本源，辨鬼仙、人仙、地仙、神仙、天仙五等果位。</li>
+<li><strong>《西山群仙會真記》</strong>，唐宋。詳載煉精化氣、煉氣化神、煉神還虛，修仙歷劫、洞天隱修之義。</li>
+<li><strong>《靈寶無量度人上品妙經》</strong>（亦名《元始無量度人上品妙經》），古靈寶經。記五帝大魔、天魔試道、天地劫運、三界仙真職司。</li>
+<li><strong>《元始天尊說北方真武妙經》</strong>，《正統道藏》洞神部。載元天上帝受命蕩魔、洞陰大戰、降伏六天魔王、龜蛇二將緣起。</li>
+<li><strong>《太上說元天大聖真武本傳神咒妙經》</strong>，南宋。元帝本傳、召聖神咒、八十二化、剪妖伏魔之科儀出處。</li>
+<li><strong>《太上洞淵神咒經》</strong>，洞淵派古經。疫鬼、毒魔、山澤邪祟、驅邪伐祟科法之淵源，詳述陰魔擾人之事。</li>
+<li><strong>《太上女青鬼律》</strong>，古道經。羅列萬鬼名目，陰間鬼類規制、注鬼、厲鬼條例，為辨鬼之根本典籍。</li>
+<h3>二、道法科儀總集</h3>
+<p><strong>《道法會元》</strong>，元明彙編道法巨書。收北真雷法、真武伐妖科、召將遣神、雷劫考校、符籙咒訣，本集附錄咒符、斬妖科儀皆取材於此。</p>
+<h3>三、古志怪稗史（辨精、怪、鬼魅物類）</h3>
+<li><strong>《搜神記》</strong>，晉·干寶。記木精、山怪、精魅、異祟，為魏晉靈物故事之總集。</li>
+<li><strong>《太平廣記》</strong>，宋·李昉等編。廣收歷代精、妖、器物魅、水怪傳聞，補充萬物凝靈事跡。</li>
+<h3>四、明清勸善善書與鸞文</h3>
+<li><strong>《元天上帝金科玉律真經》</strong>，元天上帝善書，載蕩魔勸善、善惡考校之義。</li>
+<li><strong>《玉厯寶鈔》</strong>，民間流傳善書，述陰司審判、厲鬼因果、輪迴報應。</li>
+<li><strong>《關聖帝君覺世真經》</strong>，勸善寶訓，明善惡、功德之理，與元帝經義互參。</li>
+<div class="epigraph">
+右列諸書，為本集採摭之源。道藏經典為骨，丹書為修證之準，志怪備物類之形，善書明勸戒之旨。非徒侈談神異，用以分辨萬靈，曉知善惡，內斬心魔，外袪邪祟。讀者當以義理為重，勿專執法術、靈異之跡。
+</div>
+</div>
+</div>
+
+<div class="banxin vertical">錄異集　上卷　一</div>
+
+<div class="section" id="vol1">
+<div class="section-content vertical">
+<div class="section-head" onclick="toggleSection(this)">上卷　萬物靈化源流總綱 <span class="collapse-icon">−</span></div>
+<h3>第一章　萬物靈化源流</h3>
+<p>天地肇判，陰陽奠位。太極一炁，散為萬物。清炁上浮，為天、為星、為仙真；濁炁下凝，為地、為山川、為含靈。萬彙之中，有知無知，隨氣而化，各有根由。總分六類：精、妖、怪、鬼、魔、仙；復有神、煞、魘、精魅、山靈地祇為旁支。</p>
+<p>夫<strong>精</strong>者，金石草木、古器舊物，歷歲深久，積蓄靈炁，而生微靈。非生靈之類，不假血肉。靈炁聚則現，靈炁散則消。多無害人之心，惟少數精魅，喜幻惑人目，亂人心神。若不擾世，仙神不妄加誅戮；一旦惑人害命，便觸犯天條，遣地祇驅遣，散其靈氣。</p>
+<p>夫<strong>妖</strong>者，飛禽走獸、水族蟲鱗，本屬含識畜生。若宿有善根，厭離輪迴，採取天地陰陽之炁，歷數百千年修煉，凝煉丹元，便能幻化人形，通曉幻術。妖根基帶獸類濁氣，與人修大不相同，有善惡二路。每五百年逢小雷劫，千年遇九天大雷劫。渡劫功成，脫妖籍入仙班；惡業滿盈，天雷擊散，元帝寶劍斬丹。</p>
+<p>夫<strong>怪</strong>者，天地乖戾異炁，聚而成形，不事修煉，本無丹元。怪一出現，即是災兆，預示大火、洪水、瘟疫、兵戈亂世。怪沒有丹元，不能積功修行，災運過去，兇氣消散，怪便自行隱滅。徒斬其形，災不能絕，必鎮地脈，斷其濁炁本源。</p>
+<p>夫<strong>鬼</strong>者，人身命終，魂魄不散，未赴冥府輪迴，滯留陽世，是為陰靈。純陰無質，不具血肉。善鬼安分等候輪迴；含冤莫白者為厲鬼，索報尋仇。鬼歸酆都、十閻羅統轄。陰魂若獨修陰功，久而有成，名為鬼仙，是仙品之下乘，僅遊陰陽，不得登天。</p>
+<p>夫<strong>魔</strong>者，先天劫濁之炁，或眾生貪嗔痴念幻化而成。無固定形體，專亂道心，惑真亂正。分天魔、地魔、心魔三大類。天魔不傷肉身，專幻諸相，動搖道心，縱天仙高真，亦須歷魔考。心魔生於一念，外魔易除，心魔最難斬。</p>
+<p>夫<strong>仙</strong>者，凡夫、善妖、陰魂，積三千功、八百行，歷劫修證，超出生死輪迴。仙分五品：鬼仙、人仙、地仙、神仙、天仙。另有散仙、水仙。</p>
+<p>旁支之中，<strong>神</strong>有先天、後天之別。先天真神，本自道炁化生；後天神，忠臣孝子有德之人歿後，天庭冊封。<strong>煞</strong>為天地兇戾之炁，無靈識。<strong>魘</strong>，夢中陰幻擾人之祟。<strong>精魅</strong>，精之支流，以幻相惑人。<strong>山靈、地祇</strong>，受敕守護一方水土，屬正神。</p>
+<p>萬靈流轉，自有定規。精修可化為妖，妖積善渡劫可證仙；人死為鬼，鬼苦修可成鬼仙。魔若悔悟受度，亦可超拔；仙若道心墮落，功行毀敗，亦會墮落。</p>
+<p>三界大法：不妄殺善靈，不縱容惡祟。元天上帝，北極之主，掌雷霆、司蕩魔。惡妖、厲鬼、亂世邪魔，奉旨誅伐；善靈安分，則容其隱修。</p>
+<p>世人讀此篇，當知：<strong>外有邪魔妖祟，內有七情心魔。外祟可仗真神法威驅除，心魔唯有自覺自斬。</strong>能斷心中貪嗔，便是守道根本。</p>
+<div class="epigraph">此章為全書總綱，辨萬靈之本源。後卷分章，詳述各類情狀、神通、善惡、劫難，以及元帝征討之規。</div>
+</div>
+<div class="section-content vertical">
+<h3>第二章　三界征討總規</h3>
+<p>三界者，天界、地界、陰冥之界。萬靈雜處，各守條律，有天條以繩仙神，有陰律以治鬼魅，有地憲以約山川精怪。元天上帝，北極元帥，秉元始之敕，總雷霆之師，巡行宇內，察校善惡，掌蕩魔伐妖之職。征討之規，非恃威濫誅，乃循天道公法，條列於下。</p>
+<p><strong>第一規：辨善惡而後行誅。</strong><br>凡靈類，不論精、妖、鬼、怪，不擾民生、不犯天條，隱居靜守，仙神不主動尋討。若傷人性命、竊奪元氣、散播瘟疫、挑動兵亂、蠱惑世人作惡，是為惡祟，方奉旨施行征討。善妖、山精安分潛修，雖屬陰類，亦容其積功待劫，不妄加誅戮。</p>
+<p><strong>第二規：區分可度、不可度。</strong><br>邪魔鬼魅，有可教化者，有執惡不悛者。含冤厲鬼，多因宿怨纏結，先施拔度超薦，解其冤結，遣歸冥府聽判；若惡魔惡妖，業根深重，屢勸不改，殘害生靈，則雷霆擊之、寶劍斬之，斷其靈根。天魔本職試道，若非亂世害民，不輕興兵誅伐。</p>
+<p><strong>第三規：各司所屬，不越權行事。</strong><br>天界天仙、雷部天君，掌跨界蕩魔，征討大魔王、千年巨惡妖。地仙、高功法師，只可鎮山澤精怪、凡間厲鬼。城隍、土地、山神、水祇，為一方正神，先察境內祟患，申報上界，等候敕命，不可私行誅戮。冥府鬼神專司鬼魂審判，不隨便干預陽世妖祟。</p>
+<p><strong>第四規：誅伐有別，不盡滅形神。</strong><br>妖有丹元，惡妖害人，雷火斬其丹，散其靈炁；鬼本陰魂，作惡者多拘押酆都，依陰律受報，非一概消滅。怪由災炁凝聚，斬其異形無益，必要鎮地脈、化解兇濁之氣，災禍方止。煞是戾氣，無靈無識，只可化煞、鎮煞，不可誅殺。</p>
+<p><strong>第五規：功過考核，劫至定評。</strong><br>天地每逢大劫，便考校萬靈。仙真驗其功德，妖類查其善惡。行善者，劫難之中有護持；造惡者，劫至受誅。仙雖證天仙果位，道心一敗，功德虧損，亦會墮落；妖若千載積善，渡過雷劫，便可脫妖籍，入仙班。</p>
+<p><strong>第六規：外伐邪魔，內重自修。</strong><br>仙神斬妖除魔，雖有天職，亦須守道持心。若恃神通好殺，濫傷善靈，便是違犯天條，反招罪譴。世人觀斬妖之事，不可只慕法術威猛。經書有言：<strong>外妖易斬，心魔難除。</strong>若能自斷貪嗔痴愛，則百邪遠離，不待召神遣將。</p>
+<div class="epigraph">此章載三界執法綱要，為元帝與諸天將帥伐祟準則。下章列總覽簡表，方便讀者一覽萬靈區別。</div>
+</div>
+<div class="section-content vertical">
+<h3>第三章　六大類簡化總覽表</h3>
+<table>
+<thead>
+<tr><th>類別</th><th>本源</th><th>有無血肉形軀</th><th>善惡分野</th><th>元天上帝處置準則</th></tr>
+</thead>
+<tbody>
+<tr><td>精</td><td>草木、金石、古舊器物，歲久積靈</td><td>無實血肉，靈炁凝聚而成</td><td>大多無惡，少數化精魅惑人</td><td>勸諭驅散，斷其依附之氣，不輕斬</td></tr>
+<tr><td>妖</td><td>禽獸水族，採氣修煉，煉成丹元</td><td>可幻化肉身本體</td><td>有善妖、惡妖兩途</td><td>惡妖劍斬雷擊，破其丹元；善妖許其隱修、度化</td></tr>
+<tr><td>怪</td><td>天地乖戾異濁之氣凝結成形</td><td>具異形肉體，不修煉、無丹元</td><td>屬災兆之象，現則災至</td><td>鎮地脈、斷災炁本源，不以斬形為主</td></tr>
+<tr><td>鬼</td><td>人身歿後魂魄不散，滯留陽間</td><td>純陰無實體，陰靈之質</td><td>善鬼等候輪迴；厲鬼含冤害人</td><td>善鬼拔度超薦；惡厲拘送酆都，依陰律判罪</td></tr>
+<tr><td>魔</td><td>先天劫濁舊炁，或眾生心念幻生</td><td>無固定形體，以神炁為本</td><td>天魔有試道之用；亂世魔眾執惡禍民</td><td>可度者教化；執惡不悛者，蕩除魔炁</td></tr>
+<tr><td>仙</td><td>凡夫、善妖、陰魂積功修證</td><td>陽神或長生肉身，鬼仙僅陰神</td><td>以護道行善為本</td><td>同為正道，共承天職，征討邪魔惡祟</td></tr>
+<tr><td>神</td><td>道炁化生，或人死後受天庭敕封</td><td>隨感而顯，無定質</td><td>恪守天條，護持一方</td><td>天界執法尊神，統領地祇，勘察妖祟</td></tr>
+<tr><td>煞</td><td>天地兇戾之氣</td><td>無靈智，僅一股戾氣</td><td>純凶，衝犯則招災病</td><td>鎮煞化氣，無誅伐之理</td></tr>
+</tbody>
+</table>
+<div class="epigraph">此表提綱挈領，分辨萬靈大要。細微品類、神通劫考，詳見中卷各篇。</div>
+</div>
+</div>
+
+<div class="banxin vertical">錄異集　中卷　一</div>
+<div class="section" id="vol2">
+<div class="section-content vertical">
+<div class="section-head" onclick="toggleSection(this)">中卷　精妖怪鬼魔仙品類詳解 <span class="collapse-icon">−</span></div>
+<h3>第一章　精｜萬物久靈，草木金石器物之靈</h3>
+<p>天地之間，不獨有情眾生能生靈知。金石、古木、舊器，歷經百千年，受日月雨露薰陶，積聚靈炁，久而能感，是名為精。精非血肉之軀，靈炁聚則顯現，靈炁耗散則歸於無形。</p>
+<p><strong>品類</strong></p>
+<li>木精：古槐、老樟、柏、桑，年代久遠而生靈。常化老翁、婦人，善惑人耳目，多在深山古塚之側。</li>
+<li>草藥精：人參、茯苓、何首烏等靈草，採日月精華，常化童子、老者，多無害人之意，遇人則隱。</li>
+<li>石精：大山巨石，歲久凝靈。《女青鬼律》載石精瓌肉子，居巖穴，不常出擾人。</li>
+<li>水澤精：螺、蚌、泉澤微靈，田螺精為世所傳，多棲息溪澗。</li>
+<li>器物精：古鏡、銅鼎、舊傘、古鐘，藏於古屋墳庫，年深而生靈，多以幻相驚人。</li>
+<li>慶忌（涸澤精）：澤水枯竭而生，長三寸，馬首人身，能馳千里，傳可傳遞訊息。</li>
+<p>精之靈根淺薄，少有深遠貪毒之心。大多只求安住本處，吸日月之炁。少數為<strong>精魅</strong>，專擅幻術，惑亂人心，誘人沉迷。</p>
+<p>精若不傷人命，只是顯相驚人，仙神、地祇多勸諭，令其離開人居之地，散其依附靈氣。一旦奪人魂魄、傷害生靈，便屬觸犯天條，元天遣地祇、山神收攝。</p>
+<p><strong>元帝處置之法</strong><br>不輕施雷劍，先召當境山神、土地勘究其蹤。善言勸離，斷其依附的草木器物之根。若執意害人，以收祟符攝其靈炁，令其消散。</p>
+<div class="epigraph">精為萬物初靈，尚未入獸類修煉之道。若靈炁不斷，長久修持，方有機緣化為妖。</div>
+</div>
+<div class="section-content vertical">
+<h3>第二章　妖｜禽獸修煉，煉氣化形</h3>
+<p>飛禽走獸、水族蟲鱗，本屬含識畜生。若宿有善根，厭離輪迴，採取天地陰陽之炁，歷數百載修煉，凝煉丹元，便能幻化人形，通曉幻術，此即為妖。妖根基帶獸類濁氣，與人修大不相同，有善惡二路。</p>
+<p><strong>品類</strong><br>狐妖：百歲能幻，千歲通天，九尾狐為妖中極品，幻術最勝。<br>蛇妖：水澤巨妖，善吐毒霧。龜蛇二將未歸元帝之前，便是此類巨妖。<br>狸妖（野貍）：心性狡黠，擅媚幻，常化女子惑世。<br>虎妖：山中猛虎修煉，化武夫，膂力雄強。<br>鼉妖、鱉妖：居大川深潭，能興洪水，淹沒村舍。<br>雉妖：山雉採山靈之炁，善媚惑。<br>猴妖：靈捷多詭，善模仿人類。<br>龍妖：龍類未受天庭敕封，屬妖；功德圓滿受封，轉為水仙。</p>
+<p><strong>妖之修煉與劫數</strong><br>妖體陰濁，獸性難除，修途多險。<strong>每五百年逢小雷劫，千年遇九天大雷劫。</strong><br>五百年小雷劫，天雷洗煉獸性濁氣，大半妖修斃於此劫。<br>千年九天大雷劫，是脫妖籍登仙的關鍵。<br>行善積德，不傷生靈：天雷只煉其形，洗除濁質，渡劫成功，脫妖籍入仙班。<br>奪人元、害生民、興妖禍：雷部天雷誅擊，元天七星劍斬丹，靈根斷絕。</p>
+<p>妖心魔遠重於人修，貪情、貪元、貪享樂，一念墮落，便走旁門邪徑，永遠不得入仙籍。</p>
+<p><strong>元帝處置準則</strong><br>善妖隱居山澤不擾人，不加討伐。惡妖禍亂鄉里，元帝親領雷部，以七星寶劍斬妖丹，雷火焚其形；若肯歸降改過，亦可錄為將吏，如龜蛇二將之例。</p>
+<div class="epigraph">妖雖獸類，性可遷善。禍福不在種類，只在一心善惡。</div>
+</div>
+<div class="section-content vertical">
+<h3>第三章　怪｜異氣成形，災兆之物</h3>
+<p>怪非生靈修煉而成，乃是天地乖戾、陰陽失序，濁異之氣聚結成形。不修煉，無丹元，沒有長期修煉之功。怪一出現，即是災兆，預示大火、洪水、瘟疫、兵戈亂世。</p>
+<p><strong>品類</strong><br>魑魅：山間惡怪，藏林莽，伺機害人。<br>魍魎：水澤小怪，善仿人聲，引誘路人墜水。<br>罔象：水中巨怪，喜吞人。<br>山魈：獨足山怪，竊盜器物，擾亂民居。<br>五酉：五行老物所化之怪，萬物到老，濁氣凝結，皆可化五酉。<br>畢方：單足火鳥之怪，一旦顯現，必有大火燎原。<br>雍和：猿形異怪，現則國有驚亂、戰爭兵禍。<br>無支祁：淮水巨水怪，力可移山，擅控水勢。</p>
+<p>怪是災炁顯相，就算斬殺當下異形，根源的兇氣未消，災禍依舊會來。故治怪不重在斬形，重在鎮住地脈，斷絕濁炁本源，災禍方息。怪沒有丹元，不能積功修行，災運過去，兇氣消散，怪便自行隱滅。</p>
+<p><strong>元帝處置之法</strong><br>遣山神、水神鎮守地脈，安土鎮煞，化解天地乖戾之氣，斷災禍根本。若怪當下傷人，遣將暫時拘鎖，待災氣平息。</p>
+<div class="epigraph">怪者，災之徵。災由人事、天運感召而生，非怪獨能為禍。人修善，則兇氣自消。</div>
+</div>
+<div class="section-content vertical">
+<h3>第四章　鬼｜人死陰魂，陰間眾靈</h3>
+<p>人有血肉，命盡則形軀朽壞。魂魄若不能即時赴冥府輪迴，滯留陽世，便是鬼。鬼為純陰之靈，無血肉實體，歸酆都、十閻羅統轄，依陰律審判善惡。</p>
+<p><strong>品類</strong></p>
+<li>厲鬼：枉死、含冤負屈，怨氣盤結，尋仇索命。</li>
+<li>疫鬼：古傳顓頊三子死化三疫鬼，疟鬼、魍魎鬼、驚小兒鬼，散播瘟疫災病。</li>
+<li>餓鬼：六道之鬼，腹大咽細，長年飢渴，無食可充。</li>
+<li>枉死鬼：縊死、溺水、刀傷橫死者，滯留人間，常覓替身。</li>
+<li>殤鬼：未成年夭折孩童之魂。</li>
+<li>注鬼：傳病之鬼，附人身，轉染疾患。</li>
+<li>家鬼：祖先亡靈，多護佑子孫；無供養則生擾亂。</li>
+<li>遊鬼：孤魂無依，漂泊荒野，無棲身之所。</li>
+<li>墓鬼：久居墳塚之陰靈，守墓不去。</li>
+<p>善鬼安靜等候陰司傳喚，準備輪迴。含冤厲鬼，多是宿業牽纏，情有可憫；若是作惡害人，拘入地獄受刑。<br>鬼若於陰間苦修陰功，長久不退，可證<strong>鬼仙</strong>，是仙品最下一等。只能遊走陰陽二界，不能登天。</p>
+<p><strong>元帝處置之法</strong><br>冤魂厲鬼，設齋拔度，解開宿冤，引歸冥府。怙惡害人的惡厲，遣將拘拿，押送酆都，聽閻君判罰，不輕滅其神識。</p>
+<div class="epigraph">鬼本是人亡之魂，善惡皆是生前業力所招。超薦之義，在解冤釋結。</div>
+</div>
+<div class="section-content vertical">
+<h3>第五章　魔｜劫氣邪魔，試道亂世之宗</h3>
+<p>魔與妖、鬼、精、怪全然不同。魔不是血肉、不是死魂，乃是天地先天劫濁之炁，或是眾生貪嗔痴念幻化而成。無固定形體，專亂道心，惑真亂正。分為天魔、地魔、心魔三大類。</p>
+<h4>魔王體系</h4>
+<li><strong>五帝大魔王</strong>：與天地同生，統億萬魔兵，職司試煉仙真。非必為惡，考校修士道心，受元始天尊教化。</li>
+<li><strong>六天魔王</strong>：掌六天故氣，人間邪魔之總元。昔於洞陰之野大戰元天上帝，敗後麾下龜蛇二妖歸降，成為元帝座下二大將。</li>
+<li><strong>五天魔王</strong>：青天、赤天、白天、黑天、黃天魔王，阻礙仙真登真，為天界道考之魔。</li>
+<li><strong>北酆大魔王</strong>：酆都羅山陰魔總帥，統領陰間魔兵，放疫祟、蠱毒禍世。</li>
+<li><strong>洞淵諸魔王</strong>：天羅魔王、地羅魔王、毒魔王、疫魔王，散佈瘟毒、妖祟。</li>
+<h4>十魔總論（出自靈寶大法）</h4>
+<p>天魔、地魔、人魔、鬼魔、神魔、陽魔、陰魔、病魔、妖魔、境魔。<br>天魔：天界幻相，考校高真，不傷肉身，專亂道心。<br>地魔：地下濁炁所生，山川陰祟。<br>人魔：人間親眷、財色名位，牽絆修道之人。<br>鬼魔：陰鬼擾亂靜修之士。<br>神魔：假託神靈，惑亂世人。<br>陽魔：俗世親情牽纏，阻礙入道。<br>陰魔：夢魘、夜中幻相，入靜所遇。<br>病魔：身體疾患，磨煉修士。<br>妖魔：妖類協同，誘人入邪道。<br>境魔：周遭境遇幻化，動搖一念。</p>
+<p>心魔最為隱微，起於一念之間。外魔可仗神咒、法兵驅除，心魔唯有自覺方能斬斷。縱是天仙，遇天魔大考，道心一動，亦會墮落。</p>
+<p><strong>元帝處置準則</strong><br>天魔承命試道，不妄誅。若魔王執惡，發動魔兵禍亂三界，元帝奉旨蕩魔，鎮伏魔炁，可度者教化，冥頑不化者滅其魔根。</p>
+<div class="epigraph">魔之患，不在殺伐，而在亂心。修道人能守定本心，萬魔自退。</div>
+</div>
+<div class="section-content vertical">
+<h3>第六章　仙｜修煉證果，長生脫離輪迴</h3>
+<p>仙者，凡夫、善妖、陰魂，積三千功、八百行，歷劫修證，超出生死輪迴。仙有五品，由低至高為鬼仙、人仙、地仙、神仙、天仙；另有散仙、水仙二類附於其後。</p>
+
+<h4>仙類品級排行</h4>
+<table>
+<thead>
+<tr><th>排名</th><th>仙品</th><th>代表</th><th>核心能力</th><th>法力上限</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>天仙（受天敕封）</td><td>元天上帝、太乙救苦天尊、雷部諸大天君</td><td>長生無壞，掌天職，調天兵雷霆，跨三界蕩魔</td><td>可征五帝大魔、六天魔王</td></tr>
+<tr><td>2</td><td>神仙（陽神大成）</td><td>許旌陽、薩守堅、證道八仙</td><td>陽神出入虛無，變化萬端，召雷斬祟，遊歷洞天</td><td>可戰酆都魔帥、洞淵魔王</td></tr>
+<tr><td>3</td><td>地仙</td><td>赤松子、黃石公、各大洞天真人</td><td>肉身長生，居名山洞府，通丹法、召地祇山神</td><td>平定山澤巨妖精怪，難抗天魔</td></tr>
+<tr><td>4</td><td>人仙</td><td>世間高道、隱世修煉之士</td><td>祛病延年，小護身法術，凡胎未脫</td><td>驅小鬼小精魅，不能敵大妖魔王</td></tr>
+<tr><td>5</td><td>鬼仙（陰仙，下乘）</td><td>山間陰修亡魂仙</td><td>陰神靈通，僅能遊走陰陽，無法登天</td><td>只可對付普通鬼魅</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section-content vertical">
+<p>補充：<br><strong>散仙</strong>：得道長生，但無天庭敕封，無天兵調遣。神通等同神仙或地仙，天地大劫只能自渡，無天界援護。<br><strong>水仙</strong>：棲於江海水府，河伯、水府真人屬此類；龍妖立功受敕封，可轉水仙。</p>
+<h4>修仙完整階段與歷劫</h4>
+<p><strong>凡夫階</strong>：凡胎受七情六欲束縛，有生老病死。發道心，修導引、存思，為入道起點。歷劫：人劫，親眷阻撓、財色誘惑（人魔、陽魔）。<br><strong>人仙階</strong>：五臟安和，百病消除，延年益壽；但凡胎未脫，壽數仍有盡頭。歷劫：病劫、初層心魔考驗。多數修士止步於此。<br><strong>地仙階</strong>：煉精化氣、煉氣化神，肉身長生，常住洞天福地，不再衰老，但難自由登天。歷劫：地劫、內外水火劫。外為山崩洪水；內為身中水火，煉除陰濁。可選擇停於洞天，或是繼續進修。<br><strong>神仙階</strong>：煉神還虛，陽神成就，脫凡胎，隱顯自在，習召雷遣將、伐祟之法。歷劫：天雷大劫、天魔大考。天雷洗煉濁氣；天魔幻相亂道心，道心崩毀則前功盡棄。妖修欲登仙，必渡此劫。<br><strong>天仙階</strong>：功行圓滿，三千功八百行具足，受天帝詔，朝謁元始，領天職，入天界。歷劫：天地末劫考校。大劫之時，奉旨下凡斬妖救劫，蕩除魔眾。</p>
+<h4>仙、妖各類劫難詳解</h4>
+<p><strong>甲、人修五劫</strong><br>一.心魔劫：十魔之首，幻現財色、名權、親情、恐懼，毀壞道心，最難渡。<br>
+  二.雷劫：天雷洗煉身中陰濁，功行不足，神形潰散。<br>三.水火劫：外有洪水大火災；內為身中水火，煉化濁質。<br>
+  四.人劫（俗劫）：人間戰亂仇怨、親人阻道，考驗定力慈悲。<br>五.陰魔劫：夢魘、厲鬼擾壇，入靜時幻相惑人。</p>
+<p><strong>乙、妖修五劫（先天陰濁，難度更高）</strong><br>一.五百年小雷劫：每五百年天雷考煉，除去獸性陰氣，大量妖斃於此劫。
+  <br>二.千年九天大雷劫：欲脫妖籍成仙必渡。行善積功，雷只煉形；害人則雷誅劍斬，元帝、雷部主考。
+  <br>三.心魔劫：妖類貪欲根深，易迷戀人間情慾、人元，一念墮邪。<br>四.法難劫：遭遇正道仙真、元天上帝、雷法官師，惡妖被誅斬。
+  <br>五.斷道劫：同類邪魔引誘，走入旁門邪法，永遠失去登仙資格。</p>
+<p><strong>丙、魔劫（仙妖高階同遇）</strong><br>天魔降下幻境，不傷肉體，專壞道心，五帝大魔即是此類試道之魔。</p>
+<div class="epigraph">仙果非單憑丹法可得，功德為根基。有術無德，縱通法術，難證真仙。</div>
+</div>
+</div>
+</div>
+<div class="banxin vertical">錄異集　下卷　一</div>
+
+<div class="section" id="vol3">
+<div class="section-content vertical">
+<div class="section-head" onclick="toggleSection(this)">下卷　補充類別 <span class="collapse-icon">−</span></div>
+<h3>第一章　神｜先天真神、後天受封正神</h3>
+<p>神分兩類：先天真神，後天封賜正神。<br><strong>先天真神</strong>：本自道炁化生，不經由凡夫、妖類修煉而成。元始天尊、太上老君、元天上帝、太乙救苦天尊皆屬此類。位階高於仙品，掌天地大法，統御萬靈，可征討魔王巨妖。</p>
+<p><strong>後天正神</strong>：忠臣、孝子、有德之人歿後，功德顯著，天庭下敕冊封。城隍、土地、山神、河神、關聖帝君皆是。後天神本是人魂，受封之後，領一方職司，護佑境內生民，稽查境內妖祟，申報上界，不得私行誅戮。</p>
+<p>仙可以積功受封，轉為正神；神若卸職，亦可隱修為散仙。但先天真神，非修煉所得，與後天封神、修證之仙，不可混為一談。</p>
+<div class="epigraph">神有職守，受天條約束。居神位而不行善，亦會削職貶謫。</div>
+
+<h3>第二章　煞｜天地兇戾無靈之氣</h3>
+<p>煞不是鬼，不是妖，沒有靈識，乃是天地陰陽乖戾而生的兇戾之炁。三煞、五黃、歲破、白虎，皆屬此類。<br>煞無自主思維，不能幻化人形，不主動害人。人若衝犯這股兇氣，便招病、禍、傷災。<br>治煞之道，以鎮、化、安為主。元帝科儀中有鎮煞法，化解戾氣，不可以誅伐論。</p>
+<div class="epigraph">煞純為氣，無善惡之心。災禍乃是人衝兇氣所感，非煞有意加害。</div>
+
+<h3>第三章　魘｜夢中陰幻擾人之祟</h3>
+<p>魘，俗名夢魘。多由陰魔、小鬼，於人眠睡之時，以陰炁幻相擾人。使人臥中驚恐，身軀沉重不能動彈，耳聞異聲，心生恐怖。<br>魘不是實體鬼怪，是陰炁所生幻相，歸屬陰魔一類。元帝伏魘咒、鎮壇符，可驅散此類陰氣。若常被魘擾，當修心守正，安定神魂，陰邪自遠。</p>
+<div class="epigraph">魘為陰氣亂神。心神安定，陽炁充盛，陰祟不能侵。</div>
+
+<h3>第四章　精魅｜專以幻相惑人的精之分支</h3>
+<p>精魅屬精的支流。草木古物之精，不圖傷命，專以幻相惑亂世人。幻成美色、親人、寶物，引誘人心，耗損人的元氣。<br>精魅與惡妖不同，大多不煉丹，不以奪命為首要，重在蠱惑心神。一旦使人神魂虧損至死，便觸犯天條，元帝遣地祇收攝，散其靈氣。</p>
+<div class="epigraph">精魅惑人，多是人心貪著，方為所乘。心無貪念，幻相無所依附。</div>
+
+<h3>第五章　山靈、地祇｜一方水土正靈</h3>
+<p>山靈、地祇，受天庭敕封，鎮守一方水土，屬正神，不可與山野無封的山精混為一類。<br>山神主一山，土地主一鄉，河神主一川。掌境內山川、人畜，察境內精、妖、怪動靜，一有惡祟擾民，申報上界，協助元帝、雷部搜捕邪祟。<br>山精是無職野靈，地祇是有敕正神，一邪一正，大有分別。</p>
+<div class="epigraph">地祇為守土之神，輔助上界，巡察萬靈，為斬妖伐祟的耳目。</div>
+</div>
+</div>
+
+<div class="banxin vertical">錄異集　附錄　一</div>
+
+<div class="section" id="appendix1">
+<div class="section-content vertical">
+<div class="section-head" onclick="toggleSection(this)">附錄一　元天上帝斬妖科儀｜咒、符名稱與用途 <span class="collapse-icon">−</span></div>
+<h3>一、核心神咒</h3>
+<p><strong>元天上帝本咒（真武本傳神咒）</strong><br>北方元天，杳杳神君，億千變化<br>元武靈真，騰天倒地，驅雷奔雲<br>隊仗千萬，掃蕩妖氣，雷公侍從<br>玉女將軍，鬼神降伏，龍虎潛奔<br>威鎮五嶽，萬靈感遵，鳴鐘擊鼓<br>遊行乾坤，收捕逆鬼，推斬魔群<br>除邪輔正，通氣常臻<br>急急如元始上帝律令敕<br>用途：壇上召請真武，蕩除壇場一切妖氛、邪魔、厲鬼，斬妖科儀主咒。</p>
+
+<p><strong>元天寶誥</strong><br>志心皈命禮<br>混元六天，傳法教主。修真悟道，濟度群迷。普為眾生，消除災障。八十二化，三教祖師。大慈大悲，救苦救難。三元都總管，九天游奕使。佐北極右垣大將軍。鎮天助順，真武靈應，福德衍慶，仁慈正烈，協運真君。治世福神，玉虛師相，元天上帝，金闕化身，盪魔天尊。<br>用途：朝科啟壇，恭請真武降臨，元帝一切法事必誦。</p>
+
+<p><strong>召龜蛇二將咒</strong><br>北方黑炁，元武大神，龜蛇二將，水火將軍。<br>速來壇下，聽吾號令，擒捉妖祟，毋得稽停。<br>急急如元天上帝律令敕<br>用途：召喚座下龜蛇二將，捆縛妖魅、鎮壓地中陰魔。</p>
+
+<p><strong>收山魈精魅咒</strong><br>北帝敕下，元武行兵，山精木魅，速現真形。<br>敢有拒逆，雷火焚形。<br>急急如律令<br>用途：專治山魈、樹精、山野精魅。</p>
+
+<p><strong>伏厲鬼咒</strong><br>元天有敕，北極威靈，一切厲鬼，不得擾人。<br>冤者受度，惡者拘刑，速赴酆都，毋得久停。<br>急急如律令<br>用途：對付枉死厲鬼、疫鬼；分二路，冤魂拔度，惡鬼拘押。</p>
+</div>
+</div>
+<div class="section-content vertical">
+<h3>二、真武體系常用符籙</h3>
+<li><strong>元天蕩魔符</strong>：主蕩除天魔、陰魔，掃壇清界，科儀啟壇首用。</li>
+<li><strong>七星斬妖符</strong>：對付千年惡妖，破妖丹、散妖炁，配元帝七星寶劍。</li>
+<li><strong>收祟攝靈符</strong>：攝山精木魅、器物精，不散滅其靈，先拘押勘問，可度者拔度。</li>
+<li><strong>鎮地脈斷災符</strong>：對怪、地中兇煞，鎮土封脈，斷乖戾災炁本源。</li>
+<li><strong>拔度冤魂符</strong>：引渡含冤厲鬼，解冤釋結，引歸冥府聽審。</li>
+<li><strong>鎮魘安神符</strong>：驅夢魘、陰幻擾魂，安定人身神魂。</li>
+<li><strong>雷部召將符</strong>：召雷部天君、雷兵，天雷擊惡祟。</li>
+
+<h3>三、真武主行科儀名稱</h3>
+<li><strong>元天蕩魔清壇科</strong>：啟壇淨界，掃除壇內外一切妖氛、陰祟，為一切元帝法事開場。</li>
+<li><strong>七星斬妖科</strong>：專伐惡妖、巨祟，審其罪業，有罪則破丹誅伐，可改過者收編為將。</li>
+<li><strong>拔度厲鬼科</strong>：薦拔枉死冤魂，解冤結，令陰魂赴冥府輪迴。</li>
+<li><strong>鎮地安土科</strong>：對應災怪、土煞、山澤異炁，鎮守地脈，平息災兆。</li>
+<li><strong>伏魔考校科</strong>：天魔試道、邪魔亂境時啟建，勘校魔眾，可度則教化。</li>
+<li><strong>安神破魘科</strong>：治夢魘、陰氣擾人、神魂不寧。</li>
+<div class="epigraph">科儀、咒符，皆為法門之跡。核心在存正守心；心若不正，縱持符誦咒，難以感通真神。</div>
+</div>
+</div>
+</div>
+<div class="section" id="appendix2">
+<div class="section-content vertical">
+<div class="section-head" onclick="toggleSection(this)">附錄二　三界法力排行 <span class="collapse-icon">−</span></div>
+<h3>三界萬靈品階與法力簡表</h3>
+<table>
+<thead>
+<tr><th>品階</th><th>代表靈類</th><th>能力概要</th><th>元帝對待準則</th></tr>
+</thead>
+<tbody>
+<tr><td>先天真神</td><td>元天上帝、元始天尊、太乙救苦天尊</td><td>體合道炁，掌三界大法，調遣雷霆天兵，可平定大劫、鎮伏魔王</td><td>同列聖真，共承天道，非征討對象</td></tr>
+<tr><td>天仙</td><td>受敕天仙、雷部天君</td><td>功行圓滿，領天職，跨三界征討邪魔巨妖</td><td>同道協力，共掌蕩魔之職</td></tr>
+<tr><td>神仙</td><td>許旌陽、薩守堅、得道八仙</td><td>陽神自在，召雷遣將，可獨戰酆都魔帥、洞淵魔王</td><td>可奉敕協助伐祟</td></tr>
+<tr><td>地仙</td><td>赤松子、黃石公、洞天真人</td><td>肉身長生，通丹法，驅地祇山神；難抵天魔大考</td><td>勘辦山澤妖祟，遇大魔需上表請援</td></tr>
+<tr><td>千年大妖</td><td>九尾狐、巨蛇妖、未封龍妖</td><td>煉成丹元，幻化無礙，能興風雨；逢九天大雷劫</td><td>善妖容隱修；惡妖七星劍斬丹、雷火誅滅</td></tr>
+<tr><td>人仙</td><td>世間高道、隱修之士</td><td>祛病延年，小法護身；凡胎未脫，僅可驅小鬼小精魅</td><td>可修法驅小祟，不可獨抗巨妖魔王</td></tr>
+<tr><td>百年妖 / 精魅</td><td>百年狐、樹精、古器精魅</td><td>善幻惑，能擾人心神，少有巨力，無深厚丹元</td><td>勸諭驅散，勿輕斬，為禍方收攝</td></tr>
+<tr><td>厲鬼、疫鬼</td><td>枉死厲鬼、疫鬼</td><td>純陰之炁，能擾人、傳疫；無實體，怕陽炁雷火</td><td>冤魂拔度；惡厲拘送酆都</td></tr>
+<tr><td>怪</td><td>山魈、畢方、無支祁</td><td>災炁聚形，力量強，但無丹元，不能修煉</td><td>鎮地脈、斷災炁，不以斬形為主</td></tr>
+<tr><td>普通遊鬼、家鬼</td><td>孤魂、祖先亡靈</td><td>陰氣微薄，多無害人之力</td><td>安撫薦度，送歸冥府</td></tr>
+<tr><td>煞</td><td>三煞、白虎、歲破</td><td>兇戾之氣，無靈識，衝犯則招災</td><td>鎮化其氣，不可誅伐</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section-content vertical">
+
+<h3>排行補充備註</h3>
+<ol>
+<li>法力並非絕對，<strong>道心、功德、天職敕命</strong>重於修煉歲月。同樣品級，受天庭敕令者威力遠勝無職散靈。</li>
+<li>天魔不以力勝，專考道心。天仙亦難以武力直接消滅天魔，唯有道心堅定，魔炁自消。</li>
+<li>怪雖有巨力，本質是災炁，一旦劫運過去便自行消散，與妖的可持續修煉完全不同。</li>
+<li>鬼仙僅陰神，只能遊陰陽，無法與天仙、神仙正面抗衡。</li>
+<li>凡靈若能守善積功，不論是人、妖，皆有晉升之路；若是恃能造惡，品階再高亦會墮落受誅。</li>
+</ol>
+<div class="epigraph">萬靈強弱，不在種類，而在善惡。天條所罰，乃是惡業，非是靈類本身。</div>
+</div>
+</div>
+</div>
+
+<div class="section" id="postscript">
+<div class="section-content vertical">
+<div class="section-head" onclick="toggleSection(this)">後跋 <span class="collapse-icon">−</span></div>
+<div class="section-content">
+<p>大道無形，萬靈各稟一炁而生。精、妖、怪、鬼、魔、仙，種類紛紜，世人多惑於傳聞，以為凡異類即是邪魔，必當誅殺。此實未明天條之義。</p>
+<p>天之所惡，非異形，乃是惡業。精不害人，則容其守靜；妖能積善，則許其修持。惟殘害生民、蠱惑世道、興災釁亂者，元帝方奉天命，動雷霆、出寶劍，蕩除惡祟。</p>
+<p>此集名曰《錄異》，非為搜奇獵怪，誇述神異之跡。意在辨別萬靈源流，明善惡之分，曉征討之規，使人知外祟可驅，心魔難斬。</p>
+<p>讀此書者，慎勿貪慕法術，希圖召神役鬼。修心積德，為根本大道。內心清靜，陽炁自足，百邪不侵。能斬心中貪嗔痴愛，便是真斬妖、真除魔。</p>
+<p>書中所載科儀咒符，僅載義理源流，非教人私行作法。道法須有師承，無師妄行，反招過咎。</p>
+<p>願覽是集者，存善守道，克己修身，知天道昭昭，善惡有報。</p>
+<p style="text-align:right;">道光二十四年　歲次甲辰　仲秋　姑蘇掃葉山房主人　謹跋</p>
+</div>
+</div>
+
+<div class="section" id="juankuan">
+<div class="section-content vertical">
+<div class="section-head" onclick="toggleSection(this)">捐刊姓氏 <span class="collapse-icon">−</span></div>
+<p>是板刊成，賴四方善信助資。謹列捐刊姓氏於左，以誌功德：</p>
+<ul>
+<li>吳門　沈氏　捐銀十兩</li>
+<li>姑蘇　顧氏　捐銀八兩</li>
+<li>元和　陸氏　捐銀六兩</li>
+<li>長洲　王氏　捐銀五兩</li>
+<li>崑山　徐氏　捐銀四兩</li>
+<li>常熟　錢氏　捐銀三兩</li>
+<li>吳江　張氏　捐銀三兩</li>
+<li>嘉定　李氏　捐銀二兩</li>
+<li>太倉　陳氏　捐銀二兩</li>
+<li>諸位善信　共捐銀若干兩</li>
+</ul>
+<div class="epigraph">凡助資刊刻、印送流通者，功在勸善，陰德無量。</div>
+</div>
+</div>
+</div>
+<div class="section-content vertical">
+<div class="section-head" onclick="toggleSection(this)">校字姓氏 <span class="collapse-icon">−</span></div>
+<div class="section-content horizontal">
+<p>是書校勘，賴下列諸君之力：</p>
+<ul>
+<li>總校　元和　沈維嶽</li>
+<li>分校　長洲　顧承勳</li>
+<li>分校　吳縣　陸宗漣</li>
+<li>AI上網　台灣　陳育昇</li>
+<li>繕寫　姑蘇　王氏　敬書</li>
+<li>監刻　掃葉山房　主人</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section-content vertical">
+
+<div class="section" id="colophon">
+<div class="section-head" onclick="toggleSection(this)">刊刻牌記 <span class="collapse-icon">−</span></div>
+<div class="section-content">
+<div class="vertical" style="max-height:none;">
+<p>錄異集　卷終</p>
+<p>是書匯道藏丹經、靈寶古傳、歷代志怪善書，錄萬靈清濁之跡，載元帝蕩魔之制。</p>
+<p>不尚神異，重在勸修。外伐邪魔，內心魔。</p>
+<p>願覽者存善去貪，道心自固，百邪不侵。</p>
+<p>道光二十四年　歲次甲辰　仲秋　姑蘇掃葉山房　鐫板</p>
+</div>
+<div class="paiji-end">板藏姑蘇掃葉山房</div>
+<div class="epigraph">版存簡冊，可供檢閱，非為炫奇。讀者以義理觀之，毋溺於異聞。</div>
+</div>
+</div>
+
+<footer>
+<p>錄異集　道光二十四年　歲次甲辰　姑蘇掃葉山房　鐫板</p>
+<p>民國一百一十五年　歲次丙午　仲秋十月國慶　台灣桃園 無所有想　上網</p>
+</footer>
+
+</div>
+
+<script>
+function toggleSection(el){
+  const content=el.nextElementSibling;
+  const icon=el.querySelector('.collapse-icon');
+  if(content.style.display==='none'){content.style.display='block';icon.textContent='−';}
+  else{content.style.display='none';icon.textContent='+';}
+}
+<\/script>
+<\/body>
+<\/html>
