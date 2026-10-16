@@ -169,7 +169,7 @@ const MusicPlayer = () => {
         { text: "4維立方體", filename: "./Hypercube.html", isEnglish: false, isGame: true },
         { text: "【命中注定】", filename: "love_story.html", isEnglish: false, isGame: true },
         { text: "從Nand到64卦CPU", filename: "Nandto64.html", isEnglish: false, isGame: true },
-        { text: "AI訓練", filename: "interactiveai/index.html", isEnglish: false, isGame: true },
+        { text: "魯迅說錄異集", filename: "luyi_luxun_ver.html", isEnglish: false, isGame: true },
         { text: "明明動了", filename: "git-viz.html", isEnglish: false, isGame: true },
         { text: "管線", filename: "pipe.html", isEnglish: false, isGame: true },
         { text: "錄異集", filename: "LUYI24.html", isEnglish: false, isGame: true },
