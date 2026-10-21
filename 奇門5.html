@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>奇門遁甲 · 雙視圖式盤 v7</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      height: 100%;
+      background: #000;
+      overflow: hidden
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    canvas {
+      display: block;
+      width: min(100vw, calc(100vh*16/9));
+      height: auto;
+      touch-action: none;
+      user-select: none;
+      cursor: grab
+    }
+
+    canvas.dragging {
+      cursor: grabbing
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="c" width="1920" height="1080"></canvas>
+  <script>
+    (() => {
+      'use strict';
+
+      /* ================= 基本設定 ================= */
+      const W = 1920, H = 1080;
+      const cvs = document.getElementById('c');
+      const ctx = cvs.getContext('2d');
+      const DPR = Math.min(window.devicePixelRatio || 1, 2);
+      cvs.width = W * DPR; cvs.height = H * DPR;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+      const SERIF = "'Noto Serif TC','Noto Serif SC','Songti TC','SimSun',serif";
+      const SANS = "'Noto Sans TC','Noto Sans SC','PingFang TC','Microsoft JhengHei',sans-serif";
+      const MONO = "'Consolas','Menlo','Courier New',monospace";
+      const TAU = Math.PI * 2;
+      const ease = t => t * t * (3 - 2 * t);
+      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+      const pad = n => String(n).padStart(2, '0');
+
+      /* ================= 數據 ================= */
+      const STEM = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+      const BRANCH = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+      const EARTH_SEQ = ['戊', '己', '庚', '辛', '壬', '癸', '丁', '丙', '乙'];
+      const RING9 = [1, 8, 3, 4, 9, 2, 7, 6, 5];
+      const RING8 = [1, 8, 3, 4, 9, 2, 7, 6];
+      const PAL = {1: '坎', 2: '坤', 3: '震', 4: '巽', 5: '中', 6: '乾', 7: '兌', 8: '艮', 9: '離'};
+      const DIR = {1: '正北', 2: '西南', 3: '正東', 4: '東南', 5: '中宮', 6: '西北', 7: '正西', 8: '東北', 9: '正南'};
+      // 2D 九宮位置：上南下北，左東右西
+      const GRID = {4: [0, 0], 9: [1, 0], 2: [2, 0], 3: [0, 1], 5: [1, 1], 7: [2, 1], 8: [0, 2], 1: [1, 2], 6: [2, 2]};
+      // 3D 環形位置：離（南）居上，順時針
+      const SLOT9 = [9, 2, 7, 6, 1, 8, 3, 4, 5];
+      const SLOT8 = [9, 2, 7, 6, 1, 8, 3, 4];
+      const STAR = {1: '天蓬', 2: '天芮', 3: '天沖', 4: '天輔', 5: '天禽', 6: '天心', 7: '天柱', 8: '天任', 9: '天英'};
+      const DOOR = {1: '休', 2: '死', 3: '傷', 4: '杜', 6: '開', 7: '驚', 8: '生', 9: '景'};
+      const DOOR_JI = {'休': 1, '生': 1, '開': 1};
+      const GODS = [
+        {n: '值符', j: '吉', m: '主帥所臨，統領諸神'},
+        {n: '騰蛇', j: '凶', m: '主虛驚、怪異、迷惑'},
+        {n: '太陰', j: '吉', m: '主隱秘、謀劃、陰私'},
+        {n: '六合', j: '吉', m: '主和合、婚姻、交易'},
+        {n: '白虎', j: '凶', m: '主征伐、刑傷、凶猛'},
+        {n: '玄武', j: '凶', m: '主盜賊、暗昧、欺詐'},
+        {n: '九地', j: '吉', m: '主潛藏、堅守、安定'},
+        {n: '九天', j: '吉', m: '主高舉、進取、顯揚'}
+      ];
+      const XUN_HIDDEN = {0: '戊', 10: '己', 8: '庚', 6: '辛', 4: '壬', 2: '癸'};
+      const XUN_NAME = {'戊': '甲子', '己': '甲戌', '庚': '甲申', '辛': '甲午', '壬': '甲辰', '癸': '甲寅'};
+      const TERMS = ['春分', '清明', '穀雨', '立夏', '小滿', '芒種', '夏至', '小暑', '大暑', '立秋', '處暑', '白露',
+        '秋分', '寒露', '霜降', '立冬', '小雪', '大雪', '冬至', '小寒', '大寒', '立春', '雨水', '驚蟄'];
+      const JU = {
+        18: [1, 7, 4], 19: [2, 8, 5], 20: [3, 9, 6], 21: [8, 5, 2], 22: [9, 6, 3], 23: [1, 7, 4],
+        0: [3, 9, 6], 1: [4, 1, 7], 2: [5, 2, 8], 3: [4, 1, 7], 4: [5, 2, 8], 5: [6, 3, 9],
+        6: [9, 3, 6], 7: [8, 2, 5], 8: [7, 1, 4], 9: [2, 5, 8], 10: [1, 4, 7], 11: [9, 3, 6],
+        12: [7, 1, 4], 13: [6, 9, 3], 14: [5, 8, 2], 15: [6, 9, 3], 16: [5, 8, 2], 17: [4, 7, 1]
+      };
+      const YUAN_NAME = ['上元', '中元', '下元'];
+      const MANSION = ['角', '亢', '氐', '房', '心', '尾', '箕', '斗', '牛', '女', '虛', '危', '室', '壁',
+        '奎', '婁', '胃', '昴', '畢', '觜', '參', '井', '鬼', '柳', '星', '張', '翼', '軫'];
+      // 八卦爻：自下而上（1 為陽爻），依後天方位
+      const BAGUA = {
+        1: ['坎', [0, 1, 0]], 2: ['坤', [0, 0, 0]], 3: ['震', [1, 0, 0]], 4: ['巽', [0, 1, 1]],
+        6: ['乾', [1, 1, 1]], 7: ['兌', [1, 1, 0]], 8: ['艮', [0, 0, 1]], 9: ['離', [1, 0, 1]]
+      };
+      const JIU_TIAN = {1: '玄天', 6: '幽天', 7: '昊天', 2: '朱天', 9: '炎天', 4: '陽天', 3: '蒼天', 8: '變天', 5: '鈞天'};
+      const JIU_DI = {1: '冀州', 8: '兗州', 3: '青州', 4: '徐州', 9: '揚州', 2: '荊州', 7: '梁州', 6: '雍州', 5: '豫州'};
+      const DIPPER = ['天樞', '天璇', '天璣', '天權', '玉衡', '開陽', '搖光'];
+
+      /* ================= 天文與排盤（時家盤） ================= */
+      function sunLon(ms) {
+        const n = ms / 86400000 + 2440587.5 - 2451545.0;
+        const L = 280.460 + 0.9856474 * n;
+        const g = (357.528 + 0.9856003 * n) * Math.PI / 180;
+        let lam = (L + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)) % 360;
+        return lam < 0 ? lam + 360 : lam;
+      }
+      function termStart(ms, deg) {
+        let t = ms;
+        for (let i = 0; i < 4; i++) {
+          let d = sunLon(t) - deg;
+          d = ((d + 540) % 360) - 180;
+          t -= d / 0.9856474 * 86400000;
+        }
+        return t;
+      }
+      function calc(ms) {
+        const d = new Date(ms), h = d.getHours();
+        const b = Math.floor(((h + 1) % 24) / 2);
+        const h0 = (2 * b - 1 + 24) % 24;
+        const blk = new Date(d.getFullYear(), d.getMonth(), d.getDate(), h0, 0, 0, 0);
+        if (h0 > h) blk.setDate(blk.getDate() - 1);
+
+        const dd = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        if (h === 23) dd.setDate(dd.getDate() + 1);
+        const jdn = Math.round(Date.UTC(dd.getFullYear(), dd.getMonth(), dd.getDate()) / 86400000) + 2440588;
+        const dIdx = ((jdn + 49) % 60 + 60) % 60;
+        const dayStem = dIdx % 10;
+        const dayName = STEM[dIdx % 10] + BRANCH[dIdx % 12];
+
+        const tStem = (2 * (dayStem % 5) + b) % 10;
+        const timeName = STEM[tStem] + BRANCH[b];
+
+        const xunB = ((b - tStem) % 12 + 12) % 12;
+        const H6 = XUN_HIDDEN[xunB];
+        const fuMs = blk.getTime() - tStem * 7200000;
+
+        const k = Math.floor(sunLon(fuMs) / 15) % 24;
+        const days = (fuMs - termStart(fuMs, k * 15)) / 86400000;
+        const yuan = Math.min(2, Math.max(0, Math.floor(days / 5)));
+        const yang = (k >= 18 || k <= 5);
+        const ju = JU[k][yuan];
+
+        const ring = yang ? RING9 : RING9.slice().reverse();
+        const i0 = ring.indexOf(ju);
+        const earth = {};
+        for (let i = 0; i < 9; i++) earth[ring[(i0 + i) % 9]] = EARTH_SEQ[i];
+        const palOf = {};
+        for (const p in earth) palOf[earth[p]] = +p;
+
+        const PH = palOf[H6];
+        const T = tStem === 0 ? PH : palOf[STEM[tStem]];
+
+        const dd9 = (RING9.indexOf(T) - RING9.indexOf(PH) + 9) % 9;
+        const tStar = {}, tStemMap = {};
+        RING9.forEach((from, j) => {
+          const to = RING9[(j + dd9) % 9];
+          tStar[to] = STAR[from];
+          tStemMap[to] = earth[from];
+        });
+
+        const p8 = p => p === 5 ? (yang ? 2 : 8) : p;
+        const dd8 = (RING8.indexOf(p8(T)) - RING8.indexOf(p8(PH)) + 8) % 8;
+        const door = {};
+        RING8.forEach((from, j) => {door[RING8[(j + dd8) % 8]] = DOOR[from];});
+
+        const god = {};
+        const T8 = RING8.indexOf(p8(T));
+        for (let i = 0; i < 8; i++) {
+          const idx = ((T8 + (yang ? i : -i)) % 8 + 8) % 8;
+          god[RING8[idx]] = GODS[i];
+        }
+
+        return {
+          b, dayName, timeName, xunName: XUN_NAME[H6], H6, PH, T, k, yang, yuan,
+          term: TERMS[k], yuanName: YUAN_NAME[yuan], ju,
+          earth, tStar, tStemMap, door, god,
+          valueStar: tStar[T], valueDoor: door[p8(T)], valueGod: god[p8(T)],
+          valueDoorPal: p8(T)
+        };
+      }
+
+      /* ================= 狀態 ================= */
+      const STEP = 7200000;
+      const state = {ms: Date.now(), sel: 1, playing: false, spin: true, mode: '3d'};
+      let cacheMs = null, cacheC = null;
+      function getC() {
+        if (cacheMs !== state.ms) {cacheC = calc(state.ms); cacheMs = state.ms;}
+        return cacheC;
+      }
+      function shiftTime(n) {state.ms += n * STEP;}
+      function togglePlay() {state.playing = !state.playing;}
+      function toggleMode() {state.mode = state.mode === '3d' ? '2d' : '3d';}
+
+      // 3D 各層
+      const ORDER = ['mansion', 'term', 'palace', 'bagua', 'door', 'star', 'jiu', 'sun', 'bei'];
+      const NAMES = {
+        mansion: '二十八星宿', term: '二十四節氣', palace: '九宮', bagua: '八卦', door: '八門',
+        star: '九星', jiu: '九天九地', sun: '太陽', bei: '北斗'
+      };
+      const LAY = {};
+      ORDER.forEach(k => {LAY[k] = {p: 1, on: true};});
+      // 2D 各層（地盤、天盤、人盤、神盤）
+      const SHOW = {earth: true, heaven: true, human: true, god: true};
+      const SHOW_NAMES = {earth: '地盤', heaven: '天盤', human: '人盤', god: '神盤'};
+
+      const K = 0.84;
+      const RW = {mansion: 420, term: 350, palace: 300, bagua: 236, door: 180, star: 128, jiu: 92, dipper: 50, tai: 20};
+      const LZ_STEP = 56;
+      const PITCH_MIN = 25, PITCH_MAX = 90, PITCH_DEFAULT = 62;
+      const view = {pitch: PITCH_DEFAULT, pitchT: PITCH_DEFAULT, az: -25, zoom: 1, expand: 0};
+      const zOf = k => ORDER.indexOf(k) * LZ_STEP * ease(LAY[k].p) * view.expand;
+      const F = 1500, CX = 960, CY = 575;
+      const HITS = [];
+
+      /* ================= 3D 投影與環形座標 ================= */
+      function P(x, y, z) {
+        const b = view.az * Math.PI / 180, a = view.pitch * Math.PI / 180;
+        const x1 = x * Math.cos(b) - y * Math.sin(b);
+        const y1 = x * Math.sin(b) + y * Math.cos(b);
+        const dep = y1 * Math.cos(a) - z * Math.sin(a);
+        const up = y1 * Math.sin(a) + z * Math.cos(a);
+        const s = F / (F + dep) * view.zoom;
+        return {x: CX + x1 * s, y: CY - up * s, s};
+      }
+      function at(t, r, z = 0) {return P(Math.cos(t) * r * K, Math.sin(t) * r * K, z);}
+      function ringPts(r, z, n = 240) {
+        const pts = [];
+        for (let i = 0; i <= n; i++) pts.push(at(i / n * TAU, r, z));
+        return pts;
+      }
+      function arcPts(r, t0, t1, z, n = 24) {
+        const pts = [];
+        for (let i = 0; i <= n; i++) pts.push(at(t0 + (t1 - t0) * i / n, r, z));
+        return pts;
+      }
+      const a9 = p => Math.PI / 2 + SLOT9.indexOf(p) * TAU / 9;
+      const a8 = p => Math.PI / 2 + SLOT8.indexOf(p) * TAU / 8;
+      const a24 = k => Math.PI / 2 + k * TAU / 24;
+      const a28 = i => Math.PI / 2 + i * TAU / 28;
+
+      /* ================= 共用繪圖工具 ================= */
+      function strokePts(pts, color, lw, alpha = 1, dash = null, glow = 0) {
+        if (alpha < 0.01) return;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = color; ctx.lineWidth = lw;
+        if (dash) ctx.setLineDash(dash);
+        if (glow) {ctx.shadowColor = color; ctx.shadowBlur = glow;}
+        ctx.beginPath();
+        pts.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
+        ctx.stroke();
+        ctx.restore();
+      }
+      function txt(s, x, y, size, color, o = {}) {
+        const {font = SANS, weight = 'normal', align = 'center', alpha = 1, glow = 0} = o;
+        if (size < 4 || alpha < 0.01) return;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.font = `${weight} ${size}px ${font}`;
+        ctx.textAlign = align; ctx.textBaseline = 'middle';
+        ctx.fillStyle = color;
+        if (glow) {ctx.shadowColor = color; ctx.shadowBlur = glow;}
+        ctx.fillText(s, x, y);
+        ctx.restore();
+      }
+      function rr(x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      }
+      function node(x, y, r, color, alpha = 1) {
+        if (r < 0.5 || alpha < 0.01) return;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.globalCompositeOperation = 'lighter';
+        const g = ctx.createRadialGradient(x, y, 0, x, y, r * 3);
+        g.addColorStop(0, color);
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(x, y, r * 3, 0, TAU); ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = '#f4feff';
+        ctx.beginPath(); ctx.arc(x, y, r * 0.55, 0, TAU); ctx.fill();
+        ctx.strokeStyle = color; ctx.lineWidth = 1.8;
+        ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.stroke();
+        ctx.restore();
+      }
+      function dot(x, y, r, color, alpha) {
+        if (alpha < 0.01) return;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = color;
+        ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+        ctx.restore();
+      }
+      function flowRing(r, z, count, speed, t, color, alpha) {
+        for (let i = 0; i < count; i++) {
+          const u = (i / count + t * speed) % 1;
+          const q = at(u * TAU, r, z);
+          dot(q.x, q.y, 2 * q.s, color, alpha);
+        }
+      }
+      function taiji(c, r, alpha) {
+        if (alpha < 0.01 || r < 1) return;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        const DARK = '#0a1a2a', LIGHT = '#f4feff';
+        ctx.fillStyle = LIGHT;
+        ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, TAU); ctx.fill();
+        ctx.fillStyle = DARK;
+        ctx.beginPath(); ctx.arc(c.x, c.y, r, Math.PI / 2, Math.PI * 1.5); ctx.fill();
+        ctx.fillStyle = LIGHT;
+        ctx.beginPath(); ctx.arc(c.x, c.y - r / 2, r / 2, 0, TAU); ctx.fill();
+        ctx.fillStyle = DARK;
+        ctx.beginPath(); ctx.arc(c.x, c.y + r / 2, r / 2, 0, TAU); ctx.fill();
+        ctx.fillStyle = DARK;
+        ctx.beginPath(); ctx.arc(c.x, c.y - r / 2, r / 8, 0, TAU); ctx.fill();
+        ctx.fillStyle = LIGHT;
+        ctx.beginPath(); ctx.arc(c.x, c.y + r / 2, r / 8, 0, TAU); ctx.fill();
+        ctx.strokeStyle = '#f4d37a'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, TAU); ctx.stroke();
+        ctx.restore();
+      }
+      // 深色按鈕（3D 視圖）
+      function button(label, x, y, w, h, active, fn, size = 22) {
+        ctx.save();
+        rr(x, y, w, h, 10);
+        ctx.fillStyle = active ? 'rgba(47,230,255,0.22)' : 'rgba(4,22,38,0.7)';
+        ctx.fill();
+        ctx.strokeStyle = active ? '#7ff3ff' : '#1d6f8a';
+        ctx.lineWidth = 1.8; ctx.stroke();
+        ctx.restore();
+        txt(label, x + w / 2, y + h / 2 + 1, size, active ? '#e9fdff' : '#7fd9ea',
+          {weight: 'bold', glow: active ? 8 : 0});
+        HITS.push({x, y, w, h, fn});
+      }
+      // 木色按鈕（2D 視圖）
+      function button2(label, x, y, w, h, active, fn, size = 22) {
+        ctx.save();
+        rr(x, y, w, h, 10);
+        ctx.fillStyle = active ? '#5a3d1f' : '#efe2bf';
+        ctx.fill();
+        ctx.strokeStyle = '#5a3d1f'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.restore();
+        txt(label, x + w / 2, y + h / 2 + 1, size, active ? '#fdf6e3' : '#4a3218',
+          {weight: 'bold', font: SANS});
+        HITS.push({x, y, w, h, fn});
+      }
+      function panel(x, y, w, h, accent = '#2fe6ff') {
+        ctx.save();
+        rr(x, y, w, h, 14);
+        ctx.fillStyle = 'rgba(4,22,38,0.72)'; ctx.fill();
+        ctx.strokeStyle = accent; ctx.globalAlpha = 0.55; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.restore();
+      }
+      function card2(x, y, w, h) {
+        ctx.save();
+        rr(x, y, w, h, 14);
+        ctx.fillStyle = 'rgba(255,251,238,0.94)'; ctx.fill();
+        ctx.strokeStyle = '#8b6b3d'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.restore();
+      }
+
+      /* ================= 3D 背景 ================= */
+      const STARS = Array.from({length: 220}, () => ({
+        x: Math.random() * W, y: Math.random() * H,
+        r: Math.random() * 1.4 + 0.2, ph: Math.random() * TAU
+      }));
+      function drawBG3D(t) {
+        const g = ctx.createLinearGradient(0, 0, 0, H);
+        g.addColorStop(0, '#04172e');
+        g.addColorStop(1, '#010308');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        const rg = ctx.createRadialGradient(CX, CY - 150, 40, CX, CY - 150, 950);
+        rg.addColorStop(0, 'rgba(0,190,255,0.20)');
+        rg.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+        STARS.forEach(s => {
+          ctx.globalAlpha = 0.25 + 0.6 * Math.abs(Math.sin(t * 0.8 + s.ph));
+          ctx.fillStyle = '#bff6ff';
+          ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, TAU); ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+      }
+
+      /* ================= 3D 各層 ================= */
+      function drawMansion(C, t) {
+        const e = LAY.mansion.p; if (e < 0.01) return;
+        const z = zOf('mansion');
+        strokePts(ringPts(RW.mansion, z, 300), '#f4d37a', 2, 0.85 * e, null, 8);
+        for (let i = 0; i < 28; i++) {
+          const th = a28(i);
+          strokePts([at(th, RW.mansion - 12, z), at(th, RW.mansion + 6, z)], '#f4d37a', 1.4, 0.85 * e);
+          const q = at(th, RW.mansion + 22, z);
+          txt(MANSION[i], q.x, q.y, 15 * q.s, '#ffe9a0', {alpha: e, weight: 'bold'});
+        }
+        flowRing(RW.mansion, z, 24, 0.035, t, '#ffe9a0', 0.8 * e);
+      }
+      function drawTerm(C, t) {
+        const e = LAY.term.p; if (e < 0.01) return;
+        const z = zOf('term');
+        strokePts(ringPts(RW.term, z, 240), '#2fe6ff', 1.6, 0.7 * e, null, 6);
+        for (let k = 0; k < 24; k++) {
+          const th = a24(k);
+          strokePts([at(th, RW.term - 8, z), at(th, RW.term + 8, z)], '#2fe6ff', 1.4, 0.8 * e);
+          const cur = k === C.k;
+          const q = at(th, RW.term - 26, z);
+          txt(TERMS[k], q.x, q.y, (cur ? 14 : 12) * q.s, cur ? '#ffd36b' : '#c9f3ff',
+            {weight: cur ? 'bold' : 'normal', alpha: e, glow: cur ? 10 : 0});
+        }
+        flowRing(RW.term, z, 18, -0.04, t, '#9ff3ff', 0.8 * e);
+      }
+      function drawPalace3D(C, t) {
+        const e = LAY.palace.p; if (e < 0.01) return;
+        const z = zOf('palace');
+        strokePts(ringPts(RW.palace, z, 240), '#2fe6ff', 1, 0.5 * e);
+        const half = TAU / 18;
+        for (let p = 1; p <= 9; p++) {
+          const th = a9(p);
+          strokePts([at(th - half, RW.palace - 14, z), at(th - half, RW.palace + 14, z)], '#2fe6ff', 1.2, 0.6 * e);
+          if (p === state.sel)
+            strokePts(arcPts(RW.palace, th - half * 0.9, th + half * 0.9, z), '#ffd36b', 6, 0.9 * e, null, 14);
+          else if (p === C.T)
+            strokePts(arcPts(RW.palace, th - half * 0.9, th + half * 0.9, z), '#ff4fa3', 4, 0.8 * e, null, 10);
+          const ji = p !== 5 && DOOR_JI[C.door[p]];
+          const nq = at(th, RW.palace + 14, z);
+          txt(PAL[p], nq.x, nq.y, 16 * nq.s, ji ? '#9ff7d8' : '#6fdfff', {alpha: e, font: SERIF, weight: 'bold'});
+          const sq = at(th, RW.palace - 14, z);
+          txt(C.earth[p], sq.x, sq.y, 14 * sq.s, '#dffbff', {alpha: e, weight: 'bold', glow: 6});
+        }
+      }
+      function drawBagua(C, t) {
+        const e = LAY.bagua.p; if (e < 0.01) return;
+        const z = zOf('bagua');
+        strokePts(ringPts(RW.bagua, z, 200), '#7fe9ff', 1, 0.35 * e, [4, 6]);
+        taiji(P(0, 0, z), RW.tai * K * P(0, 0, z).s, e);
+        for (const key in BAGUA) {
+          const p = +key;
+          const [name, bits] = BAGUA[p];
+          const g = at(a8(p), RW.bagua, z);
+          const sc = g.s;
+          for (let j = 0; j < 3; j++) {
+            const y = g.y + (1 - j) * 9 * sc;
+            const hw = 15 * sc;
+            if (bits[j]) {
+              strokePts([{x: g.x - hw, y}, {x: g.x + hw, y}], '#ffd36b', 3 * sc, e, null, 6);
+            } else {
+              strokePts([{x: g.x - hw, y}, {x: g.x - 4 * sc, y}], '#ffd36b', 3 * sc, e, null, 6);
+              strokePts([{x: g.x + 4 * sc, y}, {x: g.x + hw, y}], '#ffd36b', 3 * sc, e, null, 6);
+            }
+          }
+          const np = at(a8(p), RW.bagua - 32, z);
+          txt(name, np.x, np.y, 13 * np.s, '#fff1c4', {weight: 'bold', alpha: e, glow: 6});
+        }
+      }
+      function drawDoor3D(C, t) {
+        const e = LAY.door.p; if (e < 0.01) return;
+        const z = zOf('door');
+        strokePts(ringPts(RW.door, z, 220), '#ffcf5e', 1.4, 0.5 * e, [14, 10]);
+        for (let p = 1; p <= 9; p++) {
+          if (p === 5) continue;
+          const th = a8(p);
+          const n = at(th, RW.door, z);
+          const ji = DOOR_JI[C.door[p]];
+          const isVal = p === C.valueDoorPal;
+          const col = isVal ? '#ff4fa3' : (ji ? '#ffd36b' : '#ff5a7a');
+          node(n.x, n.y, (isVal ? 7 : 4.5) * n.s, col, e);
+          const q = at(th, RW.door - 22, z);
+          txt(C.door[p] + '門', q.x, q.y, 13 * q.s, ji ? '#fff3c4' : '#ffb3c1',
+            {weight: 'bold', alpha: e, glow: isVal ? 12 : 4});
+        }
+        flowRing(RW.door, z, 12, -0.05, t, '#ffd36b', 0.8 * e);
+      }
+      function drawStar3D(C, t) {
+        const e = LAY.star.p; if (e < 0.01) return;
+        const z = zOf('star');
+        for (let p = 1; p <= 9; p++) {
+          const th = a9(p);
+          const n = at(th, RW.star, z);
+          const isVal = p === C.T;
+          node(n.x, n.y, (isVal ? 7 : 5) * n.s, isVal ? '#ff4fa3' : '#7fe9ff', e);
+          const q = at(th, RW.star + 16, z);
+          txt(C.tStar[p], q.x, q.y, 13 * q.s, isVal ? '#ffd1ea' : '#e6fbff', {weight: 'bold', alpha: e, glow: 8});
+          const s2 = at(th, RW.star - 14, z);
+          txt(C.tStemMap[p], s2.x, s2.y, 12 * s2.s, '#8fe8ff', {alpha: e});
+        }
+      }
+      function drawJiu(C, t) {
+        const e = LAY.jiu.p; if (e < 0.01) return;
+        const z = zOf('jiu');
+        strokePts(ringPts(RW.jiu, z, 200), '#4dd8ff', 1.2, 0.55 * e, [6, 8]);
+        for (let p = 1; p <= 9; p++) {
+          const th = a9(p);
+          const d = at(th, RW.jiu, z);
+          node(d.x, d.y, 3 * d.s, '#7fe9ff', e);
+          txt(JIU_DI[p], d.x, d.y, 12 * d.s, '#ffd1ea', {alpha: e, weight: 'bold'});
+          const ti = at(th, RW.jiu - 14, z);
+          txt(JIU_TIAN[p], ti.x, ti.y, 11 * ti.s, '#c9f3ff', {alpha: e});
+        }
+        flowRing(RW.jiu, z, 18, 0.04, t, '#9ff3ff', 0.8 * e);
+      }
+      function drawSun(C, t) {
+        const e = LAY.sun.p; if (e < 0.01) return;
+        const z = zOf('sun');
+        const lon = sunLon(state.ms);
+        const th = Math.PI / 2 + lon / 360 * TAU;
+        const q = at(th, RW.term, z);
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = e;
+        const g = ctx.createRadialGradient(q.x, q.y, 0, q.x, q.y, 26 * q.s);
+        g.addColorStop(0, 'rgba(255,240,190,0.9)');
+        g.addColorStop(0.4, 'rgba(255,190,80,0.35)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(q.x, q.y, 26 * q.s, 0, TAU); ctx.fill();
+        ctx.restore();
+        node(q.x, q.y, 8 * q.s, '#ffd36b', e);
+        const lb = at(th, RW.term + 26, z);
+        txt(`太陽 ${Math.round(lon)}°`, lb.x, lb.y, 12 * lb.s, '#ffd36b', {alpha: e, weight: 'bold'});
+      }
+      function drawBei(C, t) {
+        const e = LAY.bei.p; if (e < 0.01) return;
+        const z = zOf('bei');
+        const thB = Math.PI / 2 + C.b * TAU / 12;
+        strokePts(ringPts(RW.dipper, z, 120), '#b98cff', 1.2, 0.45 * e, [6, 10], 6);
+        strokePts([P(0, 0, z), at(thB, RW.dipper, z)], '#ffd36b', 1.6, 0.7 * e, null, 6);
+        for (let i = 0; i < 7; i++) {
+          const th = thB + (i - 6) * TAU / 7;
+          const n = at(th, RW.dipper, z);
+          const isH = i === 6;
+          node(n.x, n.y, (isH ? 5.5 : 4) * n.s, isH ? '#ffd36b' : '#b98cff', e);
+          const q = at(th, RW.dipper + 12, z);
+          txt(DIPPER[i], q.x, q.y, 11 * q.s, '#f0e4ff', {alpha: e, weight: 'bold'});
+        }
+      }
+
+      /* ================= 3D HUD 與面板 ================= */
+      function drawCorners() {
+        ctx.save();
+        ctx.strokeStyle = '#f4d37a'; ctx.lineWidth = 3;
+        [[40, 40, 1, 1], [W - 40, 40, -1, 1], [40, H - 40, 1, -1], [W - 40, H - 40, -1, -1]].forEach(([x, y, dx, dy]) => {
+          ctx.beginPath();
+          ctx.moveTo(x, y + dy * 40); ctx.lineTo(x, y); ctx.lineTo(x + dx * 40, y);
+          ctx.stroke();
+        });
+        ctx.restore();
+      }
+      function drawHUD3D() {
+        drawCorners();
+        txt('SYS.ASTROLABE // QIMEN-DUNJIA · RING-NINE', W / 2, 24, 16, '#2fe6ff', {font: MONO, glow: 6});
+        txt('奇門遁甲 · 九層環形式盤', W / 2, 62, 44, '#fff1c4', {font: SERIF, weight: 'bold', glow: 14});
+        txt(view.expand > 0.95 ? '◈ 已收合為平面 · 滾輪向上展開 ◈' : '◈ 滾輪調整俯仰 · 九層由下往上展開 ◈',
+          W / 2, 104, 20, '#2fe6ff', {weight: 'bold', glow: 6});
+        let sum = 0;
+        ORDER.forEach(k => sum += LAY[k].p);
+        const sync = (sum / ORDER.length * 100).toFixed(3);
+        const az = ((view.az % 360) + 360) % 360;
+        const exp = (view.expand * 100).toFixed(0);
+        txt(`PITCH: ${view.pitch.toFixed(1)}°   |   AZM: ${az.toFixed(1)}°   |   EXPAND: ${exp}%   |   SYNC: ${sync}%`,
+          W / 2, 136, 17, '#9ff3ff', {font: MONO});
+      }
+      function drawLeft3D(C) {
+        const d = new Date(state.ms);
+        panel(40, 190, 360, 250);
+        txt('起局時辰（時家盤）', 62, 216, 18, '#7fd9ea', {align: 'left'});
+        txt(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`, 62, 250, 26, '#e9fdff', {align: 'left', weight: 'bold', font: MONO});
+        txt(`${pad(d.getHours())}:${pad(d.getMinutes())}`, 62, 282, 26, '#e9fdff', {align: 'left', weight: 'bold', font: MONO});
+        txt(`日柱 ${C.dayName}　時柱 ${C.timeName}`, 62, 318, 18, '#bfeeff', {align: 'left'});
+        txt(`符頭 ${C.xunName}（甲遁${C.H6}）`, 62, 346, 18, '#bfeeff', {align: 'left'});
+        txt(`${C.term} · ${C.yang ? '陽遁' : '陰遁'} · ${C.yuanName} · 第${C.ju}局`, 62, 382, 18, '#ffd36b', {align: 'left', weight: 'bold'});
+        panel(40, 460, 360, 260, '#b98cff');
+        txt('由下而上九層', 62, 488, 18, '#d9c4ff', {align: 'left', weight: 'bold'});
+        ORDER.forEach((k, i) => {
+          txt(`${i + 1}. ${NAMES[k]}`, 62, 518 + i * 22, 16, LAY[k].on ? '#d9c4ff' : '#6a6490', {align: 'left', weight: 'bold'});
+        });
+      }
+      function drawDetail3D(C) {
+        const p = state.sel;
+        panel(1520, 190, 360, 250, '#ffd36b');
+        txt(`${p} 宮 · ${PAL[p]} · ${DIR[p]}`, 1542, 218, 24, '#fff1c4', {align: 'left', weight: 'bold', font: SERIF});
+        const rows = [
+          ['天盤星', C.tStar[p]],
+          ['天盤干', C.tStemMap[p]],
+          ['地盤干', C.earth[p]],
+          ['人盤門', p === 5 ? '—' : (C.door[p] + '門' + (DOOR_JI[C.door[p]] ? '（吉）' : '（凶）'))],
+          ['八神', C.god[p] ? `${C.god[p].n}（${C.god[p].j}）` : '—'],
+          ['八卦', BAGUA[p] ? BAGUA[p][0] + '卦' : '—'],
+          ['九地', JIU_DI[p]]
+        ];
+        rows.forEach((r, i) => {
+          const y = 252 + i * 26;
+          txt(r[0], 1542, y, 16, '#7fd9ea', {align: 'left'});
+          txt(String(r[1]), 1660, y, 18, '#e9fdff', {align: 'left', weight: 'bold'});
+        });
+        txt(C.god[p] ? C.god[p].m : '中宮寄坤艮，不設八神', 1542, 436, 14, '#bfeeff', {align: 'left'});
+      }
+      function drawControls3D() {
+        const x = 1520, w = 115, h = 40, gap = 7;
+        ORDER.forEach((k, i) => {
+          const col = i % 3, row = Math.floor(i / 3);
+          button(NAMES[k], x + col * (w + gap), 470 + row * (h + 8), w, h, LAY[k].on,
+            () => {LAY[k].on = !LAY[k].on;}, 16);
+        });
+        const by = 626;
+        button('◀ 時辰', x, by, 105, 44, false, () => shiftTime(-1), 20);
+        button('現在', x + 115, by, 130, 44, false, () => {state.ms = Date.now();}, 20);
+        button('時辰 ▶', x + 255, by, 105, 44, false, () => shiftTime(1), 20);
+        button(state.playing ? '暫停 ■' : '自動演示 ▶', x, by + 58, 360, 44, state.playing, togglePlay, 20);
+        button(state.spin ? '旋轉：開' : '旋轉：關', x, by + 112, 360, 44, state.spin,
+          () => {state.spin = !state.spin;}, 20);
+        button(view.pitchT > 80 ? '展開九層' : '收合成平面', x, by + 166, 360, 44, view.pitchT > 80,
+          toggleCollapse, 20);
+        button('重置視角', x, by + 220, 360, 44, false,
+          () => {view.pitchT = PITCH_DEFAULT; view.az = -25; view.zoom = 1;}, 20);
+      }
+      function toggleCollapse() {view.pitchT = view.pitchT > 80 ? PITCH_DEFAULT : PITCH_MAX;}
+      function drawBottom3D(C) {
+        const x = 40, y = 952, w = 1840, h = 104;
+        panel(x, y, w, h, '#f4d37a');
+        const cw = w / 3;
+        const cells = [
+          ['【天盤九星 · 值符】', C.valueStar, '#2fe6ff', `${PAL[C.T]}宮 · 統攝周天星軌`],
+          ['【人盤八門 · 值使】', (C.valueDoor || '—') + '門', '#ff4fa3',
+            DOOR_JI[C.valueDoor] ? '吉門主事 · 百事順遂' : '凶門主事 · 宜守不宜進'],
+          ['【地盤奇儀 · 神盤】', C.xunName + C.H6 + ' · ' + (C.valueGod ? C.valueGod.n : '—'), '#ff6b8a',
+            '洛書九宮 · 陰陽順逆妙機']
+        ];
+        cells.forEach((c, i) => {
+          const cx = x + cw * i + cw / 2;
+          if (i > 0) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(244,211,122,0.4)'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(x + cw * i, y + 18); ctx.lineTo(x + cw * i, y + h - 18); ctx.stroke();
+            ctx.restore();
+          }
+          txt(c[0], cx, y + 26, 19, '#f4d37a', {weight: 'bold'});
+          txt(c[1], cx, y + 60, 34, c[2], {weight: 'bold', font: SERIF, glow: 12});
+          txt(c[3], cx, y + 90, 15, '#9fd8e6');
+        });
+      }
+      function render3D(C, t) {
+        drawBG3D(t);
+        drawMansion(C, t);
+        drawTerm(C, t);
+        drawPalace3D(C, t);
+        drawBagua(C, t);
+        drawDoor3D(C, t);
+        drawStar3D(C, t);
+        drawJiu(C, t);
+        drawSun(C, t);
+        drawBei(C, t);
+        drawHUD3D();
+        drawLeft3D(C);
+        drawDetail3D(C);
+        drawControls3D();
+        drawBottom3D(C);
+      }
+
+      /* ================= 2D 九宮視圖 ================= */
+      const BX = 115, BY = 177, CW = 265, CH = 265;
+      function drawParchment() {
+        const g = ctx.createRadialGradient(W / 2, H / 2, 150, W / 2, H / 2, 1100);
+        g.addColorStop(0, '#f4e8c8');
+        g.addColorStop(1, '#cfb27a');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, W, H);
+      }
+      function drawBoard2D(C) {
+        // 外框
+        ctx.save();
+        rr(103, 165, 819, 820, 10);
+        ctx.fillStyle = '#fbf3dc'; ctx.fill();
+        ctx.strokeStyle = '#5a3d1f'; ctx.lineWidth = 4; ctx.stroke();
+        ctx.restore();
+
+        for (let p = 1; p <= 9; p++) {
+          const [c, r] = GRID[p];
+          const x = BX + c * CW, y = BY + r * CH;
+          const ji = p !== 5 && DOOR_JI[C.door[p]];
+          const sel = state.sel === p;
+
+          ctx.save();
+          ctx.fillStyle = sel ? '#ffeca8' : (p === 5 ? '#e9d6a4' : (ji ? '#fdf0d2' : '#fdf7e8'));
+          ctx.fillRect(x, y, CW, CH);
+          ctx.strokeStyle = '#8b6b3d'; ctx.lineWidth = 2;
+          ctx.strokeRect(x, y, CW, CH);
+          if (sel) {
+            ctx.strokeStyle = '#c9920e'; ctx.lineWidth = 5;
+            ctx.strokeRect(x + 3, y + 3, CW - 6, CH - 6);
+          }
+          ctx.restore();
+
+          txt(String(p), x + 18, y + 26, 20, '#8b6b3d', {align: 'left', font: SERIF});
+          txt(`${PAL[p]}・${DIR[p]}`, x + CW - 14, y + 26, 17, '#8b6b3d', {align: 'right'});
+
+          // 神
+          if (SHOW.god && p !== 5 && C.god[p]) {
+            const g = C.god[p];
+            txt(g.n, x + CW * 0.27, y + 82, 26, g.j === '吉' ? '#5b2a86' : '#8a1c1c', {weight: 'bold', font: SERIF});
+            txt(g.j, x + CW * 0.27, y + 108, 14, '#8a6d3b');
+          }
+          // 天盤星與天盤干
+          if (SHOW.heaven) {
+            txt(C.tStar[p], x + CW * 0.73, y + 82, 26, '#1f4e79', {weight: 'bold', font: SERIF});
+            txt(C.tStemMap[p], x + CW * 0.73, y + 172, 44, '#1f4e79', {weight: 'bold'});
+          }
+          // 人盤門
+          if (SHOW.human && p !== 5) {
+            txt(C.door[p] + '門', x + CW * 0.27, y + 172, 32, ji ? '#b3261e' : '#333', {weight: 'bold', font: SERIF});
+          }
+          // 地盤干
+          if (SHOW.earth) {
+            txt(C.earth[p], x + CW / 2, y + 232, 40, '#6b4a1e', {weight: 'bold'});
+          }
+          HITS.push({x, y, w: CW, h: CH, fn: () => {state.sel = p;}});
+        }
+      }
+      function card2D(x, y, w, h) {card2(x, y, w, h);}
+      function drawRight2D(C) {
+        const x0 = 1030;
+        const d = new Date(state.ms);
+
+        // 起局
+        card2D(1000, 137, 900, 255);
+        txt('起局時辰（時家盤）', x0, 170, 20, '#8b6b3d', {align: 'left'});
+        txt(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}  ${pad(d.getHours())}:${pad(d.getMinutes())}`,
+          x0, 210, 40, '#2b1d0e', {align: 'left', font: SERIF, weight: 'bold'});
+        txt(`日柱 ${C.dayName}  ·  時柱 ${C.timeName}  ·  符頭 ${C.xunName}（甲遁${C.H6}）`, x0, 248, 19, '#2b1d0e', {align: 'left'});
+        txt(`節氣 ${C.term}  ·  ${C.yang ? '陽遁' : '陰遁'}  ·  ${C.yuanName}  ·  定為第 ${C.ju} 局`, x0, 280, 19, '#2b1d0e', {align: 'left'});
+        txt(`值符星 ${C.valueStar}  ·  值符落 ${PAL[C.T]}宮  ·  值使門 ${C.valueDoor}門`, x0, 312, 19, '#2b1d0e', {align: 'left'});
+        txt('時家盤：以時辰起局，地盤隨局數布三奇六儀，天盤隨時干旋轉。', x0, 352, 15, '#7a5c2e', {align: 'left'});
+
+        // 宮位詳情
+        const p = state.sel;
+        card2D(1000, 410, 900, 245);
+        txt(`${p} 宮 · ${PAL[p]} · ${DIR[p]}`, x0, 446, 32, '#2b1d0e', {align: 'left', font: SERIF, weight: 'bold'});
+        const rows = [
+          ['天盤星', C.tStar[p]],
+          ['天盤干', C.tStemMap[p]],
+          ['地盤干', C.earth[p]],
+          ['人盤門', p === 5 ? '—' : (C.door[p] + '門' + (DOOR_JI[C.door[p]] ? '（吉）' : '（凶）'))],
+          ['八卦', BAGUA[p] ? BAGUA[p][0] + '卦' : '—']
+        ];
+        rows.forEach((r, i) => {
+          const y = 490 + i * 34;
+          txt(r[0], x0, y, 20, '#8b6b3d', {align: 'left'});
+          txt(String(r[1]), x0 + 120, y, 24, '#2b1d0e', {align: 'left', weight: 'bold', font: SERIF});
+        });
+        const g = C.god[p], x1 = x0 + 450;
+        txt('八神', x1, 490, 20, '#8b6b3d', {align: 'left'});
+        if (g) {
+          txt(`${g.n}（${g.j}）`, x1 + 70, 490, 26, g.j === '吉' ? '#5b2a86' : '#8a1c1c', {align: 'left', weight: 'bold', font: SERIF});
+          txt(g.m, x1, 530, 18, '#2b1d0e', {align: 'left'});
+        } else {
+          txt('中宮寄坤艮，不設八神', x1, 490, 18, '#2b1d0e', {align: 'left'});
+        }
+        txt('九地', x1, 580, 20, '#8b6b3d', {align: 'left'});
+        txt(JIU_DI[p] || '—', x1 + 70, 580, 24, '#2b1d0e', {align: 'left', weight: 'bold'});
+
+        // 神盤說明
+        card2D(1000, 675, 900, 297);
+        txt('第四層 · 神盤：八神與三奇六儀', x0, 712, 26, '#2b1d0e', {align: 'left', font: SERIF, weight: 'bold'});
+        GODS.forEach((gd, i) => {
+          const col = i < 4 ? 0 : 1, row = i % 4;
+          const x = x0 + col * 440, y = 752 + row * 34;
+          txt(`${i + 1}. ${gd.n}`, x, y, 22, gd.j === '吉' ? '#5b2a86' : '#8a1c1c', {align: 'left', weight: 'bold', font: SERIF});
+          txt(`${gd.j}　${gd.m}`, x + 110, y, 17, '#2b1d0e', {align: 'left'});
+        });
+        txt('三奇：乙丙丁（日奇、月奇、星奇）　六儀：戊己庚辛壬癸', x0, 900, 17, '#2b1d0e', {align: 'left'});
+        txt('甲隱遁：甲子戊、甲戌己、甲申庚、甲午辛、甲辰壬、甲寅癸', x0, 930, 17, '#2b1d0e', {align: 'left'});
+      }
+      function drawBottom2D() {
+        const by = 1005, bh = 58;
+        const keys = ['earth', 'heaven', 'human', 'god'];
+        keys.forEach((k, i) => {
+          button2(SHOW_NAMES[k], 115 + i * 170, by, 150, bh, SHOW[k], () => {SHOW[k] = !SHOW[k];}, 22);
+        });
+        button2('◀ 上一時辰', 1000, by, 220, bh, false, () => shiftTime(-1), 22);
+        button2('下一時辰 ▶', 1230, by, 220, bh, false, () => shiftTime(1), 22);
+        button2('回到現在', 1460, by, 200, bh, false, () => {state.ms = Date.now();}, 22);
+        button2(state.playing ? '暫停 ■' : '自動演示 ▶', 1670, by, 230, bh, state.playing, togglePlay, 22);
+        txt('示意演算：局數依節氣三元表，未含超神接氣與閏局修正，僅供學習參考。', W / 2, 1074, 15, '#6b4a1e', {font: SANS});
+      }
+      function render2D(C) {
+        drawParchment();
+        txt('奇門遁甲 · 時家九宮八門九星八神式盤', W / 2, 50, 38, '#2b1d0e', {font: SERIF, weight: 'bold'});
+        txt('點選宮位檢視詳情  ｜  底部切換四層  ｜  ← → 調整時辰，空格自動演示，N 回到現在',
+          W / 2, 92, 18, '#7a5c2e', {font: SANS});
+        drawBoard2D(C);
+        drawRight2D(C);
+        drawBottom2D();
+      }
+
+      /* ================= 模式切換按鈕（兩種視圖皆顯示） ================= */
+      function drawModeToggle() {
+        const label = state.mode === '3d' ? '切換至 2D 九宮' : '切換至 3D 環形';
+        if (state.mode === '3d') button(label, 1620, 28, 220, 36, false, toggleMode, 16);
+        else button2(label, 1620, 28, 220, 36, false, toggleMode, 16);
+      }
+
+      /* ================= 總繪製 ================= */
+      function render(t) {
+        HITS.length = 0;
+        const C = getC();
+        if (state.mode === '2d') render2D(C);
+        else render3D(C, t);
+        drawModeToggle();
+      }
+
+      /* ================= 互動 ================= */
+      function toCanvas(e) {
+        const r = cvs.getBoundingClientRect();
+        return {x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height};
+      }
+      function pickPalace3D(x, y) {
+        let best = null, bd = Infinity;
+        for (let p = 1; p <= 9; p++) {
+          const c = at(a9(p), RW.palace, zOf('palace'));
+          const d = Math.hypot(x - c.x, y - c.y);
+          if (d < 40 * c.s && d < bd) {bd = d; best = p;}
+        }
+        return best;
+      }
+      let drag = null;
+      cvs.addEventListener('pointerdown', e => {
+        const pt = toCanvas(e);
+        drag = {sx: e.clientX, sy: e.clientY, moved: false, x: pt.x, y: pt.y};
+        cvs.setPointerCapture(e.pointerId);
+        cvs.classList.add('dragging');
+      });
+      cvs.addEventListener('pointermove', e => {
+        if (!drag || state.mode !== '3d') return;
+        const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+        if (Math.abs(dx) > 4 || Math.abs(dy) > 4) drag.moved = true;
+        if (drag.moved) {
+          view.az += dx * 0.3;
+          view.pitchT = clamp(view.pitchT + dy * 0.2, PITCH_MIN, PITCH_MAX);
+          drag.sx = e.clientX; drag.sy = e.clientY;
+        }
+      });
+      cvs.addEventListener('pointerup', e => {
+        if (drag && !drag.moved) {
+          const pt = toCanvas(e);
+          let handled = false;
+          for (let i = HITS.length - 1; i >= 0; i--) {
+            const h = HITS[i];
+            if (pt.x >= h.x && pt.x <= h.x + h.w && pt.y >= h.y && pt.y <= h.y + h.h) {
+              h.fn(); handled = true; break;
+            }
+          }
+          if (!handled && state.mode === '3d') {
+            const p = pickPalace3D(pt.x, pt.y);
+            if (p) state.sel = p;
+          }
+        }
+        drag = null;
+        cvs.classList.remove('dragging');
+      });
+      cvs.addEventListener('wheel', e => {
+        if (state.mode !== '3d') return;
+        e.preventDefault();
+        view.pitchT = clamp(view.pitchT - e.deltaY * 0.05, PITCH_MIN, PITCH_MAX);
+      }, {passive: false});
+      window.addEventListener('keydown', e => {
+        if (e.key === 'ArrowLeft') shiftTime(-1);
+        else if (e.key === 'ArrowRight') shiftTime(1);
+        else if (e.key === ' ') {e.preventDefault(); togglePlay();}
+        else if (e.key === 'n' || e.key === 'N') state.ms = Date.now();
+        else if (e.key === 'm' || e.key === 'M') toggleMode();
+        else if (state.mode === '3d') {
+          if (e.key === 'r' || e.key === 'R') state.spin = !state.spin;
+          else if (e.key === 'e' || e.key === 'E') toggleCollapse();
+          else if (e.key === 'ArrowUp') view.pitchT = clamp(view.pitchT - 3, PITCH_MIN, PITCH_MAX);
+          else if (e.key === 'ArrowDown') view.pitchT = clamp(view.pitchT + 3, PITCH_MIN, PITCH_MAX);
+          else if (e.key >= '1' && e.key <= '9') LAY[ORDER[+e.key - 1]].on = !LAY[ORDER[+e.key - 1]].on;
+        } else {
+          const keys = ['earth', 'heaven', 'human', 'god'];
+          if (e.key >= '1' && e.key <= '4') {const k = keys[+e.key - 1]; SHOW[k] = !SHOW[k];}
+        }
+      });
+
+      /* ================= 動畫迴圈 ================= */
+      let last = performance.now(), playT = 0;
+      function frame(now) {
+        const dt = Math.min(0.05, (now - last) / 1000);
+        last = now;
+
+        view.pitch += (view.pitchT - view.pitch) * Math.min(1, dt * 6);
+        view.expand = clamp((PITCH_MAX - view.pitch) / (PITCH_MAX - PITCH_MIN), 0, 1);
+
+        if (state.spin && !(drag && drag.moved)) view.az += dt * 4;
+        ORDER.forEach(k => {
+          const tgt = LAY[k].on ? 1 : 0;
+          LAY[k].p += (tgt - LAY[k].p) * Math.min(1, dt * 5);
+        });
+        if (state.playing) {
+          playT += dt;
+          if (playT > 1.6) {playT = 0; shiftTime(1);}
+        }
+        render(now / 1000);
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+
+</html>
