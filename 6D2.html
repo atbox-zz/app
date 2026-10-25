@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>易經維度展開：3D 超立方體</title>
+  <style>
+    :root {
+      --bg: #0a0e17;
+      --gold: #e5b560;
+      --text-main: #ffffff;
+      --text-sub: #8a93a6;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background-image: radial-gradient(circle at center, #151b2e 0%, #0a0e17 100%);
+      cursor: grab;
+    }
+
+    body:active {
+      cursor: grabbing;
+    }
+
+    header {
+      position: absolute;
+      top: 30px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 42px;
+      font-weight: bold;
+      color: var(--gold);
+      letter-spacing: 8px;
+      text-shadow: 0 4px 12px rgba(229, 181, 96, 0.3);
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--text-sub);
+      margin-top: 8px;
+      letter-spacing: 2px;
+    }
+
+    .progress-dots {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 15px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #2c3648;
+      transition: all 0.3s;
+    }
+
+    .dot.active {
+      background-color: var(--gold);
+      box-shadow: 0 0 10px var(--gold);
+      transform: scale(1.2);
+    }
+
+    #canvas-container {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    .controls {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      background: rgba(20, 26, 35, 0.85);
+      padding: 10px 24px;
+      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+      cursor: default;
+    }
+
+    button {
+      background: transparent;
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 6px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    input[type="range"] {
+      width: 250px;
+      accent-color: var(--gold);
+      cursor: pointer;
+    }
+
+    .hint {
+      position: absolute;
+      bottom: 30px;
+      right: 30px;
+      font-size: 12px;
+      color: var(--text-sub);
+      z-index: 10;
+      pointer-events: none;
+      text-align: right;
+      line-height: 1.6;
+    }
+
+    #legend {
+      position: absolute;
+      left: 24px;
+      bottom: 100px;
+      font-size: 13px;
+      color: var(--text-sub);
+      line-height: 1.9;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    #legend:empty {
+      display: none;
+    }
+
+    .swatch {
+      display: inline-block;
+      width: 18px;
+      height: 3px;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1 id="title">太極</h1>
+    <div class="subtitle" id="subtitle">2⁰ = 1</div>
+    <div class="progress-dots" id="dots"></div>
+  </header>
+
+  <div id="canvas-container">
+    <canvas id="cv"></canvas>
+  </div>
+
+  <div id="legend"></div>
+
+  <div class="hint">卦名左邊數字是傳統順序，右邊是二進制順序<br>🖱️ 拖曳旋轉視角（觸控可單指拖曳）<br>🔍 滾輪縮放大小</div>
+
+  <div class="controls">
+    <button id="play">⏸ 暫停</button>
+    <input type="range" id="scrub" min="0" max="6" step="0.01" value="0" />
+  </div>
+
+  <script>
+    const cv = document.getElementById('cv');
+    const ctx = cv.getContext('2d');
+    const titleEl = document.getElementById('title');
+    const subtitleEl = document.getElementById('subtitle');
+    const dotsEl = document.getElementById('dots');
+    const scrub = document.getElementById('scrub');
+    const playBtn = document.getElementById('play');
+    const legendEl = document.getElementById('legend');
+
+    const DIM_NAMES = ['太極', '兩儀', '四象', '八卦', '投影', '再借一次', '六十四卦'];
+    const DIM_SUBTITLES = ['2⁰ = 1', '加入初爻 · 2¹ = 2', '加入二爻 · 2² = 4', '加入三爻 · 2³ = 8', '加入四爻 · 2⁴ = 16', '加入五爻 · 2⁵ = 32', '加入上爻 · 2⁶ = 64'];
+    const COLORS = ['#e07a5f', '#f2cc8f', '#81b29a', '#4cc9f0', '#9b5de5', '#f15bb5'];
+    const YAO_NAMES = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'];
+
+    // 字串由上爻到初爻排列（最左邊為上爻）
+    const TRIGRAMS = {
+      '111': '乾·天', '011': '兌·澤', '101': '離·火', '001': '震·雷',
+      '110': '巽·風', '010': '坎·水', '100': '艮·山', '000': '坤·地'
+    };
+    const FOUR_IMAGES = {'11': '太陽', '10': '少陰', '01': '少陽', '00': '太陰'};
+
+    const compoundGuaMap = {
+      "000000": {name: "坤為地", symbol: "䷁"},
+      "000001": {name: "地雷復", symbol: "䷗"},
+      "000010": {name: "地水師", symbol: "䷆"},
+      "000011": {name: "地澤臨", symbol: "䷒"},
+      "000100": {name: "地山謙", symbol: "䷎"},
+      "000101": {name: "地火明夷", symbol: "䷣"},
+      "000110": {name: "地風升", symbol: "䷭"},
+      "000111": {name: "地天泰", symbol: "䷊"},
+      "001000": {name: "雷地豫", symbol: "䷏"},
+      "001001": {name: "震為雷", symbol: "䷲"},
+      "001010": {name: "雷水解", symbol: "䷧"},
+      "001011": {name: "雷澤歸妹", symbol: "䷵"},
+      "001100": {name: "雷山小過", symbol: "䷽"},
+      "001101": {name: "雷火豐", symbol: "䷶"},
+      "001110": {name: "雷風恆", symbol: "䷟"},
+      "001111": {name: "雷天大壯", symbol: "䷡"},
+      "010000": {name: "水地比", symbol: "䷇"},
+      "010001": {name: "水雷屯", symbol: "䷂"},
+      "010010": {name: "坎為水", symbol: "䷜"},
+      "010011": {name: "水澤節", symbol: "䷻"},
+      "010100": {name: "水山蹇", symbol: "䷦"},
+      "010101": {name: "水火既濟", symbol: "䷾"},
+      "010110": {name: "水風井", symbol: "䷯"},
+      "010111": {name: "水天需", symbol: "䷄"},
+      "011000": {name: "澤地萃", symbol: "䷬"},
+      "011001": {name: "澤雷隨", symbol: "䷐"},
+      "011010": {name: "澤水困", symbol: "䷮"},
+      "011011": {name: "兌為澤", symbol: "䷹"},
+      "011100": {name: "澤山咸", symbol: "䷞"},
+      "011101": {name: "澤火革", symbol: "䷰"},
+      "011110": {name: "澤風大過", symbol: "䷛"},
+      "011111": {name: "澤天夬", symbol: "䷪"},
+      "100000": {name: "山地剝", symbol: "䷖"},
+      "100001": {name: "山雷頤", symbol: "䷚"},
+      "100010": {name: "山水蒙", symbol: "䷃"},
+      "100011": {name: "山澤損", symbol: "䷨"},
+      "100100": {name: "艮為山", symbol: "䷳"},
+      "100101": {name: "山火賁", symbol: "䷕"},
+      "100110": {name: "山風蠱", symbol: "䷑"},
+      "100111": {name: "山天大畜", symbol: "䷙"},
+      "101000": {name: "火地晉", symbol: "䷢"},
+      "101001": {name: "火雷噬嗑", symbol: "䷔"},
+      "101010": {name: "火水未濟", symbol: "䷿"},
+      "101011": {name: "火澤睽", symbol: "䷥"},
+      "101100": {name: "火山旅", symbol: "䷷"},
+      "101101": {name: "離為火", symbol: "䷝"},
+      "101110": {name: "火風鼎", symbol: "䷱"},
+      "101111": {name: "火天大有", symbol: "䷍"},
+      "110000": {name: "風地觀", symbol: "䷓"},
+      "110001": {name: "風雷益", symbol: "䷩"},
+      "110010": {name: "風水渙", symbol: "䷺"},
+      "110011": {name: "風澤中孚", symbol: "䷼"},
+      "110100": {name: "風山漸", symbol: "䷴"},
+      "110101": {name: "風火家人", symbol: "䷤"},
+      "110110": {name: "巽為風", symbol: "䷸"},
+      "110111": {name: "風天小畜", symbol: "䷈"},
+      "111000": {name: "天地否", symbol: "䷋"},
+      "111001": {name: "天雷無妄", symbol: "䷘"},
+      "111010": {name: "天水訟", symbol: "䷅"},
+      "111011": {name: "天澤履", symbol: "䷉"},
+      "111100": {name: "天山遯", symbol: "䷠"},
+      "111101": {name: "天火同人", symbol: "䷌"},
+      "111110": {name: "天風姤", symbol: "䷫"},
+      "111111": {name: "乾為天", symbol: "䷀"}
+    };
+    // 文王序（傳統順序）：第 n 卦的二進位字串（上爻在左，初爻在右）
+    const KING_WEN_BITS = [
+      '111111', '000000', '010001', '100010', '010111', '111010', '000010', '010000',
+      '110111', '111011', '000111', '111000', '111101', '101111', '000100', '001000',
+      '011001', '100110', '000011', '110000', '101001', '100101', '100000', '000001',
+      '111001', '100111', '100001', '011110', '010010', '101101', '011100', '001110',
+      '111100', '001111', '101000', '000101', '110101', '101011', '010100', '001010',
+      '100011', '110001', '011111', '111110', '011000', '000110', '011010', '010110',
+      '011101', '101110', '001001', '100100', '110100', '001011', '001101', '101100',
+      '110110', '011011', '110010', '010011', '110011', '001100', '010101', '101010'
+    ];
+    const BITS_TO_KW = {};
+    KING_WEN_BITS.forEach((bits, i) => {BITS_TO_KW[bits] = i + 1;});
+    // ===== 座標 =====
+    // 下卦（初、二、三爻）→ 大立方體的頂點（x=初爻、y=二爻、z=三爻）
+    // 上卦（四、五、上爻）→ 每個頂點向外長出的小立方體（沿 x、y、z 軸排列）
+    const OUTER = 1.2;   // 大立方體半邊長
+    const GROW = 0.45;   // 小八卦離開頂點的距離
+    const SMALL = 0.42;  // 小八卦半邊長
+
+    function getNodeCoords(dim, index) {
+      if (dim === 0) return {x: 0, y: 0, z: 0, bits: '', index};
+      const bits = index.toString(2).padStart(dim, '0');
+
+      // 頂點方向（每軸 ±1；維度不足的軸為 0）
+      const sv = [0, 0, 0];
+      for (let b = 0; b < Math.min(dim, 3); b++) {
+        sv[b] = ((index >> b) & 1) ? 1 : -1;
+      }
+
+      // 四維以上時，頂點沿外側方向推出，讓小八卦長在頂點外面
+      const g = dim > 3 ? GROW : 0;
+      const p = sv.map(s => s * (OUTER + g));
+
+      // 上卦的每一爻在小立方體中沿一個軸偏移
+      for (let k = 3; k < dim; k++) {
+        const s = ((index >> k) & 1) ? 1 : -1;
+        p[k - 3] += s * SMALL;
+      }
+
+      return {x: p[0], y: p[1], z: p[2], bits, index};
+    }
+
+    for (let i = 0; i <= 6; i++) {
+      const d = document.createElement('div');
+      d.className = 'dot' + (i === 0 ? ' active' : '');
+      d.id = `dot-${i}`;
+      dotsEl.appendChild(d);
+    }
+
+    let width, height, cx, cy;
+    function resize() {
+      width = cv.width = window.innerWidth;
+      height = cv.height = window.innerHeight;
+      cx = width / 2;
+      cy = height / 2 + 30;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // ===== 互動（滑鼠與觸控共用 Pointer Events） =====
+    const camera = {rotX: -0.3, rotY: 0.5, zoom: 1, baseScale: 240};
+    let isDragging = false;
+    let lastX = 0, lastY = 0;
+
+    cv.addEventListener('pointerdown', (e) => {
+      isDragging = true;
+      lastX = e.clientX; lastY = e.clientY;
+      cv.setPointerCapture(e.pointerId);
+    });
+    cv.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      camera.rotY += (e.clientX - lastX) * 0.01;
+      camera.rotX += (e.clientY - lastY) * 0.01;
+      camera.rotX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotX));
+      lastX = e.clientX; lastY = e.clientY;
+    });
+    const endDrag = () => {isDragging = false;};
+    cv.addEventListener('pointerup', endDrag);
+    cv.addEventListener('pointercancel', endDrag);
+
+    cv.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      camera.zoom = Math.max(0.3, Math.min(2.5, camera.zoom - e.deltaY * 0.001));
+    }, {passive: false});
+
+    // ===== 投影 =====
+    function projectTo2D(pt) {
+      const {x, y, z} = pt;
+      const cosX = Math.cos(camera.rotX), sinX = Math.sin(camera.rotX);
+      const y1 = y * cosX - z * sinX, z1 = y * sinX + z * cosX;
+      const cosY = Math.cos(camera.rotY), sinY = Math.sin(camera.rotY);
+      const x1 = x * cosY - z1 * sinY, z2 = x * sinY + z1 * cosY;
+      const fov = 3, cameraDist = 7;
+      const zPos = Math.max(0.1, z2 + cameraDist);
+      const scale = fov / zPos;
+      const finalScale = camera.baseScale * camera.zoom * scale;
+      return {x: cx + x1 * finalScale, y: cy + y1 * finalScale, z: z2, scale: scale * camera.zoom};
+    }
+
+    // ===== 繪圖 =====
+    // isYang 為實線（1），否則為斷線（0）
+    function drawYao(x, y, isYang, color, width, height, gap) {
+      ctx.fillStyle = color;
+      if (isYang) {
+        ctx.fillRect(x - width / 2, y - height / 2, width, height);
+      } else {
+        const segW = (width - gap) / 2;
+        ctx.fillRect(x - width / 2, y - height / 2, segW, height);
+        ctx.fillRect(x + gap / 2, y - height / 2, segW, height);
+      }
+    }
+
+    function drawNode(node) {
+      const {x, y, bits, dim, scale, alpha, showLabels} = node;
+      if (alpha <= 0) return;
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+
+      const sizeScale = scale * 1.2;
+      const yaoSpacing = 7 * sizeScale;
+      const yaoHeight = 3 * sizeScale;
+      const yaoWidth = 22 * sizeScale;
+      const gap = 4 * sizeScale;
+
+      if (dim === 0) {
+        ctx.beginPath();
+        ctx.arc(x, y, 10 * sizeScale, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.shadowColor = '#fff';
+        ctx.shadowBlur = 25;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.restore();
+        return;
+      }
+
+      // bits[0] 為上爻，bits[dim-1] 為初爻；第 b 爻（b=0 為初爻）由下往上畫
+      const startY = y + (yaoSpacing * (dim - 1)) / 2;
+      for (let b = 0; b < dim; b++) {
+        const isYang = bits[dim - 1 - b] === '1';
+        const color = COLORS[b % 6];
+        const bitY = startY - b * yaoSpacing;
+        drawYao(x, bitY, isYang, color, yaoWidth, yaoHeight, gap);
+      }
+
+      if (showLabels) {
+        let label = '';
+        if (dim === 1) label = bits === '1' ? '陽' : '陰';
+        else if (dim === 2) label = FOUR_IMAGES[bits] || '';
+        else if (dim === 3) label = TRIGRAMS[bits] || '';
+        //else if (dim === 6) label = (compoundGuaMap[bits] || {}).name || '';
+        else if (dim === 6) {
+          const gua = compoundGuaMap[bits];
+          label = gua ? `${BITS_TO_KW[bits]} ${gua.name} ${parseInt(bits, 2)}` : '';
+        }
+
+        if (label && scale > 0.3) {
+          const fontSize = dim === 6 ? Math.max(9, 12 * scale) : Math.max(10, 16 * scale);
+          ctx.font = `bold ${fontSize}px "PingFang TC", sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#fff';
+          ctx.shadowColor = '#000';
+          ctx.shadowBlur = 4;
+          ctx.fillText(label, x, y + (yaoSpacing * dim) / 2 + fontSize + 4);
+          ctx.shadowBlur = 0;
+        }
+      }
+      ctx.restore();
+    }
+
+    let targetDim = 0;
+    let isPlaying = true;
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+      const d = Math.floor(targetDim);
+      const nextD = Math.min(6, d + 1);
+      const progress = targetDim - d;
+      const isIn6DPhase = (d === 5 && progress > 0) || d === 6;
+      const renderQueue = [];
+
+      function queueDimension(dim, alpha, showLabels) {
+        if (alpha <= 0) return;
+        const count = 1 << dim;
+        const projections = [];
+        for (let i = 0; i < count; i++) {
+          const pt3D = getNodeCoords(dim, i);
+          const proj = projectTo2D(pt3D);
+          projections.push(proj);
+          renderQueue.push({
+            type: 'node', x: proj.x, y: proj.y, z: proj.z, scale: proj.scale,
+            dim, bits: pt3D.bits, alpha, showLabels
+          });
+        }
+        // 只連接漢明距離為 1 的節點（即只差一爻）
+        for (let i = 0; i < count; i++) {
+          for (let j = i + 1; j < count; j++) {
+            const diff = i ^ j;
+            if (diff !== 0 && (diff & (diff - 1)) === 0) {
+              const diffBit = Math.round(Math.log2(diff));
+              const p1 = projections[i], p2 = projections[j];
+              renderQueue.push({
+                type: 'line', x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y,
+                z: (p1.z + p2.z) / 2,
+                color: COLORS[diffBit % 6], alpha: alpha * 0.6, width: 1.5
+              });
+            }
+          }
+        }
+      }
+
+      for (let c = 0; c < d; c++) {
+        queueDimension(c, 0.15, !(c === 3 && isIn6DPhase));
+      }
+
+      if (progress > 0) {
+        queueDimension(d, 1 - progress, !(d === 5 && isIn6DPhase));
+        queueDimension(nextD, progress, true);
+      } else {
+        queueDimension(d, 1, !(d === 3 && isIn6DPhase));
+      }
+
+      renderQueue.sort((a, b) => a.z - b.z);
+      for (const item of renderQueue) {
+        if (item.type === 'line') {
+          ctx.beginPath();
+          ctx.moveTo(item.x1, item.y1);
+          ctx.lineTo(item.x2, item.y2);
+          ctx.strokeStyle = item.color;
+          ctx.globalAlpha = item.alpha;
+          ctx.lineWidth = item.width;
+          ctx.stroke();
+        } else {
+          drawNode(item);
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // ===== 圖例 =====
+    let legendCount = -1;
+    function buildLegend(n) {
+      legendEl.innerHTML = '';
+      for (let b = 0; b < n; b++) {
+        const row = document.createElement('div');
+        const sw = document.createElement('span');
+        sw.className = 'swatch';
+        sw.style.background = COLORS[b % 6];
+        row.appendChild(sw);
+        row.appendChild(document.createTextNode(`${YAO_NAMES[b]}：陽 = 1（實線）、陰 = 0（斷線）`));
+        legendEl.appendChild(row);
+      }
+      if (n > 3) {
+        const note = document.createElement('div');
+        note.textContent = '下卦（初～三爻）：大立方體的頂點　上卦（四～上爻）：頂點外長出的小八卦';
+        legendEl.appendChild(note);
+      }
+    }
+
+    // ===== 動畫與 UI =====
+    let lastTime = null;
+    function loop(time) {
+      if (lastTime === null) lastTime = time;
+      const dt = Math.min((time - lastTime) / 1000, 0.05);
+      lastTime = time;
+      
+      //旋轉不停止。
+      //if (!isDragging) camera.rotY += dt * 0.2;
+      //旋轉停止，畫面保持在最後的視角。
+      if (!isDragging && isPlaying && targetDim < 6) camera.rotY += dt * 0.2;
+
+      if (isPlaying && targetDim < 6) {
+        targetDim += dt * 0.3;
+        if (targetDim >= 6) {
+          targetDim = 6;
+          isPlaying = false;
+          playBtn.textContent = '▶ 重播';
+        }
+        scrub.value = targetDim;
+        updateUI();
+      }
+
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    function updateUI() {
+      const d = Math.floor(targetDim);
+      titleEl.textContent = DIM_NAMES[d];
+      if (targetDim >= 6) subtitleEl.textContent = DIM_SUBTITLES[6];
+      else if (targetDim === d) subtitleEl.textContent = DIM_SUBTITLES[d];
+      else subtitleEl.textContent = DIM_SUBTITLES[d] + ' ➔ ' + DIM_SUBTITLES[d + 1].split('·')[0];
+
+      for (let i = 0; i <= 6; i++) {
+        document.getElementById(`dot-${i}`).classList.toggle('active', i === Math.round(targetDim));
+      }
+
+      const n = Math.min(6, Math.ceil(targetDim));
+      if (n !== legendCount) {
+        legendCount = n;
+        buildLegend(n);
+      }
+    }
+
+    playBtn.addEventListener('click', () => {
+      if (targetDim >= 6) {
+        targetDim = 0;
+        scrub.value = 0;
+        updateUI();
+      }
+      isPlaying = !isPlaying;
+      playBtn.textContent = isPlaying ? '⏸ 暫停' : '▶ 播放';
+    });
+
+    scrub.addEventListener('input', (e) => {
+      isPlaying = false;
+      playBtn.textContent = '▶ 播放';
+      targetDim = parseFloat(e.target.value);
+      updateUI();
+    });
+
+    updateUI();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+
+</html>
