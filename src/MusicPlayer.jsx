@@ -162,7 +162,7 @@ const MusicPlayer = () => {
         { text: "🐍", filename: "./snake1.html", isEnglish: false, isGame: true },
         { text: "🎮魔術方塊", filename: "./cude6c.html", isEnglish: true, isGame: true },
         { text: "八宮卦方立體", filename: "./zz.html", isEnglish: false, isGame: true },
-        { text: "🔺64D", filename: "./vertices64d1.html", isEnglish: false, isGame: true },
+        { text: "太極六D", filename: "./6D2.html", isEnglish: false, isGame: true },
         { text: "🔺64D2", filename: "./vis_mobile.html", isEnglish: false, isGame: true },
         { text: "DS OR單形法", filename: "./simplex.html", isEnglish: false, isGame: true },
         { text: "Grok OR單形法", filename: "./simplex1.html", isEnglish: false, isGame: true },
@@ -174,7 +174,7 @@ const MusicPlayer = () => {
         { text: "管線", filename: "pipe.html", isEnglish: false, isGame: true },
         { text: "錄異集", filename: "LUYI24.html", isEnglish: false, isGame: true },
         { text: "pop方程式", filename: "pop_music2.html", isEnglish: false, isGame: true },
-        { text: "文字DNA編解碼", filename: "DNA_Cyper1.html", isEnglish: false, isGame: true },
+        { text: "奇門", filename: "奇門5.html", isEnglish: false, isGame: true },
         { text: "ClawOS", filename: "RELEASE_MANIFEST.html", isEnglish: false, isGame: true },
         { text: "股市語音播報", filename: "claw-stock.html", isEnglish: false, isGame: true },
       ]
