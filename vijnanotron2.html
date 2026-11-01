@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Vijñānotron 天使聖域世界能量地圖 v3.1</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            color: #333;
+        }
+
+        #map {
+            position: absolute;
+            inset: 0;
+        }
+
+        .panel {
+            position: absolute;
+            z-index: 2000;
+            background: rgba(255, 255, 255, 0.93);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            padding: 16px 20px;
+        }
+
+        #ui-panel {
+            top: 20px;
+            left: 20px;
+            max-width: 330px;
+            pointer-events: none;
+        }
+
+        #roster {
+            top: 20px;
+            right: 20px;
+            width: 290px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            font-size: 12px;
+        }
+
+        h1 {
+            margin: 0 0 4px;
+            font-size: 20px;
+            color: #222;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            margin: 0 0 10px;
+            font-size: 11px;
+            color: #888;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        #ui-panel p {
+            margin: 5px 0;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .legend {
+            margin-top: 14px;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            padding-top: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 7px 0;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+            flex-shrink: 0;
+            border: 1.5px solid #fff;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+        }
+
+        .disclaimer {
+            margin-top: 12px;
+            font-size: 11px;
+            color: #999;
+            line-height: 1.5;
+        }
+
+        #roster summary {
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #222;
+        }
+
+        #roster h3 {
+            font-size: 12px;
+            margin: 12px 0 4px;
+            color: #444;
+        }
+
+        #roster ul {
+            margin: 0;
+            padding-left: 16px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        #roster .none {
+            color: #999;
+        }
+
+        .label-3d {
+            background: #fff !important;
+            border: 1.5px solid;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #222;
+            white-space: nowrap;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .label-3d::before {
+            display: none;
+        }
+
+        .node-halo {
+            animation: halo 2.4s ease-in-out infinite;
+        }
+
+        @keyframes halo {
+
+            0%,
+            100% {
+                fill-opacity: 0.12;
+            }
+
+            50% {
+                fill-opacity: 0.35;
+            }
+        }
+
+        .popup-note {
+            font-size: 12px;
+            color: #555;
+            margin-top: 4px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 600px) {
+            #ui-panel {
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                max-width: none;
+                padding: 14px;
+            }
+
+            #roster {
+                display: none;
+            }
+
+            h1 {
+                font-size: 17px;
+            }
+
+            .label-3d {
+                font-size: 10px;
+                padding: 1px 4px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="map"></div>
+
+    <div id="ui-panel" class="panel">
+        <h1>Vijñānotron v3.1</h1>
+        <div class="subtitle">Sanctuaries of the Angels</div>
+        <p>以天使傳統為核心的全球聖域地圖。點擊節點可查看地點與傳統說明。右側為天使名錄。</p>
+        <div class="legend">
+            <div class="legend-item"><span class="dot" style="background:#00bcd4;"></span>風 ‧ 加百列（報喜與啟示）</div>
+            <div class="legend-item"><span class="dot" style="background:#2a5bd7;"></span>火 ‧ 米迦勒（守護與勝利）</div>
+            <div class="legend-item"><span class="dot" style="background:#14a44d;"></span>水 ‧ 拉斐爾（療癒與旅途）</div>
+            <div class="legend-item"><span class="dot" style="background:#d62828;"></span>地 ‧ 烏列爾（智慧與光照）</div>
+            <div class="legend-item"><span class="dot" style="background:#888;"></span>大教堂 ‧ 靈性參照點</div>
+            <div class="legend-item"><span class="dot" style="background:#e0a800;"></span>✦ 聖米迦勒之線</div>
+            <div class="legend-item"><span class="dot" style="background:#5566aa;"></span>══ 同元素聖域連線</div>
+        </div>
+        <div class="disclaimer">本地圖呈現宗教與靈修傳統的敘述，地點與天使歸屬不代表史實或科學結論。</div>
+    </div>
+
+    <div id="roster" class="panel">
+        <details>
+            <summary>天使名錄</summary>
+
+            <h3>天使階級（偽狄奧尼修斯《天階體系》）</h3>
+            <ul>
+                <li>第一階：撒拉弗、基路伯、座天使</li>
+                <li>第二階：主天使、力天使、能天使</li>
+                <li>第三階：權天使、大天使、天使</li>
+            </ul>
+
+            <h3>具名大天使與天使（依傳統來源，名單各文獻不一）</h3>
+            <ul>
+                <li>米迦勒、加百列、拉斐爾、烏列爾（四大天使，地圖有地點）</li>
+                <li>拉古耶爾、勒米爾、撒列爾、耶利米爾、撒基爾、卡姆利爾、約菲爾、哈尼爾、拉茲爾、巴拉基爾、耶忽迪爾、塞拉菲爾、卡西爾</li>
+                <li>阿茲拉爾（伊斯蘭與猶太傳統中的死亡天使）</li>
+                <li>梅塔特隆、撒恩達爾豐（猶太神秘主義傳統）</li>
+            </ul>
+
+            <h3 class="none">無特定地點的天使</h3>
+            <ul class="none">
+                <li>以上多數天使在文獻中沒有固定的聖所，因此不在地圖上標示。</li>
+                <li>未被任何傳統記載的天使沒有可查證的資料，無法列入。</li>
+            </ul>
+        </details>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script>
+        // --- 1. 地圖與底圖 ---
+        const map = L.map('map', {center: [30, 20], zoom: 2, minZoom: 2, maxZoom: 10, worldCopyJump: true});
+
+        const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            referrerPolicy: 'strict-origin-when-cross-origin',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        let fallbackUsed = false;
+        osmLayer.on('tileerror', () => {
+            if (fallbackUsed) return;
+            fallbackUsed = true;
+            map.removeLayer(osmLayer);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                subdomains: 'abcd', maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            }).addTo(map);
+        });
+
+        // --- 2. 元素定義 ---
+        const ELEMENTS = {
+            wind: {label: "風 ‧ 加百列", color: "#00bcd4"},
+            fire: {label: "火 ‧ 米迦勒", color: "#2a5bd7"},
+            water: {label: "水 ‧ 拉斐爾", color: "#14a44d"},
+            earth: {label: "地 ‧ 烏列爾", color: "#d62828"},
+            cathedral: {label: "大教堂 ‧ 靈性參照點", color: "#888888"}
+        };
+
+        // --- 3. 聖域資料 ---
+        const sanctuaries = [
+            // 米迦勒（火）
+            {name: "法國 聖米歇爾山", lat: 48.636, lng: -1.511, type: "fire", note: "米迦勒修道院，傳統上與米迦勒顯現相關。"},
+            {name: "義大利 蒙特聖安傑洛", lat: 41.707, lng: 15.954, type: "fire", note: "加爾加諾山的米迦勒聖所，中世紀重要朝聖地。"},
+            {name: "羅馬 聖天使城堡", lat: 41.903, lng: 12.466, type: "fire", note: "傳說米迦勒在此止息瘟疫，城堡頂端有天使雕像。"},
+            {name: "英國 聖米迦勒山", lat: 50.116, lng: -5.477, type: "fire", note: "與聖米歇爾山同屬米迦勒的海島聖所傳統。"},
+            {name: "愛爾蘭 斯凱利格邁克爾", lat: 51.771, lng: -10.540, type: "fire", note: "大西洋島上的修道院遺址，與米迦勒有關。"},
+            {name: "法國 聖米歇爾-艾吉勒", lat: 45.040, lng: 3.886, type: "fire", note: "勒皮昂的火山岩柱頂聖堂，獻給米迦勒。"},
+
+            // 加百列（風）
+            {name: "以色列 拿撒勒 報喜大堂", lat: 32.703, lng: 35.297, type: "wind", note: "天使加百列向瑪利亞報喜的傳統地點。"},
+            {name: "義大利 洛雷托 聖屋", lat: 43.442, lng: 13.604, type: "wind", note: "傳說中的聖家屋，與報喜敘事相關。"},
+            {name: "沙烏地阿拉伯 希拉山洞", lat: 21.458, lng: 39.858, type: "wind", note: "伊斯蘭傳統中，天使哲布勒伊勒（即加百列）在此向穆罕默德傳達啟示。這是伊斯蘭傳統的連結，與基督教敘事不同。"},
+
+            // 拉斐爾（水）
+            {name: "伊朗 雷伊古城（拉格斯）", lat: 35.583, lng: 51.433, type: "water", note: "《多俾亞傳》中多俾亞旅程的目的地拉格斯，拉斐爾陪同前往。現址為約略位置。"},
+            {name: "耶路撒冷 聖安妮教堂", lat: 31.777, lng: 35.234, type: "water", note: "附近的貝賽達池與天使攪水的傳說相連，但約翰福音 5:4 在早期抄本中缺失，此連結證據薄弱。"},
+
+            // 烏列爾（地）
+            {name: "埃及 西奈 聖凱瑟琳修道院", lat: 28.556, lng: 33.975, type: "earth", note: "西奈山聖地，後世靈修傳統中與烏列爾的智慧與光照相連（此連結較為晚近）。"},
+
+            // 大教堂（靈性參照點）
+            {name: "法國 夏特爾大教堂", lat: 48.447, lng: 1.489, type: "cathedral", note: "哥德式大教堂，以聖母與彩繪玻璃聞名，常被列為靈性朝聖地。"},
+            {name: "德國 科隆大教堂", lat: 50.941, lng: 6.958, type: "cathedral", note: "哥德式大教堂，內藏東方三博士聖骨盒。"},
+            {name: "法國 巴黎聖母院", lat: 48.853, lng: 2.350, type: "cathedral", note: "哥德式大教堂，中世紀基督教建築代表。"}
+        ];
+
+        // --- 4. 節點與標籤 ---
+        sanctuaries.forEach(s => {
+            const el = ELEMENTS[s.type];
+            const latlng = [s.lat, s.lng];
+
+            L.circleMarker(latlng, {
+                radius: 14, color: el.color, weight: 1,
+                fillColor: el.color, fillOpacity: 0.2, opacity: 0.6,
+                className: 'node-halo', interactive: false
+            }).addTo(map);
+
+            const core = L.circleMarker(latlng, {
+                radius: 5, color: '#fff', weight: 1.5,
+                fillColor: el.color, fillOpacity: 1
+            }).addTo(map);
+
+            core.bindTooltip(s.name, {
+                permanent: true, direction: 'top', offset: [0, -10], className: 'label-3d'
+            }).openTooltip();
+
+            core.on('tooltipopen', e => {
+                const tip = e.tooltip.getElement();
+                if (tip) tip.style.borderColor = el.color;
+            });
+
+            core.bindPopup(
+                `<strong style="color:${el.color}">${s.name}</strong><br>` +
+                `元素：${el.label}<br>` +
+                `座標：${s.lat.toFixed(3)}, ${s.lng.toFixed(3)}` +
+                `<div class="popup-note">${s.note}</div>`
+            );
+        });
+
+        // --- 5. 同元素聖域的虛線連結（不含大教堂） ---
+        for (let i = 0; i < sanctuaries.length; i++) {
+            for (let j = i + 1; j < sanctuaries.length; j++) {
+                const a = sanctuaries[i], b = sanctuaries[j];
+                if (a.type === b.type && a.type !== "cathedral") {
+                    L.polyline([[a.lat, a.lng], [b.lat, b.lng]], {
+                        color: '#5566aa', weight: 1.2, opacity: 0.5,
+                        dashArray: '4 6', interactive: false
+                    }).addTo(map);
+                }
+            }
+        }
+
+        // --- 6. 聖米迦勒之線 ---
+        const michaelLine = [
+            [51.771, -10.540], [50.116, -5.477], [48.636, -1.511],
+            [45.098, 7.343], [41.707, 15.954], [37.664, 23.463], [32.793, 34.969]
+        ];
+        L.polyline(michaelLine, {
+            color: '#e0a800', weight: 4, opacity: 0.85, smoothFactor: 2, interactive: false
+        }).addTo(map);
+    </script>
+</body>
+
+</html>

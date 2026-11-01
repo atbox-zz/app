@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>太玄占卜器 · 揚雄《太玄經》</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2315171c'/%3E%3Cg stroke='%23c8a25e' stroke-width='5' stroke-linecap='round'%3E%3Cline x1='12' y1='18' x2='52' y2='18'/%3E%3Cline x1='12' y1='32' x2='40' y2='32'/%3E%3Cline x1='20' y1='46' x2='52' y2='46'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#15171c; --bg2:#1b1e24; --panel:#20242c; --panel2:#272c36;
+    --line:rgba(200,162,94,.26); --line-soft:rgba(200,162,94,.14);
+    --zhu:#c04a3f; --zhu-deep:#96332a; --zhu-soft:rgba(192,74,63,.16);
+    --jin:#c8a25e; --jin-soft:rgba(200,162,94,.14);
+    --qing:#7b9a92; --text:#e9e3d3; --muted:#9b9382; --faint:#6c6a63;
+    --paper:#ece5d3; --paper2:#e2d9c2; --ink:#2b2420;
+    --serif:"Songti SC","Noto Serif CJK SC","Source Han Serif SC","STSong","SimSun",serif;
+    --radius:6px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--serif); background:var(--bg); color:var(--text);
+    line-height:1.9; font-size:16px; letter-spacing:.02em;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--jin-soft);color:var(--text)}
+  a{color:var(--jin);text-decoration:none}
+  a:hover{color:var(--paper)}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+  /* ---------- 頂欄 ---------- */
+  .topnav{position:sticky;top:0;z-index:50;background:rgba(21,23,28,.88);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line-soft)}
+  .topnav .inner{max-width:1080px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:22px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;color:var(--jin);letter-spacing:.12em}
+  .brand .mark{width:26px;height:26px;border:1px solid var(--jin);display:grid;place-items:center;color:var(--jin);
+    font-size:15px;line-height:1}
+  .brand small{color:var(--muted);font-weight:400;letter-spacing:.2em;font-size:11px}
+  .navlinks{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+  .navlinks a{padding:6px 12px;color:var(--muted);font-size:14px;border-radius:var(--radius);transition:.18s}
+  .navlinks a:hover{color:var(--jin);background:var(--jin-soft)}
+  .navlinks a.on{color:var(--paper)}
+
+  /* ---------- Hero ---------- */
+  .hero{position:relative;overflow:hidden;padding:88px 0 72px;
+    background:radial-gradient(120% 90% at 50% -10%,#232a35 0%,#1a1e26 42%,var(--bg) 100%)}
+  .hero .gridbg{position:absolute;inset:0;opacity:.05;pointer-events:none;
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:44px 44px}
+  .hero .kicker{color:var(--jin);letter-spacing:.5em;font-size:13px;margin-bottom:26px}
+  .hero h1{font-size:clamp(42px,8vw,78px);font-weight:900;line-height:1.1;letter-spacing:.1em;color:var(--paper)}
+  .hero h1 .zhu{color:var(--zhu)}
+  .hero .sub{max-width:680px;margin-top:22px;color:var(--muted);font-size:clamp(15px,2.2vw,18px)}
+  .hero .meta{margin-top:34px;display:flex;flex-wrap:wrap;gap:14px 28px}
+  .hero .meta .it{display:flex;flex-direction:column}
+  .hero .meta .k{color:var(--faint);font-size:12px;letter-spacing:.28em}
+  .hero .meta .v{color:var(--paper);font-size:17px;letter-spacing:.08em}
+  .hero .cta{margin-top:38px;display:flex;gap:14px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:9px;padding:13px 26px;border-radius:var(--radius);
+    font-family:var(--serif);font-size:16px;letter-spacing:.16em;cursor:pointer;border:1px solid var(--jin);
+    background:var(--jin);color:var(--bg);font-weight:700;transition:.18s}
+  .btn:hover{background:var(--paper);border-color:var(--paper)}
+  .btn.ghost{background:transparent;color:var(--jin)}
+  .btn.ghost:hover{background:var(--jin-soft);color:var(--paper)}
+  .btn.zhu{background:var(--zhu);border-color:var(--zhu);color:#f5efe2}
+  .btn.zhu:hover{background:var(--zhu-deep);border-color:var(--zhu-deep)}
+  .btn:focus-visible,.navlinks a:focus-visible{outline:2px solid var(--jin);outline-offset:2px}
+
+  /* ---------- 章節 ---------- */
+  section{padding:64px 0}
+  .sec-head{margin-bottom:34px}
+  .sec-head .no{color:var(--zhu);font-size:13px;letter-spacing:.4em}
+  .sec-head h2{font-size:clamp(26px,4vw,34px);color:var(--paper);letter-spacing:.08em;margin-top:6px}
+  .sec-head .line{width:56px;height:2px;background:var(--jin);margin-top:14px}
+  .sec-head p.lead{margin-top:14px;color:var(--muted);max-width:760px}
+
+  /* ---------- 介紹排版 ---------- */
+  .prose{max-width:820px}
+  .prose p{color:#d8d2c2;margin-bottom:18px}
+  .prose .lead{color:var(--paper);font-size:18px}
+  .prose strong{color:var(--jin);font-weight:700}
+  .prose em{color:var(--qing);font-style:normal}
+  .quo{border-left:3px solid var(--jin);background:var(--panel);padding:18px 22px;margin:26px 0;color:var(--muted);border-radius:0 var(--radius) var(--radius) 0}
+  .quo .src{display:block;margin-top:10px;color:var(--jin);font-size:13px;letter-spacing:.2em}
+
+  .cardgrid{display:grid;gap:18px;margin-top:8px}
+  .card{background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--radius);padding:24px}
+  .card h3{color:var(--jin);font-size:19px;letter-spacing:.1em;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+  .card h3 .dot{width:7px;height:7px;background:var(--zhu);border-radius:50%}
+  .card p{color:#d8d2c2;font-size:15px}
+  .card .num{font-size:13px;color:var(--faint);letter-spacing:.25em}
+
+  .twocol{display:grid;grid-template-columns:1fr;gap:18px}
+  @media(min-width:768px){.twocol{grid-template-columns:1fr 1fr}.three{grid-template-columns:repeat(3,1fr)}}
+
+  /* 對照表 */
+  .cmptable{width:100%;border-collapse:collapse;margin-top:8px;font-size:14px}
+  .cmptable th{color:var(--jin);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);font-weight:700;letter-spacing:.12em}
+  .cmptable td{padding:10px 12px;border-bottom:1px solid var(--line-soft);color:#d8d2c2;vertical-align:top}
+  .cmptable tr:last-child td{border-bottom:none}
+
+  /* ---------- 結構塔 ---------- */
+  .tower{background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--radius);padding:28px 22px;margin-top:8px}
+  .tower .lv{display:grid;grid-template-columns:74px 1fr auto;align-items:center;gap:14px;padding:10px 0;border-bottom:1px dashed var(--line-soft)}
+  .tower .lv:last-child{border-bottom:none}
+  .tower .lv .lab{color:var(--jin);font-size:15px;letter-spacing:.08em;font-weight:700}
+  .tower .lv .cells{display:flex;flex-wrap:wrap;gap:6px}
+  .tower .lv .cell{width:22px;height:22px;border:1px solid var(--line);border-radius:3px;display:grid;place-items:center;
+    color:var(--qing);font-size:10px;background:var(--bg2)}
+  .tower .lv .cell.hi{color:var(--zhu);border-color:var(--zhu);background:var(--zhu-soft)}
+  .tower .lv .cnt{color:var(--muted);font-size:13px;letter-spacing:.1em;min-width:44px;text-align:right}
+  .tower .lv.origin{border-bottom:none;padding-bottom:4px}
+  .tower .lv.origin .lab{font-size:18px;color:var(--paper)}
+  .tower .note{color:var(--faint);font-size:12px;margin-top:14px;letter-spacing:.05em}
+
+  /* ---------- 筮法步驟 ---------- */
+  .steps{list-style:none;counter-reset:st;display:grid;gap:12px;margin-top:8px}
+  .steps li{display:flex;gap:16px;background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--radius);padding:16px 18px;counter-increment:st}
+  .steps li .ic{flex:0 0 42px;width:42px;height:42px;border:1px solid var(--jin);border-radius:50%;display:grid;place-items:center;
+    color:var(--jin);font-weight:700;font-size:16px}
+  .steps li .ic::before{content:counter(st)}
+  .steps li .tx h4{color:var(--paper);font-size:16px;letter-spacing:.06em;margin-bottom:4px}
+  .steps li .tx p{color:var(--muted);font-size:14px}
+
+  /* ---------- 占卜器 ---------- */
+  .oracle{position:relative;background:linear-gradient(180deg,var(--bg2),var(--bg));border:1px solid var(--line);border-radius:10px;
+    padding:30px 22px;overflow:hidden}
+  .oracle::before{content:"";position:absolute;inset:0;opacity:.05;pointer-events:none;
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:36px 36px}
+  .oracle .stage{position:relative}
+  .oracle .prompt{margin-bottom:26px}
+  .oracle .prompt .q{font-size:16px;color:var(--paper);letter-spacing:.05em}
+  .oracle .prompt .q span{color:var(--jin)}
+  .oracle .actions{display:flex;gap:14px;flex-wrap:wrap}
+
+  /* 揲蓍過程 */
+  .ritual{background:rgba(0,0,0,.22);border:1px solid var(--line-soft);border-radius:var(--radius);padding:18px;margin-top:22px;display:none}
+  .ritual.show{display:block}
+  .ritual .row{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+  .ritual .throw{flex:1 1 100%;border-top:1px dashed var(--line-soft);padding-top:12px;margin-top:12px}
+  .ritual .throw:first-child{border-top:none;padding-top:0;margin-top:0}
+  .ritual .throw .tl{color:var(--jin);font-size:13px;letter-spacing:.3em;margin-bottom:8px}
+  .ritual .chip{background:var(--panel2);border:1px solid var(--line-soft);border-radius:5px;padding:6px 12px;font-size:14px;color:var(--text)}
+  .ritual .chip b{color:var(--jin);font-weight:700;margin-left:2px}
+  .ritual .chip .r{color:var(--zhu)}
+
+  /* 卦牌 */
+  .plate{display:none;margin-top:26px}
+  .plate.show{display:block}
+  .plate .card{background:var(--paper);color:var(--ink);border:none;padding:26px 24px;border-radius:8px;
+    box-shadow:0 18px 40px rgba(0,0,0,.5);position:relative}
+  .plate .card .seal{position:absolute;top:18px;right:20px;width:56px;height:56px;border:2px solid var(--zhu);color:var(--zhu);
+    display:grid;place-items:center;font-size:13px;letter-spacing:.2em;transform:rotate(3deg);opacity:.9;writing-mode:vertical-rl}
+  .plate .topline{display:flex;align-items:center;gap:16px;flex-wrap:wrap;border-bottom:2px solid var(--ink);padding-bottom:14px}
+  .plate .topline .shouname{font-size:52px;font-weight:900;line-height:1;color:var(--ink)}
+  .plate .topline .info{font-size:14px;color:#4a4038;line-height:1.7}
+  .plate .topline .info b{color:var(--zhu-deep)}
+  .plate .gua{margin-top:14px;font-size:15px;color:#4a4038}
+  .plate .gua b{color:var(--zhu-deep)}
+  .plate .yi{margin-top:16px;font-size:17px;color:var(--ink);letter-spacing:.05em}
+  .plate .yi .t{display:inline-block;font-size:12px;letter-spacing:.3em;color:var(--zhu-deep);border:1px solid var(--zhu-deep);
+    padding:2px 8px;border-radius:3px;margin-bottom:8px}
+
+  /* 四畫 */
+  .shou-lines{display:flex;flex-direction:column;gap:12px;margin:20px 0 4px}
+  .shou-lines .lrow{display:flex;align-items:center;gap:14px}
+  .shou-lines .llab{width:34px;color:var(--zhu-deep);font-size:14px;font-weight:700;letter-spacing:.1em}
+  .shou-lines .bars{display:flex;flex-direction:column;gap:4px}
+  .shou-lines .bar{height:6px;background:var(--ink);border-radius:2px}
+  .shou-lines .bar.gap{width:58%;margin:0 auto}
+  .shou-lines .val{font-size:15px;color:var(--zhu-deep);min-width:20px}
+
+  /* 贊 */
+  .zan-block{margin-top:22px;border-top:1px dashed var(--zhu);padding-top:18px}
+  .zan-block .zt{color:var(--zhu-deep);font-size:15px;letter-spacing:.2em;margin-bottom:12px;font-weight:700}
+  .zan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  @media(min-width:560px){.zan-grid{grid-template-columns:repeat(9,1fr)}}
+  .zan-grid button{font-family:var(--serif);font-size:16px;padding:10px 0;border:1px solid var(--zhu-deep);color:var(--zhu-deep);
+    background:transparent;border-radius:5px;cursor:pointer;transition:.15s}
+  .zan-grid button:hover{background:var(--zhu-soft)}
+  .zan-grid button.sel{background:var(--zhu-deep);color:var(--paper)}
+  .zan-time{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+  .zan-time button{font-family:var(--serif);font-size:13px;padding:7px 14px;border:1px solid var(--line);color:var(--ink);
+    background:transparent;border-radius:4px;cursor:pointer}
+  .zan-time button.sel{background:var(--ink);color:var(--paper)}
+  .zan-time button:hover{border-color:var(--ink)}
+  .zan-result{display:none;margin-top:16px;background:var(--paper2);border-left:4px solid var(--zhu-deep);padding:14px 16px;border-radius:0 6px 6px 0}
+  .zan-result.show{display:block}
+  .zan-result .verdict{font-size:20px;font-weight:900;color:var(--zhu-deep);letter-spacing:.2em;margin-bottom:6px}
+  .zan-result .verdict.ok{color:#3d6b4a}
+  .zan-result .dets{font-size:14px;color:#4a4038;line-height:1.9}
+
+  /* ---------- 首表 ---------- */
+  .table-tools{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+  .search{flex:1 1 220px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:12px 16px;color:var(--text);font-family:var(--serif);font-size:15px}
+  .search:focus{outline:none;border-color:var(--jin)}
+  .filters{display:flex;gap:8px;flex-wrap:wrap}
+  .filter{font-family:var(--serif);font-size:13px;padding:8px 14px;border:1px solid var(--line);background:transparent;
+    color:var(--muted);border-radius:20px;cursor:pointer;transition:.15s}
+  .filter.sel{background:var(--jin);border-color:var(--jin);color:var(--bg);font-weight:700}
+  .filter:hover{color:var(--paper)}
+  .shou-table-wrap{overflow-x:auto;border:1px solid var(--line-soft);border-radius:var(--radius);background:var(--panel)}
+  table.shou-table{width:100%;border-collapse:collapse;font-size:14px;min-width:640px}
+  .shou-table th{background:var(--bg2);color:var(--jin);text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);
+    letter-spacing:.1em;white-space:nowrap}
+  .shou-table td{padding:10px 12px;border-bottom:1px solid var(--line-soft);color:#d8d2c2;vertical-align:middle}
+  .shou-table tbody tr{cursor:pointer;transition:background .15s}
+  .shou-table tbody tr:hover{background:var(--jin-soft)}
+  .shou-table .sname{font-size:19px;font-weight:700;color:var(--paper);letter-spacing:.05em}
+  .shou-table .yi{color:var(--muted);font-size:13px;max-width:260px}
+  .shou-table .tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:3px;letter-spacing:.06em}
+  .tag.yang{color:var(--zhu);border:1px solid var(--zhu)}
+  .tag.yin{color:var(--qing);border:1px solid var(--qing)}
+  .tag.w{color:var(--jin);border:1px solid var(--jin)}
+
+  /* footer */
+  footer{border-top:1px solid var(--line-soft);padding:40px 0 60px;color:var(--faint);font-size:13px;background:var(--bg)}
+  footer .wrap{display:flex;flex-direction:column;gap:14px}
+  footer .srcs{display:flex;flex-wrap:wrap;gap:8px 22px}
+  footer a{color:var(--muted)}
+  footer a:hover{color:var(--jin)}
+
+  /* 動效偏好 */
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+  .fade{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
+  .fade.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<header class="topnav">
+  <div class="inner">
+    <div class="brand"><span class="mark">玄</span>太玄占卜器<small>擬易·三進</small></div>
+    <nav class="navlinks">
+      <a href="#intro">太玄</a>
+      <a href="#calc">筮法</a>
+      <a href="#oracle">占卜</a>
+      <a href="#shou-table">首表</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ===================== Hero ===================== -->
+<section class="hero">
+  <div class="gridbg" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="kicker">西漢 · 揚雄 擬《易》之作</div>
+    <h1>太<span class="zhu">玄</span>經</h1>
+    <p class="sub">一玄生三方，三方生九州，九州生二十七部，二十七部生八十一首。揚雄以「三」統攝天地人之變，成八十一首、七百二十九贊，開三進制宇宙圖式，與《周易》之二進制分庭抗禮。</p>
+    <div class="meta">
+      <div class="it"><span class="k">結構</span><span class="v">八十一首 · 每首九贊</span></div>
+      <div class="it"><span class="k">底數</span><span class="v">三進制（一、二、三）</span></div>
+      <div class="it"><span class="k">擬易</span><span class="v">六十四卦 → 八十一首</span></div>
+      <div class="it"><span class="k">直日</span><span class="v">七百二十九贊配一歲</span></div>
+    </div>
+    <div class="cta">
+      <button class="btn zhu" onclick="location.hash='#oracle'">行 筮 占 卜</button>
+      <button class="btn ghost" onclick="location.hash='#intro'">讀 太 玄 之 義</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 詳介 ===================== -->
+<section id="intro" style="padding-top:20px">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="no">壹 · 總論</div>
+      <h2>細說《太玄經》</h2>
+      <div class="line"></div>
+      <p class="lead">《太玄》者，擬《易》之書也。易以二數，玄以三數；易畫陰陽，玄畫一二三。其為體也，自一玄而三重，層層相生，成八十一首以法歲功。</p>
+    </div>
+
+    <div class="prose">
+      <p class="lead"><strong>揚雄</strong>（西元前 53－18），字子雲，蜀郡成都人，西漢末思想家、辭賦家。他見《周易》卦爻繁博，遂「〈太玄〉以擬《易》」，取「<em>三</em>」立說，認為天、地、人三才之變皆可納於三元之數。其書玄深難讀，自謂「觀之者難知，學之者難成」，然桓譚稱其「必傳」，張衡、司馬光皆極推崇。</p>
+
+      <p><strong>一、一本玄，數起於三。</strong>太玄的根本符號有三種，曰「<strong>一、二、三</strong>」——一象陽（天）、三象陰（地）、二居中（人）。每首由四畫疊成，自上而下為「<strong>方、州、部、家</strong>」四層，每層皆一、二、三可取，故四層相乘得 3⁴＝<strong>八十一首</strong>。此猶《易》之六爻、六十四卦，而玄以四重為一首、以三為底數。</p>
+
+      <p><strong>二、層層生發，如枝分葉布。</strong>《玄圖》曰：「一玄都覆三方，方同九州，枝載庶部，分正群家。」一玄而生三方（天玄、地玄、人玄），三方生九州，九州生二十七部，二十七部生八十一家（即八十一首）。八十一首分屬三「元」：首一至二十七屬<strong>天元</strong>，二十八至五十四屬<strong>地元</strong>，五十五至八十一屬<strong>人元</strong>。</p>
+
+      <p><strong>三、每首九贊，以直日辰。</strong>每首之下繫九「贊」，名初一、次二、次三、次四、次五、次六、次七、次八、上九。八十一首共七百二十九贊；又以二贊直一日，配一歲三百六十四日有半，末附「踦」「嬴」二贊以補餘分，合一年之數。故《太玄》實是一部「卦氣曆」，以八十一首周流四時、配二十八宿、直三百六十五日。</p>
+
+      <p><strong>四、擬卦有準，義有所歸。</strong>玄雖自為之名，然每首皆擬《易》之一卦或兩卦（如<strong>中</strong>擬中孚、<strong>周</strong>擬復、<strong>礥</strong>與<strong>閑</strong>擬屯、<strong>應</strong>擬離、<strong>養</strong>擬頤）。占者得一首，即知其所對應之卦，可與《易》互參。</p>
+
+      <div class="quo">「易與太玄，道同而法異。易畫有二，曰陰曰陽；玄畫有三，曰一曰二曰三。易有六位，玄有四重。……皆本於太極、兩儀、三才、四時、五行而歸於道德仁義禮也。」<span class="src">—— 司馬光《太玄集註》</span></div>
+    </div>
+
+    <!-- 結構塔 -->
+    <div class="sec-head" style="margin-top:46px">
+      <div class="no">貳 · 結構</div>
+      <h2>一玄 · 三方 · 九州 · 二十七部 · 八十一首</h2>
+      <div class="line"></div>
+    </div>
+    <div class="tower" id="tower" role="img" aria-label="太玄結構：一玄生三方、三方生九州、九州生二十七部、二十七部生八十一首，每首九贊">
+      <div class="lv origin"><span class="lab">玄</span><span class="cells"><span class="cell">一</span></span><span class="cnt">1</span></div>
+      <div class="lv"><span class="lab">方</span><span class="cells"><span class="cell">天</span><span class="cell">地</span><span class="cell">人</span></span><span class="cnt">3</span></div>
+      <div class="lv"><span class="lab">州</span><span class="cells" id="tower-zhou"></span><span class="cnt">9</span></div>
+      <div class="lv"><span class="lab">部</span><span class="cells" id="tower-bu"></span><span class="cnt">27</span></div>
+      <div class="lv"><span class="lab">家</span><span class="cells" id="tower-jia"></span><span class="cnt">81</span></div>
+      <div class="lv"><span class="lab">贊</span><span class="cells"><span class="cell" style="width:auto;padding:0 8px">729＋踦嬴2</span></span><span class="cnt">731</span></div>
+      <div class="note">* 每層皆以「一、二、三」定之，四層相乘得 3⁴＝81；每首九贊，共 729 贊，末加踦、嬴二贊以補一歲餘分。</div>
+    </div>
+
+    <div class="sec-head" style="margin-top:46px">
+      <div class="no">參 · 易玄之辨</div>
+      <h2>《易》與《玄》：二進與三進</h2>
+      <div class="line"></div>
+    </div>
+    <div class="cardgrid" style="grid-template-columns:1fr;max-width:820px">
+      <table class="cmptable">
+        <thead><tr><th>項目</th><th>《周易》</th><th>《太玄》</th></tr></thead>
+        <tbody>
+          <tr><td>底數</td><td>二（陰陽）</td><td>三（一二三，天·人·地）</td></tr>
+          <tr><td>基本畫</td><td>—　- -</td><td>一　二　三</td></tr>
+          <tr><td>成卦之重</td><td>六爻相重</td><td>方·州·部·家 四重</td></tr>
+          <tr><td>卦（首）數</td><td>6 ²＝64</td><td>3 ⁴＝81</td></tr>
+          <tr><td>爻（贊）數</td><td>384 爻</td><td>729 贊（＋踦嬴）</td></tr>
+          <tr><td>直日</td><td>六日七分</td><td>二贊直一日</td></tr>
+          <tr><td>辭體</td><td>彖·爻·象</td><td>首·贊·測</td></tr>
+          <tr><td>占蓍</td><td>大衍五十，揲以四</td><td>三十六策，揲以三</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 筮法 ===================== -->
+<section id="calc">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="no">肆 · 筮法與占法</div>
+      <h2>三十六策 · 虛三揲三</h2>
+      <div class="line"></div>
+      <p class="lead">太玄之筮，用三十六策，虛三、掛一，中分而揲之以三，兩揲而四畫成首；復以星、時、數、辭四者占其吉凶。</p>
+    </div>
+    <div class="twocol">
+      <div class="card">
+        <h3><span class="dot"></span>揲蓍成首（每畫）</h3>
+        <ol class="steps">
+          <li><span class="ic"></span><div class="tx"><h4>虛三</h4><p>取三策置一旁，象「玄」之虛，餘三十三。</p></div></li>
+          <li><span class="ic"></span><div class="tx"><h4>掛一</h4><p>取一策掛於左手小指，餘三十二。</p></div></li>
+          <li><span class="ic"></span><div class="tx"><h4>中分·揲三</h4><p>三十二分為左右兩堆，各以三數之，餘數不足三者（無餘記為三）。</p></div></li>
+          <li><span class="ic"></span><div class="tx"><h4>並餘·再揲</h4><p>兩堆餘數相加為二或五，去之，正策得三十或二十七；再分而揲三，餘數為三或六。</p></div></li>
+          <li><span class="ic"></span><div class="tx"><h4>定數</h4><p>正策為二十一、二十四、二十七，各以三除之得七、八、九，對應一、二、三。</p></div></li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3><span class="dot"></span>四畫成首 · 九贊取位</h3>
+        <p style="color:#d8d2c2;font-size:15px;margin-bottom:10px">依王薦說：「初揲定方，二揲定州，三揲定部，四揲定家。」四畫齊而一首定。</p>
+        <p style="color:#d8d2c2;font-size:15px;margin-bottom:10px">首既得，復取「贊」以斷事。九贊分三表：<em style="color:var(--qing)">旦表（一·五·七）、中表（二·六·九）、夕表（三·四·八）</em>，按占時取之。</p>
+        <p style="color:#d8d2c2;font-size:15px;margin-bottom:10px">吉凶以「晝夜」斷：<strong style="color:var(--jin)">陽家（奇首）奇贊為晝、偶贊為夜</strong>；<strong style="color:var(--jin)">陰家（偶首）偶贊為晝、奇贊為夜</strong>。晝贊趨休（吉）、夜贊趨咎（凶）。</p>
+        <p style="color:#d8d2c2;font-size:15px;margin-bottom:10px">又以九贊分三才之位：<em style="color:var(--qing)">下三贊為「思」，中三贊為「福」，上三贊為「禍」</em>，觀始、中、終以決其從違。</p>
+        <p style="color:#6c6a63;font-size:13px">* 表中斷法本《太玄》「逢有下中上，下思也、中福也、上禍也」及晝夜從違之旨，簡化為可操作之判詞；<strong style="color:var(--zhu)">贊辭原文</strong>詳見四部叢刊本《太玄經》。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 占卜器 ===================== -->
+<section id="oracle">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="no">伍 · 行筮</div>
+      <h2>太玄占卜器</h2>
+      <div class="line"></div>
+      <p class="lead">默念所問之事，點「行筮」，依《太玄》揲蓍之法，以三十六策虛三揲三，四揲而成一首；復取一贊以斷吉凶。</p>
+    </div>
+
+    <div class="oracle">
+      <div class="stage">
+        <div class="prompt">
+          <div class="q">問：<span id="qText">（默念心中所問）</span></div>
+        </div>
+
+        <div class="actions">
+          <input type="text" id="qInput" class="search" placeholder="所問何事？（可留空）" maxlength="40" style="flex:1 1 260px;background:rgba(0,0,0,.25)">
+          <button class="btn zhu" id="castBtn">行 筮 起 卦</button>
+          <button class="btn ghost" id="resetBtn" style="display:none">重 新 起 卦</button>
+        </div>
+
+        <!-- 揲蓍過程 -->
+        <div class="ritual" id="ritual"></div>
+
+        <!-- 卦牌 -->
+        <div class="plate" id="plate"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 首表 ===================== -->
+<section id="shou-table">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="no">陸 · 總覽</div>
+      <h2>八十一首總表</h2>
+      <div class="line"></div>
+      <p class="lead">八十一首依序排布，點任一首可詳看其畫與義。搜尋框可依首名或擬卦檢索；亦可以「元」篩選。</p>
+    </div>
+
+    <div class="table-tools">
+      <input type="text" id="searchBox" class="search" placeholder="搜尋首名／擬卦／義解">
+      <div class="filters">
+        <button class="filter sel" data-yuan="all">全部</button>
+        <button class="filter" data-yuan="天">天元</button>
+        <button class="filter" data-yuan="地">地元</button>
+        <button class="filter" data-yuan="人">人元</button>
+      </div>
+    </div>
+
+    <div class="shou-table-wrap">
+      <table class="shou-table">
+        <thead>
+          <tr>
+            <th style="width:52px">序</th>
+            <th style="width:70px">首</th>
+            <th style="width:56px">元</th>
+            <th style="width:72px">陰陽</th>
+            <th style="width:56px">行</th>
+            <th style="width:74px">擬卦</th>
+            <th>義解</th>
+          </tr>
+        </thead>
+        <tbody id="shouBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 頁尾 ===================== -->
+<footer>
+  <div class="wrap">
+    <p>《太玄占卜器》 — 依西漢揚雄《太玄經》體例與揲蓍之法而作，供學術賞玩，不作為人事決策依據。</p>
+    <div class="srcs">
+      <span>資料依據：</span>
+      <a href="https://ctext.org/taixuanjing/zh" target="_blank" rel="noopener">中國哲學書電子化計畫 · 太玄經</a>
+      <a href="https://www.eee-learning.com/book/5341" target="_blank" rel="noopener">易學網 · 太玄經云</a>
+      <a href="https://www.shidianguji.com/mid-page/7430936243070009353" target="_blank" rel="noopener">經義考 · 擬卦</a>
+      <a href="https://www.eee-learning.com/book/1266" target="_blank" rel="noopener">黃宗羲 · 易學象數論（太玄蓍法）</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ===== 資料：八十一首 ===== */
+/* 依序：天元27 → 地元27 → 人元27；[首名, 擬卦, 義解] */
+const SHOU = [
+  ["中","中孚","陽氣潛萌，誠信居中"],["周","復","陽復於始，周流反本"],
+  ["礥","屯","陽剛難生，始難守正"],["閑","屯","閑邪存誠，防微杜漸"],
+  ["少","謙","陰少陽多，謙卑自牧"],["戾","睽","乖戾背離，慎其分際"],
+  ["上","升","陽氣上升，奮發向上"],["干","升","幹事求進，努力向前"],
+  ["狩","臨","以剛臨柔，收穫在望"],["羨","臨","欣羨慕念，宜察本心"],
+  ["差","小過","差錯小過，慎微改過"],["重","蒙","重蒙未明，有待啟發"],
+  ["增","益","增益進德，日有所增"],["銳","漸","銳進當漸，循序以進"],
+  ["達","泰","通達順遂，泰然自得"],["交","泰","交孚往來，通泰交融"],
+  ["䎡","需","柔順待時，需而後進"],["徯","需","等待時機，靜候其至"],
+  ["從","隨","順從隨宜，隨機應變"],["進","晉","進取上進，如日之升"],
+  ["釋","解","解脫釋然，險難得解"],["格","大壯","阻格則壯，剛健有力"],
+  ["夷","大壯","平夷通達，坦蕩前行"],["樂","豫","和樂愉悅，豫順而動"],
+  ["爭","訟","爭訟相違，宜明是非"],["務","蠱","專務其事，整飭積弊"],
+  ["事","蠱","任事盡職，治蠱興業"],
+  ["更","革","更革變易，革故鼎新"],["斷","夬","果斷決行，明決斷事"],
+  ["穀","夬","養穀育物，善終其事"],["裝","旅","裝束遠行，羈旅慎處"],
+  ["眾","師","眾多師旅，統眾以正"],["密","比","親密比附，密不可分"],
+  ["親","比","親近相親，比和親睦"],["歛","小畜","收斂積蓄，小畜以待"],
+  ["彊","乾","剛強健行，自強不息"],["晬","乾","光潤純粹，美善完備"],
+  ["盛","大有","盛大豐有，盛極當慎"],["居","家人","安居定止，家道昌明"],
+  ["法","井","法度如井，養人不窮"],["應","離","應和相感，明麗相隨"],
+  ["迎","咸","迎受感應，兩情相感"],["遇","姤","相遇邂逅，當謹所遇"],
+  ["竈","鼎","灶火鼎新，化育烹養"],["大","豐","光大豐盛，大而能容"],
+  ["廓","豐","廓然廣大，開闊無際"],["文","渙","文采渙發，渙散當聚"],
+  ["禮","履","禮以行之，循禮而行"],["逃","遯","逃避遠引，審時知退"],
+  ["唐","遯","唐然寬大，遁世無悶"],["常","恆","恒常久長，守常不易"],
+  ["度","節","度量有節，節制有度"],["永","恆","永長恆久，堅定不移"],
+  ["昆","同人","昆弟同心，和同於人"],
+  ["滅","損","滅損消減，損己利人"],["唫","否","噤閉不通，否塞當守"],
+  ["守","否","守正不阿，守其常道"],["翕","巽","翕合順入，柔順以入"],
+  ["聚","萃","聚集薈萃，眾心歸聚"],["積","大畜","積累畜德，厚積薄發"],
+  ["飾","賁","文飾修美，飾外修內"],["疑","震","疑惑震動，驚疑當定"],
+  ["視","觀","觀望審察，觀其淺深"],["沈","兌","沉潛悅樂，沈靜和悅"],
+  ["內","歸妹","納內歸藏，內守其真"],["去","无妄","離去消解，去妄存誠"],
+  ["晦","明夷","晦暗不明，晦而守明"],["瞢","明夷","瞢昧昏暗，蒙瞢當省"],
+  ["窮","困","窮困艱難，困而求通"],["割","剝","割離剝落，剝極當復"],
+  ["止","艮","止靜不動，知止有定"],["堅","艮","堅固不移，堅守不移"],
+  ["成","既濟","成功既濟，功成當慎"],["闕","噬嗑","闕失阻隔，明斷去礙"],
+  ["矢","大過","矢志非常，大過有為"],["劇","大過","劇烈過度，非常之事"],
+  ["馴","坤","馴順柔順，厚德載物"],["將","未濟","將成未成，慎終如始"],
+  ["難","蹇","艱難險阻，蹇難當濟"],["勤","坎","勤勉不怠，習坎有孚"],
+  ["養","頤","養育頤養，養正自守"]
+];
+
+const WUXING = ["水","火","木","金","土"];
+const ZAN_NAME = ["初一","次二","次三","次四","次五","次六","次七","次八","上九"];
+const YUAN = ["天","地","人"];
+
+/* ===== 結構塔 ===== */
+(function(){
+  function cells(n,prefix){let s='';for(let i=1;i<=n;i++){s+='<span class="cell'+(i===1?' hi':'')+'">'+i+'</span>';}return s;}
+  document.getElementById('tower-zhou').innerHTML=cells(9);
+  document.getElementById('tower-bu').innerHTML=cells(27);
+  document.getElementById('tower-jia').innerHTML=cells(81);
+})();
+
+/* ===== 揲蓍演算 ===== */
+function randSplit(total){ return 1 + Math.floor(Math.random()*(total-1)); }
+function rem3(x){ const r=x%3; return r===0?3:r; } // 無餘為三
+function castPosition(){
+  const n0=32; // 三十六－虛三(3)－掛一(1)
+  const L=randSplit(n0), R=n0-L;
+  const rL=rem3(L), rR=rem3(R), sum1=rL+rR;   // 2 或 5
+  const remain1=n0-sum1;                        // 30 或 27
+  const L2=randSplit(remain1), R2=remain1-L2;
+  const rL2=rem3(L2), rR2=rem3(R2), sum2=rL2+rR2; // 3 或 6
+  const remain2=remain1-sum2;                   // 21·24·27
+  const val=remain2/3;                          // 7·8·9
+  const pos = val===7?1:(val===8?2:3);          // 一·二·三
+  return {pos,st:{L,R,rL,rR,sum1,remain1,L2,R2,rL2,rR2,sum2,remain2,val,pos}};
+}
+function castShou(){
+  const fang=castPosition(), zhou=castPosition(), bu=castPosition(), jia=castPosition();
+  const ordinal=(fang.pos-1)*27+(zhou.pos-1)*9+(bu.pos-1)*3+(jia.pos-1)+1;
+  return {fang,zhou,bu,jia,ordinal,order:[fang,zhou,bu,jia]};
+}
+
+function shouData(i){ // i:1..81
+  const [name,gua,yi]=SHOU[i-1];
+  const yuan = i<=27?'天':(i<=54?'地':'人');
+  const yang = i%2===1;
+  const wu = WUXING[(i-1)%5];
+  let x=i-1;
+  const jia=x%3+1; x=(x/3)|0; const bu=x%3+1; x=(x/3)|0;
+  const zhou=x%3+1; x=(x/3)|0; const fang=x+1;
+  return {i,name,gua,yi,yuan,yang,wu,fang,zhou,bu,jia};
+}
+
+function barsHTML(v){
+  const w=v===1?100:(v===2?47:31);
+  let s='';
+  for(let i=0;i<v;i++){ s+='<div class="bar" style="width:'+w+'%"></div>'; }
+  return '<div class="bars">'+s+'</div>';
+}
+function linesHTML(d){
+  return '<div class="shou-lines">'
+    +['方','州','部','家'].map((lab,k)=>{
+        const v=[d.fang,d.zhou,d.bu,d.jia][k];
+        return '<div class="lrow"><span class="llab">'+lab+'</span>'+barsHTML(v)+'<span class="val">'+v+'</span></div>';
+      }).join('')
+    +'</div>';
+}
+
+/* ===== 贊占 ===== */
+const TIME_GROUPS={'旦':[1,5,7],'中':[2,6,9],'夕':[3,4,8]};
+function defaultTime(){
+  const h=new Date().getHours();
+  if(h>=5&&h<=11) return '旦';
+  if(h>=12&&h<=16) return '中';
+  if(h>=17&&h<=23) return '夕';
+  return '中';
+}
+function zanInfo(d,n,time){
+  const day = d.yang ? (n%2===1) : (n%2===0);   // 陽家奇贊晝、陰家偶贊晝
+  const tier = n<=3?'下·思（始）':(n<=6?'中·福（中）':'上·禍（終）');
+  const inGroup = TIME_GROUPS[time].indexOf(n)>-1;
+  const base = day?'休':'咎';
+  const verdict = inGroup ? (day?'大休':'大咎') : base;
+  const cong = inGroup?'從':'違';
+  return {day,tier,inGroup,base,verdict,cong,n};
+}
+
+/* ===== 渲染：卦牌 ===== */
+let curData=null, curTime=defaultTime();
+
+function renderPlate(d, animate){
+  curData=d;
+  const sealTxt = d.yang?'陽家':'陰家';
+  const html =
+    '<div class="card">'
+      +'<div class="seal">'+sealTxt+'</div>'
+      +'<div class="topline">'
+        +'<div class="shouname">'+d.name+'</div>'
+        +'<div class="info">'
+          +'第<b>'+d.i+'</b>首　·　'+d.yuan+'元<br>'
+          +'陰陽家：<b>'+sealTxt+'</b>　·　行：<b>'+d.wu+'</b>'
+        +'</div>'
+      +'</div>'
+      +'<div class="gua">擬卦：<b>'+d.gua+'</b>（六十四卦之'+d.gua+'）　方 <b>'+d.fang+'</b>·州 <b>'+d.zhou+'</b>·部 <b>'+d.bu+'</b>·家 <b>'+d.jia+'</b></div>'
+      +linesHTML(d)
+      +'<div class="yi"><span class="t">首義</span><br>'+d.yi+'</div>'
+      +'<div class="zan-block">'
+        +'<div class="zt">占 贊</div>'
+        +'<div class="zan-time">'
+          +['旦','中','夕'].map(t=>'<button data-t="'+t+'" class="'+(t===curTime?'sel':'')+'">'+t+'表（'+TIME_GROUPS[t].join('·')+'）</button>').join('')
+        +'</div>'
+        +'<div class="zan-grid">'
+          +Array.from({length:9},(_,i)=>{const n=i+1;return '<button data-n="'+n+'"'+(n===1?' class="sel"':'')+' title="'+ZAN_NAME[i]+'">'+n+'</button>';}).join('')
+        +'</div>'
+        +'<div class="zan-result" id="zanResult"></div>'
+      +'</div>'
+    +'</div>';
+  const plate=document.getElementById('plate');
+  plate.innerHTML=html;
+  plate.classList.add('show');
+  // 事件
+  plate.querySelectorAll('.zan-time button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      curTime=b.dataset.t;
+      plate.querySelectorAll('.zan-time button').forEach(x=>x.classList.toggle('sel',x===b));
+      const sel=plate.querySelector('.zan-grid button.sel');
+      if(sel) showZan(parseInt(sel.dataset.n));
+    });
+  });
+  plate.querySelectorAll('.zan-grid button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      plate.querySelectorAll('.zan-grid button').forEach(x=>x.classList.toggle('sel',x===b));
+      showZan(parseInt(b.dataset.n));
+    });
+  });
+  showZan(1);
+}
+
+function showZan(n){
+  if(!curData) return;
+  const z=zanInfo(curData,n,curTime);
+  const label=ZAN_NAME[n-1]+'（'+n+'）';
+  const dayTxt = z.day?'晝·陽':'夜·陰';
+  const tz = z.verdict==='大休'||z.verdict==='休' ? 'ok':'';
+  const jc = z.verdict==='大休'?'順遂無礙，大吉之象。':
+            z.verdict==='休'?'順遂平正，吉。':
+            z.verdict==='大咎'?'阻礙難行，宜守宜慎。':
+            '逆阻不順，宜省宜戒。';
+  const el=document.getElementById('zanResult');
+  el.innerHTML =
+    '<div class="verdict '+(tz?'ok':'')+'">'+label+'　'+(z.day?'晝':'夜')+' · '+z.verdict+'（'+z.cong+'）</div>'
+    +'<div class="dets">'
+      +'得 '+curData.name+' 之 '+label+'。此贊屬<b>'+dayTxt+'</b>，位在<b>'+z.tier+'</b>；依'+curTime+'表而占，為<b>'+z.cong+'</b>，斷曰<b>'+z.verdict+'</b>。'
+      +'<br>'+jc+' 所問之事，觀首義「'+curData.yi+'」，參以擬卦<b>'+curData.gua+'</b>，始中終三思之。'
+    +'</div>';
+  el.classList.add('show');
+}
+
+/* ===== 揲蓍過程渲染 ===== */
+const LAYER=['方','州','部','家'];
+function renderRitual(order){
+  const r=document.getElementById('ritual');
+  let html='';
+  order.forEach((c,idx)=>{
+    const st=c.st;
+    html+='<div class="throw">'
+      +'<div class="tl">第'+(idx+1)+'揲 · 定'+LAYER[idx]+'（一：一 · 二：二 · 三：三 → 得 '+c.pos+'）</div>'
+      +'<div class="row">'
+        +'<span class="chip">初揲分二<b>'+st.L+'</b>／<b>'+st.R+'</b></span>'
+        +'<span class="chip">左餘<b class="r">'+st.rL+'</b> · 右餘<b class="r">'+st.rR+'</b> → 並餘<b class="r">'+st.sum1+'</b></span>'
+        +'<span class="chip">去之，正策<b>'+st.remain1+'</b></span>'
+        +'<span class="chip">再揲餘<b class="r">'+st.sum2+'</b></span>'
+        +'<span class="chip">正策<b>'+st.remain2+'</b> ÷ 3 = <b>'+st.val+'</b> → <b>'+c.pos+'</b></span>'
+      +'</div>'
+    +'</div>';
+  });
+  r.innerHTML=html;
+  r.classList.add('show');
+}
+
+/* ===== 起卦流程 ===== */
+function cast(){
+  const btn=document.getElementById('castBtn');
+  btn.disabled=true;
+  const plate=document.getElementById('plate');
+  plate.classList.remove('show');
+  const result=castShou();
+  renderRitual(result.order);
+  const reset=document.getElementById('resetBtn');
+  reset.style.display='inline-flex';
+  // 依序揭示四揲
+  const throwEls=document.querySelectorAll('#ritual .throw');
+  throwEls.forEach((el,i)=>{
+    el.style.opacity='0'; el.style.transform='translateY(8px)';
+    setTimeout(()=>{el.style.transition='opacity .5s,transform .5s';el.style.opacity='1';el.style.transform='none';},i*420);
+  });
+  setTimeout(()=>{
+    const d=shouData(result.ordinal);
+    renderPlate(d,true);
+    btn.disabled=false;
+    const qi=document.getElementById('qText');
+    const q=document.getElementById('qInput').value.trim();
+    qi.textContent = q?('「'+q+'」'):'（默念心中所問）';
+    setTimeout(()=>{plate.scrollIntoView({behavior:'smooth',block:'nearest'});},120);
+  }, throwEls.length*420+220);
+}
+function reset(){
+  curData=null;
+  document.getElementById('plate').classList.remove('show');
+  document.getElementById('ritual').classList.remove('show');
+  document.getElementById('resetBtn').style.display='none';
+  document.getElementById('castBtn').disabled=false;
+  document.getElementById('qText').textContent='（默念心中所問）';
+}
+
+document.getElementById('castBtn').addEventListener('click',cast);
+document.getElementById('resetBtn').addEventListener('click',reset);
+document.getElementById('qInput').addEventListener('keydown',e=>{if(e.key==='Enter')cast();});
+
+/* ===== 八十一首總表 ===== */
+let filterYuan='all';
+function renderTable(){
+  const q=(document.getElementById('searchBox').value||'').trim().toLowerCase();
+  const tb=document.getElementById('shouBody');
+  let html='';
+  for(let i=1;i<=81;i++){
+    const d=shouData(i);
+    if(filterYuan!=='all'&&d.yuan!==filterYuan) continue;
+    if(q&&(d.name+q+d.gua+d.yi).toLowerCase().indexOf(q)<0) continue;
+    html+='<tr data-i="'+i+'">'
+      +'<td>'+d.i+'</td>'
+      +'<td class="sname">'+d.name+'</td>'
+      +'<td>'+d.yuan+'元</td>'
+      +'<td><span class="tag '+(d.yang?'yang':'yin')+'">'+(d.yang?'陽':'陰')+'家</span></td>'
+      +'<td><span class="tag w">'+d.wu+'</span></td>'
+      +'<td>'+d.gua+'</td>'
+      +'<td class="yi">'+d.yi+'</td>'
+      +'</tr>';
+  }
+  tb.innerHTML=html||'<tr><td colspan="7" style="text-align:center;color:var(--faint);padding:28px">無符合之項</td></tr>';
+  tb.querySelectorAll('tr[data-i]').forEach(tr=>{
+    tr.addEventListener('click',()=>{
+      const d=shouData(parseInt(tr.dataset.i));
+      curTime=defaultTime();
+      renderPlate(d,false);
+      document.getElementById('qText').textContent='（檢視 第'+d.i+'首 '+d.name+'）';
+      document.getElementById('plate').scrollIntoView({behavior:'smooth',block:'nearest'});
+    });
+  });
+}
+document.getElementById('searchBox').addEventListener('input',renderTable);
+document.querySelectorAll('.filter').forEach(f=>{
+  f.addEventListener('click',()=>{
+    document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('sel',x===f));
+    filterYuan=f.dataset.yuan; renderTable();
+  });
+});
+renderTable();
+
+</script>
+
+</body>
+</html>
+<!-- (註：內容由 AI 生成) -->

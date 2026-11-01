@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Vijñānotron 全球天使能量地圖 (OpenStreetMap 版)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            color: #333;
+        }
+
+        #map {
+            position: absolute;
+            inset: 0;
+        }
+
+        #ui-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 2000;
+            background: rgba(255, 255, 255, 0.92);
+            padding: 20px 24px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            max-width: 320px;
+            pointer-events: none;
+        }
+
+        h1 {
+            margin: 0 0 4px 0;
+            font-size: 20px;
+            color: #222;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            margin: 0 0 10px 0;
+            font-size: 11px;
+            color: #888;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        #ui-panel p {
+            margin: 5px 0;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .legend {
+            margin-top: 14px;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            padding-top: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 7px 0;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+            flex-shrink: 0;
+            border: 1.5px solid #fff;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 地點標籤：白底、與節點同色的邊框 */
+        .label-3d {
+            background: #fff !important;
+            border: 1.5px solid;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #222;
+            white-space: nowrap;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .label-3d::before {
+            display: none;
+        }
+
+        /* 節點光暈脈動 */
+        .node-halo {
+            animation: halo 2.4s ease-in-out infinite;
+        }
+
+        @keyframes halo {
+
+            0%,
+            100% {
+                fill-opacity: 0.12;
+            }
+
+            50% {
+                fill-opacity: 0.35;
+            }
+        }
+
+        @media (max-width: 600px) {
+            #ui-panel {
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                max-width: none;
+                padding: 14px;
+            }
+
+            h1 {
+                font-size: 17px;
+            }
+
+            .label-3d {
+                font-size: 10px;
+                padding: 1px 4px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="map"></div>
+<!--
+    <div id="ui-panel">
+        <h1>Vijñānotron v2.0</h1>
+        <div class="subtitle">Global Angelic Energy Matrix</div>
+        <p>全域漫遊系統已解鎖。四大元素網格與全球地靈線（Ley Lines）已全面編織完成，處於高頻超頻共振狀態。</p>
+
+        <div class="legend">
+            <div class="legend-item"><span class="dot" style="background:#00bcd4;"></span>風 ‧ 加百列 (啟示白金光)</div>
+            <div class="legend-item"><span class="dot" style="background:#2a5bd7;"></span>火 ‧ 米迦勒 (防禦深藍光)</div>
+            <div class="legend-item"><span class="dot" style="background:#14a44d;"></span>水 ‧ 拉斐爾 (療癒翡翠綠)</div>
+            <div class="legend-item"><span class="dot" style="background:#d62828;"></span>地 ‧ 烏列爾 (顯化紅寶石)</div>
+            <div class="legend-item"><span class="dot" style="background:#e0a800;"></span>✦ 聖米迦勒之線 (金黃大動脈)</div>
+            <div class="legend-item"><span class="dot" style="background:#5566aa;"></span>══ 全球地靈交織網 (Ley Lines)</div>
+        </div>
+    </div>
+-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script>
+        // --- 1. 地圖與 OpenStreetMap 標準底圖 ---
+        const map = L.map('map', {
+            center: [25, 20],
+            zoom: 2,
+            minZoom: 2,
+            maxZoom: 10,
+            worldCopyJump: true
+        });
+
+        const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            referrerPolicy: 'strict-origin-when-cross-origin',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // 若 OSM 瓦片被拒絕（403），備援為同樣以 OSM 資料製作、風格相近的 CARTO Voyager 底圖
+        let fallbackUsed = false;
+        osmLayer.on('tileerror', () => {
+            if (fallbackUsed) return;
+            fallbackUsed = true;
+            map.removeLayer(osmLayer);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                subdomains: 'abcd',
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            }).addTo(map);
+        });
+
+        // --- 2. 能量節點資料 ---
+        const ELEMENTS = {
+            wind: {label: "風 ‧ 加百列", color: "#00bcd4"},
+            fire: {label: "火 ‧ 米迦勒", color: "#2a5bd7"},
+            water: {label: "水 ‧ 拉斐爾", color: "#14a44d"},
+            earth: {label: "地 ‧ 烏列爾", color: "#d62828"}
+        };
+
+        const energyNodes = [
+            {name: "威尼斯 聖馬可大教堂", lat: 45.434, lng: 12.339, type: "wind"},
+            {name: "拿撒勒 天使報喜大堂", lat: 32.698, lng: 35.298, type: "wind"},
+            {name: "秘魯 馬丘比丘", lat: -13.163, lng: -72.545, type: "wind"},
+            {name: "澳洲 雪梨歌劇院", lat: -33.856, lng: 151.215, type: "wind"},
+            {name: "法國 聖米歇爾山", lat: 48.636, lng: -1.511, type: "fire"},
+            {name: "義大利 蒙特聖安傑洛", lat: 41.707, lng: 15.954, type: "fire"},
+            {name: "美國 惡魔塔", lat: 44.590, lng: -104.715, type: "fire"},
+            {name: "日本 鞍馬山", lat: 35.118, lng: 135.772, type: "fire"},
+            {name: "西班牙 哥多華古城", lat: 37.888, lng: -4.779, type: "water"},
+            {name: "美西 大峽谷", lat: 36.054, lng: -112.140, type: "earth"},
+            {name: "艋舺龍山寺", lat: 25.037, lng: 121.499, type: "water"},
+            {name: "花蓮 太魯閣峽谷", lat: 24.159, lng: 121.621, type: "water"},
+            {name: "馬達加斯加 琥珀山", lat: -12.616, lng: 49.152, type: "water"},
+            {name: "羅馬 天使與殉教者大殿", lat: 41.903, lng: 12.496, type: "earth"},
+            {name: "英國 切斯特大教堂", lat: 53.191, lng: -2.890, type: "earth"},
+            {name: "埃及 吉薩大金字塔", lat: 29.979, lng: 31.134, type: "earth"}
+        ];
+
+        // --- 3. 節點（光暈 + 核心）與常駐標籤 ---
+        energyNodes.forEach(node => {
+            const el = ELEMENTS[node.type];
+            const latlng = [node.lat, node.lng];
+
+            L.circleMarker(latlng, {
+                radius: 14,
+                color: el.color,
+                weight: 1,
+                fillColor: el.color,
+                fillOpacity: 0.2,
+                opacity: 0.6,
+                className: 'node-halo',
+                interactive: false
+            }).addTo(map);
+
+            const core = L.circleMarker(latlng, {
+                radius: 5,
+                color: '#fff',
+                weight: 1.5,
+                fillColor: el.color,
+                fillOpacity: 1
+            }).addTo(map);
+
+            core.bindTooltip(node.name, {
+                permanent: true,
+                direction: 'top',
+                offset: [0, -10],
+                className: 'label-3d'
+            }).openTooltip();
+
+            // 讓標籤邊框顏色與元素一致
+            core.on('tooltipopen', e => {
+                const tip = e.tooltip.getElement();
+                if (tip) tip.style.borderColor = el.color;
+            });
+
+            core.bindPopup(
+                `<strong style="color:${el.color}">${node.name}</strong><br>` +
+                `元素：${el.label}<br>` +
+                `座標：${node.lat.toFixed(3)}, ${node.lng.toFixed(3)}`
+            );
+        });
+
+        // --- 4. 地靈線（Ley Lines）虛線網格 ---
+        for (let i = 0; i < energyNodes.length; i++) {
+            for (let j = i + 1; j < energyNodes.length; j++) {
+                const n1 = energyNodes[i];
+                const n2 = energyNodes[j];
+
+                if (n1.type === n2.type || (i % 3 === 0 && j % 4 === 0)) {
+                    L.polyline([[n1.lat, n1.lng], [n2.lat, n2.lng]], {
+                        color: '#5566aa',
+                        weight: 1.2,
+                        opacity: 0.5,
+                        dashArray: '4 6',
+                        interactive: false
+                    }).addTo(map);
+                }
+            }
+        }
+
+        // --- 5. 金黃色「聖米迦勒之線」 ---
+        const michaelLine = [
+            [51.771, -10.540], [50.116, -5.477], [48.636, -1.511],
+            [45.098, 7.343], [41.707, 15.954], [37.664, 23.463], [32.793, 34.969]
+        ];
+
+        L.polyline(michaelLine, {
+            color: '#e0a800',
+            weight: 4,
+            opacity: 0.85,
+            smoothFactor: 2,
+            interactive: false
+        }).addTo(map);
+    </script>
+</body>
+
+</html>
