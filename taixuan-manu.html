@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>太玄三進制計算導覽手冊</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Sans+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+@page { size: 720px 1020px; margin: 0; }
+:root{
+  --paper:#faf8f3;
+  --paper-deep:#f3eee3;
+  --card:#ffffff;
+  --ink:#2b2620;
+  --ink-soft:#46403a;
+  --muted:#857c6d;
+  --cinnabar:#9e2b25;
+  --cinnabar-deep:#7c1f1a;
+  --border:#e5ded2;
+  --border-warm:#e9e2d3;
+  --stripe:#f6f2e9;
+  --th-bg:#efe8da;
+  --tian:#0369a1; --di:#b45309; --ren:#6d28d9;
+}
+html,body{
+  margin:0; padding:0; width:720px;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Noto Sans TC', sans-serif;
+  font-size:14.5px; line-height:1.78;
+  line-break:strict; word-break:normal; overflow-wrap:break-word;
+}
+@media screen{
+  html{ height:auto; display:flex; justify-content:center; background:#ded8ca; }
+  body{ margin:24px auto; box-shadow:0 6px 32px rgba(43,38,32,.18); }
+}
+p{ margin:0 0 11px; text-align:justify; line-break:strict; }
+strong{ font-weight:700; color:var(--ink); }
+.serif{ font-family:'Noto Serif TC', serif; }
+
+/* ============ COVER ============ */
+.cover{
+  width:720px; height:1020px; box-sizing:border-box;
+  break-after:page; overflow:hidden; position:relative;
+  background:#f6f2e9;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:0 64px;
+}
+.cover-bg{ position:absolute; inset:0; overflow:hidden; z-index:1; }
+.cover-bg .glyph{
+  position:absolute; right:14px; top:30px;
+  font-family:'Noto Serif TC', serif; font-weight:900;
+  font-size:370px; line-height:1; color:rgba(158,43,37,.055);
+}
+.cover-bg .glyph2{
+  position:absolute; left:24px; bottom:26px;
+  font-family:'Noto Serif TC', serif; font-weight:900;
+  font-size:215px; line-height:1; color:rgba(43,38,32,.045);
+}
+.cover-bg .grid-line-v{ position:absolute; top:0; bottom:0; width:1px; background:rgba(158,43,37,.10); }
+.cover-content{ position:relative; z-index:3; }
+.cover-kicker{
+  font-family:'Noto Sans Mono', monospace; font-size:11.5px; font-weight:500;
+  letter-spacing:3.5px; color:var(--cinnabar); margin-bottom:26px;
+}
+.cover-title{
+  font-family:'Noto Serif TC', serif; font-weight:900;
+  font-size:58px; line-height:1.22; letter-spacing:2px; color:var(--ink);
+}
+.cover-sub{
+  font-family:'Noto Serif TC', serif; font-weight:600;
+  font-size:19px; line-height:1.6; color:var(--cinnabar-deep);
+  margin-top:18px; letter-spacing:1px;
+}
+.cover-sub::after{
+  content:''; display:block; width:64px; height:4px; background:var(--cinnabar);
+  margin:44px 0 42px;
+}
+.cover-summary{
+  font-size:14.5px; line-height:1.85; color:var(--ink-soft);
+  max-width:452px; text-align:justify;
+}
+.cover-trits{ display:flex; gap:10px; margin-top:30px; flex-wrap:wrap; max-width:100%; }
+.trit{ display:inline-flex; align-items:center; gap:5px; padding:3px 11px; border-radius:5px; font-size:12px; font-weight:700; border:1px solid; }
+.trit-tian{ color:var(--tian); background:#eff7fc; border-color:#c3e0f0; }
+.trit-di{ color:var(--di); background:#fdf6ec; border-color:#eed7b5; }
+.trit-ren{ color:var(--ren); background:#f6f2fd; border-color:#dccbf2; }
+.trit .sym{ font-size:13px; }
+.cover-meta{
+  position:absolute; left:64px; right:64px; bottom:56px; z-index:3;
+  display:flex; justify-content:space-between; align-items:flex-end;
+  font-size:11px; color:var(--muted); line-height:1.7;
+}
+.cover-meta .brand{ font-family:'Noto Serif TC', serif; font-weight:700; font-size:13px; color:var(--ink); letter-spacing:2px; }
+.seal{
+  position:absolute; right:64px; top:64px; z-index:3;
+  width:88px; height:88px; background:var(--cinnabar); border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 3px 14px rgba(158,43,37,.28);
+}
+.seal span{
+  font-family:'Noto Serif TC', serif; font-weight:900; font-size:30px;
+  color:#faf6ec; letter-spacing:5px; writing-mode:vertical-rl; text-orientation:upright; white-space:nowrap;
+}
+
+/* ============ FLOW CONTENT ============ */
+.main-content{ padding:52px 62px 40px; }
+.sec-head{ margin-top:26px; break-after:avoid; break-inside:avoid; page-break-after:avoid; }
+.sec-head.first{ margin-top:0; }
+.sec-kicker{
+  font-family:'Noto Sans Mono', monospace; font-size:10.5px; font-weight:500;
+  letter-spacing:2.5px; color:var(--muted); margin-bottom:6px;
+}
+.sec-title{
+  font-family:'Noto Serif TC', serif; font-weight:900;
+  font-size:25px; line-height:1.35; color:var(--ink); margin:0 0 10px;
+  display:flex; align-items:baseline; gap:12px;
+}
+.sec-num{
+  font-size:26px; color:var(--cinnabar); font-weight:900;
+  padding-right:12px; border-right:3px solid var(--cinnabar); line-height:1.1;
+}
+.sec-head::after{ content:''; display:block; height:3px; background:linear-gradient(90deg, var(--cinnabar) 0, var(--cinnabar) 58px, var(--border) 58px); margin-bottom:16px; }
+h3.sub{
+  font-family:'Noto Serif TC', serif; font-weight:700; font-size:16.5px;
+  color:var(--ink); margin:18px 0 8px; padding-left:11px;
+  position:relative; line-height:1.4;
+  break-after:avoid; page-break-after:avoid;
+}
+h3.sub::before{
+  content:''; position:absolute; left:0; top:3px; bottom:2px;
+  width:3px; background:var(--cinnabar);
+}
+.lead{ font-size:14.5px; color:var(--ink-soft); }
+
+figure{ margin:13px 0 15px; break-inside:avoid; page-break-inside:avoid; display:block; width:100%; }
+figure img{
+  width:100%; max-height:45vh; object-fit:contain; height:auto;
+  border:1px solid var(--border); border-radius:7px; background:#fff; display:block;
+}
+figcaption{
+  font-size:11px; color:var(--muted); margin-top:7px; line-height:1.6; text-align:left;
+}
+figcaption b{ color:var(--cinnabar-deep); font-weight:700; font-family:'Noto Sans Mono', monospace; font-size:10.5px; letter-spacing:.5px; }
+
+.card{
+  background:var(--card); border:1px solid var(--border); border-radius:9px;
+  padding:13px 16px; break-inside:avoid; page-break-inside:avoid; margin-bottom:12px;
+}
+.card h4{
+  font-family:'Noto Serif TC', serif; font-weight:700; font-size:14.5px;
+  margin:0 0 6px; color:var(--ink); display:flex; align-items:center; gap:8px;
+}
+.card h4 .dot{ width:8px; height:8px; background:var(--cinnabar); border-radius:2px; flex-shrink:0; }
+.card p{ font-size:13px; margin:0; color:var(--ink-soft); }
+.card-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:4px 0 12px; }
+.card-grid .card{ margin-bottom:0; }
+
+.callout{
+  border-left:3px solid var(--cinnabar); background:var(--stripe);
+  padding:11px 15px; font-size:13px; color:var(--ink-soft);
+  border-radius:0 7px 7px 0; margin:12px 0; break-inside:avoid; page-break-inside:avoid;
+  text-align:justify; line-break:strict;
+}
+.callout b{ color:var(--cinnabar-deep); }
+.quote{
+  font-family:'Noto Serif TC', serif; font-size:15.5px; font-weight:600;
+  color:var(--cinnabar-deep); background:linear-gradient(90deg, rgba(158,43,37,.06), transparent 80%);
+  border-left:3px solid var(--cinnabar); border-radius:0 7px 7px 0;
+  padding:13px 16px; margin:13px 0; line-height:1.8;
+  break-inside:avoid; page-break-inside:avoid; text-align:justify;
+}
+.quote .src{ display:block; font-family:'Noto Sans TC', sans-serif; font-weight:400; font-size:11px; color:var(--muted); margin-top:6px; letter-spacing:1px; }
+.quote-en{ font-size:13.5px; font-weight:400; color:var(--ink-soft); }
+
+.tbl-compact{ font-size:11.6px; }
+.tbl-compact th{ padding:6px 8px; font-size:11.4px; }
+.tbl-compact td{ padding:5px 8px; line-height:1.55; }
+.tbl-compact td.nw{ white-space:nowrap; }
+table{ width:100%; border-collapse:collapse; margin:12px 0 15px; font-size:12.3px; }
+thead{ display:table-header-group; }
+th{
+  background:var(--th-bg); color:var(--ink); font-weight:700; font-size:11.8px;
+  padding:7px 9px; border:1px solid #e0d7c4; text-align:left; line-height:1.5;
+}
+td{
+  padding:6.5px 9px; border:1px solid var(--border-warm); vertical-align:top;
+  line-height:1.6; overflow-wrap:break-word; line-break:strict; color:var(--ink-soft);
+}
+tbody tr:nth-child(odd) td{ background:var(--stripe); }
+tbody tr:nth-child(even) td{ background:#fff; }
+tr{ break-inside:avoid; page-break-inside:avoid; }
+td b, td strong{ color:var(--ink); }
+.keep{ break-inside:avoid; page-break-inside:avoid; }
+
+pre.code{
+  background:#2f2a22; color:#ece5d4; border-radius:9px;
+  font-family:'Noto Sans Mono', monospace; font-size:11.3px; line-height:1.7;
+  padding:14px 17px; margin:12px 0 15px; overflow:hidden;
+  break-inside:avoid; page-break-inside:avoid;
+}
+pre.code .cm{ color:#93876f; }
+pre.code .k{ color:#e8a79f; font-weight:700; }
+pre.code .op{ color:#e8a79f; font-weight:700; }
+pre.code .lb{ color:#d9b878; }
+pre.code .nm{ color:#a8c8e8; }
+.mono{ font-family:'Noto Sans Mono', monospace; }
+
+ul.tick{ margin:6px 0 12px; padding-left:0; list-style:none; }
+ul.tick li{
+  position:relative; padding-left:20px; margin-bottom:6px;
+  font-size:13.3px; color:var(--ink-soft); text-align:justify; line-break:strict;
+  break-inside:avoid;
+}
+ul.tick li::before{
+  content:''; position:absolute; left:2px; top:9px;
+  width:7px; height:7px; background:var(--cinnabar); border-radius:2px;
+}
+ul.check{ margin:6px 0 12px; padding-left:0; list-style:none; }
+ul.check li{
+  position:relative; padding-left:26px; margin-bottom:8px;
+  font-size:13.3px; color:var(--ink-soft); text-align:justify;
+  break-inside:avoid;
+}
+ul.check li::before{
+  content:'□'; position:absolute; left:2px; top:0;
+  font-size:14px; color:var(--cinnabar); font-weight:700;
+}
+
+.kbd{
+  display:inline-block; font-family:'Noto Sans Mono', monospace; font-size:11px;
+  background:#fff; border:1px solid var(--border); border-bottom-width:2px;
+  border-radius:4px; padding:0 6px; color:var(--ink);
+}
+
+/* TOC */
+.toc-intro{ font-size:14px; }
+.toc-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:14px 0 8px; }
+.toc-item{
+  border:1px solid var(--border); background:var(--card); border-radius:8px;
+  padding:10px 13px; break-inside:avoid; page-break-inside:avoid;
+}
+.toc-num{ font-family:'Noto Sans Mono', monospace; font-size:10px; font-weight:700; color:var(--cinnabar); letter-spacing:1.5px; }
+.toc-t{ font-family:'Noto Serif TC', serif; font-weight:700; font-size:13.8px; color:var(--ink); margin:3px 0 3px; line-height:1.4; }
+.toc-d{ font-size:11px; color:var(--muted); line-height:1.55; text-align:justify; }
+
+/* stat strip (ending) */
+.stat-row{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; max-width:100%; }
+.stat{
+  border:1px solid rgba(158,43,37,.25); background:#fff; border-radius:9px;
+  padding:12px 8px; text-align:center; min-width:84px; flex:1 1 auto; max-width:150px;
+}
+.stat .n{ font-family:'Noto Serif TC', serif; font-weight:900; font-size:26px; color:var(--cinnabar); line-height:1.1; }
+.stat .l{ font-size:10.5px; color:var(--muted); margin-top:3px; letter-spacing:1px; }
+
+/* ============ ENDING ============ */
+.ending{
+  width:720px; height:1020px; box-sizing:border-box;
+  break-before:page; overflow:hidden; position:relative;
+  background:#f6f2e9;
+  display:flex; flex-direction:column; justify-content:center; align-items:center;
+  padding:0 70px; text-align:center;
+}
+.ending-bg{ position:absolute; inset:0; overflow:hidden; z-index:1; }
+.ending-bg .glyph{
+  position:absolute; left:50%; top:46%; transform:translate(-50%,-50%);
+  font-family:'Noto Serif TC', serif; font-weight:900; font-size:480px;
+  color:rgba(158,43,37,.05); line-height:1;
+}
+.ending-content{ position:relative; z-index:3; display:flex; flex-direction:column; align-items:center; }
+.ending-mark{
+  width:74px; height:74px; border-radius:50%; border:2px solid var(--cinnabar);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Noto Serif TC', serif; font-weight:900; font-size:36px; color:var(--cinnabar);
+  margin-bottom:28px;
+}
+.ending-title{ font-family:'Noto Serif TC', serif; font-weight:900; font-size:30px; color:var(--ink); letter-spacing:3px; }
+.ending-sub{ font-family:'Noto Serif TC', serif; font-size:15px; color:var(--cinnabar-deep); margin-top:12px; letter-spacing:1px; }
+.ending-sub::after{
+  content:''; display:block; width:56px; height:3px; background:var(--cinnabar);
+  margin:42px auto;
+}
+.ending-text{ font-size:13.5px; color:var(--ink-soft); max-width:470px; line-height:1.9; text-align:justify; }
+</style>
+</head>
+<body>
+
+<!-- ================= COVER ================= -->
+<div class="cover">
+  <div class="cover-bg">
+    <div class="glyph">玄</div>
+    <div class="glyph2">𝌆</div>
+  </div>
+  <div class="seal"><span>太玄</span></div>
+  <div class="cover-content">
+    <div class="cover-kicker">TAI XUAN TERNARY COMPUTING · PROJECT GUIDE</div>
+    <div class="cover-title">太玄三進制<br>計算導覽手冊</div>
+    <div class="cover-sub">從 T-NAND 到八十一首微機——<br>對應《Nand to Tetris》九階學習地圖的互動模擬器全覽</div>
+    <div class="cover-summary">
+      本手冊導覽一套自底向上的互動式計算機科學模擬器：以漢代揚雄《太玄經》的三進制本體論為體、經典課程《Nand to
+      Tetris》的九階學習路徑為用，從一枚元始 T-NAND 邏輯閘出發，逐級合成邏輯門、加法器、4-Trit
+      算術邏輯單元、寄存器，終至可燒錄組合語言、運行太玄三象方塊的八十一首微機，並提供 DE2 FPGA 硬體落地套件。
+    </div>
+    <div class="cover-trits">
+      <span class="trit trit-tian"><span class="sym">⚊</span>天 · +1 / 2</span>
+      <span class="trit trit-di"><span class="sym">⚋</span>地 · 0 / 1</span>
+      <span class="trit trit-ren"><span class="sym">𝌀</span>人 · −1 / 0</span>
+      <span class="trit" style="color:#9e2b25; background:#fbf1ef; border-color:#ecc8c4;">3⁴ = 81 首</span>
+    </div>
+  </div>
+  <div class="cover-meta">
+    <div>
+      <div class="brand">太玄三進制計算科學體系</div>
+      <div>Tai Xuan Ternary Computing — From T-NAND to ALU &amp; Micro-Computer</div>
+    </div>
+    <div style="text-align:right;">
+      <div>第一版 · 2026 年 11 月</div>
+      <div>PEDAGOGY: NAND TO TETRIS 01–09</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= FLOW CONTENT ================= -->
+<div class="main-content">
+
+  <!-- ============ TOC ============ -->
+  <div class="sec-head first">
+    <div class="sec-kicker">CONTENTS · 手冊導覽</div>
+    <div class="sec-title"><span class="sec-num">目</span>十一個章節的閱讀地圖</div>
+  </div>
+  <p class="lead toc-intro">
+    本手冊依「文化源流 → 課程對照 → 逐階導覽 → 工程與硬體 → 學習路徑」的順序編排，與模擬器自身的八大階梯一一呼應。你可以線性讀完全冊，也可以直接跳到感興趣的階梯——每一章都標明了它對應《Nand to Tetris》課程的哪個階段，以及模擬器中相應的互動元件。
+  </p>
+  <p class="toc-intro">
+    全冊有三個<b>重點章節</b>（下表以硃砂圓點標示）：「參」拆解入門邏輯門的完備性證明、「肆」逐項列出四爻 ALU 的九種運算、「柒」完整走讀太玄彙編器從符號到機器碼的每一步。這三處也是原課程專案一、二、六的核心訓練。
+  </p>
+  <div class="toc-grid">
+    <div class="toc-item"><div class="toc-num">壹 · CH.01</div><div class="toc-t">認識太玄三進制計算專案</div><div class="toc-d">揚雄《太玄經》的文化源流、Trit 三值編碼與三種顯示模式。</div></div>
+    <div class="toc-item"><div class="toc-num">貳 · CH.02</div><div class="toc-t">學習地圖：九階 × 八階梯對照</div><div class="toc-d">課程 01–09 與專案章節的完整對照表與使用建議。</div></div>
+    <div class="toc-item"><div class="toc-num">參 · CH.03</div><div class="toc-t">階梯一至三：元始門與基礎門殿 ●</div><div class="toc-d">T-NAND 完備性、T-NOT/AND/OR 合成、T-MUX 與循變門、TaiXuan HDL。</div></div>
+    <div class="toc-item"><div class="toc-num">肆 · CH.04</div><div class="toc-t">階梯四至五：算術與四爻 ALU ●</div><div class="toc-d">半加器、全加器、漣波進位，九種 ALU 運算與四大旗標。</div></div>
+    <div class="toc-item"><div class="toc-num">伍 · CH.05</div><div class="toc-t">階梯六：記憶時序</div><div class="toc-d">三穩態鎖存器、4-Trit 寄存器與時鐘邊緣寫入。</div></div>
+    <div class="toc-item"><div class="toc-num">陸 · CH.06</div><div class="toc-t">階梯七：八十一首微機</div><div class="toc-d">微機流水線、卦象譜系、9×9 顯存與鍵盤 I/O。</div></div>
+    <div class="toc-item"><div class="toc-num">柒 · CH.07</div><div class="toc-t">太玄彙編器：從符號到機器碼 ●</div><div class="toc-d">雙遍掃描、語法五要素、22 條助記符與完整範例程式。</div></div>
+    <div class="toc-item"><div class="toc-num">捌 · CH.08</div><div class="toc-t">終章：太玄三象方塊</div><div class="toc-d">Stage A 結業遊戲：三才同契消除規則與五聲音階。</div></div>
+    <div class="toc-item"><div class="toc-num">玖 · CH.09</div><div class="toc-t">階梯八：工程工作台</div><div class="toc-d">十大工程工具、HDL 仿真器與 150 向量驗證套件。</div></div>
+    <div class="toc-item"><div class="toc-num">拾 · CH.10</div><div class="toc-t">硬體落地：DE2 FPGA 燒錄</div><div class="toc-d">八個 Verilog 模組、VGA 顯示與五步燒錄流程。</div></div>
+    <div class="toc-item"><div class="toc-num">拾壹 · CH.11</div><div class="toc-t">建議學習路徑與自我檢核</div><div class="toc-d">初／中／高三階路徑，附逐項檢核清單。</div></div>
+  </div>
+
+  <!-- ============ 壹 ============ -->
+  <div class="sec-head">
+    <div class="sec-kicker">SECTION 01 · OVERVIEW &amp; PHILOSOPHY</div>
+    <h2 class="sec-title"><span class="sec-num">壹</span>認識太玄三進制計算專案</h2>
+  </div>
+  <p class="lead">
+    「太玄三進制計算」（Tai Xuan Ternary Computing）是一套純前端的互動式教學模擬器，以 React、TypeScript 與 D3 建構，不需任何 API 金鑰即可完整運行。它做了兩件事的疊加：把西漢揚雄《太玄經》的三進制宇宙觀，作為一套真實可驗證的數字邏輯體系；再把經典課程《Nand to Tetris》的自底向上教學法，逐級移植到三值世界。使用者的旅程從一枚「元始 T-NAND 閘」開始——正如原課程一切邏輯都源於 NAND——隨後逐階合成基礎門、加法器、ALU、寄存器，最終組裝出一台能執行組合語言、驅動 9×9 顯示器、甚至運行方塊遊戲的八十一首微機。
+  </p>
+  <div class="quote">
+    「夫玄也，幽攡萬類而不見形者也。天以三分，地以三策，人以三軌……三三相乘，四重而成八十一首。」
+    <span class="src">—— 西漢 · 揚雄《太玄經》</span>
+  </div>
+  <p>
+    揚雄（西元前 53 年－18 年）在《太玄經》中建立了一套完整的 <b>三進制符號宇宙體系</b>：以「方、州、部、家」四層結構，每層三值，三三相乘得 <b>3⁴ = 81 首</b>；每首九贊，全書共 729 贊，對應太初曆一年 365.25 日的分值體系。模擬器忠實保留了這套結構：一個 4-Trit 字的四個爻位分別命名為方（T3）、州（T2）、部（T1）、家（T0），數值即 <span class="mono">T3×27 + T2×9 + T1×3 + T0</span>，恰好落於 0–80，每一個取值都對應一首有名字、有節氣日期的卦象——首一「中」對應冬至初日，首八十一「終始之極」收束全週期。
+  </p>
+  <p>
+    這條思路在數學史上並非孤例。二進制一側有萊布尼茨與伏羲六十四卦的著名對照；三進制一側，高德納在《The Art of Computer Programming》第二卷中寫道：
+  </p>
+  <div class="quote">
+    <span class="quote-en">"Perhaps the prettiest number system of all is the balanced ternary notation."</span>
+    <span class="src">—— Donald E. Knuth, TAOCP Vol.2（也許最美的記數法就是平衡三進制）</span>
+  </div>
+  <p>
+    平衡三進制無需符號位與補碼即可表示負數，工程史上最著名的實踐是 1958 年莫斯科國立大學 Brusentsov 團隊建造的 <b>Сетунь（Setun）</b>計算機。模擬器的「太玄源流」彈窗完整鋪陳了這三段源流，而整個 T-NAND 體系正是對 Setun 精神的現代重演：以最少的完備原語，疊構出整座計算機。
+  </p>
+  <h3 class="sub">Trit 三值編碼與三種顯示模式</h3>
+  <p>
+    體系的最小單位是 <b>Trit（三值位）</b>，以天、地、人三才命名：天 ⚊ 為高電位（標準制 2、平衡制 +1）、地 ⚋ 為中電位（1 / 0）、人 𝌀 為低電位（0 / −1）。同一組訊號可以在三種顯示模式之間即時切換——<b>太玄（天地人）</b>以卦爻呈現、<b>平衡（+1, 0, −1）</b>便於算術推理、<b>標準（2, 1, 0）</b>貼近傳統數位電路表述。這個切換器位於頂部導覽列，是全站唯一的全域視角控制，建議初學者先停在太玄模式建立直覺，進入 ALU 章節後再切到平衡模式驗算。
+  </p>
+  <figure>
+    <img src="assets/00-hero.png" alt="太玄三進制模擬器首頁">
+    <figcaption><b>圖 1-1</b>｜模擬器首頁：上方的八張「階梯卡片」即學習路線圖，此時正位於階梯一的 T-NAND 互動電路與九態真值表。</figcaption>
+  </figure>
+
+  <!-- ============ 貳 ============ -->
+  <div class="sec-head">
+    <div class="sec-kicker">SECTION 02 · CURRICULUM MAPPING</div>
+    <h2 class="sec-title"><span class="sec-num">貳</span>學習地圖：九階課程 × 八大階梯對照</h2>
+  </div>
+  <p class="lead">
+    經典《Nand to Tetris》把「從邏輯閘到電腦」拆成九個專案階段（硬體 01–06、虛擬機 07–08、高階語言 09）。本專案以「同構改編」的方式把它們映射到三進制世界：每一階都有一個太玄版的對應物，概念順序完全一致，但字寬、指令數與記憶體規模全部按三進制重新推導。本章末的對照表是全冊的總索引——建議把它當作學習進度表，每完成一個階梯就回來核對一次。先說明兩個使用原則：
+  </p>
+  <div class="card-grid">
+    <div class="card">
+      <h4><span class="dot"></span>對照原則：同構而非複刻</h4>
+      <p>太玄版不是把原課程逐位元翻譯：機器字寬從 16-bit 改為 <b>4-Trit（81 種取值）</b>，ALU 從 18 個控制位改為 <b>9 個運算碼</b>，主記憶體從 32K Word 改為 <b>81 字 ROM</b>。每個數字都由 3⁴ 自洽推出——理解這些「為什麼是 81」的推導，正是本專案最有趣的訓練。</p>
+    </div>
+    <div class="card">
+      <h4><span class="dot"></span>給自學者的建議</h4>
+      <p>已熟悉原課程者，可直接從「貳」的對照表進入感興趣的階梯；初學者建議按階梯 1→8 順序推進，每階先用互動元件操作、再讀手冊原理、最後回模擬器完成該階的自我檢核（見「拾壹」）。三個重點章節（參、肆、柒）值得精讀。</p>
+    </div>
+  </div>
+  <div class="keep">
+  <table>
+    <thead>
+      <tr><th style="width:17%;">課程階段</th><th style="width:29%;">經典 Nand to Tetris</th><th style="width:38%;">太玄三進制版對應</th><th style="width:16%;">本冊章節</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><b>01 布林邏輯</b></td><td>由 NAND 組合出 And / Or / Not / Mux，以 HDL 描述</td><td>階梯 1–3：T-NAND 合成 T-NOT / T-AND / T-OR / T-MUX 3:1，TaiXuan HDL 六晶片</td><td>參</td></tr>
+      <tr><td><b>02 布林運算</b></td><td>半加器、全加器，最終拼出 ALU</td><td>階梯 4–5：逢三進一加法器 → 4-Trit ALU（九種運算）</td><td>肆</td></tr>
+      <tr><td><b>03 時序邏輯</b></td><td>D 觸發器、暫存器與 RAM</td><td>階梯 6：三穩態鎖存器 → 4-Trit 寄存器（RAM／VRAM 於階梯 7 以映射呈現）</td><td>伍</td></tr>
+      <tr><td><b>04 機器語言</b></td><td>Hack 組合語言，編寫低階控制程式</td><td>階梯 7：太玄組合語言，22 條助記符即 81 首序號</td><td>陸／柒</td></tr>
+      <tr><td><b>05 計算機架構</b></td><td>ALU＋暫存器＋RAM 連上螢幕鍵盤，自製 CPU 與主機</td><td>階梯 7：微機流水線＋9×9 顯存＋鍵盤映射；DE2 FPGA 實體化</td><td>陸／拾</td></tr>
+      <tr><td><b>06 彙編編譯器</b></td><td>把組合語言翻譯成二進位機器碼</td><td>太玄符號彙編器：雙遍掃描，輸出 81 首三值機器碼並燒錄 ROM</td><td>柒</td></tr>
+      <tr><td><b>07–08 虛擬機</b></td><td>VM 翻譯器：中間碼（Bytecode）→ 組合語言，堆疊運算</td><td>微機執行期＋ROM 燒錄機制：以「首象譜系 = 記憶位址」的分層概念對應</td><td>陸</td></tr>
+      <tr><td><b>09 高階語言</b></td><td>以物件導向語言 Jack 撰寫《俄羅斯方塊》</td><td>結業應用「太玄三象方塊」：在自制微機規格上運行的完整遊戲</td><td>捌</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="sec-head">
+    <div class="sec-kicker">SECTION 03 · STAGES 1–3 · LOGIC GATES <span style="color:#9e2b25;">● 重點章節</span></div>
+    <h2 class="sec-title"><span class="sec-num">參</span>階梯一至三：元始門與基礎門殿</h2>
+  </div>
+  <p class="lead">
+    對應課程 <b>01 布林邏輯</b>。二進制世界的一切邏輯都源於單一枚 NAND 閘——它是函數完備的（functionally complete）。太玄版同樣只欽定一枚完備元始門：<b>T-NAND</b>，標準三進制下定義為
+    <span class="mono" style="white-space:nowrap;">T-NAND(A, B) = 2 − min(A, B)</span>（平衡三進制下為 −min(A, B)）。兩輸入共 3×3 = 九種狀態，全部九態皆可由這一式推出：
+  </p>
+  <div class="keep">
+  <table style="max-width:420px; margin-left:auto; margin-right:auto;">
+    <thead>
+      <tr><th style="width:33%;">A ＼ B</th><th style="width:22%;">人 (0)</th><th style="width:22%;">地 (1)</th><th style="width:23%;">天 (2)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><b>人 (0)</b></td><td><span class="trit trit-tian">天</span></td><td><span class="trit trit-tian">天</span></td><td><span class="trit trit-tian">天</span></td></tr>
+      <tr><td><b>地 (1)</b></td><td><span class="trit trit-tian">天</span></td><td><span class="trit trit-di">地</span></td><td><span class="trit trit-di">地</span></td></tr>
+      <tr><td><b>天 (2)</b></td><td><span class="trit trit-tian">天</span></td><td><span class="trit trit-di">地</span></td><td><span class="trit trit-ren">人</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>
+    直覺口訣：<b>任一端為人，輸出必為天</b>（低電位拉高結果）；<b>兩端皆天，輸出為人</b>；其餘取「2 減去較小者」。階梯一提供 Trit 選擇器引腳與即時高亮真值表，每切換一次輸入，右側電路圖的訊號流便同步重繪；按下「執行自動合成驗證」，系統會窮舉九態核對公式，全數通過即撒出彩帶。
+  </p>
+  <h3 class="sub">由一門生萬門：合成族譜與太玄德摩根律</h3>
+  <p>
+    基礎門殿（階梯二）示範如何只用 T-NAND 疊出整個邏輯門家族，並標出每個門的 T-NAND 成本：<b>T-NOT</b> 僅需 1 顆（T-NAND(A, A) = 2 − A）；<b>T-AND</b>（降取門，即 T-MIN）用 2 顆——雙重倒反消去 NAND 中的減法，還原為逐位取小；<b>T-OR</b>（升取門，即 T-MAX）用 3 顆，其推導就是三值版的<b>太玄德摩根定律</b>：T-OR(A, B) = T-NAND(T-NOT A, T-NOT B) = max(A, B)；<b>T-NOR</b> 則再串一顆倒反，共 4 顆。每個門的分頁都附雙輸入互動與九態真值表，可以親手驗證成本數字。
+  </p>
+  <figure>
+    <img src="assets/01-ch1-tnand.png" alt="T-NAND 互動電路">
+    <figcaption><b>圖 3-1</b>｜階梯一：T-NAND 電路的訊號流追蹤圖（左）與九態完備真值表（右），輸入以天／地／人三色徽章呈現。</figcaption>
+  </figure>
+  <p>
+    階梯三「選擇與特徵」再引入三個特徵門，它們在後續章節各司其職：<b>T-MUX 3:1</b> 三路選擇器——一個 trit 的天然三態正好選通三路（S 為人通道 d0、地通道 d1、天通道 d2），這是 ALU 選擇樹的基本積木；<b>T-CYCLE</b> 循變門——(a+1) mod 3，訊號沿人→地→天→人循環一周，是時序狀態機的狀態輪轉基礎；<b>T-CONSENSUS</b> 同契判定門——兩輸入相同輸出天、相異輸出人，是分支與比較邏輯的核心。
+  </p>
+  <figure>
+    <img src="assets/03-ch3-mux.png" alt="T-MUX 三路選擇器">
+    <figcaption><b>圖 3-2</b>｜階梯三：T-MUX 3:1 選通互動——選通端 S 決定人／地／天三條通道中哪一路抵達輸出。</figcaption>
+  </figure>
+  <h3 class="sub">TaiXuan HDL：硬體描述語言</h3>
+  <p>
+    對應課程 01 的 HDL 部分，模擬器內建 <b>TaiXuan HDL（T-HDL）</b>，語法與 Hack HDL 同構：CHIP 宣告、IN／OUT 埠、PARTS 區塊逐行佈線。檔案庫共六枚晶片，構成一條完整的依賴鏈——TNand（BUILTIN 原語）→ TNot → TAnd → TOr → THalfAdder → TAlu4。例如 TOr 的原始碼正是德摩根律的逐行落地：
+  </p>
+  <pre class="code"><span class="k">CHIP</span> TOr {
+    <span class="k">IN</span> a, b;
+    <span class="k">OUT</span> out;
+    <span class="k">PARTS:</span>
+    TNot(in=a, out=notA);
+    TNot(in=b, out=notB);
+    TNand(a=notA, b=notB, out=out);
+}</pre>
+  <p>
+    在階梯八的 HDL 仿真器中選定晶片，系統會自動跑窮舉測試向量（相當於原課程的 .tst／.cmp 流程）；「太玄源流」的 HDL 檢視器則把六枚晶片的原始碼與依賴關係一次攤開，適合在讀完本章後對照複習。
+  </p>
+
+  <!-- ============ 肆 ============ -->
+  <div class="sec-head">
+    <div class="sec-kicker">SECTION 04 · STAGES 4–5 · ADDERS &amp; ALU <span style="color:#9e2b25;">● 重點章節</span></div>
+    <h2 class="sec-title"><span class="sec-num">肆</span>階梯四至五：算術與四爻 ALU</h2>
+  </div>
+  <p class="lead">
+    對應課程 <b>02 布林運算</b>。三進制的加法口訣是<b>逢三進一</b>：半加器把兩個 trit 相加，和取 sum = (a+b) mod 3，進位取 carry = ⌊(a+b) / 3⌋。介面給的第一個例子就很直觀：天(2) + 地(1) = 3 = (1, 0)₃——本位得人、進位得地。全加器再納入低位進位，最大輸入 2+2+2 = 6 = 20₃，本位 0、進位 2。
+  </p>
+  <p>
+    把四級全加器從<b>家</b>（T0，個位）到<b>州、部</b>逐級串到<b>方</b>（T3，最高位），就是<b>四爻首加法器</b>：四個 trit 恰好表達 81 首空間（0–80），漣波進位逐層上湧。階梯四的互動把 X、Y 四個爻位攤開成選擇器，即時輸出和的首象與進位，旁邊的流水線圖標示進位傳播路徑——這正是理解「為什麼乘三即左移」的實驗台。
+  </p>
+  <figure>
+    <img src="assets/04-ch4-adders.png" alt="四爻加法器">
+    <figcaption><b>圖 4-1</b>｜階梯四：四爻加法互動——X/Y 逐爻選擇，輸出 Sum 並顯示對應首象；下方為漣波進位流水線示意。</figcaption>
+  </figure>
+  <h3 class="sub">4-Trit ALU：九種運算一次並行</h3>
+  <p>
+    階梯五把算術與邏輯收攏成一台 <b>4-Trit ALU</b>。它同時計算九種運算，再由三級 TMux3Way4 選擇樹按運算碼選出結果（opcode 在 HDL 抽象中為 3-trit 寬度）。在微機中，每個時鐘週期執行 Acc = ALU(Acc, Immediate, opcode)，即時數直接內嵌於 4-Trit 指令字。
+  </p>
+  <figure>
+    <img src="assets/05-ch5-alu.png" alt="4-Trit ALU">
+    <figcaption><b>圖 4-2</b>｜階梯五：ALU 主控台——九個運算碼、X/Y 四爻向量（顯示首名與雙制數值）、輸出首象與四大旗標。</figcaption>
+  </figure>
+  <div class="keep">
+  <table class="tbl-compact">
+    <thead>
+      <tr><th style="width:13%;">運算</th><th style="width:9%;">符號</th><th style="width:20%;">太玄名</th><th style="width:58%;">語義</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><b>ADD</b></td><td class="mono">+</td><td>加法</td><td>四爻逐位加法器，進位上湧；產生溢出旗標</td></tr>
+      <tr><td><b>SUB</b></td><td class="mono">−</td><td>減法</td><td>整數差取 mod 81；若為負則加 81 回繞，並置溢出與進位</td></tr>
+      <tr><td><b>MIN</b></td><td class="mono">∧</td><td>降取（T-AND）</td><td>逐爻取小，三值版的「與」</td></tr>
+      <tr><td><b>MAX</b></td><td class="mono">∨</td><td>升取（T-OR）</td><td>逐爻取大，三值版的「或」</td></tr>
+      <tr><td><b>NEG</b></td><td class="mono">¬</td><td>倒反（T-NOT）</td><td>逐爻 2 − x 倒反（忽略 Y 輸入）</td></tr>
+      <tr><td><b>CYCLE</b></td><td class="mono">⟳</td><td>循變</td><td>逐爻 (x+1) mod 3，人→地→天循環一週</td></tr>
+      <tr><td><b>SHL</b></td><td class="mono">≪</td><td>左移（乘三）</td><td>整字左移一位、最低位補地；移出的原最低位即進位——三進制的「乘 3」</td></tr>
+      <tr><td><b>SHR</b></td><td class="mono">≫</td><td>右移（除三）</td><td>整字右移一位、最高位補地；移出的原最高位即進位——三進制的「除 3」</td></tr>
+      <tr><td><b>CMP</b></td><td class="mono">≶</td><td>比較</td><td>X&gt;Y 輸出全天 [2,2,2,2]；X=Y 全地 [1,1,1,1]（太和）；X&lt;Y 全人 [0,0,0,0]</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>
+    運算結果同時產生<b>四大狀態旗標</b>：<b>陽昇</b>（isHeaven，結果大於 40）、<b>地歸</b>（isZero，四爻皆地——標準值 40，恰為平衡制的零位）、<b>人伏</b>（isHuman，結果小於 40）與<b>溢出</b>（carry／overflow）。這四面旗子正是後續微機條件跳躍指令（JP／JN／JZ／JNZ）的判斷依據。階梯五提供三種視圖：D3 動態數據流向圖、81 首指令運算熱圖與傳統晶片引腳拓撲，可從不同抽象層次觀察同一個運算。
+  </p>
+
+  <!-- ============ 伍 ============ -->
+  <div class="sec-head">
+    <div class="sec-kicker">SECTION 05 · STAGE 6 · MEMORY &amp; TIMING</div>
+    <h2 class="sec-title"><span class="sec-num">伍</span>階梯六：記憶時序</h2>
+  </div>
+  <p class="lead">
+    對應課程 <b>03 時序邏輯</b>的前半：從組合邏輯跨入「有記憶的電路」。二進制以兩顆交叉耦合 NAND 構成雙穩態鎖存器；太玄版則以 <b>三顆交叉耦合 T-NAND</b> 構成「三穩態鎖存器」——三門環形反饋，恰好以三才鼎足之勢駐存天、地、人三種電位態，程式碼中的反饋式為：
+  </p>
+  <pre class="code">Q1 = <span class="op">T-NAND</span>(Q2, Set1);   <span class="cm">// 天位反饋</span>
+Q2 = <span class="op">T-NAND</span>(Q3, Set2);   <span class="cm">// 地位反饋</span>
+Q3 = <span class="op">T-NAND</span>(Q1, Set3);   <span class="cm">// 人位反饋</span></pre>
+  <p>
+    「天以三分，地以三策，人以三軌」——原典的宇宙論語句，在這裡成了一個具體的電路拓撲。三穩態單元是三值世界的基本記憶原子：只要不被打擾，它會永遠記住自己的那一爻。
+  </p>
+  <h3 class="sub">4-Trit 主寄存器與時鐘邊緣寫入</h3>
+  <p>
+    把四個三穩態單元並聯，就是能鎖存任一首（0–80）的 <b>4-Trit 主寄存器（累加器前身）</b>。階梯六的互動提供完整的寫入時序訓練：先用四個 TritSelector 準備「待寫入資料匯流排」，勾選 Write Enable 使能寫入，再按下「觸發時鐘上升沿」——資料只在時鐘邊緣被鎖進寄存器，介面同時計數時鐘週期（#clockTick）；「復位」按鈕則把寄存器清回全地狀態。反覆操作幾次，就能體會「使能 × 時鐘」這對組合如何隔離資料準備與資料寫入兩個階段，這是所有同步電路的根基。
+  </p>
+  <figure>
+    <img src="assets/06-ch6-memory.png" alt="三穩態鎖存器與寄存器">
+    <figcaption><b>圖 5-1</b>｜階梯六：三穩態鎖存器電路與 4-Trit 主寄存器——資料匯流排、Write Enable 與時鐘脈衝共同控制寫入。</figcaption>
+  </figure>
+  <p>
+    課程安排上，本章刻意止步於寄存器：大容量記憶體不在這裡鋪開，而是於階梯七以「81 字 ROM + 9×9 顯存」的映射形式登場，FPGA 章節再落實為 81×2-bit 雙端口 VRAM 硬體。這與原課程把 RAM 細分多個專案的節奏不同，但「先鎖存、後匯流、再記憶體」的認知階梯是一致的。
+  </p>
+
+  <!-- ============ 陸 ============ -->
+  <div class="sec-head">
+    <div class="sec-kicker">SECTION 06 · STAGE 7 · THE MICRO-MACHINE</div>
+    <h2 class="sec-title"><span class="sec-num">陸</span>階梯七：八十一首微機</h2>
+  </div>
+  <p class="lead">
+    對應課程 <b>05 計算機架構</b>。把前五階的成果——ALU、寄存器、顯存——總裝起來，就是「太玄八十一首微機」：一台字寬 4-Trit、記憶空間 81 首的完整計算機。它的 CPU 極簡而自洽：一個程式計數器 <span class="mono">pc</span>、一個 4-Trit 累加器 <span class="mono">acc</span>（初值 [1,1,1,1]，即第 40 首「中」位）與一個時鐘計數器。每個時鐘週期執行 <span class="mono">Acc = ALU(Acc, Immediate, opcode)</span>，程式計數器循環回繞，程式便永續運行。
+  </p>
+  <p>
+    章節內劃分為五個子視圖，構成一台完整機器的五個切面：
+  </p>
+  <ul class="tick">
+    <li><b>微機流水線主控台</b>——架構與資料通路總覽：程式計數器與譯碼器 → 4-Trit ALU 核心（Acc ⊛ Immediate）→ 四爻累加器 → 外設顯存與鍵盤 I/O。內建三支示範程式：太玄三進制斐波那契數列、八十一首歲時曆法巡曆、天地人三元平衡求解器，另有彙編燒錄的自訂程式。</li>
+    <li><b>卦象譜系瀏覽器</b>——81 首即記憶位址：點擊任意首，直接把該首載入記憶分佈與暫存器配置，把「資料」與「卦象」二合一的記憶體觀點可視化。</li>
+    <li><b>顯存與鍵盤終端</b>——9×9 顯存映射 @0x30–0x4E 共 81 個三值光點，鍵盤映射 @0x4F；附畫筆與橡皮，可手動繪製再交給程式處理。</li>
+    <li><b>符號彙編與 ROM 燒錄</b>——完整組合語言 IDE，下章專述。</li>
+    <li><b>終章巨獻・太玄三象方塊</b>——結業遊戲，見「捌」。</li>
+  </ul>
+  <p>
+    流水線主控台的核心是 <b>Trace Console</b> 執行日誌：機器每拍一行，完整吐出時鐘序號、PC、指令與運算後的首象，例如：
+  </p>
+  <pre class="code">[時鐘 #1] PC=0  | 指令: <span class="op">ADD</span> | 運算後首象: <span class="nm">【中】第1首 (冬至初日)</span>
+[時鐘 #2] PC=1  | 指令: <span class="op">SET</span> | 運算後首象: <span class="nm">【羨】第2首</span>  <span class="cm">// …</span></pre>
+  <p>
+    控制列提供「自動運行」（900ms 間隔）、「單步時鐘」與「復位」。初學者建議先單步走完一輪斐波那契，對照 Trace 逐行讀懂 Acc 的變化；熟悉後再切自動模式，觀察 81 首歲時曆如何以 mod 81 的方式巡曆一整個「玄年」。
+  </p>
+  <figure>
+    <img src="assets/07-ch7-micromachine.png" alt="八十一首微機流水線">
+    <figcaption><b>圖 6-1</b>｜階梯七：微機流水線主控台——ROM 逐條反白當前指令，四格資料通路圖與 Trace Console 同步更新。</figcaption>
+  </figure>
+  <figure>
+    <img src="assets/07d-ch7-vram.png" alt="顯存與鍵盤終端">
+    <figcaption><b>圖 6-2</b>｜顯存與鍵盤終端：9×9 三值光點矩陣即 81 字 VRAM，右側為鍵盤映射與外設位址。</figcaption>
+  </figure>
+
+  <!-- ============ 柒 ============ -->
+  <div class="sec-head">
+    <div class="sec-kicker">SECTION 07 · STAGE C · ASSEMBLER <span style="color:#9e2b25;">● 重點章節</span></div>
+    <h2 class="sec-title"><span class="sec-num">柒</span>太玄彙編器：從符號到機器碼</h2>
+  </div>
+  <p class="lead">
+    對應課程 <b>06 彙編編譯器</b>。「太玄符號彙編器與微機 ROM 燒錄台」（Stage C 專項工程）把人類可讀的組合語言翻譯成微機可執行的三值機器碼。它採用與經典兩遍掃描（Two-Pass）彙編器完全一致的架構：<b>第一遍</b>逐行掃描，建立符號表——記下每個標籤的位址，供前向引用回填；<b>第二遍</b>逐行編碼，把每條指令輸出為「首序號 + 運算碼 + 4-Trit 即時數」，同時附上十六進位碼與「地地地人」式的三值字串。編譯結果可匯出 <span class="mono">.txa</span> 檔，或直接按下「燒錄至微機 ROM」送進階梯七的流水線執行。
+  </p>
+  <h3 class="sub">語法五要素</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4><span class="dot"></span>定向與標籤</h4>
+      <p><span class="mono">.ORG 0x00</span> 設定起始位址；標籤寫作 <span class="mono">LABEL:</span> 或 <span class="mono">@LABEL:</span>，<b>支援中文標籤</b>（如 <span class="mono">震盪迴圈:</span>），正則允許中文字元直接作為符號名。</p>
+    </div>
+    <div class="card">
+      <h4><span class="dot"></span>五類操作數</h4>
+      <p>十進位 <span class="mono">#42</span>／<span class="mono">42</span>；十六進位 <span class="mono">0x2A</span>／<span class="mono">@0x4F</span>；三值字面 <span class="mono">%2101</span> 或直接寫「<b>天天地人</b>」（不足四位左補地）；標籤引用 <span class="mono">@LOOP</span>；以及 <b>81 首名直接當操作數</b>——<span class="mono">【中】</span> 即數值 40。</p>
+    </div>
+  </div>
+  <p>
+    註解以 <span class="mono">//</span> 或 <span class="mono">;</span> 起頭。ROM 總容量為 <b>81 字</b>——這不是隨意的限制，而是 4-Trit 位址空間的自然邊界；程式超出時彙編器會給出「地址溢出警告」。
+  </p>
+  <h3 class="sub">助記符 ↔ 首序對應：指令集即卦序</h3>
+  <p>
+    太玄機器碼最優雅的設計在於：<b>每條指令的運算碼本身就是一個首序號</b>。NOP 是首 1「中」，ADD 是首 2「羨」，HALT 是首 81「養」——指令集與 81 首卦序完全同構，22 條助記符各有別名（如 ADD / T_ADD），下表按功能分組：
+  </p>
+  <table class="tbl-compact">
+    <thead>
+      <tr><th style="width:24%;">助記符（別名）</th><th style="width:20%;">對應首</th><th style="width:56%;">功能</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><b>NOP</b></td><td class="nw">首 1 · 中</td><td>空操作，immediate 為全地 [1,1,1,1]</td></tr>
+      <tr><td><b>SET / MOV</b></td><td class="nw">首 3 · 睟</td><td>把即時數載入累加器</td></tr>
+      <tr><td><b>ADD</b></td><td class="nw">首 2 · 羨</td><td>Acc ← Acc + 即時數（mod 81 空間）</td></tr>
+      <tr><td><b>SUB</b></td><td class="nw">首 11 · 窮</td><td>Acc ← Acc − 即時數</td></tr>
+      <tr><td><b>MIN / AND / T_AND</b></td><td class="nw">首 30 · 密</td><td>逐爻降取（三值「與」）</td></tr>
+      <tr><td><b>MAX / OR / T_OR</b></td><td class="nw">首 28 · 裝</td><td>逐爻升取（三值「或」）</td></tr>
+      <tr><td><b>NOT / NEG / T_NOT</b></td><td class="nw">首 81 · 養</td><td>逐爻倒反</td></tr>
+      <tr><td><b>CYCLE / CYC</b></td><td class="nw">首 41 · 文</td><td>逐爻循變（+1 mod 3）</td></tr>
+      <tr><td><b>SHL</b></td><td class="nw">首 5 · 達</td><td>左移一位（乘三）</td></tr>
+      <tr><td><b>SHR</b></td><td class="nw">首 4 · 斂</td><td>右移一位（除三）</td></tr>
+      <tr><td><b>CMP</b></td><td class="nw">首 7 · 視</td><td>與即時數比較，置四大旗標</td></tr>
+      <tr><td><b>LOAD</b></td><td class="nw">首 17 · 進</td><td>自 RAM 位址載入累加器</td></tr>
+      <tr><td><b>STORE</b></td><td class="nw">首 16 · 守</td><td>把累加器存入 RAM 位址</td></tr>
+      <tr><td><b>IN.KBD / KBD.IN</b></td><td class="nw">首 49 · 減</td><td>讀入鍵盤掃描碼（位址 0x4F）</td></tr>
+      <tr><td><b>OUT.VRAM / VRAM.OUT</b></td><td class="nw">首 39 · 大</td><td>寫出顯存（基址 0x30）</td></tr>
+      <tr><td><b>OUT.PX x, y</b></td><td class="nw">首 40 · 廓</td><td>在 9×9 畫布 (x, y) 點亮一像素，位址 = 0x30 + (y mod 9)×9 + (x mod 9)</td></tr>
+      <tr><td><b>CLS.VRAM</b></td><td class="nw">首 18 · 釋</td><td>全屏清屏（鋪設地爻底色）</td></tr>
+      <tr><td><b>JMP / GOTO</b></td><td class="nw">首 25 · 更</td><td>無條件跳躍至標籤</td></tr>
+      <tr><td><b>JZ</b></td><td class="nw">首 55 · 止</td><td>地歸旗標（零）成立時跳躍</td></tr>
+      <tr><td><b>JNZ</b></td><td class="nw">首 56 · 堅</td><td>地歸旗標不成立時跳躍</td></tr>
+      <tr><td><b>JP</b></td><td class="nw">首 37 · 遇</td><td>陽昇（正值）時跳躍</td></tr>
+      <tr><td><b>JN</b></td><td class="nw">首 59 · 苦</td><td>人伏（負值）時跳躍</td></tr>
+      <tr><td><b>HALT</b></td><td class="nw">首 81 · 養</td><td>停機，immediate 為全人 [0,0,0,0]</td></tr>
+    </tbody>
+  </table>
+  <h3 class="sub">內建範例：九宮顯存初始化與太極畫點</h3>
+  <p>
+    彙編 IDE 預載的範例程式 <span class="mono">vram_clear_draw</span> 只有十餘行，卻完整示範了清屏、配色、定點繪製與停機的全部生命週期。注意 <span class="mono">SET #2</span> 之後 <span class="mono">OUT.PX</span> 便以當前累加器值為顏色——「天爻」畫出金光亮點、「人爻」畫出赤朱：
+  </p>
+  <pre class="code"><span class="cm">// 太玄顯存繪圖演示程式 (VRAM Demo)
+// 顯存映射空間：@0x30 ~ @0x4E (81 個三進制光點)</span>
+<span class="op">.ORG</span> 0x00
+<span class="lb">INIT:</span>
+  <span class="op">CLS.VRAM</span> #1         <span class="cm">// 1. 全屏清屏：鋪設「地爻」玄黑底色</span>
+  <span class="op">SET</span> #2              <span class="cm">// 2. 累加器載入純陽「天爻」(+1 / 金光)</span>
+  <span class="op">OUT.PX</span> 4, 4         <span class="cm">// 3. 在 9x9 畫面幾何中心 (4,4) 點亮太極中樞</span>
+
+<span class="lb">CORNER_TIAN:</span>
+  <span class="op">SET</span> #2              <span class="cm">// 4. 四角天位配置</span>
+  <span class="op">OUT.PX</span> 0, 0         <span class="cm">// 左上乾位</span>
+  <span class="op">OUT.PX</span> 8, 8         <span class="cm">// 右下坤位</span>
+
+<span class="lb">CORNER_REN:</span>
+  <span class="op">SET</span> #0              <span class="cm">// 5. 赤朱「人爻」(-1 / 赤朱)</span>
+  <span class="op">OUT.PX</span> 0, 8         <span class="cm">// 左下</span>
+  <span class="op">OUT.PX</span> 8, 0         <span class="cm">// 右上</span>
+
+<span class="lb">HALT:</span>
+  <span class="op">NOP</span>                 <span class="cm">// 程式運行完成，保持當前顯存狀態</span></pre>
+  <p>
+    另有四套內建範例可供逐套研讀：<b>鍵盤輪詢與光標實時移動</b>（IN.KBD 搭配 CMP／JZ 分支）、<b>太玄俄羅斯方塊引力內核</b>（CYCLE 與條件跳躍構成的重力迴圈）、<b>太玄四爻斐波那契演化</b>（mod 81 空間的遞推）與<b>天地人三才極性震盪器</b>（NOT／CYCLE 交替的永續震盪）。建議的練習路徑：先單步執行本例，再修改 <span class="mono">OUT.PX</span> 的座標畫出自己的圖案，最後燒錄進微機看它跑起來。
+  </p>
+  <figure>
+    <img src="assets/08-ch7-assembler.png" alt="太玄符號彙編器 IDE">
+    <figcaption><b>圖 7-1</b>｜太玄符號彙編器與微機 ROM 燒錄台：左欄組語編輯器（含快速代碼），右欄四頁籤——81 首機器碼、符號表、ISA 速查與統計。</figcaption>
+  </figure>
+
+  <!-- ============ 捌 ============ -->
+  <div class="sec-head">
+    <div class="sec-kicker">SECTION 08 · STAGE A · CAPSTONE TETRIS</div>
+    <h2 class="sec-title"><span class="sec-num">捌</span>終章：太玄三象方塊</h2>
+  </div>
+  <p class="lead">
+    對應課程 <b>09 高階語言應用</b>。原課程以物件導向語言 Jack 撰寫《俄羅斯方塊》作為結業應用；太玄版的答案是「太玄三象方塊」（Stage A）——一座 9×12 棋盤（頂部 3 列緩衝、下方 9 列恰為 9×9 = 81 個顯存格）上的完整方塊遊戲，由 8 種「卦象方塊」組成：太玄一字（I）、三才鼎足（T）、乾坤中土（O）、玄宮曲折（L）、玄序反曲（J）、陰陽互錯（S）、天象變微（Z）與三爻神微（Tri-Trit），各自帶 4-Trit 著色圖樣。
+  </p>
+  <p>
+    消行規則是本作最獨創的設計，把三進制的三值性直接寫進了計分：
+  </p>
+  <div class="card-grid">
+    <div class="card">
+      <h4><span class="dot"></span>① 全行填滿消行</h4>
+      <p>當 9 格顯存任意三值電位完全填滿時消除，基礎賦 100 分——這是所有方塊遊戲共通的底層規則。</p>
+    </div>
+    <div class="card">
+      <h4><span class="dot"></span>② 三才同契大消除</h4>
+      <p>被消除的行中若含相鄰的 {天, 地, 人} 三才組合，額外 +300 × level，並彈出「三才同契！天地人共融消除」的賀辭——鼓勵玩家刻意經營三色相鄰。</p>
+    </div>
+    <div class="card">
+      <h4><span class="dot"></span>③ 純一玄化暴擊</h4>
+      <p>整行同色（純天、純地或純人）消除時給予 3 倍暴擊——單一極性貫通整行，即「純一玄化」。</p>
+    </div>
+    <div class="card">
+      <h4><span class="dot"></span>重力天階與首象映射</h4>
+      <p>level = min(9, ⌊消行數/2⌋ + 1)，即「重力天階 第 N 天」；當前積分即時映射為首象 (score mod 81) + 1，分數本身就是一枚卦象。最高分存於瀏覽器 localStorage。</p>
+    </div>
+  </div>
+  <figure>
+    <img src="assets/09-ch7-tetris.png" alt="太玄三象方塊">
+    <figcaption><b>圖 8-1</b>｜Stage A 結業巨獻：太玄三象方塊——左側計分與重力天階、中央 9×12 棋盤、右側太玄三進制消除律規則面板。</figcaption>
+  </figure>
+  <p>
+    操作面：方向鍵或 WASD 移動與旋轉、空白鍵急墜、<span class="kbd">C</span> 存卦（暫存區）、<span class="kbd">P</span> 暫停。音效由 Web Audio 即時合成——移動用三角波、旋轉用正弦波，三才同契時奏出<b>宮商角徵羽五聲音階</b>的三才和弦（261.6 / 329.6 / 392 / 523.2 / 659.2 Hz）。介面右側同步展示 CPU 流水線即時遙測：PC（十六進）、IR（IN.KBD／SCAN_TRINITY 等指令名）與 ACC 四爻徽章，讓玩家看見「遊戲」之下那台微機的每一次心跳。
+  </p>
+  <p>
+    遊戲本身也附一份「TETRIS.TXA — 太玄虛擬機彙編程序核心」抽屜文件，展示遊戲迴圈的組織骨架：<span class="mono">MAIN_INIT → GAME_LOOP → PROCESS_INPUT → TICK_GRAVITY → LOCK_PIECE → SCAN_TRINITY</span>，其中可見 <span class="mono">IN.KBD</span>、<span class="mono">CALL CHECK_COLLIDE</span>、<span class="mono">SPAWN R_NEXT</span> 等擬似指令——它既是文件，也是給學生的改寫藍本：讀懂這六段，你就讀懂了一台三值遊戲機的靈魂。
+  </p>
+
+  <!-- ============ 玖 ============ -->
+  <div class="sec-head">
+    <div class="sec-kicker">SECTION 09 · STAGE 8 · ENGINEERING WORKBENCH</div>
+    <h2 class="sec-title"><span class="sec-num">玖</span>階梯八：工程工作台</h2>
+  </div>
+  <p class="lead">
+    真實的晶片設計從不只靠手感——原課程為每個專案配備了硬體模擬器與 .tst／.cmp 測試對照檔，太玄版則把它們擴充成一整層「互動工具與工程輔助工作台」，共十件工具，覆蓋設計、調試到驗證的完整鏈路：
+  </p>
+  <table>
+    <thead>
+      <tr><th style="width:30%;">工具</th><th style="width:70%;">功能</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><b>互動真值表生成器</b></td><td>點選 +1/0/−1 引腳，即時生成 T-NAND／T-AND／T-OR／T-NOR／T-NOT 真值表，可複製輸出。</td></tr>
+      <tr><td><b>三值時序分析儀</b></td><td>多通道三值波形示波器（時鐘、雙輸入與各閘輸出、和與進位），支援手動／掃掠／隨機輸入模式。</td></tr>
+      <tr><td><b>實時進制與爻象換算</b></td><td>十進位／二進位／標準三進制／平衡三進制／太玄爻象五路同步換算，並顯示對應首卦。</td></tr>
+      <tr><td><b>符號演化史（D3 樹）</b></td><td>從「元元本始・數理之源」到陰陽二進制再到太玄三進制的互動層級樹，節點附 HDL 代碼預覽。</td></tr>
+      <tr><td><b>81 首 ALU 指令集速查</b></td><td>全部 81 首的 trit 向量、衍生助記符（ADD.R／MAX.R／SYS.CYC 等）與 ALU 微操作語義對照，可即時試算。</td></tr>
+      <tr><td><b>動態時序模擬（D3）</b></td><td>時鐘脈衝、三穩態鎖存器、邊緣觸發 T-DFF、4-Trit 寄存器與 CPU 流水線四級（FETCH／DECODE／EXECUTE／WRITEBACK）的時序圖。</td></tr>
+      <tr><td><b>卦象邏輯優化器</b></td><td>對 12 種目標閘（T-NOT、T-CYCLE、T-CLAMP、T-AND、T-OR、T-NOR、T-IMPLY、T-CONSENSUS、T-MOD-SUM 等）自動做 T-NAND 網絡綜合與化簡，並生成 HDL。</td></tr>
+      <tr><td><b>TaiXuan HDL 仿真器</b></td><td>選定 TNand～TAlu4 晶片，內嵌 .thdl 原始碼並自動跑窮舉測試向量。</td></tr>
+      <tr><td><b>自動化單元測試台</b></td><td>HDL 測試腳本編輯器＋五種預設測試（golden81、stressBoundary、logicGates、faultInjection、customTest），執行 81-ISA 全量驗證與逐爻誤差診斷。</td></tr>
+      <tr><td><b>ALU 延遲與數據流監控</b></td><td>D3 熱點圖監控 4-Trit ALU 處理延遲與吞吐效率，繪製 81 首指令邏輯瓶頸。</td></tr>
+    </tbody>
+  </table>
+  <figure>
+    <img src="assets/10-ch8-workbench.png" alt="工程工作台">
+    <figcaption><b>圖 9-1</b>｜階梯八：工程輔助工作台——十件工具以頁籤並列，另有八十一首圖譜速查與太玄源流探微快捷入口。</figcaption>
+  </figure>
+  <h3 class="sub">驗證體系：從九態窮舉到 81-ISA 金標向量</h3>
+  <p>
+    頂部導覽的「測試驗證體系」彈窗是一鍵回歸測試：窮舉 T-NOT 全 3 態、T-AND 與 T-OR 各 9 態、半加器 9 態、全加器 27 態，以及 ALU 的 <b>150 組邊界向量</b>（6 個運算碼 × 5×5 輸入邊界組合），全數通過即撒彩帶。測試台更支援金標向量全量驗證（<span class="mono">VERIFY_ALL_81_ISA sequence=golden_vectors</span>）、逐爻誤差診斷（以方／州／部／家四層定位出錯爻位）與<b>故障注入</b>——在指定首序注入「部爻半加器延遲抖動」「進位旗標鎖存器反向導通」等示範性故障，訓練除錯直覺。一段真實的邊界壓力測試腳本長這樣：
+  </p>
+  <pre class="code"><span class="k">TEST_SUITE</span> ALU_Boundary_Overflow_Stress_Test
+<span class="k">TARGET_CHIP</span> ALU4
+
+<span class="cm">// Case 1: 全陽極值加法 (All Heaven)</span>
+<span class="op">EXEC</span> 1 X=[2,2,2,2] Y=[2,2,2,2] <span class="nm">OP=ADD</span> EXPECT=[1,2,2,2] CARRY=1
+<span class="cm">// Case 6: 乘三左移 (SHL)</span>
+<span class="op">EXEC</span> 6 X=[1,2,0,1] Y=[0,0,0,0] <span class="nm">OP=SHL</span> EXPECT=[2,0,1,1] CARRY=1</pre>
+  <figure>
+    <img src="assets/11-hdl-modal.png" alt="TaiXuan HDL 檢視器">
+    <figcaption><b>圖 9-2</b>｜TaiXuan HDL 檢視器：TNand 至 TAlu4 六枚晶片的原始碼，右側即為本章「參」所引的 TOr 德摩根實作。</figcaption>
+  </figure>
+
+  <!-- ============ 拾 ============ -->
+  <div class="sec-head">
+    <div class="sec-kicker">SECTION 10 · HARDWARE · DE2 FPGA</div>
+    <h2 class="sec-title"><span class="sec-num">拾</span>硬體落地：DE2 FPGA 燒錄</h2>
+  </div>
+  <p class="lead">
+    模擬器不止於瀏覽器。專案附帶一套完整的 <b>Altera DE2（Cyclone II EP2C35F672C6）</b>硬體燒錄套件——八個 Verilog 模組加一份 Quartus 引腳分配檔（.qsf），以 Quartus II 13.0 SP1 Web Edition 為目標工具鏈，資源估計約 1,500 個邏輯元件（約占該晶片 4.5%）、1 個 PLL 與 1 塊 M4K。換言之，這台三進制微機可以真正跑在矽上：
+  </p>
+  <table>
+    <thead>
+      <tr><th style="width:34%;">模組</th><th style="width:66%;">職責</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="mono"><b>de2_taixuan_top.v</b></td><td>頂層整合：50MHz 時鐘、按鍵消抖、雙端口 VRAM、Tetris 引擎、CPU、VGA 與儀表輸出。</td></tr>
+      <tr><td class="mono"><b>pll_25m.v</b></td><td>50MHz 翻轉除二得 25.0MHz VGA 像素時鐘（640×480 標準容差 &lt;0.7%）。</td></tr>
+      <tr><td class="mono"><b>taixuan_cpu.v</b></td><td>81 首三進制 CPU：4-Trit ACC（每爻 2-bit）、PC（0–80）、指令 8-bit 按「方州部家」解碼為首序；含 t_not／t_min／t_max／t_add1 硬體函式與九段首序解碼。</td></tr>
+      <tr><td class="mono"><b>taixuan_vram.v</b></td><td>81×2-bit 雙端口顯存：A 口供遊戲與 CPU 讀寫，B 口供 VGA 只讀掃描。</td></tr>
+      <tr><td class="mono"><b>tetris_logic.v</b></td><td>硬體方塊狀態機 S_SPAWN→S_ACTIVE→S_LOCK→S_CLEAR→S_OVER，約 2Hz 自動下落與記分。</td></tr>
+      <tr><td class="mono"><b>vga_sync_gen.v</b></td><td>640×480@60Hz 同步產生（行 800＝96+48+640+16；場 525＝2+33+480+10），負極性同步。</td></tr>
+      <tr><td class="mono"><b>vga_render_9x9.v</b></td><td>9×9 棋盤置中 324×324px、每格 36px；地＝玄墨、人＝翡翠、天＝金，經 ADV7123 三路 10-bit DAC 輸出。</td></tr>
+      <tr><td class="mono"><b>seg7_decoder.v</b></td><td>4-bit 十六進位至七段顯示器解碼（Active-Low）。</td></tr>
+    </tbody>
+  </table>
+  <p>
+    互動配置完整移植了軟體版體驗：<span class="kbd">KEY0</span> 旋轉、<span class="kbd">KEY1</span> 左移、<span class="kbd">KEY2</span> 右移、<span class="kbd">KEY3</span> 急降（兩級同步加下降沿消抖）；<span class="kbd">SW0</span> 復位、<span class="kbd">SW1</span> 切換單步或自動執行、<span class="kbd">SW17</span> 切換「方塊模式／CPU 寫入模式」並以 <span class="kbd">SW9:2</span> 手動注入指令。儀表方面，七段顯示器 HEX1-0 顯示首序、HEX3-2 顯示消行數、HEX7-4 顯示得分，LED 燈組分別呈現程式計數器、累加器與狀態旗標——整台機器的內臟全部外露可觀察。
+  </p>
+  <div class="callout">
+    <b>燒錄五步：</b>① 在 Quartus II 建立工程（指定 Cyclone II EP2C35F672C6）→ ② 加入 8 個 Verilog 檔 → ③ 匯入 <span class="mono">de2_taixuan.qsf</span> 引腳分配 → ④ Compile Design → ⑤ Program Device。若無實體 DE2 開發板，也可在 Quartus 內建仿真器中驗證 RTL 行為。
+  </div>
+  <div class="callout">
+    <b>工程差異備註：</b>FPGA 端 trit 編碼採 2'b00＝地、2'b01＝人、2'b10＝天，與 Web 端（0＝人、1＝地、2＝天）的語義順序不同。這是跨層移植時的約定差異，閱讀 Verilog 原始碼並與前端對照時務必留意，避免「同碼不同義」的誤判。
+  </div>
+  <figure>
+    <img src="assets/13-fpga-modal.png" alt="DE2 FPGA 燒錄庫">
+    <figcaption><b>圖 10-1</b>｜DE2 FPGA 燒錄庫彈窗：八個 Verilog 模組與 QSF 引腳分配一覽，即貼即燒。</figcaption>
+  </figure>
+
+  <!-- ============ 拾壹 ============ -->
+  <div class="sec-head">
+    <div class="sec-kicker">SECTION 11 · LEARNING PATH &amp; CHECKLIST</div>
+    <h2 class="sec-title"><span class="sec-num">拾壹</span>建議學習路徑與自我檢核</h2>
+  </div>
+  <p class="lead">
+    最後給出一條可執行的學習路徑。它把八大階梯分為三段，每段都以上一段的產出為輸入；每階末尾的自我檢核通過後再進入下一階，比「讀完再練」紮實得多。
+  </p>
+  <figure>
+    <img src="assets/12-culture-modal.png" alt="太玄源流文化彈窗">
+    <figcaption><b>圖 11-1</b>｜太玄探微：揚雄《太玄經》與三進制計算科學——萊布尼茨、高德納與 Setun 的三段源流。</figcaption>
+  </figure>
+  <div class="card">
+    <h4><span class="dot"></span>初階 · 階梯一至三（元始門 → 選擇與特徵）</h4>
+    <p>目標：建立三值直覺，掌握完備性思想。搭配工具：互動真值表生成器、HDL 仿真器。</p>
+    <ul class="check">
+      <li>能徒手寫出 T-NAND 的 3×3 九態真值表，並用一句話解釋「為何任一端為人輸出必為天」。</li>
+      <li>能說出 T-NOT／T-AND／T-OR／T-NOR 各需幾顆 T-NAND，並推導太玄德摩根律。</li>
+      <li>在模擬器中切換三種顯示模式，確認同一訊號在「天 / +1 / 2」三制下的對應關係。</li>
+      <li>在 HDL 仿真器中跑通 TOr 的窮舉測試，讀懂每一行 PARTS 佈線。</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4><span class="dot"></span>中階 · 階梯四至六（算術 → 記憶時序）</h4>
+    <p>目標：從組合邏輯跨入時序邏輯，建立「逢三進一」的算術手感。搭配工具：三值時序分析儀、動態時序模擬。</p>
+    <ul class="check">
+      <li>手算 2+1 = 10₃ 與 2+2+2 = 20₃，指出和與進位各是哪一爻。</li>
+      <li>用四爻加法器計算 40+40，觀察溢出旗標；解釋 SHL 為何等價於乘三。</li>
+      <li>在 ALU 中逐一試九個運算碼，記錄每個運算的旗標變化。</li>
+      <li>用「Write Enable × 時鐘上升沿」把一個首象寫入寄存器，並說明兩者缺一不可的原因。</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4><span class="dot"></span>高階 · 階梯七至八（微機 → 工作台）＋ FPGA</h4>
+    <p>目標：讀懂一台完整的機器，並動手改寫它的程式。搭配工具：彙編 IDE、單元測試台、ALU 延遲熱點圖。</p>
+    <ul class="check">
+      <li>單步跑完斐波那契程式，對照 Trace Console 說出每拍 Acc 與首象的變化。</li>
+      <li>修改「九宮顯存初始化與太極畫點」，畫出自己的圖案並燒錄至 ROM 執行。</li>
+      <li>讀懂 TETRIS.TXA 的六段遊戲迴圈骨架，指出三才同契判定發生在哪一段。</li>
+      <li>在測試台注入一個故障（faultInjection），用逐爻診斷報告定位出錯爻位。</li>
+      <li>（選做）在 DE2 上完成五步燒錄，用 SW17 切換 CPU 寫入模式並以 SW9:2 注入指令。</li>
+    </ul>
+  </div>
+  <p>
+    學習之餘，別錯過頂部導覽的「<b>太玄源流</b>」文化彈窗：它以三節內容鋪陳本專案的學術底蘊——二進制《易經》與三進制《太玄經》的對照、高德納對平衡三進制的數學讚辭、以及蘇聯 Setun 計算機與 T-NAND 完備性的工程實踐。技術與人文在同一座階梯上交會，正是這套模擬器最迷人的地方。
+  </p>
+
+</div>
+
+<!-- ================= ENDING ================= -->
+<div class="ending">
+  <div class="ending-bg"><div class="glyph">𝌆</div></div>
+  <div class="ending-content">
+    <div class="ending-mark">玄</div>
+    <div class="ending-title">自一門始，至萬象成</div>
+    <div class="ending-sub">夫玄也，幽攡萬類而不見形者也</div>
+    <div class="ending-text">
+      從一枚 T-NAND 到一座會發光的九宮棋盤，本專案證明了一件事：記數法的選擇從來不只是工程細節，而是一種世界觀。當「天、地、人」成為電位，「八十一首」成為記憶位址，數字邏輯便有了文化的體溫——而《太玄經》的古典宇宙論，也獲得了一次可執行、可驗證、可遊玩的現代詮釋。
+    </div>
+    <div class="stat-row" style="margin-top:30px;">
+      <div class="stat"><div class="n">8</div><div class="l">大學習階梯</div></div>
+      <div class="stat"><div class="n">81</div><div class="l">首卦象空間</div></div>
+      <div class="stat"><div class="n">4</div><div class="l">Trit 機器字寬</div></div>
+      <div class="stat"><div class="n">9</div><div class="l">ALU 運算碼</div></div>
+      <div class="stat"><div class="n">10</div><div class="l">工程工具</div></div>
+      <div class="stat"><div class="n">8</div><div class="l">Verilog 模組</div></div>
+    </div>
+    <div style="margin-top:34px; font-size:10.5px; color:#857c6d; letter-spacing:1.5px; line-height:1.9;">
+      西漢 · 揚雄《太玄經》三進制計算科學體系 · NAND TO TETRIS 模塊化模擬器<br>
+      TAI XUAN TERNARY COMPUTING GUIDE · FIRST EDITION · NOVEMBER 2026
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
